@@ -1,0 +1,240 @@
+/**
+ * Pure combat formulas. Every number comes from GameConfig; these functions only combine them.
+ */
+import { clamp } from '../../core/math.ts';
+import { EFFECTS } from '../../data/effects.ts';
+import { TRAITS } from '../../data/traits.ts';
+import type { GameConfig } from '../../data/config/index.ts';
+import type { AbilityDef, DamageElement, EffectMods, ElementId, TraitCombatEffects } from '../../data/schema.ts';
+import type { TeamOrders } from '../model.ts';
+import type { AttackKind, Combatant } from './types.ts';
+
+export function attackKind(ability: AbilityDef): AttackKind {
+  if (ability.kind === 'melee') return 'melee';
+  if (ability.kind === 'ranged') return 'ranged';
+  return 'spell';
+}
+
+export function resolveElement(element: DamageElement, user: Combatant): ElementId | 'physical' {
+  if (element === 'innate') return user.elements[0] ?? 'physical';
+  return element;
+}
+
+export function elementMultiplier(attack: ElementId | 'physical', defender: readonly ElementId[], cfg: GameConfig): number {
+  if (attack === 'physical') return 1;
+  const e = cfg.elements;
+  let mult = 1;
+  for (const d of defender) {
+    if (e.strong[attack].includes(d)) mult *= e.strongMult;
+    else if (e.weak[attack].includes(d)) mult *= e.weakMult;
+  }
+  return clamp(mult, e.minMult, e.maxMult);
+}
+
+/** Sum of a numeric field over a combatant's traits. */
+export function traitSum(c: Combatant, key: keyof TraitCombatEffects): number {
+  let s = 0;
+  for (const t of c.traits) {
+    const v = TRAITS[t]?.combat?.[key];
+    if (typeof v === 'number') s += v;
+  }
+  return s;
+}
+
+/** Product of a multiplier field over a combatant's traits (default 1). */
+export function traitMult(c: Combatant, key: keyof TraitCombatEffects): number {
+  let m = 1;
+  for (const t of c.traits) {
+    const v = TRAITS[t]?.combat?.[key];
+    if (typeof v === 'number') m *= v;
+  }
+  return m;
+}
+
+export function hasTraitFlag(c: Combatant, key: keyof TraitCombatEffects): boolean {
+  return c.traits.some((t) => Boolean(TRAITS[t]?.combat?.[key]));
+}
+
+/** Sum (additive mods) or product (multiplier mods) of active effect modifiers. */
+export function effectMod(c: Combatant, key: keyof EffectMods): number {
+  const multiplicative = key === 'damageMult' || key === 'initiativeMult';
+  let v = multiplicative ? 1 : 0;
+  for (const e of c.effects) {
+    const m = EFFECTS[e.id]?.mods?.[key];
+    if (m === undefined) continue;
+    v = multiplicative ? v * m : v + m;
+  }
+  return v;
+}
+
+export function hasEffect(c: Combatant, id: string): boolean {
+  return c.effects.some((e) => e.id === id);
+}
+
+export function staminaFraction(c: Combatant): number {
+  return c.maxStamina ? c.stamina / c.maxStamina : 0;
+}
+
+export function hpFraction(c: Combatant): number {
+  return c.maxHp ? c.hp / c.maxHp : 0;
+}
+
+/** 0 when fresh, up to maxPenalty when spent. */
+export function fatiguePenalty(c: Combatant, cfg: GameConfig): number {
+  const f = cfg.combat.fatigue;
+  const ratio = staminaFraction(c);
+  if (ratio >= f.threshold) return 0;
+  return (f.maxPenalty * (f.threshold - ratio)) / f.threshold;
+}
+
+/** Morale performance multiplier around 1. */
+export function moraleFactor(c: Combatant, cfg: GameConfig): number {
+  return 1 + (cfg.combat.morale.performanceSwing * (c.morale - 50)) / 50;
+}
+
+export function initiative(c: Combatant, noise: number, cfg: GameConfig): number {
+  const i = cfg.combat.initiative;
+  const base = c.attrs.speed * i.perSpeed + c.attrs.anticipation * i.perAnticipation + i.sizeMod[c.size] + noise;
+  return base * effectMod(c, 'initiativeMult') * (1 - fatiguePenalty(c, cfg));
+}
+
+export function attackSkill(c: Combatant, kind: AttackKind): number {
+  const a = c.attrs;
+  if (kind === 'melee') return a.attack * 0.7 + a.technique * 0.3;
+  if (kind === 'ranged') return a.accuracy * 0.7 + a.technique * 0.3;
+  return a.focus * 0.7 + a.magic * 0.3;
+}
+
+export function defenseSkill(c: Combatant, kind: AttackKind): number {
+  const a = c.attrs;
+  if (kind === 'melee') return a.defense * 0.6 + a.agility * 0.4;
+  if (kind === 'ranged') return a.agility * 0.7 + a.anticipation * 0.3;
+  return a.focus * 0.5 + a.anticipation * 0.5;
+}
+
+export interface HitContext {
+  flank: boolean;
+  combo: boolean;
+  orders: TeamOrders;
+}
+
+export function hitChance(
+  attacker: Combatant,
+  defender: Combatant,
+  ability: AbilityDef,
+  ctx: HitContext,
+  cfg: GameConfig,
+): number {
+  const h = cfg.combat.hit;
+  const kind = attackKind(ability);
+  let p = h.base + (attackSkill(attacker, kind) - defenseSkill(defender, kind)) * h.perPoint;
+  p += h.sizeMod[defender.size];
+  p += ability.accuracyMod ?? 0;
+  if (kind === 'spell') p += h.spellBonus;
+  if (ctx.flank) p -= h.flankPenalty;
+  if (ctx.combo) p += attacker.attrs.teamwork * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
+  p += effectMod(attacker, 'hitBonus') - effectMod(defender, 'dodgeBonus');
+  if (ctx.orders.risk === 'high') p += cfg.combat.orders.riskHigh.hitBonus;
+  if (ctx.orders.risk === 'low') p += cfg.combat.orders.riskLow.hitBonus;
+  p -= fatiguePenalty(attacker, cfg);
+  p *= moraleFactor(attacker, cfg);
+  return clamp(p, h.min, h.max);
+}
+
+export function critChance(attacker: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {
+  const d = cfg.combat.damage;
+  let p = d.critBase + attacker.attrs.technique * d.critPerTechnique + attacker.attrs.composure * d.critPerComposure;
+  p += (ability.critMod ?? 0) + traitSum(attacker, 'critBonus') + effectMod(attacker, 'critBonus');
+  if (orders.risk === 'high') p += cfg.combat.orders.riskHigh.critBonus;
+  if (orders.risk === 'low') p += cfg.combat.orders.riskLow.critBonus;
+  return clamp(p, 0, 0.5);
+}
+
+/** Stat driving damage for an ability. */
+export function powerStat(c: Combatant, kind: AttackKind): number {
+  const a = c.attrs;
+  if (kind === 'melee') return a.strength;
+  if (kind === 'ranged') return (a.accuracy + a.technique) / 2;
+  return a.magic;
+}
+
+export interface DamageContext {
+  orders: TeamOrders;
+  /** Fraction (0–1) by which the attacker's team trails on health. */
+  behind: number;
+  solo: boolean;
+}
+
+/** Damage before variance, crits and mitigation. */
+export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageContext, cfg: GameConfig): number {
+  const d = cfg.combat.damage;
+  const kind = attackKind(ability);
+  let dmg = ability.power * (d.statBase + powerStat(attacker, kind) * d.statPerPoint);
+  if (kind !== 'spell') dmg *= 1 + attacker.attrs.aggression * d.aggressionPerPoint;
+  dmg *= effectMod(attacker, 'damageMult');
+  dmg *= traitMult(attacker, 'damageMult');
+  dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
+  if (attacker.stance === 'allOut') dmg *= 1.08;
+  if (ctx.solo) dmg *= traitMult(attacker, 'soloDamageMult');
+  dmg *= 1 - fatiguePenalty(attacker, cfg);
+  dmg *= moraleFactor(attacker, cfg);
+  if (ctx.behind > 0) dmg *= 1 + d.determinationMax * (attacker.attrs.determination / 20) * Math.min(1, ctx.behind * 2);
+  if (hpFraction(attacker) < d.lowHpThreshold) dmg *= 1 - d.lowHpPenalty * (1 - attacker.attrs.composure / 20);
+  return dmg;
+}
+
+export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOrders, cfg: GameConfig): number {
+  const d = cfg.combat.damage;
+  const a = defender.attrs;
+  let m: number;
+  if (kind === 'spell') {
+    m = ((a.focus + a.courage) / 2) * d.spellMitigationPerPoint;
+  } else {
+    m = a.toughness * d.physMitigationPerToughness + d.sizeArmor[defender.size] - a.aggression * d.aggressionMitigationPenalty;
+  }
+  m += effectMod(defender, 'mitigation');
+  m += cfg.combat.orders[orders.aggression].mitigation;
+  if (defender.guarding) m += cfg.combat.guard.guardMitigation;
+  return clamp(m, d.minMitigation, d.maxMitigation);
+}
+
+export function healAmount(healer: Combatant, ability: AbilityDef, cfg: GameConfig): number {
+  const h = cfg.combat.heal;
+  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg);
+}
+
+export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {
+  let cost = ability.staminaCost * cfg.combat.stamina.sizeCostMult[c.size];
+  cost *= cfg.combat.orders[orders.aggression].staminaCostMult;
+  if (c.stance === 'allOut') cost *= 1.15;
+  if (c.stance === 'conserve') cost *= 0.9;
+  return Math.round(cost);
+}
+
+export function staminaRegen(c: Combatant, cfg: GameConfig): number {
+  const s = cfg.combat.stamina;
+  return s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina;
+}
+
+export function interceptChance(guard: Combatant, cfg: GameConfig): number {
+  const g = cfg.combat.guard;
+  const base = guard.guarding ? g.activeBase : g.passiveBase;
+  const p = base + guard.attrs.anticipation * g.perAnticipation + guard.attrs.teamwork * g.perTeamwork + traitSum(guard, 'interceptBonus');
+  return clamp(p * (1 - fatiguePenalty(guard, cfg)), 0, g.max);
+}
+
+/** Chance to ignore the manager's orders this turn. */
+export function disobeyChance(c: Combatant, cfg: GameConfig): number {
+  const o = cfg.combat.orders;
+  const base = o.disobeyBase * Math.pow(1 - c.attrs.discipline / 20, o.disobeyExponent);
+  return clamp(base * traitMult(c, 'disobeyMult'), 0, 0.9);
+}
+
+/** Morale change after courage / traits. */
+export function scaledMoraleDelta(c: Combatant, delta: number, cfg: GameConfig): number {
+  if (delta < 0) {
+    const courage = 1 - c.attrs.courage * cfg.combat.morale.courageReductionPerPoint;
+    return delta * Math.max(0.2, courage) * traitMult(c, 'moraleLossMult');
+  }
+  return delta * traitMult(c, 'moraleGainMult');
+}
