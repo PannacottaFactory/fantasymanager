@@ -81,7 +81,7 @@ export function TutorialOverlay({ active }: { active: boolean }) {
       <div className="tutorial-bubble" style={{ ...bubbleStyle(rect, placement), width: BUBBLE_W }}>
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <b className="grow">{t(`tut.${step.id}.title` as StringKey)}</b>
-          <span className="faint mono" style={{ fontSize: 11 }}>
+          <span className="faint mono" style={{ fontSize: '0.786rem' }}>
             {index}/{STEPS.length}
           </span>
         </div>

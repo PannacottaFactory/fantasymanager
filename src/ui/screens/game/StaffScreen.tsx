@@ -53,7 +53,7 @@ export function StaffScreen() {
         const f = DEFAULT_CONFIG.training.coaches.base + c.quality * DEFAULT_CONFIG.training.coaches.perQuality;
         const better = !cur || c.quality > cur.quality;
         return (
-          <span className={better ? 'good-text' : 'faint'} style={{ fontSize: 12 }}>
+          <span className={better ? 'good-text' : 'faint'} style={{ fontSize: '0.857rem' }}>
             {t('staff.effect', { f: tr.dec(f, 2) })}
             {cur ? ` · ${t('staff.replace', { name: cur.name })}` : ''}
           </span>
@@ -102,7 +102,7 @@ export function StaffScreen() {
                     <span className="row" style={{ gap: 6 }}>
                       <Stars value={Math.max(0.5, Math.round(c.quality / 2) / 2)} /> <span className="faint">{c.quality}/20</span>
                     </span>
-                    <span className="faint" style={{ fontSize: 12 }}>
+                    <span className="faint" style={{ fontSize: '0.857rem' }}>
                       {t('staff.effect', { f: tr.dec(coachFactor(game, game.playerTeamId, d), 2) })} · {t('common.perWeek', { v: money(c.wage) })}
                     </span>
                     <button className="btn small ghost" style={{ alignSelf: 'start' }} onClick={() => update((g) => fireCoach(g, d))}>

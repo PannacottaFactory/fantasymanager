@@ -161,7 +161,7 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
           {c.state === 'withdrawn' && <span className="tag">{t('tag.off')}</span>}
           {c.state === 'bench' && <span className="tag">{t('tag.bench')}</span>}
           <span className="spacer" />
-          <span className="faint" style={{ fontSize: 11 }}>
+          <span className="faint" style={{ fontSize: '0.786rem' }}>
             {speciesName(r.speciesId, lang)}
           </span>
         </div>
@@ -213,7 +213,7 @@ export function Scoreboard({ side, name, roster, view, fx, focus, onSelect }: Pr
       <div className="panel-head" style={{ marginBottom: 6 }}>
         <h3 className={side === 0 ? 'home-text' : 'away-text'}>{name}</h3>
         <span className="spacer" />
-        <span className="muted" style={{ fontSize: 12 }}>
+        <span className="muted" style={{ fontSize: '0.857rem' }}>
           {t('board.standing', { n: standing, u: view.subsUsed[side], m: DEFAULT_CONFIG.match.maxSubstitutions })}
         </span>
       </div>

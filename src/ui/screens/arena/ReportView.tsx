@@ -34,7 +34,7 @@ function MomentumChart({ momentum, breaks }: { momentum: number[]; breaks: reado
           );
         })}
       </svg>
-      <div className="row muted" style={{ fontSize: 11 }}>
+      <div className="row muted" style={{ fontSize: '0.786rem' }}>
         <span>{t('momentum.first')}</span>
         <span className="spacer" />
         <span>{t('momentum.legend')}</span>
@@ -164,7 +164,7 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
           <span className={`result-badge ${report.won ? 'win' : 'loss'}`}>{report.won ? t('report.victory') : t('report.defeat')}</span>
           <div className="grow">
             <h2>{report.headline}</h2>
-            <div className="muted" style={{ fontSize: 13 }}>
+            <div className="muted" style={{ fontSize: '0.929rem' }}>
               {o.method === 'ko' ? t('report.knockout') : t('report.decision')} · {t('report.rounds', { n: o.rounds })} · {t('report.judges')}{' '}
               <b className="home-text">{o.score[0]}</b>–<b className="away-text">{o.score[1]}</b> · {t('report.seed')} <span className="mono">{result.seed}</span>
             </div>
@@ -221,7 +221,7 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
           <div className="feed" style={{ maxHeight: 420, marginTop: 8 }}>
             {log.map((l, i) => (
               <div key={i} className={`line i${l.importance} ${l.side === null ? '' : `s${l.side}`}`}>
-                <span className="faint mono" style={{ fontSize: 11 }}>
+                <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                   R{l.round}{' '}
                 </span>
                 {l.text}

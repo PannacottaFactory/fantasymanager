@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { LANGS } from '../core/i18n.ts';
 import { cupDue, lastMatchday, seasonOver } from '../engine/league/season.ts';
-import { THEMES, useSettings, useT } from './i18n/index.ts';
+import { TEXT_SCALE, TEXT_SIZES, THEMES, useSettings, useT } from './i18n/index.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
 import { ReportView } from './screens/arena/ReportView.tsx';
 import { InboxScreen } from './screens/game/InboxScreen.tsx';
@@ -59,7 +59,7 @@ function ContinueButton() {
 
 export function App() {
   const { t } = useT();
-  const { lang, theme, setLang, setTheme } = useSettings();
+  const { lang, theme, textSize, setLang, setTheme, setTextSize } = useSettings();
   const { ready, game, screen, viewing, saveError } = useGame();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
@@ -68,6 +68,9 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+  useEffect(() => {
+    document.documentElement.style.setProperty('--text-scale', String(TEXT_SCALE[textSize]));
+  }, [textSize]);
   useEffect(() => {
     document.documentElement.lang = lang;
     document.title = t('app.title');
@@ -134,6 +137,16 @@ export function App() {
             </button>
           ))}
         </div>
+        <button
+          className="btn small ghost text-size-btn"
+          title={`${t('text.size')} : ${t(`text.${textSize}`)}`}
+          aria-label={t('text.size')}
+          onClick={() => setTextSize(TEXT_SIZES[(TEXT_SIZES.indexOf(textSize) + 1) % TEXT_SIZES.length]!)}
+        >
+          <span style={{ fontSize: '0.8em' }}>A</span>
+          <span style={{ fontSize: '1.15em' }}>A</span>
+          <i className={`size-dots s-${textSize}`} aria-hidden="true" />
+        </button>
         <button className={`btn small ghost help-btn ${screen === 'help' ? 'active' : ''}`} data-tip="help-btn" title={t('help.btn')} aria-label={t('help.btn')} onClick={() => setScreen('help')}>
           ?
         </button>

@@ -1,4 +1,5 @@
-import { useT } from '../i18n/index.ts';
+import { TEXT_SIZES, useSettings, useT, type TextSize } from '../i18n/index.ts';
+import { Seg } from '../components/common.tsx';
 import type { StringKey } from '../i18n/strings.ts';
 import { useTutorial } from '../tutorial/tutorial.ts';
 
@@ -20,6 +21,7 @@ const ICON: Record<(typeof SECTIONS)[number], string> = {
 export function HelpScreen() {
   const { t } = useT();
   const { enabled, restart, setEnabled } = useTutorial();
+  const { textSize, setTextSize } = useSettings();
   return (
     <div className="stack narrow">
       <section className="panel">
@@ -29,10 +31,11 @@ export function HelpScreen() {
           <button className="btn small primary" onClick={restart}>
             {t('help.restart')}
           </button>
-          <label className="row" style={{ fontSize: 13, gap: 6 }}>
+          <label className="row" style={{ fontSize: '0.929rem', gap: 6 }}>
             <input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
             {t('help.tips')}
           </label>
+          <Seg<TextSize> value={textSize} onChange={setTextSize} options={TEXT_SIZES.map((s) => ({ value: s, label: t(`text.${s}`) }))} />
         </div>
         <p className="muted" style={{ marginTop: 0 }}>
           {t('help.intro')}

@@ -53,7 +53,7 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
               </button>
             </span>
           </label>
-          <label className="row" style={{ gap: 6, fontSize: 13 }}>
+          <label className="row" style={{ gap: 6, fontSize: '0.929rem' }}>
             <input type="checkbox" checked={tips} onChange={(e) => setTips(e.target.checked)} />
             {t('start.tutorial')}
           </label>
@@ -66,7 +66,7 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
             </button>
           )}
         </div>
-        <p className="muted" style={{ marginTop: 18, fontSize: 13 }}>
+        <p className="muted" style={{ marginTop: 18, fontSize: '0.929rem' }}>
           <button className="link" onClick={() => setScreen('arena')}>
             {t('start.arena')}
           </button>

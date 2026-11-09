@@ -15,7 +15,7 @@ export function SetupView() {
         <div className="matchbar">
           <div>
             <h2>{t('arena.title')}</h2>
-            <div className="muted" style={{ fontSize: 12 }}>
+            <div className="muted" style={{ fontSize: '0.857rem' }}>
               {t('arena.hint')}
             </div>
           </div>
@@ -29,7 +29,7 @@ export function SetupView() {
               </button>
             </span>
           </label>
-          <label className="row" style={{ fontSize: 13 }}>
+          <label className="row" style={{ fontSize: '0.929rem' }}>
             <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
             {t('arena.manageBreaks')}
           </label>

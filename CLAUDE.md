@@ -70,6 +70,8 @@ tests/       Vitest
   recent ones avoided. Tests fail on any unfilled `{placeholder}`.
 - UI: three themes — night (black, default), dark (brown) and parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed).
+- **Text size**: every font size is in `rem` (base 14 px × `--text-scale`); the viewer picks normal / large (default,
+  ×1.15) / extra-large (×1.3) with the « Aa » button. Never write font sizes in px (CSS) or numbers (inline styles).
 - **i18n**: engine text functions take a `lang` (`Commentator(…, cfg, lang)`, `buildReport(…, cfg, lang)`,
   `generateTeam({ lang })`); the language never changes RNG draws or results (tested). French templates must not
   write `de {x}` / `à {x}` / `que {x}` before a creature (elision), use `{aE}/{tE}/{oE}` for gender agreement;

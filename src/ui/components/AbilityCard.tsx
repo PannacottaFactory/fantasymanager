@@ -39,7 +39,7 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite }
         </span>
         <b className="grow">{txt.name}</b>
         {locked ? (
-          <span className="faint" style={{ fontSize: 11 }}>
+          <span className="faint" style={{ fontSize: '0.786rem' }}>
             {t('cr.locked')}
           </span>
         ) : (

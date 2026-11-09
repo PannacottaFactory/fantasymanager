@@ -169,7 +169,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
               <span style={{ width: 46 }}>
                 <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />
               </span>
-              <span className="mono faint" style={{ fontSize: 11 }}>
+              <span className="mono faint" style={{ fontSize: '0.786rem' }}>
                 {c.condition.fatigue}
               </span>
             </span>
@@ -274,7 +274,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         <span data-tip={league ? 'orders' : undefined} className="row wrap" style={{ gap: 14, alignItems: 'flex-end' }}>
           <OrdersFields team={team} onChange={onChange} />
         </span>
-        <span className="muted" style={{ fontSize: 12, alignSelf: 'end' }}>
+        <span className="muted" style={{ fontSize: '0.857rem', alignSelf: 'end' }}>
           {t('tactics.count', { s: team.tactic.lineup.length, smax: m.starters, b: team.tactic.bench.length, bmax: m.benchSize })}
         </span>
         {issues.length > 0 && (

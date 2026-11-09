@@ -82,12 +82,12 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
             <h2>
               <span className="home-text">{mine.name}</span> <span className="muted">{t('common.vs')}</span> <span className="away-text">{opp.name}</span>
             </h2>
-            <div className="muted" style={{ fontSize: 12 }}>
+            <div className="muted" style={{ fontSize: '0.857rem' }}>
               {home ? t('common.home') : t('common.away')} · {t('league.division', { n: divisionOf(game, opp.id) + 1 })} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
             </div>
           </div>
           <span className="spacer" />
-          <label className="row" style={{ fontSize: 13 }}>
+          <label className="row" style={{ fontSize: '0.929rem' }}>
             <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
             {t('match.manageBreaks')}
           </label>
@@ -146,7 +146,7 @@ function DayResults({ game, matchday, fixtureId }: { game: GameState; matchday: 
                   {r.score[0]} – {r.score[1]}
                 </td>
                 <td className={r.winner === 1 ? 'winner' : 'loser'}>{teamById(game, f.away).name}</td>
-                <td className="faint" style={{ fontSize: 12 }}>
+                <td className="faint" style={{ fontSize: '0.857rem' }}>
                   {r.method === 'ko' ? t('league.koRound', { n: r.rounds }) : t('league.pts')}
                 </td>
               </tr>

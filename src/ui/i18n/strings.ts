@@ -702,6 +702,10 @@ export const en = {
   'help.competitions.body': 'Two divisions of 10, home and away (18 matchdays): 2 up, 2 down. Division 1 pays more.\nThe Shadow Cup gathers every stable, one match per tie, in midweek — a long week for tired squads.',
   'help.club.title': 'The club',
   'help.club.body': 'Staff: three coaches (physical, combat, mental). Facilities: training ground, infirmary, stands and nursery, each up to level 3.\nThe board judges your season against its objective — no sacking, but a bonus when you meet it.',
+  'text.size': 'Text size',
+  'text.normal': 'Normal text',
+  'text.large': 'Large text',
+  'text.xlarge': 'Extra-large text',
 } as const;
 
 export type StringKey = keyof typeof en;
@@ -1394,4 +1398,8 @@ export const fr: Record<StringKey, string> = {
   'help.competitions.body': 'Deux divisions de 10, en aller-retour (18 journées) : 2 montées, 2 descentes. La division 1 rapporte plus.\nLa Coupe de l’Ombre réunit toutes les écuries, un match par tour, en semaine — une semaine chargée pour les effectifs fatigués.',
   'help.club.title': 'Le club',
   'help.club.body': 'Personnel : trois entraîneurs (physique, combat, mental). Installations : terrain d’entraînement, infirmerie, tribunes et nurserie, jusqu’au niveau 3.\nLe conseil juge ta saison au regard de son objectif — pas de renvoi, mais une prime quand tu l’atteins.',
+  'text.size': 'Taille du texte',
+  'text.normal': 'Texte normal',
+  'text.large': 'Grand texte',
+  'text.xlarge': 'Très grand texte',
 };

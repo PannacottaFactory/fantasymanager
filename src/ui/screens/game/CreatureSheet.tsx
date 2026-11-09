@@ -59,7 +59,7 @@ function ScoutButton({ game, creature }: { game: GameState; creature: Creature }
       >
         🔍 {onIt ? tr.t('scout.onIt') : tr.t('act.scout')}
       </button>
-      {msg && <span className="muted" style={{ fontSize: 12 }}>{msg}</span>}
+      {msg && <span className="muted" style={{ fontSize: '0.857rem' }}>{msg}</span>}
     </span>
   );
 }
@@ -84,7 +84,7 @@ function BidPanel({ game, creature, team }: { game: GameState; creature: Creatur
   };
   return (
     <div className="market-panel">
-      <div className="muted" style={{ fontSize: 13 }}>
+      <div className="muted" style={{ fontSize: '0.929rem' }}>
         {t('bid.asking', { v: money(est) })}
       </div>
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
@@ -102,7 +102,7 @@ function BidPanel({ game, creature, team }: { game: GameState; creature: Creatur
           </button>
         )}
       </div>
-      <div className="muted" style={{ fontSize: 12 }}>
+      <div className="muted" style={{ fontSize: '0.857rem' }}>
         {t('bid.wage', { wage: money(askingWage(creature, rep, years)) })} · {t('topbar.balance')} {money(clubOf(game, game.playerTeamId).balance)}
       </div>
       {answer && <div className={`answer ${answer.tone}`}>{answer.text}</div>}
@@ -122,7 +122,7 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
     <div className="market-panel">
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
         <YearsPicker value={years} onChange={setYears} />
-        <span className="muted" style={{ fontSize: 13 }}>
+        <span className="muted" style={{ fontSize: '0.929rem' }}>
           {t('sign.body', { fee: money(fee), wage: money(wage) })}
         </span>
         <button
@@ -161,7 +161,7 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
       </div>
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
         <YearsPicker value={years} onChange={setYears} />
-        <span className="muted" style={{ fontSize: 13 }}>
+        <span className="muted" style={{ fontSize: '0.929rem' }}>
           {t('contract.renewAsk', { wage: money(renewalDemand(game, creature, years)), n: years })}
         </span>
         <button
@@ -180,7 +180,7 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
         <button className={`btn small ${listed ? 'active' : ''}`} onClick={() => useGame.getState().update((g) => toggleForSale(g, creature.id))}>
           {listed ? t('sale.unlist') : t('sale.list')}
         </button>
-        {listed && <span className="muted" style={{ fontSize: 12 }}>{t('sale.listed')}</span>}
+        {listed && <span className="muted" style={{ fontSize: '0.857rem' }}>{t('sale.listed')}</span>}
         <span className="spacer" />
         <button
           className={`btn small ${confirmRelease ? 'danger' : 'ghost'}`}
@@ -234,7 +234,7 @@ function TrainingRow({ game, creature }: { game: GameState; creature: Creature }
       <b>{t('cr.training')}</b>
       <ProgramSelect value={plan.program} onChange={(program) => update((g) => setPlan(g, [creature.id], { program }))} />
       <IntensitySelect value={plan.intensity} onChange={(intensity) => update((g) => setPlan(g, [creature.id], { intensity }))} />
-      <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: 13 }}>
+      <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: '0.929rem' }}>
         {t('cr.seasonGain', { n: gain > 0 ? `+${gain}` : gain })}
       </span>
     </div>
@@ -270,7 +270,7 @@ function Sheet({ id }: { id: string }) {
           <ScoutButton game={game} creature={creature} />
         </div>
       )}
-      {!own && k < 100 && <div className="faint" style={{ fontSize: 12 }}>{t('cr.estimate')}</div>}
+      {!own && k < 100 && <div className="faint" style={{ fontSize: '0.857rem' }}>{t('cr.estimate')}</div>}
       {own && <TrainingRow game={game} creature={creature} />}
       {own && <RelationsRow team={team!} creature={creature} />}
       {own && <ContractPanel game={game} creature={creature} />}

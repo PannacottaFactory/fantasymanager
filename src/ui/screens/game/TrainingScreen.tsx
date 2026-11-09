@@ -64,12 +64,12 @@ function Youth({ game }: { game: GameState }) {
               <Crest speciesId={c.speciesId} name={c.name} size={28} />
               <div>
                 <b>{c.name}</b>
-                <div className="muted" style={{ fontSize: 12 }}>
+                <div className="muted" style={{ fontSize: '0.857rem' }}>
                   <ElementDots speciesId={c.speciesId} /> {speciesName(c.speciesId, lang)} · {t('col.age')} {c.age}
                 </div>
               </div>
             </div>
-            <div className="row" style={{ gap: 10, fontSize: 13 }}>
+            <div className="row" style={{ gap: 10, fontSize: '0.929rem' }}>
               <span>
                 {t('col.ovr')} <b>{overallRating(c)}</b>
               </span>

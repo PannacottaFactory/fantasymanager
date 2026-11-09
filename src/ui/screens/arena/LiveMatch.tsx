@@ -285,7 +285,7 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
                   ? t('live.prepare')
                   : t('live.round', { n: view.round })}
             </div>
-            <div className="muted" style={{ fontSize: 12 }}>
+            <div className="muted" style={{ fontSize: '0.857rem' }}>
               {ended && outcome
                 ? outcome.method === 'ko'
                   ? t('live.byKo', { n: outcome.rounds })

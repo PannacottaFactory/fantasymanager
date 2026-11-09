@@ -215,7 +215,7 @@ export function FinancesScreen() {
           <div className="tile">
             <span className="muted">{t('fin.weekly')}</span>
             <b>{money(bill)}</b>
-            <span className="faint" style={{ fontSize: 12 }}>
+            <span className="faint" style={{ fontSize: '0.857rem' }}>
               {t('fin.weekly.detail', { w: money(wages), u: money(bill - wages) })}
             </span>
           </div>
@@ -226,7 +226,7 @@ export function FinancesScreen() {
         <section className="panel">
           <h3 style={{ marginBottom: 8 }}>{t('fin.chart')}</h3>
           <BalanceChart entries={season} start={start} />
-          <p className="faint" style={{ fontSize: 12, marginBottom: 0 }}>
+          <p className="faint" style={{ fontSize: '0.857rem', marginBottom: 0 }}>
             {t('fin.prizes', { first: money(prizes[0]!), last: money(prizes[prizes.length - 1]!) })}
           </p>
         </section>

@@ -121,7 +121,7 @@ export function SquadScreen() {
             {t('squad.title')} — {team.name}
           </h2>
         </div>
-        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+        <p className="muted" style={{ marginTop: 0, fontSize: '0.929rem' }}>
           {t('squad.hint')}
         </p>
         <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />

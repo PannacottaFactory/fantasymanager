@@ -76,7 +76,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           <div className="row" style={{ marginBottom: 6, gap: 10 }}>
             <h4 style={{ margin: 0 }}>{t('cr.abilities')}</h4>
             {onToggleFavorite && (
-              <span className="muted" style={{ fontSize: 12 }}>
+              <span className="muted" style={{ fontSize: '0.857rem' }}>
                 {t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}
               </span>
             )}
@@ -96,7 +96,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           {sp.passives?.map((p) => (
             <div key={p} style={{ marginTop: 6 }}>
               <b>{effectText(p, lang).name}</b>{' '}
-              <span className="muted" style={{ fontSize: 12 }}>
+              <span className="muted" style={{ fontSize: '0.857rem' }}>
                 {t('cr.passive')} {effectText(p, lang).description}
               </span>
             </div>
@@ -127,7 +127,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             {(traitsKnown(knowledge) ? creature.traits : []).map((x) => (
               <div key={x} style={{ marginBottom: 4 }}>
                 <TraitChip id={x} />{' '}
-                <span className="muted" style={{ fontSize: 12 }}>
+                <span className="muted" style={{ fontSize: '0.857rem' }}>
                   {traitText(x, lang).description}
                 </span>
               </div>
@@ -137,7 +137,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             <div>
               <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
               {ROLE_IDS.map((r) => (
-                <div key={r} className="row" style={{ fontSize: 12, marginBottom: 3 }} title={roleText(r, lang).description}>
+                <div key={r} className="row" style={{ fontSize: '0.857rem', marginBottom: 3 }} title={roleText(r, lang).description}>
                   <span style={{ width: 110 }}>{roleText(r, lang).name}</span>
                   <span className="grow">
                     <Bar value={roleFit(creature, r)} max={20} color="var(--accent)" thin />

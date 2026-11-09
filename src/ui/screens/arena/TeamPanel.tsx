@@ -18,7 +18,7 @@ export function TeamPanel({ side }: { side: 0 | 1 }) {
       className={side === 0 ? 'side-home' : 'side-away'}
       header={
         <>
-          <span className={side === 0 ? 'home-text' : 'away-text'} style={{ fontWeight: 700, fontSize: 12 }}>
+          <span className={side === 0 ? 'home-text' : 'away-text'} style={{ fontWeight: 700, fontSize: '0.857rem' }}>
             {side === 0 ? t('arena.yourTeam') : t('arena.opponent')}
           </span>
           <input className="team-name-input" value={team.name} aria-label={t('arena.teamName')} onChange={(e) => setTeam(side, { ...team, name: e.target.value })} />

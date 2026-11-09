@@ -95,7 +95,7 @@ function Standings({ game, division }: { game: GameState; division: number }) {
           </tbody>
         </table>
       </div>
-      <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
+      <div className="muted" style={{ fontSize: '0.857rem', marginTop: 6 }}>
         {t('league.legend')} {t('league.zones')}
       </div>
     </section>
@@ -113,7 +113,7 @@ function FixtureRow({ game, f }: { game: GameState; f: Fixture }) {
       <td className={`right ${cls(0)}`}>{teamById(game, f.home).name}</td>
       <td className="score">{r ? `${r.score[0]} – ${r.score[1]}` : <span className="faint">{t('league.upcoming')}</span>}</td>
       <td className={cls(1)}>{teamById(game, f.away).name}</td>
-      <td className="faint" style={{ fontSize: 12 }}>
+      <td className="faint" style={{ fontSize: '0.857rem' }}>
         {r ? (r.method === 'ko' ? t('league.koRound', { n: r.rounds }) : t('league.pts')) : ''}
       </td>
       <td>
@@ -184,7 +184,7 @@ function Cup({ game }: { game: GameState }) {
           return (
             <div key={r} className={`cup-round ${r === game.cup.round ? 'current' : ''}`}>
               <h4>{t(cupRoundKey(r, rounds))}</h4>
-              <div className="faint" style={{ fontSize: 12, marginBottom: 6 }}>
+              <div className="faint" style={{ fontSize: '0.857rem', marginBottom: 6 }}>
                 {t('cup.after', { d: c.after[r] ?? '?' })} · {t('cup.prize', { prize: money(c.prize[r] ?? 0) })}
               </div>
               {ties.length === 0 && <div className="faint">{t('cup.notDrawn')}</div>}

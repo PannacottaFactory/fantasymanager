@@ -66,7 +66,7 @@ export function BreakPanel({ combat, onResume }: Props) {
       }
     >
       <div className="stack">
-        <div className="row muted" style={{ fontSize: 13 }}>
+        <div className="row muted" style={{ fontSize: '0.929rem' }}>
           {t('break.teamHealth')} <b className="home-text">{Math.round(ours * 100)} %</b> {t('common.vs')} <b className="away-text">{Math.round(theirs * 100)} %</b>
           <span className="spacer" />
           {t('break.subsLeft')} <b>{subsLeft - subs.length}</b>

@@ -59,7 +59,7 @@ export function NewsScreen() {
             <li key={n.id}>
               <span className="news-icon">{ICON[n.kind]}</span>
               <span className="grow">{newsText(tr, n)}</span>
-              <span className="faint mono" style={{ fontSize: 11 }}>
+              <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                 {t('inbox.matchday', { season: n.season, d: n.matchday })}
               </span>
             </li>

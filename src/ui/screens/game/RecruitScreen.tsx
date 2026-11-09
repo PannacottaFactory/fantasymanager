@@ -91,7 +91,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
       render: (r) => (
         <span className="row" style={{ gap: 6 }}>
           <Knowledge k={r.k} />
-          <span className="faint mono" style={{ fontSize: 11 }}>
+          <span className="faint mono" style={{ fontSize: '0.786rem' }}>
             {r.k}
           </span>
         </span>
@@ -214,7 +214,7 @@ export function RecruitScreen() {
                   🔍 {t('act.scoutTeam')}
                 </button>
               )}
-              {note && <span className="muted" style={{ fontSize: 12 }}>{note}</span>}
+              {note && <span className="muted" style={{ fontSize: '0.857rem' }}>{note}</span>}
             </>
           )}
         </div>

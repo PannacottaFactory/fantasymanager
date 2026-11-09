@@ -50,7 +50,7 @@ export function FacilitiesScreen() {
                     <i key={i} className={i < level ? 'on' : b && i === level ? 'building' : ''} />
                   ))}
                 </div>
-                <div className="muted" style={{ fontSize: 13 }}>
+                <div className="muted" style={{ fontSize: '0.929rem' }}>
                   {t(`fac.${id}.desc` as StringKey, { n: effectValue(id) })}
                 </div>
                 {b ? (

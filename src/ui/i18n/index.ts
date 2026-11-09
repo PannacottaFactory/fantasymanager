@@ -9,6 +9,11 @@ import { en, fr, type StringKey } from './strings.ts';
 
 export type Theme = 'night' | 'dark' | 'parchment';
 export const THEMES: Theme[] = ['parchment', 'dark', 'night'];
+export type TextSize = 'normal' | 'large' | 'xlarge';
+export const TEXT_SIZES: TextSize[] = ['normal', 'large', 'xlarge'];
+/** Multiplier of the 14 px base text. */
+export const TEXT_SCALE: Record<TextSize, number> = { normal: 1, large: 1.15, xlarge: 1.3 };
+const TEXT_KEY = 'ui.textSize';
 
 const LANG_KEY = 'ui.lang';
 const THEME_KEY = 'ui.theme';
@@ -31,8 +36,10 @@ function write(key: string, value: string) {
 interface SettingsState {
   lang: Lang;
   theme: Theme;
+  textSize: TextSize;
   setLang: (l: Lang) => void;
   setTheme: (t: Theme) => void;
+  setTextSize: (t: TextSize) => void;
 }
 
 export const useSettings = create<SettingsState>()((set) => ({
@@ -51,6 +58,14 @@ export const useSettings = create<SettingsState>()((set) => ({
   setTheme: (theme) => {
     write(THEME_KEY, theme);
     set({ theme });
+  },
+  textSize: (() => {
+    const v = read(TEXT_KEY);
+    return v === 'normal' || v === 'large' || v === 'xlarge' ? v : 'large';
+  })(),
+  setTextSize: (textSize) => {
+    write(TEXT_KEY, textSize);
+    set({ textSize });
   },
 }));
 

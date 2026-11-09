@@ -270,7 +270,7 @@ export function InboxScreen() {
                 <div className="msg-head">
                   <b>{w.title}</b>
                   <span className="spacer" />
-                  <span className="faint mono" style={{ fontSize: 11 }}>
+                  <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                     {t('inbox.matchday', { season: m.season, d: m.matchday })}
                   </span>
                 </div>
