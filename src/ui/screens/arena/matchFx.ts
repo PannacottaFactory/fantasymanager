@@ -2,6 +2,7 @@
  * Visual reactions of the fighter cards, derived from match events (display only: no game logic).
  */
 import { ABILITIES } from '../../../data/abilities.ts';
+import { EFFECTS } from '../../../data/effects.ts';
 import { ELEMENTS } from '../../../data/elements.ts';
 import type { ElementId } from '../../../data/schema.ts';
 import type { MatchEvent } from '../../../engine/combat/types.ts';
@@ -65,6 +66,44 @@ export const reducedMotion = () => {
     return false;
   }
 };
+
+/** Colour family of a commentary line. */
+export type LineTone = 'heal' | 'buff' | 'debuff' | 'dot' | 'ko' | 'miss' | 'crit' | 'info';
+
+export function lineTone(e: MatchEvent): LineTone | undefined {
+  switch (e.type) {
+    case 'attack':
+      return !e.hit ? 'miss' : e.crit ? 'crit' : undefined;
+    case 'heal':
+      return 'heal';
+    case 'effectTick':
+      return e.amount > 0 ? 'heal' : 'dot';
+    case 'buff':
+    case 'guard':
+    case 'rest':
+      return 'buff';
+    case 'debuff':
+    case 'stunned':
+    case 'hesitate':
+      return 'debuff';
+    case 'effectApplied': {
+      const def = EFFECTS[e.effect];
+      return def?.beneficial ? 'buff' : def?.kind === 'dot' ? 'dot' : 'debuff';
+    }
+    case 'ko':
+    case 'flee':
+    case 'injury':
+      return 'ko';
+    case 'enrage':
+      return 'crit';
+    case 'substitution':
+    case 'ordersChanged':
+    case 'break':
+      return 'info';
+    default:
+      return undefined;
+  }
+}
 
 export const emptyFx = (): FxBatch => ({ actor: null, targets: {}, shots: [], cast: null });
 

@@ -210,7 +210,7 @@ export function Scoreboard({ side, name, roster, view, fx, focus, onSelect }: Pr
     .sort((a, b) => ORDER[a.state]! - ORDER[b.state]! || (a.line === b.line ? 0 : a.line === 'front' ? -1 : 1));
   const standing = mine.filter((c) => c.state === 'active').length;
   return (
-    <section className={`panel ${side === 0 ? 'side-home' : 'side-away'}`} data-tip={side === 0 ? 'live-cards' : undefined}>
+    <section className={`panel ${side === 0 ? 'side-home' : 'side-away mirror'}`} data-tip={side === 0 ? 'live-cards' : undefined}>
       <div className="panel-head" style={{ marginBottom: 6 }}>
         <h3 className={side === 0 ? 'home-text' : 'away-text'}>{name}</h3>
         <span className="spacer" />

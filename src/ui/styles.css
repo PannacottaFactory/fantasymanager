@@ -622,3 +622,32 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .species-icon { display: inline-flex; vertical-align: middle; filter: brightness(1.25) drop-shadow(0 1px 1px rgb(0 0 0 / 0.35)); }
 :root[data-theme="parchment"] .species-icon { filter: brightness(0.85); }
 .species-icon .gicon { vertical-align: 0; }
+
+/* ——— Commentary colours by event ——— */
+.feed .line.t-heal { color: var(--good); }
+.feed .line.t-buff { color: var(--info); }
+.feed .line.t-debuff { color: #b08ae6; }
+.feed .line.t-dot { color: var(--warn); }
+.feed .line.t-ko { color: var(--bad); font-weight: 600; }
+.feed .line.t-crit { color: #ff8a5c; }
+.feed .line.t-miss { color: var(--muted); font-style: italic; }
+.feed .line.t-info { color: var(--accent); }
+:root[data-theme='parchment'] .feed .line.t-debuff { color: #6a3fb0; }
+:root[data-theme='parchment'] .feed .line.t-crit { color: #b8461c; }
+.feed-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; padding-top: 6px; margin-top: 6px; border-top: 1px solid var(--border); font-size: 0.786rem; }
+.feed-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.feed-legend i { width: 9px; height: 9px; border-radius: 2px; background: currentColor; }
+.feed-legend .t-heal { color: var(--good); }
+.feed-legend .t-buff { color: var(--info); }
+.feed-legend .t-debuff { color: #b08ae6; }
+.feed-legend .t-dot { color: var(--warn); }
+.feed-legend .t-ko { color: var(--bad); }
+
+/* ——— Opponent scoreboard mirrored ——— */
+.mirror .panel-head { flex-direction: row-reverse; }
+.mirror .fighter { direction: rtl; grid-template-columns: 24px 1fr; }
+.mirror .fighter .name, .mirror .fighter .tag, .mirror .fighter .faint, .mirror .fighter .mono,
+.mirror .fighter .bars > span, .mirror .fighter .fx span, .mirror .fighter .skill { direction: ltr; unicode-bidi: isolate; }
+.mirror .fighter .top { text-align: right; }
+.mirror .bar > i { inset: 0 0 0 auto; }
+.mirror .float { right: auto; left: 64px; }

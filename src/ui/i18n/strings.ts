@@ -707,6 +707,11 @@ export const en = {
   'text.large': 'Large text',
   'text.xlarge': 'Extra-large text',
   'help.credits': 'Icons: game-icons.net (Lorc, Delapouite and contributors), licensed CC BY 3.0.',
+  'legend.heal': 'healing',
+  'legend.buff': 'boosts',
+  'legend.debuff': 'curses & control',
+  'legend.dot': 'poison & burns',
+  'legend.ko': 'KO & injuries',
 } as const;
 
 export type StringKey = keyof typeof en;
@@ -1404,4 +1409,9 @@ export const fr: Record<StringKey, string> = {
   'text.large': 'Grand texte',
   'text.xlarge': 'Très grand texte',
   'help.credits': 'Icônes : game-icons.net (Lorc, Delapouite et contributeurs), sous licence CC BY 3.0.',
+  'legend.heal': 'soins',
+  'legend.buff': 'renforts',
+  'legend.debuff': 'altérations',
+  'legend.dot': 'poison & brûlures',
+  'legend.ko': 'KO & blessures',
 };

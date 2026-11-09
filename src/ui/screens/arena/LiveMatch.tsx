@@ -11,7 +11,7 @@ import { hpColor } from '../../format.ts';
 import { CreatureModal } from './CreatureModal.tsx';
 import { useT } from '../../i18n/index.ts';
 import { BreakPanel } from './BreakPanel.tsx';
-import { addEventFx, emptyFx, reducedMotion, type FxBatch } from './matchFx.ts';
+import { addEventFx, emptyFx, lineTone, reducedMotion, type FxBatch, type LineTone } from './matchFx.ts';
 import { Projectiles } from './Projectiles.tsx';
 import { Scoreboard, type Focus } from './Scoreboard.tsx';
 
@@ -100,7 +100,7 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
   const highlight = useNameHighlighter(roster);
   const [view, setView] = useState<MatchView>(() => initialView(roster));
   const viewRef = useRef(view);
-  const [lines, setLines] = useState<CommentaryLine[]>([]);
+  const [lines, setLines] = useState<(CommentaryLine & { tone?: LineTone })[]>([]);
   const [speed, setSpeedState] = useState<Speed>(loadSpeed);
   const [paused, setPaused] = useState(false);
   const [atBreak, setAtBreak] = useState(false);
@@ -168,7 +168,7 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
   const pump = (budget: number, forceAi = false) => {
     const { combat, commentator, queue } = session;
     let v = viewRef.current;
-    const out: CommentaryLine[] = [];
+    const out: (CommentaryLine & { tone?: LineTone })[] = [];
     const batch = emptyFx();
     let shown = 0;
     let stop = false;
@@ -191,7 +191,8 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
       v = applyEvent(v, e);
       if (budget !== Infinity) addEventFx(batch, e, t('fx.miss'), t('fx.ko'), (id) => SPECIES[roster[id]?.speciesId ?? '']?.elements ?? []);
       const ls = commentator.narrate(e);
-      out.push(...ls);
+      const tone = lineTone(e);
+      out.push(...ls.map((l) => (tone && l.kind !== 'crowd' ? { ...l, tone } : l)));
       if (ls.length) shown++;
     }
     viewRef.current = v;
@@ -335,7 +336,7 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
                 <div key={i}>
                   {sep && <div className="round-sep">{t('live.round', { n: l.round })}</div>}
                   <div
-                    className={`line i${l.importance} ${l.side === null ? '' : `s${l.side}`} ${hoverable ? 'hoverable' : ''}`}
+                    className={`line i${l.importance} ${l.side === null ? '' : `s${l.side}`} ${hoverable ? 'hoverable' : ''} ${l.tone ? `t-${l.tone}` : ''}`}
                     onMouseEnter={hoverable ? () => setFocus({ actor: l.actor, target: l.target }) : undefined}
                   >
                     {highlight(l.text)}
@@ -343,6 +344,13 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
                 </div>
               );
             })}
+          </div>
+          <div className="feed-legend" aria-hidden="true">
+            {(['heal', 'buff', 'debuff', 'dot', 'ko'] as const).map((k) => (
+              <span key={k} className={`t-${k}`}>
+                <i /> {t(`legend.${k}`)}
+              </span>
+            ))}
           </div>
         </section>
         <Scoreboard side={1} name={setup.teams[1].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} />
