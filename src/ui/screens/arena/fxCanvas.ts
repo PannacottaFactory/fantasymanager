@@ -114,6 +114,7 @@ export class FxCanvas {
   constructor(private canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!;
     this.resize();
+    this.idle();
     window.addEventListener('resize', this.resize);
   }
 
@@ -122,22 +123,48 @@ export class FxCanvas {
     window.removeEventListener('resize', this.resize);
     this.particles = [];
     this.effects = [];
+    this.idle();
   }
 
+  /** Keeps the drawing surface the size of the window (zoom and DPR changes included). */
   private resize = () => {
     this.dpr = Math.min(2, window.devicePixelRatio || 1);
-    this.canvas.width = Math.round(window.innerWidth * this.dpr);
-    this.canvas.height = Math.round(window.innerHeight * this.dpr);
+    const w = Math.round(window.innerWidth * this.dpr);
+    const h = Math.round(window.innerHeight * this.dpr);
+    if (this.canvas.width !== w) this.canvas.width = w;
+    if (this.canvas.height !== h) this.canvas.height = h;
   };
+
+  /** Nothing to draw: wipe the surface and take it off screen, so no stale frame can ever stay visible. */
+  private idle() {
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.globalAlpha = 1;
+    this.ctx.globalCompositeOperation = 'source-over';
+    this.canvas.style.visibility = 'hidden';
+  }
 
   private start() {
     if (this.raf) return;
+    this.canvas.style.visibility = 'visible';
     this.last = performance.now();
     const loop = (now: number) => {
-      const dt = Math.min(0.05, (now - this.last) / 1000);
+      const dt = Math.min(0.05, Math.max(0, now - this.last) / 1000);
       this.last = now;
-      this.frame(now, dt);
-      this.raf = this.effects.length || this.particles.length ? requestAnimationFrame(loop) : 0;
+      this.resize();
+      try {
+        this.frame(now, dt);
+      } catch (err) {
+        // A drawing error must never freeze a half-drawn frame on screen.
+        console.warn('fx frame failed', err);
+        this.effects = [];
+        this.particles = [];
+      }
+      if (this.effects.length || this.particles.length) this.raf = requestAnimationFrame(loop);
+      else {
+        this.raf = 0;
+        this.idle();
+      }
     };
     this.raf = requestAnimationFrame(loop);
   }
