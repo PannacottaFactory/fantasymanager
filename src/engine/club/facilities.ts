@@ -79,7 +79,10 @@ export function weeklyFacilities(state: GameState, cfg: GameConfig = DEFAULT_CON
         if (team.id === state.playerTeamId) pushMessage(state, { kind: 'facilityDone', facility: id, level: b.level });
       }
     }
-    if (team.id === state.playerTeamId || !rng.chance(fc.aiChance)) continue;
+    if (team.id === state.playerTeamId) continue;
+    // Rich stables invest more often.
+    const wealth = clubOf(state, team.id).balance / Math.max(1, fc.aiReserve);
+    if (!rng.chance(Math.min(0.3, fc.aiChance * Math.max(1, wealth / 2)))) continue;
     const id = rng.pick(FACILITY_IDS);
     const f = fac[id];
     const level = f.level + 1;

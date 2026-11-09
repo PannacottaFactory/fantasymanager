@@ -111,7 +111,10 @@ export function seasonPrizes(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
       const amount = Math.round((eco.income.seasonPrize[i] ?? eco.income.seasonPrize[eco.income.seasonPrize.length - 1]!) * scale);
       earn(state, row.teamId, 'prizes', amount);
       const club = clubOf(state, row.teamId);
-      club.reputation = clamp(Math.round(club.reputation + (middle - pos) * eco.club.reputationPerPlace + divisionShift), 10, 100);
+      let rep = club.reputation + (middle - pos) * eco.club.reputationPerPlace + divisionShift;
+      const baseline = eco.club.reputationBaseline[d] ?? eco.club.reputationBaseline[eco.club.reputationBaseline.length - 1]!;
+      rep += (baseline - rep) * eco.club.reputationReversion;
+      club.reputation = clamp(Math.round(rep), 10, 100);
       if (row.teamId === state.playerTeamId) pushMessage(state, { kind: 'seasonPrize', position: pos, amount });
     });
   });

@@ -55,6 +55,8 @@ export interface SpeciesDef {
   /** Weekly food & keep, in gold pieces. Used from phase 3. */
   upkeep: number;
   rarity: number;
+  /** Market value multiplier from the species' real combat strength (calibrated with `npm run sim:species`). */
+  valueMult?: number;
 }
 
 export type AbilityKind = 'melee' | 'ranged' | 'spell' | 'heal' | 'buff' | 'debuff';

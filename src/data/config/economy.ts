@@ -53,6 +53,9 @@ export const ECONOMY_CONFIG = {
     startBalance: { novice: 15000, regional: 25000, professional: 40000, elite: 70000, legendary: 110000 },
     /** End of season: reputation += (middle position − position) × this. */
     reputationPerPlace: 2,
+    /** …then moves this share of the way back to its division's usual level (D1, D2). */
+    reputationBaseline: [62, 38],
+    reputationReversion: 0.2,
     minSquad: 9,
     maxSquad: 16,
   },
@@ -82,6 +85,12 @@ export const ECONOMY_CONFIG = {
     aiReserve: 8000,
     /** Short-handed AI stables (below the usual squad size) sign a free agent with this chance per week. */
     aiNeedChance: 0.6,
+    /** AI stables in the red sell a creature to a richer one (chance per week, price × value). */
+    distressSellChance: 0.5,
+    distressPrice: 0.9,
+    /** Above this treasury an AI stable shops much more (× aiBuyChance) and settles for smaller upgrades. */
+    richBalance: 150000,
+    richBuyFactor: 4,
     /** Releasing a creature costs this fraction of its remaining wages. */
     releaseCompensation: 0.5,
   },
@@ -91,7 +100,7 @@ export const ECONOMY_CONFIG = {
     /** Chance per week that a free agent signs elsewhere / leaves. */
     leaveChance: 0.12,
     /** Quality of newcomers (weights). */
-    qualityWeights: { novice: 3, regional: 5, professional: 4, elite: 1 },
+    qualityWeights: { novice: 4, regional: 6, professional: 3, elite: 0.5 },
   },
   scouting: {
     /** Scouts available to the player. */

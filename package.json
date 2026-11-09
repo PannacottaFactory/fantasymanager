@@ -14,7 +14,9 @@
     "test:watch": "vitest",
     "sim:match": "tsx src/sim/match.ts",
     "sim:batch": "tsx src/sim/batch.ts",
-    "sim:season": "tsx src/sim/season.ts"
+    "sim:season": "tsx src/sim/season.ts",
+    "sim:balance": "tsx src/sim/balance.ts",
+    "sim:species": "tsx src/sim/species.ts"
   },
   "dependencies": {
     "idb": "^8.0.4",

@@ -19,7 +19,7 @@ export const LEAGUE_CONFIG = {
   /** Teams going up / down between two divisions each season. */
   promoted: 2,
   /** Money scale by division (tickets, sponsor, prizes). */
-  divisionMoney: [1.5, 1],
+  divisionMoney: [1.35, 1],
   cup: {
     /** Round r is played in the week after league matchday after[r]. */
     after: [3, 7, 11, 14, 17],
@@ -32,8 +32,8 @@ export const LEAGUE_CONFIG = {
   legs: 2,
   week: {
     /** Fatigue (0–100) recovered each week: base + recovery attribute × perRecovery. */
-    fatigueRecovery: 28,
-    fatigueRecoveryPerAttr: 1,
+    fatigueRecovery: 16,
+    fatigueRecoveryPerAttr: 0.6,
     /** Morale drifts back towards this value each week, by this fraction of the gap. */
     moraleBaseline: 60,
     moraleDrift: 0.15,

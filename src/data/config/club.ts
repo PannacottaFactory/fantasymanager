@@ -11,7 +11,7 @@ export const CLUB_CONFIG = {
     infirmary: { injuryWeeks: -0.15, medicalCost: -0.15 },
     training: { growth: 0.1 },
     stands: { tickets: 0.12 },
-    nursery: { extraYouthPerTwoLevels: 1, potential: 6 },
+    nursery: { extraYouthPerTwoLevels: 1, potential: 4 },
     /** Starting level by club quality. */
     start: { novice: 0, regional: 0, professional: 1, elite: 2, legendary: 3 },
     /** AI stables start building when they can afford it with this much left over. */

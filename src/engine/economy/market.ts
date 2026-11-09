@@ -245,9 +245,10 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
         if (m) moves.push({ ...m, fee });
       }
     }
-    // Occasionally buy from another AI stable.
-    if (team.creatures.length <= target && rng.chance(t.aiBuyChance)) {
-      const bar = nthAbility(team, 5) + 10;
+    // Occasionally buy from another AI stable (rich stables shop more, for smaller upgrades).
+    const rich = club.balance > t.richBalance;
+    if (team.creatures.length <= target && rng.chance(t.aiBuyChance * (rich ? t.richBuyFactor : 1))) {
+      const bar = nthAbility(team, 5) + (rich ? 0 : 10);
       const budget = aiBudget(state, team, cfg);
       const options: { c: Creature; seller: Team; price: number }[] = [];
       for (const seller of ai) {
@@ -263,6 +264,21 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
         const m = transfer(state, o.c.id, team.id, o.price, { wage: askingWage(o.c, club.reputation, 2, cfg), years: 2 }, cfg);
         if (m) moves.push(m);
       }
+    }
+  }
+  // Stables in the red sell one of their better creatures to the richest stable that can afford it.
+  for (const seller of ai) {
+    if (clubOf(state, seller.id).balance >= 0 || !canLose(seller, cfg) || !rng.chance(t.distressSellChance)) continue;
+    const forSale = [...seller.creatures].sort((a, b) => creatureValue(b, cfg) - creatureValue(a, cfg)).slice(1, 6);
+    for (const c of forSale) {
+      const fee = roundTo(creatureValue(c, cfg) * t.distressPrice, cfg.economy.value.round);
+      const buyer = ai
+        .filter((b) => b.id !== seller.id && canAdd(b, cfg) && aiBudget(state, b, cfg) >= fee)
+        .sort((a, b) => clubOf(state, b.id).balance - clubOf(state, a.id).balance)[0];
+      if (!buyer) continue;
+      const m = transfer(state, c.id, buyer.id, fee, { wage: askingWage(c, clubOf(state, buyer.id).reputation, 2, cfg), years: 2 }, cfg);
+      if (m) moves.push(m);
+      break;
     }
   }
   fillFreeAgents(state, rng, cfg);

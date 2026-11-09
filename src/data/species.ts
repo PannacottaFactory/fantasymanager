@@ -9,8 +9,8 @@ const list: SpeciesDef[] = [
     id: 'goblin', name: 'Goblin', plural: 'Goblins', size: 'small', elements: ['earth', 'shadow'],
     description: 'Cheap, quick and sneaky. Blooms early, fades fast — and often runs when it gets ugly.',
     attributes: {
-      strength: [2, 10], stamina: [5, 14], speed: [8, 18], agility: [8, 18], toughness: [2, 9], recovery: [6, 15],
-      attack: [4, 14], accuracy: [5, 15], defense: [2, 10], magic: [1, 8], focus: [2, 9], technique: [5, 16],
+      strength: [2, 10], stamina: [6, 15], speed: [8, 18], agility: [8, 18], toughness: [3, 10], recovery: [6, 15],
+      attack: [6, 15], accuracy: [5, 15], defense: [2, 10], magic: [1, 8], focus: [2, 9], technique: [5, 16],
       courage: [1, 10], composure: [2, 11], aggression: [6, 16], tactics: [3, 14], discipline: [1, 10],
       anticipation: [5, 15], determination: [3, 13], teamwork: [3, 12], leadership: [1, 8],
     },
@@ -19,7 +19,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'stab' }, { id: 'sling' }, { id: 'dirty-trick', minAbility: 50 }, { id: 'scurry', minAbility: 90 }],
     nameCulture: 'goblin', traitWeights: { coward: 3, cunning: 2, hothead: 1.5, showboat: 1.5 },
-    upkeep: 15, rarity: 10,
+    upkeep: 15, rarity: 10, valueMult: 0.6,
   },
   {
     id: 'orc', name: 'Orc', plural: 'Orcs', size: 'medium', elements: ['earth', 'fire'],
@@ -35,7 +35,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'tank'],
     abilities: [{ id: 'axe-swing' }, { id: 'cleave', minAbility: 60 }, { id: 'war-cry', minAbility: 110 }],
     nameCulture: 'orc', traitWeights: { hothead: 2, berserker: 2, stubborn: 1.5, 'pack-leader': 1.5 },
-    upkeep: 30, rarity: 9,
+    upkeep: 30, rarity: 9, valueMult: 0.9,
   },
   {
     id: 'troll', name: 'Troll', plural: 'Trolls', size: 'large', elements: ['earth', 'water'],
@@ -52,7 +52,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'club-smash' }, { id: 'crushing-blow', minAbility: 70 }],
     passives: ['trollblood'],
     nameCulture: 'troll', traitWeights: { lazy: 3, berserker: 1.5, 'iron-hide': 1.5 },
-    upkeep: 55, rarity: 6,
+    upkeep: 55, rarity: 6, valueMult: 1.2,
   },
   {
     id: 'elf', name: 'Wood Elf', plural: 'Wood Elves', size: 'medium', elements: ['nature', 'light'],
@@ -68,7 +68,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support', 'skirmisher'],
     abilities: [{ id: 'longbow' }, { id: 'moonbeam', minAbility: 40 }, { id: 'healing-song', minAbility: 70 }, { id: 'aimed-shot', minAbility: 100 }],
     nameCulture: 'elf', traitWeights: { professional: 2, 'cool-headed': 2, ambitious: 1.5, loner: 1.5 },
-    upkeep: 35, rarity: 6,
+    upkeep: 35, rarity: 6, valueMult: 0.75,
   },
   {
     id: 'golem', name: 'Stone Golem', plural: 'Stone Golems', size: 'large', elements: ['earth'],
@@ -85,7 +85,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'stone-fist' }, { id: 'stone-skin', minAbility: 50 }, { id: 'seismic-slam', minAbility: 100 }],
     passives: ['stoneform'],
     nameCulture: 'golem', traitWeights: { guardian: 3, professional: 2, coward: 0.1, hothead: 0.2, showboat: 0.1 },
-    upkeep: 20, rarity: 5,
+    upkeep: 20, rarity: 5, valueMult: 1.35,
   },
   {
     id: 'wyvern', name: 'Wyvern', plural: 'Wyverns', size: 'large', elements: ['air'], flying: true,
@@ -101,14 +101,14 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'talons' }, { id: 'venom-sting', minAbility: 40 }, { id: 'dive', minAbility: 80 }],
     nameCulture: 'beast', traitWeights: { bloodthirsty: 2, loner: 2, hothead: 1.5 },
-    upkeep: 60, rarity: 5,
+    upkeep: 60, rarity: 5, valueMult: 1.05,
   },
   {
     id: 'dragon', name: 'Dragon', plural: 'Dragons', size: 'huge', elements: ['fire'], flying: true,
     description: 'The apex of the arena. Matures for a decade, reigns for half a century — and eats a fortune.',
     attributes: {
-      strength: [10, 20], stamina: [8, 18], speed: [6, 15], agility: [3, 11], toughness: [10, 20], recovery: [5, 15],
-      attack: [8, 19], accuracy: [3, 11], defense: [7, 17], magic: [8, 20], focus: [6, 17], technique: [6, 16],
+      strength: [9, 19], stamina: [8, 18], speed: [6, 15], agility: [3, 11], toughness: [9, 19], recovery: [5, 15],
+      attack: [7, 18], accuracy: [3, 11], defense: [7, 17], magic: [8, 20], focus: [6, 17], technique: [6, 16],
       courage: [12, 20], composure: [6, 17], aggression: [8, 18], tactics: [5, 17], discipline: [2, 12],
       anticipation: [5, 15], determination: [8, 18], teamwork: [1, 9], leadership: [5, 17],
     },
@@ -117,7 +117,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'caster'],
     abilities: [{ id: 'rend' }, { id: 'fire-breath', minAbility: 60 }, { id: 'tail-sweep', minAbility: 90 }, { id: 'terrifying-roar', minAbility: 130 }],
     nameCulture: 'dragon', traitWeights: { loner: 2.5, ambitious: 2, 'glory-hunter': 2, stubborn: 1.5, coward: 0.1 },
-    upkeep: 180, rarity: 1,
+    upkeep: 180, rarity: 1, valueMult: 1.6,
   },
   {
     id: 'minotaur', name: 'Minotaur', plural: 'Minotaurs', size: 'large', elements: ['earth'],
@@ -133,14 +133,14 @@ const list: SpeciesDef[] = [
     roles: ['striker'],
     abilities: [{ id: 'horn-gore' }, { id: 'bull-charge', minAbility: 60 }, { id: 'rampage', minAbility: 110 }],
     nameCulture: 'minotaur', traitWeights: { berserker: 2.5, hothead: 2.5, stubborn: 1.5 },
-    upkeep: 50, rarity: 5,
+    upkeep: 50, rarity: 5, valueMult: 1.3,
   },
   {
     id: 'harpy', name: 'Harpy', plural: 'Harpies', size: 'medium', elements: ['air'], flying: true,
     description: 'Shrieking flier that harries the enemy back line and slows everyone down.',
     attributes: {
-      strength: [4, 11], stamina: [6, 15], speed: [10, 19], agility: [9, 19], toughness: [4, 11], recovery: [6, 15],
-      attack: [6, 15], accuracy: [5, 13], defense: [3, 10], magic: [2, 10], focus: [3, 11], technique: [6, 16],
+      strength: [4, 11], stamina: [6, 15], speed: [10, 19], agility: [9, 19], toughness: [5, 12], recovery: [6, 15],
+      attack: [7, 16], accuracy: [5, 13], defense: [3, 10], magic: [2, 10], focus: [3, 11], technique: [6, 16],
       courage: [3, 13], composure: [3, 12], aggression: [7, 17], tactics: [4, 14], discipline: [2, 11],
       anticipation: [7, 17], determination: [4, 13], teamwork: [5, 14], leadership: [2, 10],
     },
@@ -149,7 +149,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher'],
     abilities: [{ id: 'rake' }, { id: 'screech', minAbility: 60 }],
     nameCulture: 'beast', traitWeights: { showboat: 2, 'glory-hunter': 1.5, coward: 1.5 },
-    upkeep: 25, rarity: 7,
+    upkeep: 25, rarity: 7, valueMult: 0.65,
   },
   {
     id: 'shade', name: 'Shade', plural: 'Shades', size: 'medium', elements: ['shadow'],
@@ -166,7 +166,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'chill-touch' }, { id: 'shadow-bolt' }, { id: 'dread', minAbility: 60 }, { id: 'life-drain', minAbility: 90 }],
     passives: ['incorporeal'],
     nameCulture: 'shade', traitWeights: { loner: 2, cunning: 2, vengeful: 2, 'team-player': 0.5 },
-    upkeep: 20, rarity: 4,
+    upkeep: 20, rarity: 4, valueMult: 1.05,
   },
   {
     id: 'treant', name: 'Treant', plural: 'Treants', size: 'huge', elements: ['nature'],
@@ -182,7 +182,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'support'],
     abilities: [{ id: 'branch-slam' }, { id: 'entangle', minAbility: 40 }, { id: 'barkskin', minAbility: 70 }, { id: 'sap-mend', minAbility: 100 }],
     nameCulture: 'treant', traitWeights: { 'team-player': 2, guardian: 2, 'pack-leader': 2, lazy: 1.5, hothead: 0.2 },
-    upkeep: 40, rarity: 3,
+    upkeep: 40, rarity: 3, valueMult: 1.05,
   },
   {
     id: 'naga', name: 'Naga', plural: 'Nagas', size: 'medium', elements: ['water'],
@@ -198,7 +198,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support', 'striker'],
     abilities: [{ id: 'trident' }, { id: 'tidal-lash' }, { id: 'constrict', minAbility: 70 }, { id: 'healing-waters', minAbility: 100 }],
     nameCulture: 'naga', traitWeights: { cunning: 2, ambitious: 1.5 },
-    upkeep: 35, rarity: 5,
+    upkeep: 35, rarity: 5, valueMult: 1.05,
   },
   {
     id: 'griffin', name: 'Griffin', plural: 'Griffins', size: 'large', elements: ['air', 'light'], flying: true,
@@ -214,7 +214,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'beak-and-claw' }, { id: 'radiant-dive', minAbility: 70 }, { id: 'sky-cry', minAbility: 120 }],
     nameCulture: 'beast', traitWeights: { loyal: 3, fearless: 2, 'pack-leader': 1.5, coward: 0.2 },
-    upkeep: 55, rarity: 3,
+    upkeep: 55, rarity: 3, valueMult: 1.15,
   },
   {
     id: 'lich', name: 'Lich', plural: 'Liches', size: 'medium', elements: ['shadow'],
@@ -230,13 +230,13 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support'],
     abilities: [{ id: 'necrotic-bolt' }, { id: 'withering-curse', minAbility: 40 }, { id: 'soul-harvest', minAbility: 90 }, { id: 'bone-ward', minAbility: 120 }],
     nameCulture: 'lich', traitWeights: { loner: 2, cunning: 2, ambitious: 1.5, 'team-player': 0.4 },
-    upkeep: 30, rarity: 2,
+    upkeep: 30, rarity: 2, valueMult: 1.25,
   },
   {
     id: 'kraken', name: 'Kraken', plural: 'Krakens', size: 'huge', elements: ['water'],
     description: 'A sea terror dragged into the sand. Tentacles everywhere: it grabs, crushes and soaks up blows.',
     attributes: {
-      strength: [10, 19], stamina: [8, 17], speed: [2, 8], agility: [4, 12], toughness: [10, 18], recovery: [6, 15],
+      strength: [9, 18], stamina: [8, 17], speed: [2, 8], agility: [4, 12], toughness: [9, 17], recovery: [6, 15],
       attack: [8, 17], accuracy: [3, 10], defense: [6, 15], magic: [3, 11], focus: [3, 10], technique: [5, 13],
       courage: [9, 19], composure: [5, 15], aggression: [8, 18], tactics: [3, 12], discipline: [3, 12],
       anticipation: [4, 13], determination: [7, 17], teamwork: [2, 10], leadership: [3, 12],
@@ -246,7 +246,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'striker'],
     abilities: [{ id: 'tentacle-lash' }, { id: 'crushing-grip', minAbility: 50 }, { id: 'ink-cloud', minAbility: 80 }, { id: 'maelstrom', minAbility: 120 }],
     nameCulture: 'deep', traitWeights: { loner: 2, bloodthirsty: 1.5, stubborn: 1.5 },
-    upkeep: 90, rarity: 2,
+    upkeep: 90, rarity: 2, valueMult: 1.3,
   },
   {
     id: 'phoenix', name: 'Phoenix', plural: 'Phoenixes', size: 'large', elements: ['fire', 'light'], flying: true,
@@ -263,13 +263,13 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'ember-talons' }, { id: 'flame-burst', minAbility: 40 }, { id: 'rebirth-flame', minAbility: 90 }, { id: 'solar-flare', minAbility: 130 }],
     passives: ['rekindling'],
     nameCulture: 'phoenix', traitWeights: { loyal: 2, fearless: 2, 'pack-leader': 1.5, coward: 0.1 },
-    upkeep: 120, rarity: 1,
+    upkeep: 120, rarity: 1, valueMult: 1.2,
   },
   {
     id: 'dryad', name: 'Dryad', plural: 'Dryads', size: 'medium', elements: ['nature'],
     description: 'A forest spirit bound to an old oak. Frail and gentle, but few healers are better.',
     attributes: {
-      strength: [3, 9], stamina: [6, 14], speed: [7, 15], agility: [8, 17], toughness: [3, 10], recovery: [8, 17],
+      strength: [3, 9], stamina: [7, 15], speed: [7, 15], agility: [8, 17], toughness: [4, 12], recovery: [8, 17],
       attack: [4, 11], accuracy: [5, 13], defense: [4, 11], magic: [8, 18], focus: [8, 18], technique: [6, 15],
       courage: [4, 14], composure: [7, 17], aggression: [2, 10], tactics: [6, 16], discipline: [6, 16],
       anticipation: [6, 16], determination: [5, 14], teamwork: [10, 20], leadership: [4, 14],
@@ -279,7 +279,7 @@ const list: SpeciesDef[] = [
     roles: ['support', 'caster'],
     abilities: [{ id: 'thorn-whip' }, { id: 'bloom', minAbility: 30 }, { id: 'pollen-cloud', minAbility: 70 }, { id: 'oak-blessing', minAbility: 110 }],
     nameCulture: 'elf', traitWeights: { 'team-player': 2.5, loyal: 2, coward: 1.3, bloodthirsty: 0.2 },
-    upkeep: 20, rarity: 6,
+    upkeep: 20, rarity: 6, valueMult: 0.65,
   },
   {
     id: 'basilisk', name: 'Basilisk', plural: 'Basilisks', size: 'large', elements: ['earth'],
@@ -295,7 +295,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'tank'],
     abilities: [{ id: 'venom-fang' }, { id: 'tail-crush', minAbility: 40 }, { id: 'stone-gaze', minAbility: 100 }],
     nameCulture: 'naga', traitWeights: { loner: 2, bloodthirsty: 1.5, vengeful: 1.5 },
-    upkeep: 45, rarity: 4,
+    upkeep: 45, rarity: 4, valueMult: 1,
   },
   {
     id: 'djinn', name: 'Djinn', plural: 'Djinns', size: 'medium', elements: ['air', 'fire'], flying: true,
@@ -311,7 +311,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'skirmisher'],
     abilities: [{ id: 'wind-blade' }, { id: 'mirage', minAbility: 40 }, { id: 'whirlwind', minAbility: 80 }, { id: 'granted-wish', minAbility: 120 }],
     nameCulture: 'djinn', traitWeights: { ambitious: 2.5, showboat: 2, cunning: 1.5, loyal: 0.4 },
-    upkeep: 40, rarity: 3,
+    upkeep: 40, rarity: 3, valueMult: 1.1,
   },
   {
     id: 'centaur', name: 'Centaur', plural: 'Centaurs', size: 'large', elements: ['earth'],
@@ -327,7 +327,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'recurve-bow' }, { id: 'hoof-strike' }, { id: 'lance-charge', minAbility: 60 }, { id: 'trample', minAbility: 100 }],
     nameCulture: 'centaur', traitWeights: { 'pack-leader': 2, 'glory-hunter': 1.5, stubborn: 1.5 },
-    upkeep: 45, rarity: 5,
+    upkeep: 45, rarity: 5, valueMult: 1.1,
   },
   {
     id: 'wendigo', name: 'Wendigo', plural: 'Wendigos', size: 'large', elements: ['shadow', 'water'],
@@ -343,7 +343,7 @@ const list: SpeciesDef[] = [
     roles: ['striker'],
     abilities: [{ id: 'frost-claws' }, { id: 'ravenous-bite', minAbility: 50 }, { id: 'chilling-howl', minAbility: 90 }],
     nameCulture: 'beast', traitWeights: { bloodthirsty: 3, berserker: 2, hothead: 2, 'team-player': 0.2 },
-    upkeep: 35, rarity: 4,
+    upkeep: 35, rarity: 4, valueMult: 1.1,
   },
   {
     id: 'crystal-golem', name: 'Crystal Golem', plural: 'Crystal Golems', size: 'large', elements: ['light', 'earth'],
@@ -360,13 +360,13 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'crystal-fist' }, { id: 'prism-beam', minAbility: 50 }, { id: 'refraction', minAbility: 90 }],
     passives: ['stoneform'],
     nameCulture: 'golem', traitWeights: { guardian: 2, professional: 2, 'team-player': 1.5, hothead: 0.1 },
-    upkeep: 25, rarity: 3,
+    upkeep: 25, rarity: 3, valueMult: 1,
   },
   {
     id: 'salamander', name: 'Salamander', plural: 'Salamanders', size: 'small', elements: ['fire'],
     description: 'A quick little fire lizard. Cheap, fragile and very annoying.',
     attributes: {
-      strength: [3, 9], stamina: [7, 15], speed: [10, 19], agility: [10, 19], toughness: [4, 11], recovery: [7, 16],
+      strength: [3, 9], stamina: [7, 15], speed: [10, 19], agility: [10, 19], toughness: [5, 12], recovery: [7, 16],
       attack: [7, 15], accuracy: [6, 14], defense: [3, 10], magic: [4, 12], focus: [4, 12], technique: [6, 15],
       courage: [4, 14], composure: [3, 12], aggression: [8, 17], tactics: [3, 12], discipline: [3, 12],
       anticipation: [6, 15], determination: [4, 13], teamwork: [4, 13], leadership: [1, 8],
@@ -376,7 +376,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'quick-bite' }, { id: 'fire-spit' }, { id: 'ember-dash', minAbility: 60 }],
     nameCulture: 'beast', traitWeights: { hothead: 2, showboat: 1.5, coward: 1.2 },
-    upkeep: 12, rarity: 9,
+    upkeep: 12, rarity: 9, valueMult: 0.6,
   },
 ];
 

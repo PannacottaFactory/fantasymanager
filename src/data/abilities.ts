@@ -90,7 +90,7 @@ const list: AbilityDef[] = [
 
   // ——— Dryad ———
   { id: 'thorn-whip', name: 'Thorn Whip', kind: 'melee', element: 'nature', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.25, on: 'target' }], verb: 'lashes a thorny whip at', description: 'A vine full of thorns.' },
-  { id: 'bloom', name: 'Bloom', kind: 'heal', element: 'nature', target: 'ally', power: 18, staminaCost: 9, cooldown: 1, verb: 'makes healing flowers bloom over', description: 'Flowers that close wounds.' },
+  { id: 'bloom', name: 'Bloom', kind: 'heal', element: 'nature', target: 'ally', power: 22, staminaCost: 9, cooldown: 1, verb: 'makes healing flowers bloom over', description: 'Flowers that close wounds.' },
   { id: 'pollen-cloud', name: 'Pollen Cloud', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.6, on: 'target' }, { effect: 'weakened', chance: 0.3, on: 'target' }], verb: 'releases a cloud of pollen at', description: 'Sneezing, sluggish foes.' },
   { id: 'oak-blessing', name: 'Blessing of the Oaks', kind: 'buff', element: 'nature', target: 'allAllies', power: 0, staminaCost: 10, cooldown: 5, effects: [{ effect: 'fortified', chance: 0.7, on: 'target' }], verb: 'calls down the blessing of the oaks', description: 'Allies grow hard as old wood.' },
 

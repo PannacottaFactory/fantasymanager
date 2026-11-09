@@ -51,9 +51,9 @@ export const TRAINING_CONFIG = {
     min: 2,
     max: 4,
     /** Potential = normal(base + reputation × perReputation, sd). */
-    potentialBase: 70,
-    potentialPerReputation: 0.6,
-    potentialSd: 22,
+    potentialBase: 55,
+    potentialPerReputation: 0.5,
+    potentialSd: 18,
     /** Wage of a youth contract = asked wage × this. */
     wageFactor: 0.5,
     years: 3,

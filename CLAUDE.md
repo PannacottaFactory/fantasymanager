@@ -144,7 +144,17 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   abilities.ts + names.ts (culture) + fr.ts (FR_SPECIES with `the`/`fem`, FR_ABILITIES verbs, FR_SURNAMES aligned).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
-## Balance snapshot (professional vs professional, 1000 matches)
-~17 rounds, ~56 % KO finishes, hit rate ~73 %, ~4 exhaustions & ~0.7 injuries per match, elite beats novice
->95 %. Known: goblins & harpies are weak per slot (intended as cheap fodder — revisit with economy), dragons strong
-(rare/expensive), golems slightly strong.
+## Balance snapshot
+Tools: `sim:batch` (match stats), `sim:species` (strength of each species at equal potential → suggested
+`valueMult`), `sim:balance -- --seasons 10` (long-run drift: ability/potential, ages, pre-match fatigue,
+injuries, KO rate, treasuries per division, reputation, transfers).
+
+Professional vs professional (600 matches): ~17 rounds, ~57 % KO finishes, ~0.75 injuries per match.
+Long run (balance pass, after phase 5): average ability ~97 → ~104 and potential ~101 → ~113 over 8–10 seasons,
+then flat; starters ~20–27 % fatigued before a match (rotation matters); league KO rate 40–55 %; treasuries stay
+positive (AI stables in the red sell to richer ones; rich ones buy and build more); reputation reverts towards
+62 (D1) / 38 (D2) so promoted teams can settle. A dynasty can still pile up money (~500–700k after 10 seasons).
+Species: at equal potential dragon > golem ≈ kraken ≈ minotaur > … > harpy ≈ salamander ≈ dryad > goblin; their
+market value (and wages) scale with `valueMult` (0.6–1.6), so weak species are cheap and strong ones expensive.
+Knobs used: youth potential (base 55 + 0.5 × reputation, sd 18), free-agent quality weights, weekly fatigue
+recovery (16 + 0.6 × recovery), D1 money ×1.35, distressed sales, rich-club spending.

@@ -15,6 +15,8 @@ export function creatureValue(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): nu
   if (c.age <= lc.peakEnd) f *= 1 + (Math.max(0, c.potential - c.ability) / 100) * v.potentialWeight;
   else f *= Math.max(v.minAgeFactor, 1 - v.declinePerYear * (c.age - lc.peakEnd));
   f *= 1 + (10 - sp.rarity) * v.rarityWeight;
+  // Real combat strength of the species at equal ability (calibrated by sim:species).
+  f *= sp.valueMult ?? 1;
   return roundTo(v.base * f, v.round);
 }
 
