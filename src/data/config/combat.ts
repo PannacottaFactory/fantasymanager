@@ -125,6 +125,12 @@ export const COMBAT_CONFIG = {
     riskHigh: { critBonus: 0.02, hitBonus: -0.03, bigAbilityBias: 0.3 },
     riskLow: { critBonus: -0.01, hitBonus: 0.02, bigAbilityBias: -0.3 },
   },
+  /** Favourite abilities chosen by the manager (per creature). */
+  favorites: {
+    max: 2,
+    /** Score multiplier = 1 + bonus × (0.4 + 0.6 × discipline/20): disciplined creatures follow the build more. */
+    bonus: 0.9,
+  },
   ai: {
     /** Decision noise = (1 − tactics/20) × this. Low tactics → erratic choices. */
     noiseMax: 0.6,

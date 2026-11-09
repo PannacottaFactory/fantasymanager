@@ -74,3 +74,17 @@ export const KEY_MOMENT_TEXT = {
   swing: ['The momentum swings towards {team}.'],
   finalBlow: ['{actor} ends it.'],
 };
+
+/** Report headline. Placeholders: {us} {them} {round} {score} */
+export const HEADLINES = {
+  koWin: '{us} beat {them} by knockout in round {round}.',
+  koLoss: '{us} were knocked out by {them} in round {round}.',
+  pointsWin: '{us} beat {them} on points ({score}).',
+  pointsLoss: '{us} lost to {them} on points ({score}).',
+};
+
+export const REPORT_WORDS = {
+  theirWounds: 'their wounds',
+  substitution: 'substitution',
+  substitutions: 'substitutions',
+};

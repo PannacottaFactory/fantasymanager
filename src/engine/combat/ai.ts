@@ -142,6 +142,10 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     const cost = staminaCost(actor, ability, orders, cfg);
     if (cost > actor.stamina) continue;
     let bigMult = 1;
+    if (actor.favorites.includes(id)) {
+      const f = cfg.combat.favorites;
+      bigMult *= 1 + f.bonus * (0.4 + (0.6 * actor.attrs.discipline) / 20);
+    }
     if (ability.staminaCost >= 12) {
       bigMult += riskBias;
       if (actor.stance === 'conserve') bigMult *= 0.7;

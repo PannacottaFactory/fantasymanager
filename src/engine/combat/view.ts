@@ -16,6 +16,12 @@ export interface CombatantView {
   state: CombatantState;
   line: Line;
   effects: string[];
+  abilities: string[];
+  favorites: string[];
+  /** Rounds left before each ability is available again. */
+  cooldowns: Record<string, number>;
+  /** Total cooldown of the ability when it was last used (to draw the refill). */
+  cooldownMax: Record<string, number>;
 }
 
 export interface MatchView {
@@ -31,6 +37,7 @@ export function initialView(roster: Record<string, RosterEntry>): MatchView {
     creatures[r.id] = {
       id: r.id, side: r.side, hp: r.maxHp, maxHp: r.maxHp, stamina: r.maxStamina, maxStamina: r.maxStamina,
       morale: 50, state: r.starter ? 'active' : 'bench', line: r.line, effects: [],
+      abilities: r.abilities ?? [], favorites: r.favorites ?? [], cooldowns: {}, cooldownMax: {},
     };
   }
   return { round: 0, creatures, subsUsed: [0, 0], ended: false };
@@ -41,6 +48,8 @@ function applySnapshot(view: MatchView, snapshot: CombatantSnapshot[]) {
     const c = view.creatures[s.id];
     if (!c) continue;
     Object.assign(c, { hp: s.hp, stamina: s.stamina, morale: s.morale, state: s.state, line: s.line, effects: [...s.effects] });
+    // Older stored matches have no cooldowns in their snapshots.
+    if (s.cooldowns) c.cooldowns = { ...s.cooldowns };
   }
 }
 
@@ -63,6 +72,17 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
     case 'roundStart':
       view.round = e.round;
       break;
+    case 'spend': {
+      const a = touch(e.actor);
+      if (a) {
+        a.stamina = e.stamina;
+        if (e.ability && e.cooldown > 0) {
+          a.cooldowns = { ...a.cooldowns, [e.ability]: e.cooldown + 1 };
+          a.cooldownMax = { ...a.cooldownMax, [e.ability]: e.cooldown };
+        }
+      }
+      break;
+    }
     case 'attack': {
       const t = touch(e.target);
       if (t) t.hp = e.targetHp;

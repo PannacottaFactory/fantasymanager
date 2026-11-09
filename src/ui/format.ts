@@ -1,11 +1,6 @@
 import { ELEMENTS } from '../data/elements.ts';
-import { ROLES } from '../data/roles.ts';
 import { SPECIES } from '../data/species.ts';
-import type { RoleId } from '../data/schema.ts';
-
-export const speciesName = (id: string) => SPECIES[id]?.name ?? id;
-export const roleName = (id: RoleId) => ROLES[id]?.name ?? id;
-export const roleShort: Record<RoleId, string> = { tank: 'TNK', striker: 'STR', support: 'SUP', caster: 'CST', skirmisher: 'SKR' };
+import type { StringKey } from './i18n/strings.ts';
 
 /** Colour band for a 1–20 attribute. */
 export function attrClass(v: number): string {
@@ -34,12 +29,26 @@ export function hpColor(frac: number): string {
   return 'var(--hp-low)';
 }
 
-export function moraleLabel(m: number): string {
-  if (m >= 80) return 'Fired up';
-  if (m >= 60) return 'Confident';
-  if (m >= 40) return 'Steady';
-  if (m >= 25) return 'Shaken';
-  return 'Panicking';
+export function fatigueColor(f: number): string {
+  if (f >= 60) return 'var(--bad)';
+  if (f >= 35) return 'var(--warn)';
+  return 'var(--good)';
+}
+
+export function moraleKey(m: number): StringKey {
+  if (m >= 80) return 'morale.firedUp';
+  if (m >= 60) return 'morale.confident';
+  if (m >= 40) return 'morale.steady';
+  if (m >= 25) return 'morale.shaken';
+  return 'morale.panicking';
+}
+
+/** Two-letter monogram of a creature: initials of the first two words, or its first two letters. */
+export function initials(name: string): string {
+  const words = name.split(/[\s-]+/).filter(Boolean);
+  if (words.length >= 2) return (words[0]![0]! + words[1]![0]!).toUpperCase();
+  const w = words[0] ?? '?';
+  return (w[0]!.toUpperCase() + (w[1] ?? '')).slice(0, 2);
 }
 
 export function randomSeed(): string {

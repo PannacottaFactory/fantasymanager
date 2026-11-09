@@ -29,6 +29,8 @@ export interface Combatant {
   attrs: Attributes;
   traits: string[];
   abilities: string[];
+  /** Abilities the manager asked this creature to favour. */
+  favorites: string[];
   /** Hidden ability 1–200 (used by AI "strongest" target and ratings). */
   ability: number;
   injuryProneness: number;
@@ -63,6 +65,8 @@ export interface RosterEntry {
   maxStamina: number;
   starter: boolean;
   traits: string[];
+  abilities: string[];
+  favorites: string[];
 }
 
 export interface MatchSetup {
@@ -100,6 +104,8 @@ export interface CombatantSnapshot {
   state: CombatantState;
   line: Line;
   effects: string[];
+  /** Rounds before each ability can be used again (only abilities on cooldown). */
+  cooldowns: Record<string, number>;
 }
 
 export type AttackKind = 'melee' | 'ranged' | 'spell';
@@ -129,6 +135,8 @@ export type MatchEvent =
   | { type: 'heal'; round: number; actor: string; target: string; ability: string; amount: number; targetHp: number }
   | { type: 'buff'; round: number; actor: string; ability: string; targets: string[] }
   | { type: 'debuff'; round: number; actor: string; ability: string; targets: string[]; affected: string[] }
+  /** Stamina paid for an action (before it resolves). `ability` is null for a guard. */
+  | { type: 'spend'; round: number; actor: string; ability: string | null; cost: number; stamina: number; cooldown: number }
   | { type: 'guard'; round: number; actor: string }
   | { type: 'rest'; round: number; actor: string; gained: number }
   | { type: 'hesitate'; round: number; actor: string }

@@ -1,3 +1,4 @@
+import type { Lang } from '../../core/i18n.ts';
 import { clamp, lerp } from '../../core/math.ts';
 import { makeId } from '../../core/ids.ts';
 import type { Rng } from '../../core/rng.ts';
@@ -16,6 +17,8 @@ export interface GenerateCreatureOptions {
   potential?: number;
   age?: number;
   stableId?: string | null;
+  /** Language of the generated surname. */
+  lang?: Lang;
 }
 
 /** Fraction of potential a creature of this species shows at this age. */
@@ -100,7 +103,7 @@ export function generateCreature(
   const c = g.condition;
   return {
     id: makeId(rng, 'cr'),
-    name: generateName(rng, species.nameCulture),
+    name: generateName(rng, species.nameCulture, opts.lang),
     speciesId: species.id,
     age,
     attributes: generateAttributes(rng, species, ability, cfg),

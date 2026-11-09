@@ -118,7 +118,6 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['', '{a} {verb} its teammates — wounds close all round.'],
   ],
   buff: [
-    ['', '{a} {verb}.'],
     ['ally', '{a} {verb} {t}.'],
     ['allies', '{a} {verb} — spirits rise across {aTeam}!'],
     ['allies', '{a} {verb}, and {aTeam} respond!'],

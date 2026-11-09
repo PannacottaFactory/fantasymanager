@@ -11,6 +11,7 @@ import { replaceCreature } from '../../engine/team/edit.ts';
 import type { Team } from '../../engine/model.ts';
 import type { MatchResult } from '../../engine/combat/types.ts';
 import { randomSeed } from '../format.ts';
+import { useSettings } from '../i18n/index.ts';
 
 export type ArenaMode = 'setup' | 'live' | 'report';
 
@@ -38,9 +39,10 @@ interface ArenaState {
 }
 
 const freshRng = () => new Rng(randomSeed() + ':' + randomSeed());
+const lang = () => useSettings.getState().lang;
 
 export const useArena = create<ArenaState>()((set, get) => ({
-  teams: [generateTeam(freshRng(), { quality: 'professional' }), generateTeam(freshRng(), { quality: 'professional' })],
+  teams: [generateTeam(freshRng(), { quality: 'professional', lang: lang() }), generateTeam(freshRng(), { quality: 'professional', lang: lang() })],
   quality: ['professional', 'professional'],
   seed: randomSeed(),
   playerControls: true,
@@ -50,12 +52,12 @@ export const useArena = create<ArenaState>()((set, get) => ({
   setTeam: (side, team) => set((s) => ({ teams: side === 0 ? [team, s.teams[1]] : [s.teams[0], team] })),
   setQuality: (side, q) => set((s) => ({ quality: side === 0 ? [q, s.quality[1]] : [s.quality[0], q] })),
   regenerate: (side) => {
-    const team = generateTeam(freshRng(), { quality: get().quality[side] });
+    const team = generateTeam(freshRng(), { quality: get().quality[side], lang: lang() });
     get().setTeam(side, team);
   },
   swapSpecies: (side, creatureId, speciesId) => {
     const team = get().teams[side];
-    const c = generateCreature(freshRng(), { speciesId, quality: get().quality[side], stableId: team.id });
+    const c = generateCreature(freshRng(), { speciesId, quality: get().quality[side], stableId: team.id, lang: lang() });
     get().setTeam(side, replaceCreature(team, creatureId, c));
   },
   setSeed: (seed) => set({ seed }),

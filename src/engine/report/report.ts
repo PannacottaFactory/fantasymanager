@@ -4,14 +4,19 @@
  */
 import { avg, clamp, round } from '../../core/math.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
-import { fill, plural } from '../../core/text.ts';
-import { ABILITIES } from '../../data/abilities.ts';
-import { EFFECTS } from '../../data/effects.ts';
-import { ELEMENTS } from '../../data/elements.ts';
+import type { Lang } from '../../core/i18n.ts';
+import { fill } from '../../core/text.ts';
 import { SPECIES } from '../../data/species.ts';
-import { ASSISTANT_REMARKS, KEY_MOMENT_TEXT, type RemarkKey } from '../../data/text/report.ts';
+import { ASSISTANT_REMARKS, HEADLINES, KEY_MOMENT_TEXT, REPORT_WORDS, type RemarkKey } from '../../data/text/report.ts';
+import { ASSISTANT_REMARKS_FR, HEADLINES_FR, KEY_MOMENT_TEXT_FR, REPORT_WORDS_FR } from '../../data/text/report.fr.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import type { MatchEvent, MatchResult, Side } from '../combat/types.ts';
+import { abilityText, elementName, speciesName } from '../text/localize.ts';
+
+const TEXTS = {
+  en: { remarks: ASSISTANT_REMARKS, moments: KEY_MOMENT_TEXT, headlines: HEADLINES, words: REPORT_WORDS },
+  fr: { remarks: ASSISTANT_REMARKS_FR, moments: KEY_MOMENT_TEXT_FR, headlines: HEADLINES_FR, words: REPORT_WORDS_FR },
+};
 
 export interface CreatureMatchStats {
   id: string;
@@ -92,8 +97,10 @@ function emptyTeam(): TeamMatchStats {
   return { damageDealt: 0, attacks: 0, hits: 0, crits: 0, kos: 0, healing: 0, avgElementMult: 1, backlineDamageTaken: 0, damageTaken: 0, substitutions: 0 };
 }
 
-export function buildReport(result: MatchResult, perspective: Side, cfg: GameConfig = DEFAULT_CONFIG): MatchReport {
+export function buildReport(result: MatchResult, perspective: Side, cfg: GameConfig = DEFAULT_CONFIG, lang: Lang = 'en'): MatchReport {
   const { roster, events, outcome } = result;
+  const T = TEXTS[lang];
+  const KEY_MOMENT_TEXT = T.moments;
   const stats = new Map<string, CreatureMatchStats>();
   for (const r of Object.values(roster)) stats.set(r.id, emptyStats(r.id, r.side));
   const st = (id: string) => stats.get(id)!;
@@ -136,7 +143,7 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
         if (e.damage >= maxHp * cfg.report.keyMoments.bigHitFraction) {
           moments.push({
             round: e.round, side: a.side, kind: 'bigHit', importance: 2 + e.damage / maxHp,
-            text: pickText(KEY_MOMENT_TEXT.bigHit, { actor: name(e.actor), target: name(e.target), ability: ABILITIES[e.ability]?.name, n: e.damage }),
+            text: pickText(KEY_MOMENT_TEXT.bigHit, { actor: name(e.actor), target: name(e.target), ability: abilityText(e.ability, lang).name, n: e.damage }),
           });
         }
         break;
@@ -196,7 +203,7 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
         } else {
           moments.push({
             round: e.round, side: bySide, kind: 'ko', importance: 2.5,
-            text: e.by ? pickText(KEY_MOMENT_TEXT.ko, { actor: name(e.by), target: name(e.target) }) : pickText(KEY_MOMENT_TEXT.koEffect, { target: name(e.target), effect: 'their wounds' }),
+            text: e.by ? pickText(KEY_MOMENT_TEXT.ko, { actor: name(e.by), target: name(e.target) }) : pickText(KEY_MOMENT_TEXT.koEffect, { target: name(e.target), effect: T.words.theirWounds }),
           });
         }
         break;
@@ -283,21 +290,20 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
     .map((x) => x.m);
 
   // ——— Assistant remarks ———
-  const remarks = buildRemarks(result, perspective, stats, teams, cfg, (key, vars) => fill(rng.pick(ASSISTANT_REMARKS[key]), vars));
+  const remarks = buildRemarks(result, perspective, stats, teams, cfg, lang, (key, vars) => fill(rng.pick(T.remarks[key]), vars));
 
   const ours = played.filter((s) => s.side === perspective).sort((a, b) => b.rating - a.rating);
   const won = outcome.winner === perspective;
   const us = result.teams[perspective].name;
   const them = result.teams[perspective === 0 ? 1 : 0].name;
   const score = `${outcome.score[perspective]}–${outcome.score[perspective === 0 ? 1 : 0]}`;
-  const headline =
-    outcome.method === 'ko'
-      ? won
-        ? `${us} beat ${them} by knockout in round ${outcome.rounds}.`
-        : `${us} were knocked out by ${them} in round ${outcome.rounds}.`
-      : won
-        ? `${us} beat ${them} on points (${score}).`
-        : `${us} lost to ${them} on points (${score}).`;
+  const h = T.headlines;
+  const headline = fill(outcome.method === 'ko' ? (won ? h.koWin : h.koLoss) : won ? h.pointsWin : h.pointsLoss, {
+    us,
+    them,
+    round: outcome.rounds,
+    score,
+  });
 
   return {
     perspective,
@@ -318,21 +324,24 @@ function buildRemarks(
   stats: Map<string, CreatureMatchStats>,
   teams: [TeamMatchStats, TeamMatchStats],
   cfg: GameConfig,
+  lang: Lang,
   text: (key: RemarkKey, vars: Record<string, string | number | undefined>) => string,
 ): Remark[] {
   const rc = cfg.report.remarks;
   const out: Remark[] = [];
   const opp: Side = side === 0 ? 1 : 0;
   const roster = result.roster;
+  const words = TEXTS[lang].words;
+  const dec = (n: number, digits: number) => (lang === 'fr' ? n.toFixed(digits).replace('.', ',') : n.toFixed(digits));
   const ours = [...stats.values()].filter((s) => s.side === side && s.played);
-  const vars = (id: string) => ({ name: roster[id]!.name, species: SPECIES[roster[id]!.speciesId]?.name.toLowerCase() });
+  const vars = (id: string) => ({ name: roster[id]!.name, species: speciesName(roster[id]!.speciesId, lang).toLowerCase() });
   const enemyElements = [...new Set(Object.values(roster).filter((r) => r.side === opp).flatMap((r) => SPECIES[r.speciesId]?.elements ?? []))]
-    .map((e) => ELEMENTS[e].name.toLowerCase())
+    .map((e) => elementName(e, lang).toLowerCase())
     .join('/');
 
   const sorted = ours.slice().sort((a, b) => b.rating - a.rating);
   const best = sorted[0];
-  if (best && best.rating >= 7) out.push({ tone: 'good', key: 'mvp', text: text('mvp', { ...vars(best.id), rating: best.rating.toFixed(1) }) });
+  if (best && best.rating >= 7) out.push({ tone: 'good', key: 'mvp', text: text('mvp', { ...vars(best.id), rating: dec(best.rating, 1) }) });
 
   for (const s of ours) {
     if (s.fled) out.push({ tone: 'bad', key: 'fled', text: text('fled', vars(s.id)) });
@@ -342,8 +351,8 @@ function buildRemarks(
   for (const s of exhausted.slice(0, 2)) out.push({ tone: 'bad', key: 'exhaustedEarly', text: text('exhaustedEarly', { ...vars(s.id), round: s.exhaustedRound! }) });
 
   const avgMult = teams[side].avgElementMult;
-  if (avgMult <= rc.typeDisadvantage) out.push({ tone: 'bad', key: 'typeDisadvantage', text: text('typeDisadvantage', { mult: avgMult.toFixed(2), enemyElements }) });
-  else if (avgMult >= rc.typeAdvantage) out.push({ tone: 'good', key: 'typeAdvantage', text: text('typeAdvantage', { mult: avgMult.toFixed(2), enemyElements }) });
+  if (avgMult <= rc.typeDisadvantage) out.push({ tone: 'bad', key: 'typeDisadvantage', text: text('typeDisadvantage', { mult: dec(avgMult, 2), enemyElements }) });
+  else if (avgMult >= rc.typeAdvantage) out.push({ tone: 'good', key: 'typeAdvantage', text: text('typeAdvantage', { mult: dec(avgMult, 2), enemyElements }) });
 
   const backShare = teams[side].damageTaken ? teams[side].backlineDamageTaken / teams[side].damageTaken : 0;
   if (backShare >= rc.backlineDamageShare) out.push({ tone: 'bad', key: 'backlineExposed', text: text('backlineExposed', { pct: Math.round(backShare * 100) }) });
@@ -359,7 +368,7 @@ function buildRemarks(
   const benchLeft = Object.values(roster).filter((r) => r.side === side && !r.starter && !stats.get(r.id)!.played).length;
   const needed = ours.some((s) => s.knockedOut || (s.exhaustedRound !== null && s.exhaustedRound < result.outcome.rounds - 2));
   if (subsLeft > 0 && benchLeft > 0 && needed && result.outcome.rounds > cfg.match.breakRounds[0]!) {
-    out.push({ tone: 'info', key: 'unusedSubs', text: text('unusedSubs', { subs: plural(Math.min(subsLeft, benchLeft), 'substitution', 'substitutions') }) });
+    out.push({ tone: 'info', key: 'unusedSubs', text: text('unusedSubs', { subs: countWord(Math.min(subsLeft, benchLeft), words.substitution, words.substitutions) }) });
   }
   if (teams[side].healing >= 60) out.push({ tone: 'good', key: 'healing', text: text('healing', { n: teams[side].healing }) });
 
@@ -368,7 +377,7 @@ function buildRemarks(
     out.push({ tone: 'info', key: 'closePoints', text: text('closePoints', { score: `${o.score[side]}–${o.score[opp]}` }) });
   }
   const worst = sorted[sorted.length - 1];
-  if (worst && worst !== best && worst.rating <= 5) out.push({ tone: 'bad', key: 'worst', text: text('worst', { ...vars(worst.id), rating: worst.rating.toFixed(1) }) });
+  if (worst && worst !== best && worst.rating <= 5) out.push({ tone: 'bad', key: 'worst', text: text('worst', { ...vars(worst.id), rating: dec(worst.rating, 1) }) });
   if (o.winner !== side && o.method === 'ko' && teams[opp].damageDealt > teams[side].damageDealt * 1.8) {
     out.push({ tone: 'info', key: 'outmatched', text: text('outmatched', {}) });
   }
@@ -378,10 +387,6 @@ function buildRemarks(
   return out.sort((a, b) => order[a.tone] - order[b.tone]).slice(0, rc.maxRemarks);
 }
 
-/** Display helpers for UIs. */
-export function abilityName(id: string): string {
-  return ABILITIES[id]?.name ?? id;
-}
-export function effectName(id: string): string {
-  return EFFECTS[id]?.name ?? id;
+function countWord(n: number, one: string, many: string): string {
+  return `${n} ${n === 1 ? one : many}`;
 }

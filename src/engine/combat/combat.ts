@@ -99,13 +99,13 @@ export class Combat {
       for (const slot of team.tactic.lineup) {
         const cr = byCreature.get(slot.creatureId);
         if (!cr) throw new Error(`Lineup creature ${slot.creatureId} not in team ${team.name}`);
-        this.addCombatant(cr, side, slot.role, slot.line, slot.stance, true);
+        this.addCombatant(cr, side, slot.role, slot.line, slot.stance, true, team.tactic.favorites?.[cr.id]);
       }
       for (const id of team.tactic.bench) {
         const cr = byCreature.get(id);
         if (!cr) throw new Error(`Bench creature ${id} not in team ${team.name}`);
         const role = bestRole(cr);
-        this.addCombatant(cr, side, role, ROLES[role].defaultLine, 'normal', false);
+        this.addCombatant(cr, side, role, ROLES[role].defaultLine, 'normal', false, team.tactic.favorites?.[cr.id]);
       }
     });
 
@@ -275,12 +275,21 @@ export class Combat {
       state: c.state,
       line: c.line,
       effects: c.effects.map((e) => e.id),
+      cooldowns: Object.fromEntries(Object.entries(c.cooldowns).filter(([, v]) => v > 0)),
     }));
   }
 
   // ——— Setup ———
 
-  private addCombatant(cr: Creature, side: Side, role: Combatant['role'], line: Combatant['line'], stance: Combatant['stance'], starter: boolean) {
+  private addCombatant(
+    cr: Creature,
+    side: Side,
+    role: Combatant['role'],
+    line: Combatant['line'],
+    stance: Combatant['stance'],
+    starter: boolean,
+    favorites: readonly string[] = [],
+  ) {
     const species = SPECIES[cr.speciesId];
     if (!species) throw new Error(`Unknown species ${cr.speciesId}`);
     const attrs = effectiveAttributes(cr);
@@ -301,6 +310,7 @@ export class Combat {
       attrs,
       traits: cr.traits,
       abilities: getAbilities(cr).map((a) => a.id),
+      favorites: [],
       ability: cr.ability,
       injuryProneness: cr.hidden.injuryProneness,
       cooldowns: {},
@@ -320,14 +330,21 @@ export class Combat {
       damageDealt: 0,
       lastDamageElement: 'physical',
     };
+    c.favorites = favorites.filter((id) => c.abilities.includes(id)).slice(0, this.cfg.combat.favorites.max);
     this.combatants.push(c);
     this.byId.set(c.id, c);
     this.roster[c.id] = {
       id: c.id, side, name: c.name, speciesId: c.speciesId, role, line, maxHp: mHp, maxStamina: mSt, starter, traits: cr.traits,
+      abilities: [...c.abilities], favorites: [...c.favorites],
     };
   }
 
   // ——— Round flow ———
+
+  private emitSpend(actor: Combatant, ability: string | null, before: number, cooldown: number) {
+    const stamina = Math.round(actor.stamina);
+    this.emit({ type: 'spend', round: this.round, actor: actor.id, ability, cost: Math.round(before) - stamina, stamina, cooldown });
+  }
 
   private emit(e: MatchEvent) {
     this.events.push(e);
@@ -508,14 +525,18 @@ export class Combat {
     }
     if (action.type === 'guard') {
       actor.guarding = true;
+      const before = actor.stamina;
       actor.stamina = Math.max(0, actor.stamina - cfg.combat.guard.staminaCost);
+      this.emitSpend(actor, null, before, 0);
       this.emit({ type: 'guard', round: this.round, actor: actor.id });
       return;
     }
     const ability = action.ability;
     const orders = this.sides[actor.side].orders;
+    const before = actor.stamina;
     actor.stamina = Math.max(0, actor.stamina - staminaCost(actor, ability, orders, cfg));
     if (ability.cooldown > 0) actor.cooldowns[ability.id] = ability.cooldown + 1; // +1: decremented at end of this round
+    this.emitSpend(actor, ability.id, before, ability.cooldown);
 
     const enemies = this.active(other(actor.side));
     const allies = this.active(actor.side);

@@ -55,3 +55,14 @@ export function replaceCreature(team: Team, oldId: string, replacement: Creature
   const bench = team.tactic.bench.map((b) => (b === oldId ? replacement.id : b));
   return { ...team, creatures, tactic: { ...team.tactic, lineup, bench } };
 }
+
+/** Toggles a favourite ability of a creature (at most `cfg.combat.favorites.max`; the oldest is dropped). */
+export function toggleFavorite(team: Team, creatureId: string, abilityId: string, cfg: GameConfig = DEFAULT_CONFIG): Team {
+  const current = team.tactic.favorites?.[creatureId] ?? [];
+  let next = current.includes(abilityId) ? current.filter((a) => a !== abilityId) : [...current, abilityId];
+  if (next.length > cfg.combat.favorites.max) next = next.slice(next.length - cfg.combat.favorites.max);
+  const favorites = { ...(team.tactic.favorites ?? {}) };
+  if (next.length) favorites[creatureId] = next;
+  else delete favorites[creatureId];
+  return { ...team, tactic: { ...team.tactic, favorites } };
+}

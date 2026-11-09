@@ -110,8 +110,13 @@ describe('combat rules', () => {
   });
 
   it('enforces substitution limits and bench rules', () => {
-    const c = new Combat(setup(4));
+    // A match where at least 4 creatures still stand at the first break.
+    let c = new Combat(setup(4));
     c.advance();
+    for (let s = 5; c.active(0).length < 4 || c.bench(0).length < 3; s++) {
+      c = new Combat(setup(s));
+      c.advance();
+    }
     expect(c.phase).toBe('break');
     const bench = c.bench(0);
     const field = c.active(0);
@@ -161,5 +166,58 @@ describe('combat rules', () => {
     cfg.match.breakRounds = [];
     const r = simulateMatch(setup(7), { cfg });
     expect(r.outcome.rounds).toBeLessThanOrEqual(3);
+  });
+});
+
+describe('favourite abilities (builds)', () => {
+  /** How often each side-0 creature uses a given ability over many matches. */
+  function usage(withFavorites: boolean): { fav: number; total: number } {
+    let fav = 0;
+    let total = 0;
+    for (let i = 0; i < 30; i++) {
+      const s = setup(`fav-${i}`);
+      const team = s.teams[0];
+      const favorites: Record<string, string[]> = {};
+      // Favour the creature's least natural ability: the last one it knows.
+      const chosen = new Map<string, string>();
+      for (const c of team.creatures) {
+        const combat = new Combat({ seed: 0, teams: [team, s.teams[1]] });
+        const ab = combat.getRoster()[c.id]?.abilities ?? [];
+        if (ab.length > 1) chosen.set(c.id, ab[ab.length - 1]!);
+      }
+      if (withFavorites) for (const [id, a] of chosen) favorites[id] = [a];
+      const r = simulateMatch({ ...s, teams: [{ ...team, tactic: { ...team.tactic, favorites } }, s.teams[1]] });
+      for (const e of r.events) {
+        if (e.type !== 'spend' || !e.ability || !chosen.has(e.actor)) continue;
+        total++;
+        if (chosen.get(e.actor) === e.ability) fav++;
+      }
+    }
+    return { fav, total };
+  }
+
+  it('creatures use their favourite abilities noticeably more', () => {
+    const base = usage(false);
+    const built = usage(true);
+    expect(built.fav / built.total).toBeGreaterThan((base.fav / base.total) * 1.2);
+  });
+
+  it('favourites are exposed in the roster and capped', () => {
+    const s = setup('fav-cap');
+    const team = s.teams[0];
+    const c = team.creatures[0]!;
+    const all = new Combat(s).getRoster()[c.id]!.abilities;
+    const favorites = { [c.id]: [...all, 'not-an-ability'] };
+    const combat = new Combat({ ...s, teams: [{ ...team, tactic: { ...team.tactic, favorites } }, s.teams[1]] });
+    const fav = combat.getRoster()[c.id]!.favorites;
+    expect(fav.length).toBeLessThanOrEqual(DEFAULT_CONFIG.combat.favorites.max);
+    expect(fav.every((a) => all.includes(a))).toBe(true);
+  });
+
+  it('spend events keep the stamina gauge consistent', () => {
+    const r = simulateMatch(setup('spend'));
+    const spends = r.events.filter((e) => e.type === 'spend');
+    expect(spends.length).toBeGreaterThan(20);
+    for (const e of spends) if (e.type === 'spend') expect(e.stamina).toBeGreaterThanOrEqual(0);
   });
 });

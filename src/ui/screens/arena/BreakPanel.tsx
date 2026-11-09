@@ -5,8 +5,12 @@ import { aiBreakDecision } from '../../../engine/combat/decisions.ts';
 import { hpFraction, staminaFraction } from '../../../engine/combat/formulas.ts';
 import type { BreakDecision, SubstitutionDecision } from '../../../engine/combat/types.ts';
 import type { Aggression, Risk, Stance, TeamOrders } from '../../../engine/model.ts';
-import { Bar, Modal, Sigil } from '../../components/common.tsx';
-import { hpColor, moraleLabel, roleName, speciesName } from '../../format.ts';
+import { roleText, speciesName } from '../../../engine/text/localize.ts';
+import { Bar, Crest, Modal } from '../../components/common.tsx';
+import { hpColor, moraleKey } from '../../format.ts';
+import { useT } from '../../i18n/index.ts';
+
+const TARGETS: TargetPriority[] = ['nearest', 'weakest', 'strongest', 'casters', 'threat'];
 
 interface Props {
   combat: Combat;
@@ -15,6 +19,7 @@ interface Props {
 
 /** Manager decisions at a break: substitutions, team orders, individual stances. */
 export function BreakPanel({ combat, onResume }: Props) {
+  const { t, lang } = useT();
   const side = 0;
   const cfg = combat.cfg;
   const subsLeft = cfg.match.maxSubstitutions - combat.sides[side].subsUsed;
@@ -48,118 +53,121 @@ export function BreakPanel({ combat, onResume }: Props) {
 
   const ours = combat.teamHealth(0);
   const theirs = combat.teamHealth(1);
+  const stateTag = (s: string) => (s === 'ko' ? t('tag.ko') : s === 'fled' ? t('tag.fled') : s.toUpperCase());
 
   return (
     <Modal
-      title={`Break after round ${combat.round}`}
+      title={t('break.title', { n: combat.round })}
       onClose={resume}
       actions={
-        <button className="btn small" onClick={suggest} title="Let your assistant propose changes">
-          Assistant’s advice
+        <button className="btn small" onClick={suggest} title={t('break.advice.title')}>
+          {t('break.advice')}
         </button>
       }
     >
       <div className="stack">
         <div className="row muted" style={{ fontSize: 13 }}>
-          Team health: <b className="home-text">{Math.round(ours * 100)}%</b> vs <b className="away-text">{Math.round(theirs * 100)}%</b>
+          {t('break.teamHealth')} <b className="home-text">{Math.round(ours * 100)} %</b> {t('common.vs')} <b className="away-text">{Math.round(theirs * 100)} %</b>
           <span className="spacer" />
-          Substitutions left: <b>{subsLeft - subs.length}</b>
+          {t('break.subsLeft')} <b>{subsLeft - subs.length}</b>
         </div>
-        <table className="data">
-          <thead>
-            <tr>
-              <th>Creature</th>
-              <th>Role</th>
-              <th>Health</th>
-              <th>Stamina</th>
-              <th>Morale</th>
-              <th>Orders</th>
-              <th>Substitute</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mine.map((c) => {
-              const down = c.state !== 'active';
-              const sub = subs.find((s) => s.outId === c.id);
-              return (
-                <tr key={c.id} className={down ? 'dim' : ''}>
-                  <td>
-                    <span className="row" style={{ gap: 6 }}>
-                      <Sigil speciesId={c.speciesId} /> {c.name} {down && <span className="tag">{c.state.toUpperCase()}</span>}
-                    </span>
-                  </td>
-                  <td>{roleName(c.role)}</td>
-                  <td style={{ width: 120 }}>
-                    <Bar value={c.hp} max={c.maxHp} color={hpColor(hpFraction(c))} title={`${Math.round(c.hp)}/${c.maxHp}`} />
-                  </td>
-                  <td style={{ width: 100 }}>
-                    <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" title={`${Math.round(staminaFraction(c) * 100)}%`} />
-                  </td>
-                  <td>{down ? '—' : moraleLabel(c.morale)}</td>
-                  <td>
-                    {!down && (
-                      <select className="compact" value={stances[c.id]} onChange={(e) => setStances({ ...stances, [c.id]: e.target.value as Stance })}>
-                        <option value="normal">Normal</option>
-                        <option value="conserve">Pace yourself</option>
-                        <option value="allOut">All out</option>
-                      </select>
-                    )}
-                  </td>
-                  <td>
-                    <span className="row" style={{ gap: 4 }}>
-                      <button className={`btn small ${sub ? 'active' : ''}`} disabled={!sub && (subs.length >= subsLeft || bench.length <= subs.length)} onClick={() => toggleOut(c.id)}>
-                        {sub ? 'Replacing' : 'Replace'}
-                      </button>
-                      {sub && (
-                        <select className="compact" value={sub.inId} onChange={(e) => setIn(c.id, e.target.value)}>
-                          {bench
-                            .filter((b) => b.id === sub.inId || !inIds.has(b.id))
-                            .map((b) => (
-                              <option key={b.id} value={b.id}>
-                                {b.name} ({speciesName(b.speciesId)}, {roleName(b.role)})
-                              </option>
-                            ))}
+        <div className="table-wrap">
+          <table className="data">
+            <thead>
+              <tr>
+                <th>{t('col.creature')}</th>
+                <th>{t('col.role')}</th>
+                <th>{t('col.health')}</th>
+                <th>{t('col.stamina')}</th>
+                <th>{t('col.morale')}</th>
+                <th>{t('col.orders')}</th>
+                <th>{t('col.substitute')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mine.map((c) => {
+                const down = c.state !== 'active';
+                const sub = subs.find((s) => s.outId === c.id);
+                return (
+                  <tr key={c.id} className={down ? 'dim' : ''}>
+                    <td>
+                      <span className="row" style={{ gap: 6 }}>
+                        <Crest speciesId={c.speciesId} name={c.name} /> {c.name} {down && <span className="tag">{stateTag(c.state)}</span>}
+                      </span>
+                    </td>
+                    <td>{roleText(c.role, lang).name}</td>
+                    <td style={{ width: 120 }}>
+                      <Bar value={c.hp} max={c.maxHp} color={hpColor(hpFraction(c))} title={`${Math.round(c.hp)}/${c.maxHp}`} />
+                    </td>
+                    <td style={{ width: 100 }}>
+                      <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" title={`${Math.round(staminaFraction(c) * 100)} %`} />
+                    </td>
+                    <td>{down ? '—' : t(moraleKey(c.morale))}</td>
+                    <td>
+                      {!down && (
+                        <select className="compact" value={stances[c.id]} onChange={(e) => setStances({ ...stances, [c.id]: e.target.value as Stance })}>
+                          <option value="normal">{t('stance.normal')}</option>
+                          <option value="conserve">{t('stance.conserve')}</option>
+                          <option value="allOut">{t('stance.allOut')}</option>
                         </select>
                       )}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        {bench.length === 0 && <div className="muted">No creatures left on the bench.</div>}
+                    </td>
+                    <td>
+                      <span className="row" style={{ gap: 4 }}>
+                        <button className={`btn small ${sub ? 'active' : ''}`} disabled={!sub && (subs.length >= subsLeft || bench.length <= subs.length)} onClick={() => toggleOut(c.id)}>
+                          {sub ? t('break.replacing') : t('break.replace')}
+                        </button>
+                        {sub && (
+                          <select className="compact" value={sub.inId} onChange={(e) => setIn(c.id, e.target.value)}>
+                            {bench
+                              .filter((b) => b.id === sub.inId || !inIds.has(b.id))
+                              .map((b) => (
+                                <option key={b.id} value={b.id}>
+                                  {b.name} ({speciesName(b.speciesId, lang)}, {roleText(b.role, lang).name})
+                                </option>
+                              ))}
+                          </select>
+                        )}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {bench.length === 0 && <div className="muted">{t('break.noBench')}</div>}
 
         <div className="row wrap" style={{ gap: 14 }}>
           <label className="field">
-            Approach
+            {t('orders.approach')}
             <select value={orders.aggression} onChange={(e) => setOrders({ ...orders, aggression: e.target.value as Aggression })}>
-              <option value="cautious">Cautious</option>
-              <option value="balanced">Balanced</option>
-              <option value="aggressive">Aggressive</option>
+              <option value="cautious">{t('orders.cautious')}</option>
+              <option value="balanced">{t('orders.balanced')}</option>
+              <option value="aggressive">{t('orders.aggressive')}</option>
             </select>
           </label>
           <label className="field">
-            Target priority
+            {t('orders.target')}
             <select value={orders.target} onChange={(e) => setOrders({ ...orders, target: e.target.value as TargetPriority })}>
-              <option value="nearest">Nearest</option>
-              <option value="weakest">Weakest</option>
-              <option value="strongest">Strongest</option>
-              <option value="casters">Casters & healers</option>
-              <option value="threat">Biggest threat</option>
+              {TARGETS.map((x) => (
+                <option key={x} value={x}>
+                  {t(`target.${x}`)}
+                </option>
+              ))}
             </select>
           </label>
           <label className="field">
-            Risk taking
+            {t('orders.risk')}
             <select value={orders.risk} onChange={(e) => setOrders({ ...orders, risk: e.target.value as Risk })}>
-              <option value="low">Low</option>
-              <option value="normal">Normal</option>
-              <option value="high">High</option>
+              <option value="low">{t('risk.low')}</option>
+              <option value="normal">{t('risk.normal')}</option>
+              <option value="high">{t('risk.high')}</option>
             </select>
           </label>
           <span className="spacer" />
           <button className="btn primary" onClick={resume}>
-            Resume the fight
+            {t('break.resume')}
           </button>
         </div>
       </div>

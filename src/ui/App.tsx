@@ -1,70 +1,145 @@
 import { useEffect, useState } from 'react';
+import { LANGS } from '../core/i18n.ts';
+import { lastMatchday, seasonOver } from '../engine/league/season.ts';
+import { useSettings, useT } from './i18n/index.ts';
+import type { StringKey } from './i18n/strings.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
+import { ReportView } from './screens/arena/ReportView.tsx';
+import { InboxScreen } from './screens/game/InboxScreen.tsx';
+import { LeagueScreen } from './screens/game/LeagueScreen.tsx';
+import { MatchScreen } from './screens/game/MatchScreen.tsx';
+import { SquadScreen } from './screens/game/SquadScreen.tsx';
+import { StartScreen } from './screens/game/StartScreen.tsx';
+import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
+import { useGame, type Screen } from './store/gameStore.ts';
 
 /** Screens planned for later phases are shown disabled so the final structure is visible. */
-const SCREENS: { id: string; label: string; phase?: number }[] = [
-  { id: 'arena', label: 'Training Arena' },
-  { id: 'inbox', label: 'Inbox', phase: 2 },
-  { id: 'squad', label: 'Squad', phase: 2 },
-  { id: 'tactics', label: 'Tactics', phase: 2 },
-  { id: 'league', label: 'League', phase: 2 },
-  { id: 'scouting', label: 'Scouting', phase: 3 },
-  { id: 'finances', label: 'Finances', phase: 3 },
-  { id: 'training', label: 'Training', phase: 4 },
-  { id: 'staff', label: 'Staff', phase: 4 },
-  { id: 'facilities', label: 'Facilities', phase: 5 },
-  { id: 'history', label: 'History', phase: 5 },
+const SCREENS: { id: Screen | string; label: StringKey; phase?: number; needsGame?: boolean }[] = [
+  { id: 'inbox', label: 'nav.inbox', needsGame: true },
+  { id: 'squad', label: 'nav.squad', needsGame: true },
+  { id: 'tactics', label: 'nav.tactics', needsGame: true },
+  { id: 'league', label: 'nav.league', needsGame: true },
+  { id: 'scouting', label: 'nav.scouting', phase: 3 },
+  { id: 'finances', label: 'nav.finances', phase: 3 },
+  { id: 'training', label: 'nav.training', phase: 4 },
+  { id: 'staff', label: 'nav.staff', phase: 4 },
+  { id: 'facilities', label: 'nav.facilities', phase: 5 },
+  { id: 'history', label: 'nav.history', phase: 5 },
+  { id: 'arena', label: 'nav.arena' },
 ];
 
-type Theme = 'dark' | 'parchment';
-const THEME_KEY = 'ui.theme';
-
-function loadTheme(): Theme {
-  try {
-    return localStorage.getItem(THEME_KEY) === 'parchment' ? 'parchment' : 'dark';
-  } catch {
-    return 'dark';
-  }
+function ContinueButton() {
+  const { t } = useT();
+  const game = useGame((s) => s.game);
+  const match = useGame((s) => s.match);
+  if (!game) return null;
+  const over = seasonOver(game);
+  const onClick = () => {
+    const st = useGame.getState();
+    if (match && match.phase !== 'report') return st.setScreen('match');
+    if (match) st.closeMatch();
+    st.continueGame();
+  };
+  return (
+    <div className="continue">
+      <span className="muted status">
+        {over ? t('status.seasonOver', { season: game.season }) : t('status.season', { season: game.season, d: game.matchday, n: lastMatchday(game) })}
+      </span>
+      <button className="btn primary" onClick={onClick} title={t('continue.title')}>
+        {over ? t('continue.nextSeason') : t('continue')} ▶
+      </button>
+    </div>
+  );
 }
 
 export function App() {
-  const [theme, setTheme] = useState<Theme>(loadTheme);
+  const { t } = useT();
+  const { lang, theme, setLang, setTheme } = useSettings();
+  const { ready, game, screen, viewing, saveError } = useGame();
+  const { init, setScreen, viewReport } = useGame.getState();
+  const [newGameOpen, setNewGameOpen] = useState(false);
+  const unread = game?.inbox.filter((m) => !m.read).length ?? 0;
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      /* ignore */
-    }
   }, [theme]);
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.title = t('app.title');
+  }, [lang, t]);
+  useEffect(() => {
+    void init();
+  }, [init]);
+
+  let content;
+  if (!ready) content = <div className="muted">{t('start.loading')}</div>;
+  else if (viewing)
+    content = (
+      <ReportView
+        result={viewing}
+        actions={
+          <button className="btn primary" onClick={() => viewReport(null)}>
+            {t('match.back')}
+          </button>
+        }
+      />
+    );
+  else if (screen === 'arena') content = <ArenaScreen />;
+  else if (!game || newGameOpen) content = <StartScreen onCancel={game ? () => setNewGameOpen(false) : undefined} />;
+  else if (screen === 'squad') content = <SquadScreen />;
+  else if (screen === 'tactics') content = <TacticsScreen />;
+  else if (screen === 'league') content = <LeagueScreen />;
+  else if (screen === 'match') content = <MatchScreen />;
+  else content = <InboxScreen />;
 
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
+        <button className="brand" onClick={() => (game ? setNewGameOpen(true) : setScreen('inbox'))} title={t('start.new')}>
           <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
             <path d="M16 2 L28 9 V23 L16 30 L4 23 V9 Z" fill="var(--accent)" />
             <path d="M11 21 L21 11 M11 11 L21 21" stroke="var(--panel)" strokeWidth="3" />
           </svg>
           <div>
-            <h1>Shadow Arenas</h1>
-            <small>Arena league manager</small>
+            <h1>{t('app.title')}</h1>
+            <small>{t('app.subtitle')}</small>
           </div>
-        </div>
+        </button>
         <nav className="nav" aria-label="Screens">
-          {SCREENS.map((s) => (
-            <button key={s.id} className={s.id === 'arena' ? 'on' : ''} disabled={!!s.phase} title={s.phase ? `Coming in phase ${s.phase}` : undefined}>
-              {s.label}
+          {SCREENS.map((s) => {
+            const disabled = !!s.phase || (s.needsGame && !game);
+            const title = s.phase ? t('nav.comingInPhase', { n: s.phase }) : disabled ? t('nav.needsGame') : undefined;
+            return (
+              <button
+                key={s.id}
+                className={s.id === screen && !newGameOpen ? 'on' : ''}
+                disabled={disabled}
+                title={title}
+                onClick={() => {
+                  setNewGameOpen(false);
+                  setScreen(s.id as Screen);
+                }}
+              >
+                {t(s.label)}
+                {s.id === 'inbox' && unread > 0 && <span className="badge">{unread}</span>}
+              </button>
+            );
+          })}
+        </nav>
+        <ContinueButton />
+        <div className="seg" role="radiogroup" aria-label={t('lang.title')} title={t('lang.title')}>
+          {LANGS.map((l) => (
+            <button key={l} className={l === lang ? 'on' : ''} onClick={() => setLang(l)} role="radio" aria-checked={l === lang}>
+              {l.toUpperCase()}
             </button>
           ))}
-        </nav>
-        <button className="btn small ghost" onClick={() => setTheme(theme === 'dark' ? 'parchment' : 'dark')} title="Switch theme">
-          {theme === 'dark' ? '☀ Parchment' : '☾ Dark'}
+        </div>
+        <button className="btn small ghost" onClick={() => setTheme(theme === 'dark' ? 'parchment' : 'dark')} title={t('theme.switch')}>
+          {theme === 'dark' ? t('theme.parchment') : t('theme.dark')}
         </button>
       </header>
-      <main className="main">
-        <ArenaScreen />
-      </main>
+      {saveError && <div className="save-error">{t('save.failed')}</div>}
+      <main className="main">{content}</main>
     </div>
   );
 }

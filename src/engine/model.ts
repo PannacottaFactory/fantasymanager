@@ -70,6 +70,8 @@ export interface Tactic {
   lineup: LineupSlot[];
   bench: string[];
   orders: TeamOrders;
+  /** Favourite abilities per creature (light "builds"): the AI leans towards them in combat. */
+  favorites?: Record<string, string[]>;
 }
 
 export interface Team {
