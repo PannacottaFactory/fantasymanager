@@ -69,6 +69,62 @@ const list: AbilityDef[] = [
   { id: 'beak-and-claw', name: 'Beak and Claw', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 6, cooldown: 0, verb: 'tears into', description: 'Eagle and lion at once.' },
   { id: 'radiant-dive', name: 'Radiant Dive', kind: 'melee', element: 'light', target: 'enemy', power: 20, staminaCost: 12, cooldown: 2, reachBack: true, verb: 'dives in a blaze of light onto', description: 'A shining plunge on any target.' },
   { id: 'sky-cry', name: 'Sky Cry', kind: 'buff', element: 'light', target: 'allAllies', power: 0, staminaCost: 9, cooldown: 5, verb: 'lets out a proud cry', description: 'Inspires allies.', effects: [{ effect: 'rallied', chance: 0.7, on: 'target' }] },
+
+  // ——— Lich ———
+  { id: 'necrotic-bolt', name: 'Necrotic Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'hurls a necrotic bolt at', description: 'Death shaped into a missile.' },
+  { id: 'withering-curse', name: 'Withering Curse', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 9, cooldown: 3, effects: [{ effect: 'weakened', chance: 0.9, on: 'target' }, { effect: 'exposed', chance: 0.6, on: 'target' }], verb: 'lays a withering curse on', description: 'Saps strength and armour.' },
+  { id: 'soul-harvest', name: 'Soul Harvest', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 9, staminaCost: 18, cooldown: 4, lifesteal: 0.3, fear: 6, verb: 'reaps the souls of', description: 'A scythe of shadow through the whole enemy team.' },
+  { id: 'bone-ward', name: 'Bone Ward', kind: 'buff', element: 'shadow', target: 'ally', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'shielded', chance: 1, on: 'target' }], verb: 'raises a ward of bones before', description: 'A rampart of bones shields an ally.' },
+
+  // ——— Kraken ———
+  { id: 'tentacle-lash', name: 'Tentacle Lash', kind: 'melee', element: 'water', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'lashes a tentacle at', description: 'A whip of wet muscle.' },
+  { id: 'crushing-grip', name: 'Crushing Grip', kind: 'melee', element: 'physical', target: 'enemy', power: 10, staminaCost: 10, cooldown: 3, effects: [{ effect: 'stunned', chance: 0.5, on: 'target' }], verb: 'wraps its tentacles around', description: 'Squeezes until the target cannot move.' },
+  { id: 'ink-cloud', name: 'Ink Cloud', kind: 'buff', element: 'water', target: 'allAllies', power: 0, staminaCost: 9, cooldown: 5, effects: [{ effect: 'evasive', chance: 0.8, on: 'target' }], verb: 'clouds the arena with ink', description: 'Black ink hides its whole team.' },
+  { id: 'maelstrom', name: 'Maelstrom', kind: 'spell', element: 'water', target: 'enemyFront', power: 13, staminaCost: 16, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.5, on: 'target' }], verb: 'conjures a maelstrom under', description: 'A whirlpool swallows the enemy front line.' },
+
+  // ——— Phoenix ———
+  { id: 'ember-talons', name: 'Ember Talons', kind: 'melee', element: 'fire', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'burning', chance: 0.3, on: 'target' }], verb: 'sinks burning talons into', description: 'Claws that leave embers behind.' },
+  { id: 'flame-burst', name: 'Flame Burst', kind: 'spell', element: 'fire', target: 'enemy', power: 16, staminaCost: 8, cooldown: 0, verb: 'unleashes a burst of flame at', description: 'A sheaf of fire.' },
+  { id: 'rebirth-flame', name: 'Flame of Rebirth', kind: 'heal', element: 'fire', target: 'allAllies', power: 10, staminaCost: 16, cooldown: 5, effects: [{ effect: 'regenerating', chance: 0.5, on: 'target' }], verb: 'pours the flame of rebirth over', description: 'Heals every ally, and the flame keeps working.' },
+  { id: 'solar-flare', name: 'Solar Flare', kind: 'spell', element: 'light', target: 'allEnemies', power: 8, staminaCost: 16, cooldown: 5, effects: [{ effect: 'exposed', chance: 0.5, on: 'target' }], verb: 'unleashes a solar flare against', description: 'Blinding light that leaves every foe exposed.' },
+
+  // ——— Dryad ———
+  { id: 'thorn-whip', name: 'Thorn Whip', kind: 'melee', element: 'nature', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.25, on: 'target' }], verb: 'lashes a thorny whip at', description: 'A vine full of thorns.' },
+  { id: 'bloom', name: 'Bloom', kind: 'heal', element: 'nature', target: 'ally', power: 18, staminaCost: 9, cooldown: 1, verb: 'makes healing flowers bloom over', description: 'Flowers that close wounds.' },
+  { id: 'pollen-cloud', name: 'Pollen Cloud', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.6, on: 'target' }, { effect: 'weakened', chance: 0.3, on: 'target' }], verb: 'releases a cloud of pollen at', description: 'Sneezing, sluggish foes.' },
+  { id: 'oak-blessing', name: 'Blessing of the Oaks', kind: 'buff', element: 'nature', target: 'allAllies', power: 0, staminaCost: 10, cooldown: 5, effects: [{ effect: 'fortified', chance: 0.7, on: 'target' }], verb: 'calls down the blessing of the oaks', description: 'Allies grow hard as old wood.' },
+
+  // ——— Basilisk ———
+  { id: 'venom-fang', name: 'Venom Fang', kind: 'melee', element: 'nature', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.6, on: 'target' }], verb: 'sinks venomous fangs into', description: 'A bite that keeps hurting.' },
+  { id: 'tail-crush', name: 'Tail Crush', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 10, cooldown: 2, verb: 'brings its tail crashing down on', description: 'A stone-scaled tail like a mace.' },
+  { id: 'stone-gaze', name: 'Petrifying Gaze', kind: 'debuff', element: 'earth', target: 'enemy', power: 0, staminaCost: 12, cooldown: 4, fear: 6, effects: [{ effect: 'stunned', chance: 0.6, on: 'target' }], verb: 'fixes its petrifying gaze on', description: 'One look, and limbs turn to stone.' },
+
+  // ——— Djinn ———
+  { id: 'wind-blade', name: 'Wind Blade', kind: 'spell', element: 'air', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'sends a blade of wind at', description: 'Air sharp as steel.' },
+  { id: 'mirage', name: 'Mirage', kind: 'buff', element: 'air', target: 'self', power: 0, staminaCost: 6, cooldown: 4, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'dissolves into a shimmering mirage', description: 'Becomes very hard to hit.' },
+  { id: 'whirlwind', name: 'Whirlwind', kind: 'spell', element: 'air', target: 'allEnemies', power: 9, staminaCost: 16, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.4, on: 'target' }], verb: 'raises a whirlwind against', description: 'Sand and wind batter the whole enemy team.' },
+  { id: 'granted-wish', name: 'Granted Wish', kind: 'buff', element: 'fire', target: 'ally', power: 0, staminaCost: 10, cooldown: 5, effects: [{ effect: 'enraged', chance: 1, on: 'target' }], verb: 'grants a burning wish to', description: 'An ally is filled with fury.' },
+
+  // ——— Centaur ———
+  { id: 'recurve-bow', name: 'Recurve Bow', kind: 'ranged', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, accuracyMod: 0.05, verb: 'looses a recurve arrow at', description: 'Shot at full gallop.' },
+  { id: 'hoof-strike', name: 'Hoof Strike', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'kicks out at', description: 'Four hooves, one direction.' },
+  { id: 'lance-charge', name: 'Lance Charge', kind: 'melee', element: 'physical', target: 'enemy', power: 21, staminaCost: 14, cooldown: 3, reachBack: true, critMod: 0.05, verb: 'gallops lance-first into', description: 'Charges through the lines to any target.' },
+  { id: 'trample', name: 'Trample', kind: 'melee', element: 'earth', target: 'enemyFront', power: 11, staminaCost: 13, cooldown: 3, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'tramples', description: 'Rides over the enemy front line.' },
+
+  // ——— Wendigo ———
+  { id: 'frost-claws', name: 'Frost Claws', kind: 'melee', element: 'water', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'rakes frozen claws across', description: 'Claws of ice.' },
+  { id: 'ravenous-bite', name: 'Ravenous Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 14, staminaCost: 9, cooldown: 2, lifesteal: 0.5, verb: 'takes a ravenous bite out of', description: 'Feeds on its prey.' },
+  { id: 'chilling-howl', name: 'Chilling Howl', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 5, fear: 12, effects: [{ effect: 'terrified', chance: 0.4, on: 'target' }], verb: 'lets loose a chilling howl at', description: 'A howl from the frozen woods.' },
+
+  // ——— Crystal golem ———
+  { id: 'crystal-fist', name: 'Crystal Fist', kind: 'melee', element: 'light', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, verb: 'smashes a crystal fist into', description: 'Hard, sharp and glittering.' },
+  { id: 'prism-beam', name: 'Prism Beam', kind: 'spell', element: 'light', target: 'enemy', power: 17, staminaCost: 9, cooldown: 1, accuracyMod: 0.05, verb: 'focuses a prism beam on', description: 'Light gathered into a searing ray.' },
+  { id: 'refraction', name: 'Refraction', kind: 'buff', element: 'light', target: 'ally', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'shielded', chance: 1, on: 'target' }], verb: 'raises a refracting shield before', description: 'A crystal shield bends blows away from an ally.' },
+
+  // ——— Salamander ———
+  { id: 'quick-bite', name: 'Quick Bite', kind: 'melee', element: 'physical', target: 'enemy', power: 11, staminaCost: 4, cooldown: 0, verb: 'snaps at', description: 'Fast and annoying.' },
+  { id: 'fire-spit', name: 'Fire Spit', kind: 'ranged', element: 'fire', target: 'enemy', power: 11, staminaCost: 5, cooldown: 0, effects: [{ effect: 'burning', chance: 0.4, on: 'target' }], verb: 'spits fire at', description: 'A gob of flame.' },
+  { id: 'ember-dash', name: 'Ember Dash', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 10, cooldown: 2, reachBack: true, verb: 'darts in a trail of embers at', description: 'Dashes to any target, even in the back line.' },
 ];
 
 export const ABILITIES: Record<string, AbilityDef> = Object.fromEntries(list.map((a) => [a.id, a]));

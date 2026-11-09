@@ -35,6 +35,16 @@ export const FR_SPECIES: Record<string, SpeciesText> = {
   treant: { name: 'Tréant', plural: 'Tréants', the: 'le tréant', fem: false, description: 'Un arbre ancien qui marche. Bouge à peine, mais abrite et soigne toute son équipe.' },
   naga: { name: 'Naga', plural: 'Nagas', the: 'la naga', fem: true, description: 'Mage des eaux au corps de serpent. Polyvalente : elle frappe, lance des sorts et soigne.' },
   griffin: { name: 'Griffon', plural: 'Griffons', the: 'le griffon', fem: false, description: 'Fier aigle-lion. Courageux, loyal et rapide ; plonge sur la deuxième ligne adverse.' },
+  'lich': { name: 'Liche', plural: 'Liches', the: 'la liche', fem: true, description: 'Un sorcier qui a trompé la mort. Corps fragile, esprit terrible : maudit, draine et survit à tout le monde.' },
+  'kraken': { name: 'Kraken', plural: 'Krakens', the: 'le kraken', fem: false, description: 'Une terreur des mers traînée sur le sable. Des tentacules partout : il saisit, broie et encaisse.' },
+  'phoenix': { name: 'Phénix', plural: 'Phénix', the: 'le phénix', fem: false, description: 'L’oiseau de feu immortel. Soigne son équipe, brûle ses ennemis, et sa propre flamme ne cesse de renaître.' },
+  'dryad': { name: 'Dryade', plural: 'Dryades', the: 'la dryade', fem: true, description: 'Un esprit de la forêt lié à un vieux chêne. Fragile et douce, mais peu de soigneurs la valent.' },
+  'basilisk': { name: 'Basilic', plural: 'Basilics', the: 'le basilic', fem: false, description: 'Un grand serpent aux écailles de pierre. Sa morsure empoisonne, son regard pétrifie.' },
+  'djinn': { name: 'Djinn', plural: 'Djinns', the: 'le djinn', fem: false, description: 'Un esprit de feu sans fumée. Rapide, malin et capricieux — les vœux ont un prix.' },
+  'centaur': { name: 'Centaure', plural: 'Centaures', the: 'le centaure', fem: false, description: 'Archer et lancier des plaines. Rapide, fier, mortel de loin comme à la charge.' },
+  'wendigo': { name: 'Wendigo', plural: 'Wendigos', the: 'le wendigo', fem: false, description: 'Une horreur affamée des forêts gelées. Jamais rassasié, jamais calme, jamais loin.' },
+  'crystal-golem': { name: 'Golem de cristal', plural: 'Golems de cristal', the: 'le golem de cristal', fem: false, description: 'Un golem de cristal vivant. Il réfracte la lumière en rayons et en boucliers ; posé, obéissant, lent.' },
+  'salamander': { name: 'Salamandre', plural: 'Salamandres', the: 'la salamandre', fem: true, description: 'Un petit lézard de feu très vif. Bon marché, fragile et franchement agaçant.' },
 };
 
 export const FR_ABILITIES: Record<string, { name: string; verb: string; description: string }> = {
@@ -81,6 +91,42 @@ export const FR_ABILITIES: Record<string, { name: string; verb: string; descript
   'beak-and-claw': { name: 'Bec et serres', verb: 'se jette bec et serres sur', description: 'Aigle et lion à la fois.' },
   'radiant-dive': { name: 'Piqué radieux', verb: 'plonge dans un éclat de lumière sur', description: 'Un piqué éclatant sur n’importe quelle cible.' },
   'sky-cry': { name: 'Cri céleste', verb: 'lance un cri fier vers le ciel', description: 'Inspire les alliés.' },
+  'necrotic-bolt': { name: 'Trait nécrotique', verb: 'lance un trait nécrotique sur', description: 'La mort taillée en projectile.' },
+  'withering-curse': { name: 'Malédiction flétrissante', verb: 'jette une malédiction flétrissante sur', description: 'Sape la force et la défense.' },
+  'soul-harvest': { name: 'Moisson d’âmes', verb: 'lance une moisson d’âmes contre', description: 'Une faux d’ombre traverse toute l’équipe adverse.' },
+  'bone-ward': { name: 'Rempart d’os', verb: 'dresse un rempart d’os devant', description: 'Un rempart d’ossements protège un allié.' },
+  'tentacle-lash': { name: 'Coup de tentacule', verb: 'abat un tentacule sur', description: 'Un fouet de muscle trempé.' },
+  'crushing-grip': { name: 'Étreinte broyante', verb: 'referme ses tentacules sur', description: 'Serre jusqu’à ce que la cible ne puisse plus bouger.' },
+  'ink-cloud': { name: 'Nuage d’encre', verb: 'noie l’arène sous un nuage d’encre', description: 'Une encre noire cache toute son équipe.' },
+  'maelstrom': { name: 'Maelström', verb: 'fait tourbillonner un maelström sous', description: 'Un tourbillon avale la première ligne adverse.' },
+  'ember-talons': { name: 'Serres de braise', verb: 'plante ses serres brûlantes dans', description: 'Des griffes qui laissent des braises.' },
+  'flame-burst': { name: 'Gerbe de flammes', verb: 'déchaîne une gerbe de flammes sur', description: 'Un bouquet de feu.' },
+  'rebirth-flame': { name: 'Flamme de renaissance', verb: 'répand la flamme de la renaissance sur', description: 'Soigne tous les alliés, et la flamme continue d’agir.' },
+  'solar-flare': { name: 'Éruption solaire', verb: 'déclenche une éruption solaire contre', description: 'Une lumière aveuglante qui laisse chaque ennemi exposé.' },
+  'thorn-whip': { name: 'Fouet d’épines', verb: 'abat un fouet d’épines sur', description: 'Une liane couverte d’épines.' },
+  'bloom': { name: 'Floraison', verb: 'fait éclore des fleurs guérisseuses sur', description: 'Des fleurs qui referment les plaies.' },
+  'pollen-cloud': { name: 'Nuage de pollen', verb: 'libère un nuage de pollen sur', description: 'Des ennemis qui éternuent et ralentissent.' },
+  'oak-blessing': { name: 'Bénédiction des chênes', verb: 'appelle la bénédiction des vieux chênes', description: 'Les alliés deviennent durs comme le vieux bois.' },
+  'venom-fang': { name: 'Crocs venimeux', verb: 'plante ses crocs venimeux dans', description: 'Une morsure qui fait mal longtemps.' },
+  'tail-crush': { name: 'Écrasement caudal', verb: 'abat sa queue sur', description: 'Une queue écailleuse comme une masse d’armes.' },
+  'stone-gaze': { name: 'Regard pétrifiant', verb: 'pose son regard pétrifiant sur', description: 'Un regard, et les membres se changent en pierre.' },
+  'wind-blade': { name: 'Lame de vent', verb: 'projette une lame de vent sur', description: 'De l’air tranchant comme l’acier.' },
+  'mirage': { name: 'Mirage', verb: 'se dissout en un mirage scintillant', description: 'Devient très difficile à toucher.' },
+  'whirlwind': { name: 'Tourbillon', verb: 'soulève un tourbillon contre', description: 'Sable et vent frappent toute l’équipe adverse.' },
+  'granted-wish': { name: 'Vœu exaucé', verb: 'exauce un vœu brûlant pour', description: 'Un allié est saisi de fureur.' },
+  'recurve-bow': { name: 'Arc recourbé', verb: 'décoche une flèche sur', description: 'Tirée au grand galop.' },
+  'hoof-strike': { name: 'Ruade', verb: 'rue contre', description: 'Quatre sabots, une seule direction.' },
+  'lance-charge': { name: 'Charge à la lance', verb: 'charge lance en avant sur', description: 'Traverse les lignes jusqu’à n’importe quelle cible.' },
+  'trample': { name: 'Piétinement', verb: 'piétine', description: 'Passe sur le corps de la première ligne adverse.' },
+  'frost-claws': { name: 'Griffes de givre', verb: 'abat ses griffes gelées sur', description: 'Des griffes de glace.' },
+  'ravenous-bite': { name: 'Morsure vorace', verb: 'mord voracement', description: 'Se nourrit de sa proie.' },
+  'chilling-howl': { name: 'Hurlement glaçant', verb: 'pousse un hurlement glaçant contre', description: 'Un hurlement venu des forêts gelées.' },
+  'crystal-fist': { name: 'Poing de cristal', verb: 'abat un poing de cristal sur', description: 'Dur, tranchant et scintillant.' },
+  'prism-beam': { name: 'Rayon prismatique', verb: 'concentre un rayon prismatique sur', description: 'La lumière rassemblée en un rayon brûlant.' },
+  'refraction': { name: 'Réfraction', verb: 'dresse un bouclier réfractant devant', description: 'Un bouclier de cristal détourne les coups d’un allié.' },
+  'quick-bite': { name: 'Morsure rapide', verb: 'mord', description: 'Rapide et agaçant.' },
+  'fire-spit': { name: 'Crachat de feu', verb: 'crache du feu sur', description: 'Une giclée de flammes.' },
+  'ember-dash': { name: 'Ruée de braises', verb: 'fonce dans une traînée de braises sur', description: 'Fonce sur n’importe quelle cible, même en deuxième ligne.' },
 };
 
 export const FR_EFFECTS: Record<string, { name: string; noun: string; description: string }> = {
@@ -101,6 +147,7 @@ export const FR_EFFECTS: Record<string, { name: string; noun: string; descriptio
   trollblood: { name: 'Sang de troll', noun: 'le sang de troll', description: 'Les plaies se referment toutes seules.' },
   stoneform: { name: 'Corps de pierre', noun: 'le corps de pierre', description: 'Fait de roche : encaisse une partie de chaque coup.' },
   incorporeal: { name: 'Immatériel', noun: 'l’immatérialité', description: 'À moitié là, à moitié absent : les coups le traversent.' },
+  rekindling: { name: 'Renaissance', noun: 'la flamme renaissante', description: 'Sa flamme ne cesse de renaître.' },
 };
 
 export const FR_TRAITS: Record<string, { name: string; description: string }> = {
@@ -217,6 +264,11 @@ export const FR_SURNAMES: Record<string, string[]> = {
   minotaur: ['Brise-Cornes', 'le Taureau', 'du Labyrinthe', 'Sabot-Tonnerre'],
   shade: ['le Murmure', 'des Tombes Creuses', 'le Blême', 'Qui Fut Oublié', 'l’Affamé'],
   naga: ['des Abysses', 'Écaille-de-Perle', 'Appel-des-Marées', 'l’Enroulée'],
+  lich: ['Qui Ne Meurt Pas', 'Roi-des-Os', 'de la Dernière Crypte', 'le Roi Creux'],
+  deep: ['des Abîmes', 'Brise-Navires', 'le Noyé'],
+  phoenix: ['Né-des-Cendres', 'de l’Aube', 'Qui Renaît'],
+  djinn: ['de la Cité d’Airain', 'Exauceur', 'Sans-Fumée'],
+  centaur: ['Sabot-Vif', 'des Plaines', 'l’Archer'],
 };
 
 /** French team-name material. Same list sizes as TEAM_NAME_PARTS so the RNG draws match. */

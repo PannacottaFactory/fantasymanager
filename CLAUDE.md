@@ -139,7 +139,9 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   unseen one whose anchor is visible is shown; progress in localStorage; only during a game), Help page (`?` button)
   with the manual and tutorial controls, opt-out checkbox on the start screen. Adding a screen ⇒ add a `data-tip`
   anchor + a step + `tut.<id>.title/body` strings if it needs explaining.
-- [ ] Next: more creatures (species, abilities, traits, French texts).
+- [x] **Bestiary ×2**: 23 species (+ lich, kraken, phoenix, dryad, basilisk, djinn, centaur, wendigo, crystal golem,
+  salamander), 77 abilities, `rekindling` passive, 5 new name cultures, all translated. Adding a species = species.ts +
+  abilities.ts + names.ts (culture) + fr.ts (FR_SPECIES with `the`/`fem`, FR_ABILITIES verbs, FR_SURNAMES aligned).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot (professional vs professional, 1000 matches)

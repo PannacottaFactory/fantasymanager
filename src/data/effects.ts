@@ -71,4 +71,9 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'incorporeal', name: 'Incorporeal', kind: 'mods', beneficial: true, defaultDuration: 999,
     mods: { dodgeBonus: 0.08 }, description: 'Half there, half not: blows pass through.',
   },
+  /** Phoenix passive: its flame keeps rekindling. */
+  rekindling: {
+    id: 'rekindling', name: 'Rekindling', kind: 'hot', beneficial: true, defaultDuration: 999, magnitude: 0.02,
+    description: 'Its flame keeps rekindling.',
+  },
 };
