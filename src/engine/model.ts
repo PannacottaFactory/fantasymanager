@@ -30,6 +30,14 @@ export interface CreatureCondition {
   injuries: Injury[];
 }
 
+/** Employment terms with a stable (league games only). */
+export interface Contract {
+  /** Crowns per week. */
+  wage: number;
+  /** Last season covered by the contract. */
+  untilSeason: number;
+}
+
 export interface Creature {
   id: string;
   name: string;
@@ -47,6 +55,7 @@ export interface Creature {
   /** −100 (rivalry) … +100 (bond), keyed by creature id. */
   relations: Record<string, number>;
   stableId: string | null;
+  contract?: Contract;
 }
 
 export type Aggression = 'cautious' | 'balanced' | 'aggressive';

@@ -80,12 +80,16 @@ interface Props {
   /** Sandbox only: replace a creature by a new one of another species. */
   onSwapSpecies?: (creatureId: string, speciesId: string) => void;
   className?: string;
+  /** League: opens the game's creature sheet instead of the local one. */
+  onOpenCreature?: (creatureId: string) => void;
 }
 
-export function TeamEditor({ team, onChange, header, league, onSwapSpecies, className }: Props) {
+export function TeamEditor({ team, onChange, header, league, onSwapSpecies, className, onOpenCreature }: Props) {
   const tr = useT();
   const { t, lang } = tr;
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openLocal, setOpenLocal] = useState<string | null>(null);
+  const openId = onOpenCreature ? null : openLocal;
+  const setOpenId = (id: string | null) => (onOpenCreature && id ? onOpenCreature(id) : setOpenLocal(id));
   const open = openId ? (team.creatures.find((c) => c.id === openId) ?? null) : null;
   const favs = (id: string) => team.tactic.favorites?.[id] ?? [];
   const issues = validateTactic(team, DEFAULT_CONFIG, !!league);

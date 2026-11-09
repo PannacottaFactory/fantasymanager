@@ -12,7 +12,7 @@ import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
 import { loadGame, saveGame } from './saves.ts';
 
-export type Screen = 'inbox' | 'squad' | 'tactics' | 'league' | 'arena' | 'match';
+export type Screen = 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'arena' | 'match';
 
 export interface MatchFlow {
   fixtureId: string;
@@ -47,6 +47,13 @@ interface GameStore {
   closeMatch: () => void;
   markAllRead: () => void;
   viewReport: (r: MatchResult | null) => void;
+  /** Applies a market action (bid, signing, renewal…), saves, and returns its outcome. */
+  act: <O>(f: (g: GameState) => { state: GameState; outcome: O }) => O | null;
+  /** Applies a plain state change and saves. */
+  update: (f: (g: GameState) => GameState) => void;
+  /** Creature sheet opened from anywhere (inbox, recruitment…). */
+  sheet: string | null;
+  openSheet: (id: string | null) => void;
 }
 
 export const useGame = create<GameStore>()((set, get) => {
@@ -141,5 +148,21 @@ export const useGame = create<GameStore>()((set, get) => {
     },
 
     viewReport: (viewing) => set({ viewing }),
+
+    act: (f) => {
+      const g = get().game;
+      if (!g) return null;
+      const { state, outcome } = f(g);
+      if (state !== g) commit(state);
+      return outcome;
+    },
+
+    update: (f) => {
+      const g = get().game;
+      if (g) commit(f(g));
+    },
+
+    sheet: null,
+    openSheet: (sheet) => set({ sheet }),
   };
 });

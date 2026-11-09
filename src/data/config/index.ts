@@ -1,4 +1,5 @@
 import { COMBAT_CONFIG } from './combat.ts';
+import { ECONOMY_CONFIG } from './economy.ts';
 import { ELEMENT_CONFIG } from './elements.ts';
 import { GENERATION_CONFIG } from './generation.ts';
 import { LEAGUE_CONFIG } from './league.ts';
@@ -16,6 +17,7 @@ export const DEFAULT_CONFIG = {
   match: MATCH_CONFIG,
   report: REPORT_CONFIG,
   league: LEAGUE_CONFIG,
+  economy: ECONOMY_CONFIG,
 };
 
 export type GameConfig = typeof DEFAULT_CONFIG;

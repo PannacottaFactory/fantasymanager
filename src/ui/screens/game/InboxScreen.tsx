@@ -1,7 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState, InboxMessage } from '../../../engine/league/types.ts';
-import { injuryText } from '../../../engine/text/localize.ts';
+import { answerOffer } from '../../../engine/economy/actions.ts';
+import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
+import { locate } from '../../../engine/economy/market.ts';
+import { injuryText, speciesName } from '../../../engine/text/localize.ts';
+import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 
@@ -28,7 +32,101 @@ function wording(tr: Translator, m: InboxMessage): { title: string; body: string
       return { title: t('msg.seasonEnd.title'), body: t('msg.seasonEnd.body', { pos: tr.ordinal(m.position), points: m.points, champion: m.champion }), tone: m.position === 1 ? 'good' : 'info' };
     case 'newSeason':
       return { title: t('msg.newSeason.title', { season: m.season }), body: t('msg.newSeason.body'), tone: 'info' };
+    case 'offerReceived':
+      return { title: t('msg.offerReceived.title', { team: m.fromTeam, name: m.name }), body: '', tone: 'info' };
+    case 'offerExpired':
+      return { title: t('msg.offerExpired.title'), body: t('msg.offerExpired.body', { team: m.fromTeam, name: m.name }), tone: 'info' };
+    case 'transferIn':
+      return {
+        title: t('msg.transferIn.title', { name: m.name }),
+        body: m.fromTeam
+          ? t('msg.transferIn.team', { team: m.fromTeam, fee: tr.money(m.fee), wage: tr.money(m.wage) })
+          : t('msg.transferIn.free', { fee: tr.money(m.fee), wage: tr.money(m.wage) }),
+        tone: 'good',
+      };
+    case 'transferOut':
+      return {
+        title: t('msg.transferOut.title', { name: m.name }),
+        body: m.toTeam ? t('msg.transferOut.sold', { team: m.toTeam, fee: tr.money(m.fee) }) : t('msg.transferOut.released'),
+        tone: 'info',
+      };
+    case 'scoutReport':
+      return {
+        title: t('msg.scoutReport.title', { name: m.name }),
+        body: m.target === 'creature' ? t('msg.scoutReport.creature', { name: m.name }) : t('msg.scoutReport.team', { name: m.name }),
+        tone: 'good',
+      };
+    case 'contractExpiring':
+      return { title: t('msg.contractExpiring.title'), body: t('msg.contractExpiring.body', { names: m.names.join(', ') }), tone: 'bad' };
+    case 'contractLeft':
+      return { title: t('msg.contractLeft.title'), body: t('msg.contractLeft.body', { names: m.names.join(', ') }), tone: 'bad' };
+    case 'seasonPrize':
+      return { title: t('msg.seasonPrize.title'), body: t('msg.seasonPrize.body', { pos: tr.ordinal(m.position), amount: tr.money(m.amount) }), tone: 'good' };
+    case 'financeWarning':
+      return { title: t('msg.financeWarning.title'), body: t('msg.financeWarning.body', { v: tr.money(m.balance) }), tone: 'bad' };
+    case 'marketNews': {
+      const free = t('msg.marketNews.free');
+      const lines = m.moves.map((x) => `${x.name} (${speciesName(x.speciesId, tr.lang)}) : ${x.from ?? free} → ${x.to ?? free}${x.fee ? ` · ${tr.money(x.fee, true)}` : ''}`);
+      return { title: t('msg.marketNews.title'), body: lines.join('\n'), tone: 'info' };
+    }
+    case 'emergencySigning':
+      return { title: t('msg.emergencySigning.title'), body: t('msg.emergencySigning.body', { names: m.names.join(', ') }), tone: 'bad' };
   }
+}
+
+/** Buttons under a message: answer an offer, open a creature sheet. */
+function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
+  const tr = useT();
+  const { t, money } = tr;
+  const { act, openSheet, setScreen } = useGame.getState();
+  const [error, setError] = useState<string | null>(null);
+  if (m.kind === 'offerReceived') {
+    const open = game.offers.some((o) => o.id === m.offerId);
+    const c = locate(game, m.creatureId)?.creature;
+    return (
+      <div className="stack" style={{ gap: 6, marginTop: 4 }}>
+        <div className="muted">{t('msg.offerReceived.body', { fee: money(m.fee), value: c ? money(estimatedValue(c, knowledgeOf(game, c.id))) : '?' })}</div>
+        {open ? (
+          <div className="row" style={{ gap: 6 }}>
+            <button
+              className="btn small primary"
+              onClick={() => {
+                const o = act((g) => answerOffer(g, m.offerId, true));
+                if (o?.kind === 'error') setError(errorText(tr, o.error));
+              }}
+            >
+              {t('offer.accept', { fee: money(m.fee) })}
+            </button>
+            <button className="btn small" onClick={() => act((g) => answerOffer(g, m.offerId, false))}>
+              {t('offer.decline')}
+            </button>
+            {c && (
+              <button className="btn small ghost" onClick={() => openSheet(c.id)}>
+                {t('msg.openSheet')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <span className="faint">{t('offer.closed')}</span>
+        )}
+        {error && <div className="answer bad">{error}</div>}
+      </div>
+    );
+  }
+  const sheetId = m.kind === 'scoutReport' && m.target === 'creature' ? m.targetId : m.kind === 'transferIn' ? m.creatureId : null;
+  if (sheetId && locate(game, sheetId))
+    return (
+      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => openSheet(sheetId)}>
+        {t('msg.openSheet')}
+      </button>
+    );
+  if (m.kind === 'scoutReport' || m.kind === 'contractExpiring')
+    return (
+      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen(m.kind === 'scoutReport' ? 'recruit' : 'finances')}>
+        {m.kind === 'scoutReport' ? t('msg.openRecruit') : t('nav.finances')}
+      </button>
+    );
+  return null;
 }
 
 function NextMatch({ game }: { game: GameState }) {
@@ -89,7 +187,8 @@ export function InboxScreen() {
                     {t('inbox.matchday', { season: m.season, d: m.matchday })}
                   </span>
                 </div>
-                <div className="muted">{w.body}</div>
+                {w.body && <div className="muted msg-body">{w.body}</div>}
+                <MessageActions game={game} m={m} />
                 {canReport && (
                   <button className="btn small" style={{ marginTop: 6 }} onClick={() => viewReport(game.lastMatch!.result)}>
                     {t('msg.report')}

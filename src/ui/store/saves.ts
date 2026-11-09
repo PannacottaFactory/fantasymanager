@@ -2,6 +2,7 @@
  * Save games in IndexedDB (one autosave slot for now; slots & import/export come in phase 6).
  */
 import { openDB, type IDBPDatabase } from 'idb';
+import { migrateGame } from '../../engine/economy/setup.ts';
 import type { GameState } from '../../engine/league/types.ts';
 
 const DB_NAME = 'shadow-arenas';
@@ -25,8 +26,8 @@ export async function saveGame(state: GameState, slot = AUTOSAVE): Promise<void>
 
 export async function loadGame(slot = AUTOSAVE): Promise<GameState | null> {
   try {
-    const s = (await (await db()).get(STORE, slot)) as GameState | undefined;
-    return s && s.version === 1 ? s : null;
+    // Older saves are upgraded in place (phase 2 → 3 adds the economy).
+    return migrateGame(await (await db()).get(STORE, slot));
   } catch {
     return null;
   }

@@ -11,6 +11,34 @@ export function Attr({ v }: { v: number }) {
   return <span className={`attr ${attrClass(v)}`}>{v}</span>;
 }
 
+/** Estimated attribute: a range coloured by its middle. */
+export function AttrRange({ r }: { r: { low: number; high: number } }) {
+  if (r.low === r.high) return <Attr v={r.low} />;
+  return <span className={`attr range ${attrClass((r.low + r.high) / 2)}`}>{r.low}–{r.high}</span>;
+}
+
+/** Potential on a 0.5–5 star scale. */
+export function Stars({ value, title }: { value: number; title?: string }) {
+  const full = Math.floor(value);
+  const half = value - full >= 0.5;
+  return (
+    <span className="stars" title={title} aria-label={`${value}/5`}>
+      {'★'.repeat(full)}
+      {half && <span className="half">★</span>}
+      <span className="empty">{'★'.repeat(5 - full - (half ? 1 : 0))}</span>
+    </span>
+  );
+}
+
+/** Knowledge gauge (0–100). */
+export function Knowledge({ k }: { k: number }) {
+  return (
+    <span className="knowledge" title={`${k} %`}>
+      <i style={{ width: `${k}%` }} />
+    </span>
+  );
+}
+
 /**
  * Horizontal gauge. With `ghost`, a lighter layer trails behind when the value drops
  * (fighting-game style), so recent damage stays visible for a moment.

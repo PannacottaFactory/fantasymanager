@@ -15,6 +15,7 @@ export function TacticsScreen() {
   return (
     <div className="stack">
       <TeamEditor
+        onOpenCreature={(id) => useGame.getState().openSheet(id)}
         team={team}
         onChange={setPlayerTeam}
         league

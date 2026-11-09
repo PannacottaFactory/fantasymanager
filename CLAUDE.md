@@ -21,7 +21,7 @@ Saves use IndexedDB (`idb`, one autosave slot, `src/ui/store/saves.ts`); heavy s
 | `npm run build` | typecheck + production build into `dist/` |
 | `npm run sim:match -- --seed 42 --a professional --b regional` | one match in the terminal with commentary + report |
 | `npm run sim:batch -- --matches 1000 --a elite --b novice` | balancing stats over many headless matches |
-| `npm run sim:season -- --seed 42` | a full league season headless, prints the final table |
+| `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
 
 Quality tiers: `novice | regional | professional | elite | legendary`.
 
@@ -39,6 +39,9 @@ src/engine/  pure game logic, no UI imports, no Math.random / Date (enforced by 
   commentary/ Commentator: events → varied English text (own RNG stream)
   report/    buildReport: stats, ratings /10, key moments, assistant remarks — from events only
   league/    GameState (= save file), double round-robin calendar, standings, playMatchday, next season
+  economy/   value & wages, finances/ledger, market (transfers, free agents, AI activity, contracts),
+             scouting (knowledge → attribute ranges), player actions (bid, sign, sell, renew, release, scouts),
+             setup (initEconomy, migrateGame v1→v2)
   text/      localize.ts: data names/descriptions per language
 src/sim/     headless CLI scripts (Node via tsx)
 src/ui/      React screens; reads engine state, sends decisions; zero game rules
@@ -77,7 +80,19 @@ tests/       Vitest
 - **Projectiles**: `ui/screens/arena/Projectiles.tsx` draws shots, element particles and impacts between cards
   (`data-cid`); target reactions & health drop land when the projectile arrives (`FLIGHT` per speed).
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
-  new injuries, morale, form) → a week of rest. The player's team is always side 0 in its match.
+  new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
+  scouts) → scouting → market (free agents, AI signings/buys, AI offers to the player) → contract warning.
+  The player's team is always side 0 in its match. Season end: prize money + reputation; next season:
+  expired contracts leave (player) or are renewed/released (AI), `ensureSquads` keeps every squad ≥ 9.
+- **Economy** (phase 3, money in crowns ⚜): all numbers in `data/config/economy.ts`. Player actions in
+  `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
+  AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
+- **Imperfect information**: the player sees other creatures through `knowledgeOf` (own = 100, league 25,
+  free agents 10; matches +20 up to 60; scouts 70/90). Ranges come from a fixed per-creature offset
+  (`noise(id, key)`), always contain the truth and narrow monotonically — never show raw attributes,
+  ability or potential of a creature the player does not own.
+- **Saves**: `GameState.version` 2; `loadGame` runs `migrateGame` so phase-2 saves gain clubs, contracts,
+  free agents and scouting.
 
 ## Arena rules (current)
 5 starters + 3 bench, 2 abstract lines (front/back). Max 20 rounds; breaks after rounds 5/10/15 with up to
@@ -92,7 +107,11 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   tactics, league table & fixtures, match day (live or simulated), fatigue/injuries/morale/form between weeks,
   next season, IndexedDB autosave; full French translation with FR/EN switch; live-match card reactions.
   Not yet: ageing/progression between seasons (phase 4), several save slots (phase 6).
-- [ ] Phase 3 — economy, contracts, transfers, scouts with imperfect information.
+- [x] **Phase 3** — economy (treasury, reputation, ledger: tickets, sponsor, prizes, wages, upkeep, medical),
+  contracts (1–3 seasons, renewals, expiry), transfers (bids with counter-offers, AI offers for the player's
+  creatures, sale list, release), free-agent market, AI market activity, 2 scouts & attribute ranges,
+  Recruitment & Finances screens, creature sheet with market actions, save migration. Combat builds
+  (favourite abilities), stamina gauges, canvas projectiles. 65 tests.
 - [ ] Phase 4 — training, staff, progression/ageing, youth intake, multiple seasons.
 - [ ] Phase 5 — multiple divisions, cup, facilities, board objectives, news, advanced morale/relations.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.

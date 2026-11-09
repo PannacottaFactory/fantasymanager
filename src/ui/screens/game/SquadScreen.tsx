@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ATTRIBUTE_KEYS } from '../../../data/attributes.ts';
 import { bestRole, isInjured, overallRating } from '../../../engine/creature/derived.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
@@ -10,14 +9,12 @@ import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { CreatureModal } from '../arena/CreatureModal.tsx';
 
 export function SquadScreen() {
   const tr = useT();
   const { t, lang } = tr;
   const game = useGame((s) => s.game)!;
   const team = playerTeam(game);
-  const [open, setOpen] = useState<Creature | null>(null);
   const selection = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
 
   const columns: Column<Creature>[] = [
@@ -28,7 +25,7 @@ export function SquadScreen() {
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
           <Crest speciesId={c.speciesId} name={c.name} />
-          <button className="link" onClick={() => setOpen(c)}>
+          <button className="link" onClick={() => useGame.getState().openSheet(c.id)}>
             {c.name}
           </button>
         </span>
@@ -89,6 +86,18 @@ export function SquadScreen() {
     },
     { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)}>{t(moraleKey(c.condition.morale))}</span> },
     { key: 'form', label: t('col.form'), num: true, sort: (c) => c.condition.form, render: (c) => <Attr v={c.condition.form} /> },
+    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => tr.money(c.contract?.wage ?? 0) },
+    {
+      key: 'contract',
+      label: t('col.contract'),
+      sort: (c) => c.contract?.untilSeason ?? 0,
+      render: (c) => (
+        <span className="row" style={{ gap: 4 }}>
+          <span className={c.contract && c.contract.untilSeason <= game.season ? 'bad-text' : ''}>{c.contract ? t('contract.until', { s: c.contract.untilSeason }) : '—'}</span>
+          {game.forSale.includes(c.id) && <span className="tag">{t('tag.forSale')}</span>}
+        </span>
+      ),
+    },
     ...(['strength', 'toughness', 'speed', 'stamina', 'attack', 'defense', 'magic', 'courage'] as const)
       .filter((k) => ATTRIBUTE_KEYS.includes(k))
       .map(
@@ -117,7 +126,6 @@ export function SquadScreen() {
         </p>
         <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />
       </section>
-      {open && <CreatureModal creature={open} onClose={() => setOpen(null)} showHidden={false} />}
     </div>
   );
 }

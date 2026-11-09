@@ -62,6 +62,8 @@ export interface Translator {
   /** 1st / 1er, 2nd / 2e… */
   ordinal: (n: number) => string;
   weeks: (n: number) => string;
+  /** Amount of crowns: "12 500 ⚜" / "12,500 ⚜"; compact: "12,5 k⚜". */
+  money: (n: number, compact?: boolean) => string;
 }
 
 export function makeTranslator(lang: Lang): Translator {
@@ -77,6 +79,16 @@ export function makeTranslator(lang: Lang): Translator {
       return `${n}${s}`;
     },
     weeks: (n) => (n === 1 ? t('weeks.one') : t('weeks.many', { n })),
+    money: (n, compact) => {
+      const sign = n < 0 ? '−' : '';
+      const a = Math.abs(Math.round(n));
+      if (compact && a >= 10000) {
+        const k = (a / 1000).toFixed(a >= 100000 ? 0 : 1);
+        return `${sign}${lang === 'fr' ? k.replace('.', ',') : k} k⚜`;
+      }
+      const s = String(a).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'fr' ? ' ' : ',');
+      return `${sign}${s} ⚜`;
+    },
   };
 }
 

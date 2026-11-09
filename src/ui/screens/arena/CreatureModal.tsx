@@ -4,11 +4,20 @@ import { ROLE_IDS } from '../../../data/roles.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { getSpecies, maxHp, maxStamina, overallRating, roleFit } from '../../../engine/creature/derived.ts';
 import {
-  attributeText, categoryName, effectText, elementName, injuryText, roleText, sizeName, speciesText, traitText,
+  attributeText,
+  categoryName,
+  effectText,
+  elementName,
+  injuryText,
+  roleText,
+  sizeName,
+  speciesText,
+  traitText,
 } from '../../../engine/text/localize.ts';
 import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
 import { AbilityCard } from '../../components/AbilityCard.tsx';
-import { Attr, Bar, Crest, ElementDots, Modal, TraitChip } from '../../components/common.tsx';
+import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip } from '../../components/common.tsx';
+import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 
@@ -21,9 +30,11 @@ interface Props {
   onToggleFavorite?: (abilityId: string) => void;
   /** Extra content under the header (e.g. live match state). */
   extra?: ReactNode;
+  /** 0–100: below 100, attributes are shown as estimated ranges and private details are hidden. */
+  knowledge?: number;
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, knowledge = 100 }: Props) {
   const tr = useT();
   const { t, lang } = tr;
   const sp = getSpecies(creature);
@@ -31,6 +42,8 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
   const lc = sp.lifeCurve;
   const stage = creature.age < lc.peakStart ? t('cr.developing') : creature.age <= lc.peakEnd ? t('cr.prime') : t('cr.declining');
   const injuries = creature.condition.injuries.filter((i) => i.weeksLeft > 0);
+  const known = knowledge >= 100;
+  const ovr = overallRange(creature, knowledge);
   return (
     <Modal
       title={
@@ -48,9 +61,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           </span>
           <span className="muted">{t('cr.age', { age: creature.age, stage, a: lc.peakStart, b: lc.peakEnd })}</span>
           <span>
-            {t('cr.overall')} <b>{overallRating(creature)}</b>
+            {t('cr.overall')} <b>{known ? overallRating(creature) : `${ovr.low}–${ovr.high}`}</b>
           </span>
-          <span className="muted">{t('cr.hpStamina', { hp: maxHp(creature, DEFAULT_CONFIG), st: maxStamina(creature, DEFAULT_CONFIG) })}</span>
+          {known && (
+            <span className="muted">{t('cr.hpStamina', { hp: maxHp(creature, DEFAULT_CONFIG), st: maxStamina(creature, DEFAULT_CONFIG) })}</span>
+          )}
         </div>
         <p className="muted" style={{ margin: 0 }}>
           {spText.description}
@@ -60,7 +75,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         <div>
           <div className="row" style={{ marginBottom: 6, gap: 10 }}>
             <h4 style={{ margin: 0 }}>{t('cr.abilities')}</h4>
-            {onToggleFavorite && <span className="muted" style={{ fontSize: 12 }}>{t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}</span>}
+            {onToggleFavorite && (
+              <span className="muted" style={{ fontSize: 12 }}>
+                {t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}
+              </span>
+            )}
           </div>
           <div className="ability-grid">
             {sp.abilities.map((a) => (
@@ -92,7 +111,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                 {ATTRIBUTE_CATEGORIES[cat].map((k) => (
                   <span key={k} style={{ display: 'contents' }}>
                     <span title={attributeText(k, lang).description}>{attributeText(k, lang).name}</span>
-                    <Attr v={creature.attributes[k]} />
+                    {known ? <Attr v={creature.attributes[k]} /> : <AttrRange r={attributeRange(creature, k, knowledge)} />}
                   </span>
                 ))}
               </div>
@@ -103,44 +122,50 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         <div className="attr-grid">
           <div>
             <h4 style={{ marginBottom: 6 }}>{t('cr.traits')}</h4>
-            {creature.traits.length === 0 && <span className="faint">{t('cr.noTraits')}</span>}
-            {creature.traits.map((x) => (
+            {!traitsKnown(knowledge) && <span className="faint">{t('cr.traitsUnknown')}</span>}
+            {traitsKnown(knowledge) && creature.traits.length === 0 && <span className="faint">{t('cr.noTraits')}</span>}
+            {(traitsKnown(knowledge) ? creature.traits : []).map((x) => (
               <div key={x} style={{ marginBottom: 4 }}>
-                <TraitChip id={x} /> <span className="muted" style={{ fontSize: 12 }}>{traitText(x, lang).description}</span>
-              </div>
-            ))}
-          </div>
-          <div>
-            <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
-            {ROLE_IDS.map((r) => (
-              <div key={r} className="row" style={{ fontSize: 12, marginBottom: 3 }} title={roleText(r, lang).description}>
-                <span style={{ width: 110 }}>{roleText(r, lang).name}</span>
-                <span className="grow">
-                  <Bar value={roleFit(creature, r)} max={20} color="var(--accent)" thin />
-                </span>
-                <span className="mono" style={{ width: 32, textAlign: 'right' }}>
-                  {tr.dec(roleFit(creature, r))}
+                <TraitChip id={x} />{' '}
+                <span className="muted" style={{ fontSize: 12 }}>
+                  {traitText(x, lang).description}
                 </span>
               </div>
             ))}
-            <h4 style={{ margin: '10px 0 6px' }}>{t('cr.condition')}</h4>
-            <dl className="kv">
-              <dt>{t('col.form')}</dt>
-              <dd>{creature.condition.form}/20</dd>
-              <dt>{t('col.morale')}</dt>
-              <dd>
-                {t(moraleKey(creature.condition.morale))} ({creature.condition.morale})
-              </dd>
-              <dt>{t('col.fatigue')}</dt>
-              <dd>{creature.condition.fatigue} %</dd>
-              {injuries.length > 0 && (
-                <>
-                  <dt>{t('cr.injuries')}</dt>
-                  <dd className="bad-text">{injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}</dd>
-                </>
-              )}
-            </dl>
           </div>
+          {known && (
+            <div>
+              <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
+              {ROLE_IDS.map((r) => (
+                <div key={r} className="row" style={{ fontSize: 12, marginBottom: 3 }} title={roleText(r, lang).description}>
+                  <span style={{ width: 110 }}>{roleText(r, lang).name}</span>
+                  <span className="grow">
+                    <Bar value={roleFit(creature, r)} max={20} color="var(--accent)" thin />
+                  </span>
+                  <span className="mono" style={{ width: 32, textAlign: 'right' }}>
+                    {tr.dec(roleFit(creature, r))}
+                  </span>
+                </div>
+              ))}
+              <h4 style={{ margin: '10px 0 6px' }}>{t('cr.condition')}</h4>
+              <dl className="kv">
+                <dt>{t('col.form')}</dt>
+                <dd>{creature.condition.form}/20</dd>
+                <dt>{t('col.morale')}</dt>
+                <dd>
+                  {t(moraleKey(creature.condition.morale))} ({creature.condition.morale})
+                </dd>
+                <dt>{t('col.fatigue')}</dt>
+                <dd>{creature.condition.fatigue} %</dd>
+                {injuries.length > 0 && (
+                  <>
+                    <dt>{t('cr.injuries')}</dt>
+                    <dd className="bad-text">{injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
+          )}
         </div>
 
         {showHidden && (

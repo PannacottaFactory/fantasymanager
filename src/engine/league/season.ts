@@ -15,7 +15,12 @@ import { buildReport } from '../report/report.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
 import { matchdayCount, roundRobin } from './schedule.ts';
 import { computeStandings } from './standings.ts';
-import type { Fixture, FixtureResult, GameState, InboxMessage } from './types.ts';
+import { seasonPrizes, trimLedgers, weeklyFinances } from '../economy/finance.ts';
+import { contractsTurnover, contractWarning, ensureSquads, fillFreeAgents, weeklyMarket, weeklyScouting } from '../economy/market.ts';
+import { initEconomy } from '../economy/setup.ts';
+import type { QualityId } from '../../data/config/index.ts';
+import { pushMessage } from './messages.ts';
+import type { Fixture, FixtureResult, GameState } from './types.ts';
 
 export interface NewGameOptions {
   seed: string;
@@ -23,12 +28,6 @@ export interface NewGameOptions {
   lang: Lang;
 }
 
-type MessageBody = InboxMessage extends infer M ? (M extends InboxMessage ? Omit<M, 'id' | 'matchday' | 'season' | 'read'> : never) : never;
-
-function pushMessage(state: GameState, body: MessageBody) {
-  const matchday = Math.max(1, Math.min(state.matchday, lastMatchday(state)));
-  state.inbox.push({ ...body, id: `m${state.nextMessageId++}`, matchday, season: state.season, read: false } as InboxMessage);
-}
 
 export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const lc = cfg.league;
@@ -37,19 +36,22 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
   const player = generateTeam(world.fork('player'), { name: opts.teamName.trim() || undefined, quality: lc.playerQuality, size, lang: opts.lang }, cfg);
   const names = new Set([player.name]);
   const ai: Team[] = [];
+  const qualities: Record<string, QualityId> = { [player.id]: lc.playerQuality };
   lc.aiQualities.slice(0, lc.teams - 1).forEach((quality, i) => {
     const rng = world.fork(`ai${i}`);
     const team = generateTeam(rng, { quality, size, lang: opts.lang }, cfg);
     // Unique stable names.
     for (let k = 0; names.has(team.name) && k < 50; k++) team.name = generateTeamName(rng, opts.lang);
     names.add(team.name);
+    qualities[team.id] = quality;
     ai.push(team);
   });
   const teams = [player, ...ai];
   const fixtures = roundRobin(new Rng(deriveSeed(opts.seed, 'schedule', 1)), teams.map((t) => t.id), lc.legs, 1);
   const state: GameState = {
-    version: 1,
+    version: 2,
     worldSeed: opts.seed,
+    lang: opts.lang,
     season: 1,
     matchday: 1,
     teams,
@@ -58,7 +60,15 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
     inbox: [],
     lastMatch: null,
     nextMessageId: 1,
+    clubs: {},
+    freeAgents: [],
+    scouting: { knowledge: {}, missions: [] },
+    offers: [],
+    bids: {},
+    forSale: [],
+    nextId: 1,
   };
+  initEconomy(state, qualities, cfg);
   pushMessage(state, { kind: 'welcome', teamName: player.name, teams: teams.length, matchdays: matchdayCount(fixtures) });
   return state;
 }
@@ -250,8 +260,21 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   const tired = playerTeam(next).creatures.filter((c) => c.condition.fatigue >= 50 && !isInjured(c));
   if (tired.length) pushMessage(next, { kind: 'tired', names: tired.map((c) => c.name) });
 
+  // 4. Money, scouts and the transfer market.
+  weeklyFinances(next, played.map((p) => p.fixture), cfg);
+  const seen: string[] = [];
+  for (const { result, fixture } of played) {
+    if (fixture.home !== next.playerTeamId && fixture.away !== next.playerTeamId) continue;
+    const mySide = result.teams[0].id === next.playerTeamId ? 0 : 1;
+    for (const pm of result.postMatch) if (pm.played && result.roster[pm.creatureId]?.side !== mySide) seen.push(pm.creatureId);
+  }
+  weeklyScouting(next, seen, cfg);
+  weeklyMarket(next, cfg);
+  contractWarning(next, cfg);
+
   next.matchday++;
   if (seasonOver(next)) {
+    seasonPrizes(next, cfg);
     const table = standings(next, cfg);
     const pos = table.findIndex((r) => r.teamId === next.playerTeamId) + 1;
     pushMessage(next, { kind: 'seasonEnd', position: pos, champion: teamById(next, table[0]!.teamId).name, points: table[pos - 1]!.points });
@@ -266,6 +289,13 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
   next.matchday = 1;
   next.fixtures = roundRobin(new Rng(deriveSeed(next.worldSeed, 'schedule', next.season)), next.teams.map((t) => t.id), cfg.league.legs, next.season);
   next.lastMatch = null;
+  const rng = new Rng(deriveSeed(next.worldSeed, 'offseason', next.season));
+  contractsTurnover(next, rng, cfg);
+  fillFreeAgents(next, rng, cfg);
+  ensureSquads(next, rng, cfg);
+  trimLedgers(next);
+  next.offers = [];
+  next.bids = {};
   for (const team of next.teams) {
     for (const c of team.creatures) c.condition.fatigue = 0;
     if (team.id !== next.playerTeamId) team.tactic = aiPrepare(team, cfg).tactic;
