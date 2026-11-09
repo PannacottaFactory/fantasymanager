@@ -5,12 +5,13 @@ import { SPECIES } from '../../../data/species.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import type { RosterEntry, Side } from '../../../engine/combat/types.ts';
 import type { CombatantView, MatchView } from '../../../engine/combat/view.ts';
-import { abilityText, effectText, roleText, speciesName } from '../../../engine/text/localize.ts';
+import { abilityText, effectText, speciesName } from '../../../engine/text/localize.ts';
 import { AbilityCard, AbilityTip, KIND_GLYPH, abilityColor } from '../../components/AbilityCard.tsx';
 import { Bar, Crest } from '../../components/common.tsx';
 import { hpColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { reducedMotion, type CardFx, type FxBatch } from './matchFx.ts';
+import { RoleLabel, SpeciesIcon } from '../../icons/Icon.tsx';
 
 const ORDER: Record<string, number> = { active: 0, ko: 1, fled: 1, withdrawn: 2, bench: 3 };
 
@@ -152,8 +153,8 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
           <span className="name" title={r.name}>
             {r.name}
           </span>
-          <span className="tag" title={roleText(r.role, lang).name}>
-            {roleText(r.role, lang).short}
+          <span className="tag">
+            <RoleLabel role={r.role} short />
           </span>
           {c.state === 'active' && <span className="tag">{c.line === 'front' ? t('tag.front') : t('tag.back')}</span>}
           {c.state === 'ko' && <span className="tag bad">{t('tag.ko')}</span>}
@@ -162,7 +163,7 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
           {c.state === 'bench' && <span className="tag">{t('tag.bench')}</span>}
           <span className="spacer" />
           <span className="faint" style={{ fontSize: '0.786rem' }}>
-            {speciesName(r.speciesId, lang)}
+            <SpeciesIcon id={r.speciesId} /> {speciesName(r.speciesId, lang)}
           </span>
         </div>
         {c.state !== 'bench' && (

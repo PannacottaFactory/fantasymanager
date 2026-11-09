@@ -14,6 +14,7 @@ import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
+import { SpeciesIcon } from '../../icons/Icon.tsx';
 
 type Tab = 'free' | 'stables' | 'scouts';
 
@@ -49,7 +50,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
       sort: (r) => speciesName(r.c.speciesId, lang),
       render: (r) => (
         <span className="row" style={{ gap: 4 }}>
-          <ElementDots speciesId={r.c.speciesId} /> {speciesName(r.c.speciesId, lang)}
+          <SpeciesIcon id={r.c.speciesId} /> {speciesName(r.c.speciesId, lang)} <ElementDots speciesId={r.c.speciesId} />
         </span>
       ),
     },

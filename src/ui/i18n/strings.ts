@@ -706,6 +706,7 @@ export const en = {
   'text.normal': 'Normal text',
   'text.large': 'Large text',
   'text.xlarge': 'Extra-large text',
+  'help.credits': 'Icons: game-icons.net (Lorc, Delapouite and contributors), licensed CC BY 3.0.',
 } as const;
 
 export type StringKey = keyof typeof en;
@@ -1402,4 +1403,5 @@ export const fr: Record<StringKey, string> = {
   'text.normal': 'Texte normal',
   'text.large': 'Grand texte',
   'text.xlarge': 'Très grand texte',
+  'help.credits': 'Icônes : game-icons.net (Lorc, Delapouite et contributeurs), sous licence CC BY 3.0.',
 };

@@ -15,6 +15,7 @@ import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
+import { SpeciesIcon } from '../../icons/Icon.tsx';
 
 const STAGE_KEY = { young: 'cr.developing', prime: 'cr.prime', declining: 'cr.declining' } as const;
 
@@ -65,7 +66,7 @@ function Youth({ game }: { game: GameState }) {
               <div>
                 <b>{c.name}</b>
                 <div className="muted" style={{ fontSize: '0.857rem' }}>
-                  <ElementDots speciesId={c.speciesId} /> {speciesName(c.speciesId, lang)} · {t('col.age')} {c.age}
+                  <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} /> · {t('col.age')} {c.age}
                 </div>
               </div>
             </div>

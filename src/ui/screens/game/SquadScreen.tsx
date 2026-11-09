@@ -2,13 +2,15 @@ import { ATTRIBUTE_KEYS } from '../../../data/attributes.ts';
 import { bestRole, isInjured, overallRating } from '../../../engine/creature/derived.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
 import { isStarter } from '../../../engine/team/edit.ts';
-import { attributeText, injuryText, roleText, speciesName } from '../../../engine/text/localize.ts';
+import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { Attr, Bar, Crest, ElementDots, TraitChip } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
+import { RoleLabel } from '../../icons/Icon.tsx';
+import { SpeciesIcon } from '../../icons/Icon.tsx';
 
 export function SquadScreen() {
   const tr = useT();
@@ -37,13 +39,13 @@ export function SquadScreen() {
       sort: (c) => speciesName(c.speciesId, lang),
       render: (c) => (
         <span className="row" style={{ gap: 4 }}>
-          <ElementDots speciesId={c.speciesId} /> {speciesName(c.speciesId, lang)}
+          <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} />
         </span>
       ),
     },
     { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
-    { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => roleText(bestRole(c), lang).name },
+    { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => <RoleLabel role={bestRole(c)} /> },
     {
       key: 'sel',
       label: t('col.selection'),

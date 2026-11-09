@@ -6,6 +6,7 @@ import type { ElementId } from '../../data/schema.ts';
 import { elementName, speciesName, traitText } from '../../engine/text/localize.ts';
 import { attrClass, initials } from '../format.ts';
 import { useT } from '../i18n/index.ts';
+import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
 
 export function Attr({ v }: { v: number }) {
   return <span className={`attr ${attrClass(v)}`}>{v}</span>;
@@ -76,9 +77,15 @@ export function Crest({ speciesId, name, size = 24 }: { speciesId: string; name?
       </defs>
       <path d="M2.5 2.5 H21.5 V11.5 C21.5 17.5 12 22.5 12 22.5 C12 22.5 2.5 17.5 2.5 11.5 Z" fill={`url(#${gid})`} stroke="rgb(0 0 0 / 0.45)" strokeWidth="1" />
       <path d="M4.5 4.5 H19.5 V11.5 C19.5 16 12 20.2 12 20.2 C12 20.2 4.5 16 4.5 11.5 Z" fill="none" stroke="rgb(255 255 255 / 0.25)" strokeWidth="0.8" />
-      <text x="12" y="14.2" textAnchor="middle" className="crest-text">
-        {label}
-      </text>
+      {SPECIES_ICONS[speciesId] ? (
+        <svg x="5.2" y="4.6" width="13.6" height="13.6" viewBox={ICON_VIEWBOX} className="crest-icon">
+          <g dangerouslySetInnerHTML={{ __html: SPECIES_ICONS[speciesId]! }} />
+        </svg>
+      ) : (
+        <text x="12" y="14.2" textAnchor="middle" className="crest-text">
+          {label}
+        </text>
+      )}
     </svg>
   );
 }

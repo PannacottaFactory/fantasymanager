@@ -608,3 +608,17 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 /* Narrower screens: the logo alone stands for the title, leaving room for the tabs. */
 @media (max-width: 1500px) { .brand > div { display: none; } }
 @media (max-width: 1100px) { .text-size-btn, .theme-seg { display: none; } }
+
+/* ——— Icons (game-icons.net, CC BY 3.0) ——— */
+.gicon { display: inline-block; vertical-align: -0.18em; flex: none; }
+.role-label { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }
+.role-icon { color: var(--muted); }
+.role-icon.role-tank { color: #6e9fd0; }
+.role-icon.role-striker { color: #d0594a; }
+.role-icon.role-support { color: #7cb35a; }
+.role-icon.role-caster { color: #8f7fd0; }
+.role-icon.role-skirmisher { color: #d99a3a; }
+.crest-icon { color: rgb(16 12 8 / 0.82); }
+.species-icon { display: inline-flex; vertical-align: middle; filter: brightness(1.25) drop-shadow(0 1px 1px rgb(0 0 0 / 0.35)); }
+:root[data-theme="parchment"] .species-icon { filter: brightness(0.85); }
+.species-icon .gicon { vertical-align: 0; }

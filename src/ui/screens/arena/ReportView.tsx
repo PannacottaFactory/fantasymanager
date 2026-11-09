@@ -3,12 +3,13 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import type { MatchResult, RosterEntry } from '../../../engine/combat/types.ts';
 import { Commentator } from '../../../engine/commentary/commentator.ts';
 import { buildReport, type CreatureMatchStats, type TeamMatchStats } from '../../../engine/report/report.ts';
-import { abilityText, roleText, speciesName } from '../../../engine/text/localize.ts';
+import { abilityText, speciesName } from '../../../engine/text/localize.ts';
 import { Crest } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { ratingClass } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
+import { RoleLabel } from '../../icons/Icon.tsx';
 
 function MomentumChart({ momentum, breaks }: { momentum: number[]; breaks: readonly number[] }) {
   const { t } = useT();
@@ -116,7 +117,7 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
       ),
     },
     { key: 'species', label: t('col.species'), sort: (c) => speciesName(r(c.id).speciesId, lang), render: (c) => speciesName(r(c.id).speciesId, lang) },
-    { key: 'role', label: t('col.role'), sort: (c) => r(c.id).role, render: (c) => roleText(r(c.id).role, lang).name },
+    { key: 'role', label: t('col.role'), sort: (c) => r(c.id).role, render: (c) => <RoleLabel role={r(c.id).role} /> },
     { key: 'rating', label: t('col.rating'), num: true, sort: (c) => c.rating, render: (c) => <span className={`rating ${ratingClass(c.rating)}`}>{tr.dec(c.rating)}</span> },
     { key: 'rounds', label: t('col.rds'), title: t('col.rds.title'), num: true, sort: (c) => c.roundsPlayed, render: (c) => c.roundsPlayed },
     { key: 'dmg', label: t('col.dmg'), title: t('col.dmg.title'), num: true, sort: (c) => c.damageDealt, render: (c) => c.damageDealt },

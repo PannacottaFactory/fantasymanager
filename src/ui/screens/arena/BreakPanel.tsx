@@ -9,6 +9,7 @@ import { roleText, speciesName } from '../../../engine/text/localize.ts';
 import { Bar, Crest, Modal } from '../../components/common.tsx';
 import { hpColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
+import { RoleLabel } from '../../icons/Icon.tsx';
 
 const TARGETS: TargetPriority[] = ['nearest', 'weakest', 'strongest', 'casters', 'threat'];
 
@@ -95,7 +96,9 @@ export function BreakPanel({ combat, onResume }: Props) {
                         <Crest speciesId={c.speciesId} name={c.name} /> {c.name} {down && <span className="tag">{stateTag(c.state)}</span>}
                       </span>
                     </td>
-                    <td>{roleText(c.role, lang).name}</td>
+                    <td>
+                      <RoleLabel role={c.role} />
+                    </td>
                     <td style={{ width: 120 }}>
                       <Bar value={c.hp} max={c.maxHp} color={hpColor(hpFraction(c))} title={`${Math.round(c.hp)}/${c.maxHp}`} />
                     </td>

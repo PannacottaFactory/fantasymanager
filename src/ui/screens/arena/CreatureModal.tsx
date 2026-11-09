@@ -20,6 +20,8 @@ import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip } from '../.
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
+import { RoleLabel } from '../../icons/Icon.tsx';
+import { SpeciesIcon } from '../../icons/Icon.tsx';
 
 interface Props {
   creature: Creature;
@@ -56,7 +58,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
       <div className="stack">
         <div className="row wrap" style={{ gap: 16 }}>
           <span>
-            {spText.name} · <ElementDots speciesId={sp.id} /> {sp.elements.map((e) => elementName(e, lang)).join(' / ')} · {sizeName(sp.size, lang)}
+            <SpeciesIcon id={sp.id} size="1.5em" /> {spText.name} · <ElementDots speciesId={sp.id} /> {sp.elements.map((e) => elementName(e, lang)).join(' / ')} · {sizeName(sp.size, lang)}
             {sp.flying ? ` · ${t('cr.flying')}` : ''}
           </span>
           <span className="muted">{t('cr.age', { age: creature.age, stage, a: lc.peakStart, b: lc.peakEnd })}</span>
@@ -138,7 +140,9 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
               {ROLE_IDS.map((r) => (
                 <div key={r} className="row" style={{ fontSize: '0.857rem', marginBottom: 3 }} title={roleText(r, lang).description}>
-                  <span style={{ width: 110 }}>{roleText(r, lang).name}</span>
+                  <span style={{ width: 140 }}>
+                    <RoleLabel role={r} />
+                  </span>
                   <span className="grow">
                     <Bar value={roleFit(creature, r)} max={20} color="var(--accent)" thin />
                   </span>

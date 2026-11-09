@@ -53,6 +53,12 @@ export function HelpScreen() {
             ))}
         </section>
       ))}
+      <p className="faint" style={{ fontSize: '0.857rem', textAlign: 'center' }}>
+        {t('help.credits')}{' '}
+        <a href="https://game-icons.net" target="_blank" rel="noreferrer">
+          game-icons.net
+        </a>
+      </p>
     </div>
   );
 }

@@ -6,7 +6,6 @@ import { aiPrepare, lastMatchday, playerTeam, standings, teamById } from '../../
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Team } from '../../../engine/model.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
-import { roleText } from '../../../engine/text/localize.ts';
 import { Bar, Crest } from '../../components/common.tsx';
 import { issueText } from '../../components/TeamEditor.tsx';
 import { fatigueColor } from '../../format.ts';
@@ -14,9 +13,10 @@ import { useT } from '../../i18n/index.ts';
 import { useGame, type MatchFlow } from '../../store/gameStore.ts';
 import { LiveMatch } from '../arena/LiveMatch.tsx';
 import { ReportView } from '../arena/ReportView.tsx';
+import { RoleLabel } from '../../icons/Icon.tsx';
 
 function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
-  const { t, lang } = useT();
+  const { t } = useT();
   const byId = new Map(team.creatures.map((c) => [c.id, c]));
   return (
     <section className={`panel ${side === 0 ? 'side-home' : 'side-away'}`}>
@@ -32,7 +32,9 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
             <div key={c.id} className={`lineup-row ${isInjured(c) ? 'bad-text' : ''}`}>
               <Crest speciesId={c.speciesId} name={c.name} />
               <span className="grow ellipsis">{c.name}</span>
-              <span className="tag">{roleText(s.role, lang).short}</span>
+              <span className="tag">
+                <RoleLabel role={s.role} short />
+              </span>
               <span className="tag">{s.line === 'front' ? t('tag.front') : t('tag.back')}</span>
               <span style={{ width: 44 }} title={`${t('col.fatigue')} ${c.condition.fatigue}`}>
                 <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />

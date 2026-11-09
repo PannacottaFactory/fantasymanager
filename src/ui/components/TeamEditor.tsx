@@ -16,6 +16,8 @@ import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
 import { Attr, Bar, Crest, ElementDots, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
+import { RoleIcon } from '../icons/Icon.tsx';
+import { SpeciesIcon } from '../icons/Icon.tsx';
 
 const TARGETS: TargetPriority[] = ['nearest', 'weakest', 'strongest', 'casters', 'threat'];
 const ATTR_COLUMNS = ['strength', 'toughness', 'speed', 'stamina', 'attack', 'defense', 'magic', 'courage', 'discipline'] as const;
@@ -137,6 +139,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       sort: (c) => speciesName(c.speciesId, lang),
       render: (c) => (
         <span className="row" style={{ gap: 4 }}>
+          <SpeciesIcon id={c.speciesId} />
           <ElementDots speciesId={c.speciesId} />
           {onSwapSpecies ? (
             <select className="compact" value={c.speciesId} title={t('arena.swapSpecies')} onChange={(e) => onSwapSpecies(c.id, e.target.value)}>
@@ -187,6 +190,8 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         const s = slot(c.id);
         if (!s) return <span className="faint">—</span>;
         return (
+          <span className="row" style={{ gap: 4 }}>
+          <RoleIcon role={s.role} />
           <select className="compact" value={s.role} onChange={(e) => onChange(updateSlot(team, c.id, { role: e.target.value as RoleId }))}>
             {ROLE_IDS.map((r) => (
               <option key={r} value={r}>
@@ -194,6 +199,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
               </option>
             ))}
           </select>
+          </span>
         );
       },
     },
