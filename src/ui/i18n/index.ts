@@ -7,7 +7,8 @@ import { DEFAULT_LANG, isLang, type Lang } from '../../core/i18n.ts';
 import { fill } from '../../core/text.ts';
 import { en, fr, type StringKey } from './strings.ts';
 
-export type Theme = 'dark' | 'parchment';
+export type Theme = 'night' | 'dark' | 'parchment';
+export const THEMES: Theme[] = ['parchment', 'dark', 'night'];
 
 const LANG_KEY = 'ui.lang';
 const THEME_KEY = 'ui.theme';
@@ -39,7 +40,10 @@ export const useSettings = create<SettingsState>()((set) => ({
     const v = read(LANG_KEY);
     return isLang(v) ? v : DEFAULT_LANG;
   })(),
-  theme: read(THEME_KEY) === 'parchment' ? 'parchment' : 'dark',
+  theme: (() => {
+    const v = read(THEME_KEY);
+    return v === 'parchment' || v === 'dark' || v === 'night' ? v : 'night';
+  })(),
   setLang: (lang) => {
     write(LANG_KEY, lang);
     set({ lang });
@@ -62,7 +66,7 @@ export interface Translator {
   /** 1st / 1er, 2nd / 2e… */
   ordinal: (n: number) => string;
   weeks: (n: number) => string;
-  /** Amount of crowns: "12 500 ⚜" / "12,500 ⚜"; compact: "12,5 k⚜". */
+  /** Amount of gold: "12 500 po" / "12,500 gp"; compact: "12,5 k po". */
   money: (n: number, compact?: boolean) => string;
 }
 
@@ -80,14 +84,15 @@ export function makeTranslator(lang: Lang): Translator {
     },
     weeks: (n) => (n === 1 ? t('weeks.one') : t('weeks.many', { n })),
     money: (n, compact) => {
+      // Non-breaking spaces keep "12 500 po" on one line.
       const sign = n < 0 ? '−' : '';
       const a = Math.abs(Math.round(n));
       if (compact && a >= 10000) {
         const k = (a / 1000).toFixed(a >= 100000 ? 0 : 1);
-        return `${sign}${lang === 'fr' ? k.replace('.', ',') : k} k⚜`;
+        return `${sign}${lang === 'fr' ? k.replace('.', ',') : k}\u202fk\u00a0${t('money.unit')}`;
       }
-      const s = String(a).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'fr' ? ' ' : ',');
-      return `${sign}${s} ⚜`;
+      const s = String(a).replace(/\B(?=(\d{3})+(?!\d))/g, lang === 'fr' ? '\u202f' : ',');
+      return `${sign}${s}\u00a0${t('money.unit')}`;
     },
   };
 }

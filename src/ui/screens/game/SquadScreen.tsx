@@ -115,7 +115,7 @@ export function SquadScreen() {
 
   return (
     <div className="stack">
-      <section className="panel side-home">
+      <section className="panel side-home" data-tip="squad">
         <div className="panel-head">
           <h2>
             {t('squad.title')} — {team.name}

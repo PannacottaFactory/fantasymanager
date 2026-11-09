@@ -31,6 +31,8 @@ export interface Combatant {
   abilities: string[];
   /** Abilities the manager asked this creature to favour. */
   favorites: string[];
+  /** Multiplier on what the creature's role does, from its role fit (≈0.85–1.15). */
+  roleFactor: number;
   /** Hidden ability 1–200 (used by AI "strongest" target and ratings). */
   ability: number;
   injuryProneness: number;

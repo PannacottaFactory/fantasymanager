@@ -32,7 +32,7 @@ export interface CreatureCondition {
 
 /** Employment terms with a stable (league games only). */
 export interface Contract {
-  /** Crowns per week. */
+  /** Gold pieces per week. */
   wage: number;
   /** Last season covered by the contract. */
   untilSeason: number;
@@ -56,6 +56,17 @@ export interface Creature {
   relations: Record<string, number>;
   stableId: string | null;
   contract?: Contract;
+  /** Training progress not yet turned into whole points (league games). */
+  growth?: CreatureGrowth;
+}
+
+export interface CreatureGrowth {
+  /** Fraction of the next ability point. */
+  ability: number;
+  /** Attribute points earned (or lost) but not yet given to an attribute. */
+  pool: number;
+  /** Attribute points gained (− lost) this season. */
+  season: number;
 }
 
 export type Aggression = 'cautious' | 'balanced' | 'aggressive';

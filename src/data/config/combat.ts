@@ -125,6 +125,12 @@ export const COMBAT_CONFIG = {
     riskHigh: { critBonus: 0.02, hitBonus: -0.03, bigAbilityBias: 0.3 },
     riskLow: { critBonus: -0.01, hitBonus: 0.02, bigAbilityBias: -0.3 },
   },
+  /**
+   * How well a creature suits its role (role fit 1–20) scales what the role does: tank interceptions,
+   * striker melee damage, caster spell damage, support healing, skirmisher strikes on the back line.
+   * factor = 1 + (fit − 10) × perPoint, clamped.
+   */
+  roleFit: { perPoint: 0.015, min: 0.85, max: 1.15 },
   /** Favourite abilities chosen by the manager (per creature). */
   favorites: {
     max: 2,

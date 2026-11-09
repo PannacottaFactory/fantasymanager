@@ -5,7 +5,7 @@ import type { Fixture } from './types.ts';
  * Round-robin calendar (circle method). Every team plays once per matchday; with `legs` = 2 the
  * second half repeats the pairings with home and away swapped. Home/away alternate as much as possible.
  */
-export function roundRobin(rng: Rng, teamIds: readonly string[], legs = 2, season = 1): Fixture[] {
+export function roundRobin(rng: Rng, teamIds: readonly string[], legs = 2, season = 1, division?: number): Fixture[] {
   if (teamIds.length % 2 !== 0) throw new Error('Round-robin needs an even number of teams');
   const order = teamIds.slice();
   // Shuffle so the calendar differs from one world to another.
@@ -34,7 +34,8 @@ export function roundRobin(rng: Rng, teamIds: readonly string[], legs = 2, seaso
       const matchday = leg * rounds.length + r + 1;
       pairs.forEach(([h, a], i) => {
         const [home, away] = leg % 2 === 0 ? [h, a] : [a, h];
-        fixtures.push({ id: `s${season}-d${matchday}-${i}`, matchday, home, away });
+        const id = division === undefined ? `s${season}-d${matchday}-${i}` : `s${season}-D${division + 1}-d${matchday}-${i}`;
+        fixtures.push(division === undefined ? { id, matchday, home, away } : { id, matchday, home, away, division });
       });
     });
   }
@@ -42,5 +43,5 @@ export function roundRobin(rng: Rng, teamIds: readonly string[], legs = 2, seaso
 }
 
 export function matchdayCount(fixtures: readonly Fixture[]): number {
-  return fixtures.reduce((m, f) => Math.max(m, f.matchday), 0);
+  return fixtures.reduce((m, f) => (f.competition === 'cup' ? m : Math.max(m, f.matchday)), 0);
 }

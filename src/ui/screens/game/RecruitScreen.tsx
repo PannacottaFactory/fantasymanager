@@ -183,7 +183,7 @@ export function RecruitScreen() {
             {t('recruit.squad', { n: mine.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad, money: money(clubOf(game, game.playerTeamId).balance) })}
           </span>
         </div>
-        <div className="row wrap" style={{ gap: 12, marginBottom: 10 }}>
+        <div className="row wrap" style={{ gap: 12, marginBottom: 10 }} data-tip="recruit">
           <Seg<Tab>
             value={tab}
             onChange={setTab}

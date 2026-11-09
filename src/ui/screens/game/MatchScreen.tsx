@@ -1,4 +1,6 @@
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
+import { divisionOf } from '../../../engine/league/divisions.ts';
+import { cupRoundKey } from './LeagueScreen.tsx';
 import { isInjured } from '../../../engine/creature/derived.ts';
 import { aiPrepare, lastMatchday, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -63,8 +65,12 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
   const mine = playerTeam(game);
   const home = f.home === game.playerTeamId;
   const opp = aiPrepare(teamById(game, home ? f.away : f.home));
-  const table = standings(game);
-  const posOf = (id: string) => table.findIndex((r) => r.teamId === id) + 1;
+  const oppTable = standings(game, divisionOf(game, opp.id));
+  const posOf = (id: string) => oppTable.findIndex((r) => r.teamId === id) + 1;
+  const title =
+    f.competition === 'cup'
+      ? t('match.cup', { round: t(cupRoundKey(f.round ?? 0, game.cup.rounds)) })
+      : `${t('league.division', { n: (f.division ?? 0) + 1 })} · ${t('match.matchday', { d: match.matchday, n: lastMatchday(game) })}`;
   const issues = validateTactic(mine, DEFAULT_CONFIG, true);
 
   return (
@@ -72,12 +78,12 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
       <section className="panel">
         <div className="matchbar">
           <div>
-            <h4>{t('match.matchday', { d: match.matchday, n: lastMatchday(game) })}</h4>
+            <h4>{title}</h4>
             <h2>
               <span className="home-text">{mine.name}</span> <span className="muted">{t('common.vs')}</span> <span className="away-text">{opp.name}</span>
             </h2>
             <div className="muted" style={{ fontSize: 12 }}>
-              {home ? t('common.home') : t('common.away')} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: table[posOf(opp.id) - 1]!.points })}
+              {home ? t('common.home') : t('common.away')} · {t('league.division', { n: divisionOf(game, opp.id) + 1 })} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
             </div>
           </div>
           <span className="spacer" />
@@ -88,7 +94,7 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           <button className="btn" onClick={() => setScreen('tactics')}>
             {t('match.editTactics')}
           </button>
-          <button className="btn" disabled={issues.length > 0} onClick={simulate}>
+          <button data-tip="prematch" className="btn" disabled={issues.length > 0} onClick={simulate}>
             {t('match.simulate')}
           </button>
           <button className="btn primary" disabled={issues.length > 0} onClick={playLive} style={{ padding: '8px 22px' }}>
@@ -115,9 +121,16 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
   );
 }
 
-function DayResults({ game, matchday }: { game: GameState; matchday: number }) {
+function DayResults({ game, matchday, fixtureId }: { game: GameState; matchday: number; fixtureId: string }) {
   const { t } = useT();
-  const list = game.fixtures.filter((f) => f.matchday === matchday && f.result);
+  const mine = game.fixtures.find((f) => f.id === fixtureId);
+  const list = game.fixtures.filter(
+    (f) =>
+      f.result &&
+      (mine?.competition === 'cup'
+        ? f.competition === 'cup' && f.round === mine.round
+        : f.competition !== 'cup' && f.matchday === matchday && (f.division ?? 0) === (mine?.division ?? 0)),
+  );
   return (
     <section className="panel">
       <h3 style={{ marginBottom: 8 }}>{t('match.dayResults', { d: matchday })}</h3>
@@ -165,7 +178,7 @@ export function MatchScreen() {
             </button>
           }
         />
-        <DayResults game={game} matchday={match.matchday} />
+        <DayResults game={game} matchday={match.matchday} fixtureId={match.fixtureId} />
       </div>
     );
   return null;

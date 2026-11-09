@@ -7,6 +7,8 @@ import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/conf
 import { generateCreature } from '../creature/generate.ts';
 import { matchdayCount } from '../league/schedule.ts';
 import { pushMessage } from '../league/messages.ts';
+import { addNews } from '../league/news.ts';
+import { friendsMourn } from '../club/relations.ts';
 import type { GameState, TransferMove } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
 import { autoTactic, repairTactic } from '../team/team.ts';
@@ -60,6 +62,11 @@ export function remainingWeeks(state: GameState, c: Creature): number {
 
 /** Removes a creature from a team and keeps its tactic valid. */
 function detach(state: GameState, team: Team, creatureId: string, cfg: GameConfig) {
+  const leaving = team.creatures.find((c) => c.id === creatureId);
+  if (leaving) {
+    const friends = friendsMourn(team, leaving, cfg);
+    if (team.id === state.playerTeamId && friends.length) pushMessage(state, { kind: 'friendLeft', name: leaving.name, friends });
+  }
   team.creatures = team.creatures.filter((c) => c.id !== creatureId);
   const t = team.tactic;
   t.lineup = t.lineup.filter((s) => s.creatureId !== creatureId);
@@ -104,6 +111,7 @@ export function transfer(
     delete c.contract;
     state.freeAgents.push(c);
   }
+  if (to && fee >= cfg.club.news.bigFee) addNews(state, { kind: 'bigTransfer', name: c.name, from: from?.name ?? null, to: to.name, fee }, cfg);
   return { name: c.name, speciesId: c.speciesId, from: from?.name ?? null, to: to?.name ?? null, fee };
 }
 

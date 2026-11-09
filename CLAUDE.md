@@ -38,10 +38,14 @@ src/engine/  pure game logic, no UI imports, no Math.random / Date (enforced by 
   combat/    Combat class (rounds, AI, morale, breaks), formulas, AI, break decisions, view replay
   commentary/ Commentator: events → varied English text (own RNG stream)
   report/    buildReport: stats, ratings /10, key moments, assistant remarks — from events only
-  league/    GameState (= save file), double round-robin calendar, standings, playMatchday, next season
+  league/    GameState (= save file), calendars per division, standings, playMatchday / playCupRound, cup draw,
+             promotion & relegation, news feed, migrate.ts (saves v1→v4)
+  club/      facilities (levels, works, effects), board (objective, confidence, verdict), relations
   economy/   value & wages, finances/ledger, market (transfers, free agents, AI activity, contracts),
              scouting (knowledge → attribute ranges), player actions (bid, sign, sell, renew, release, scouts),
-             setup (initEconomy, migrateGame v1→v2)
+             setup (initEconomy, migrateGame v1→v2→v3)
+  progression/ training.ts: weekly training (programs × intensity × coaches), ageing & retirement,
+             youth intake (brood), coaches (hire/fire), training plans
   text/      localize.ts: data names/descriptions per language
 src/sim/     headless CLI scripts (Node via tsx)
 src/ui/      React screens; reads engine state, sends decisions; zero game rules
@@ -64,7 +68,7 @@ tests/       Vitest
 - Attributes 1–20 (21 attributes: 6 physical, 6 combat, 9 mental). Hidden: ability/potential 1–200, personality.
 - Commentary templates: `[tags, text]`; tags must all be present on the event; specific templates are favoured,
   recent ones avoided. Tests fail on any unfilled `{placeholder}`.
-- UI: dark (default) and parchment themes via CSS tokens in `src/ui/styles.css`; localStorage only for
+- UI: three themes — night (black, default), dark (brown) and parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed).
 - **i18n**: engine text functions take a `lang` (`Commentator(…, cfg, lang)`, `buildReport(…, cfg, lang)`,
   `generateTeam({ lang })`); the language never changes RNG draws or results (tested). French templates must not
@@ -79,20 +83,30 @@ tests/       Vitest
   ability/guard so the live view drains gauges and refills cooldown chips; the commentator ignores it.
 - **Projectiles**: `ui/screens/arena/Projectiles.tsx` draws shots, element particles and impacts between cards
   (`data-cid`); target reactions & health drop land when the projectile arrives (`FLIGHT` per speed).
+- **Weeks**: `playMatchday` plays the due cup round first when `cupDue(state)` (cup weeks sit between league
+  matchdays; `seasonOver` waits for the final). `playerFixture` returns the cup tie during a cup week.
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
   new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
-  scouts) → scouting → market (free agents, AI signings/buys, AI offers to the player) → contract warning.
+  scouts, staff) → scouting → market (free agents, AI signings/buys, AI offers to the player) → contract
+  warning; training runs before the money (after rest). Unkept youngsters leave at the first matchday.
   The player's team is always side 0 in its match. Season end: prize money + reputation; next season:
-  expired contracts leave (player) or are renewed/released (AI), `ensureSquads` keeps every squad ≥ 9.
-- **Economy** (phase 3, money in crowns ⚜): all numbers in `data/config/economy.ts`. Player actions in
+  ageing (+1 year, decline past the prime, retirement past maxAge) → expired contracts leave (player) or are
+  renewed/released (AI) → brood of 2–4 youngsters (player decides in Training; AI keeps the promising ones) →
+  new coach market → `ensureSquads` keeps every squad ≥ 9.
+- **Progression** (phase 4, `data/config/training.ts`): weekly ability gain = gap to potential × rate × life stage
+  × professionalism × intensity × coaches; it feeds a pool of attribute points (`Creature.growth.pool`), each whole
+  point going to an attribute drawn by program weight (so progress is visible). Attributes are capped by the
+  species range at full potential (+2). Ageing uses the same mechanism with negative amounts.
+- **Role fit** now matters in combat: `Combatant.roleFactor` (0.85–1.15 from role fit) scales tank interceptions,
+  striker melee / caster spell / skirmisher strike damage, support healing and the skirmisher flank penalty.
+- **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
 - **Imperfect information**: the player sees other creatures through `knowledgeOf` (own = 100, league 25,
   free agents 10; matches +20 up to 60; scouts 70/90). Ranges come from a fixed per-creature offset
   (`noise(id, key)`), always contain the truth and narrow monotonically — never show raw attributes,
   ability or potential of a creature the player does not own.
-- **Saves**: `GameState.version` 2; `loadGame` runs `migrateGame` so phase-2 saves gain clubs, contracts,
-  free agents and scouting.
+- **Saves**: `GameState.version` 3; `loadGame` runs `migrateGame` (v1 → economy, v2 → staff, plans, youth).
 
 ## Arena rules (current)
 5 starters + 3 bench, 2 abstract lines (front/back). Max 20 rounds; breaks after rounds 5/10/15 with up to
@@ -112,8 +126,20 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   creatures, sale list, release), free-agent market, AI market activity, 2 scouts & attribute ranges,
   Recruitment & Finances screens, creature sheet with market actions, save migration. Combat builds
   (favourite abilities), stamina gauges, canvas projectiles. 65 tests.
-- [ ] Phase 4 — training, staff, progression/ageing, youth intake, multiple seasons.
-- [ ] Phase 5 — multiple divisions, cup, facilities, board objectives, news, advanced morale/relations.
+- [x] **Phase 4** — training programs & intensity, 3 coaches (staff market, hire/fire), progression towards
+  potential, ageing/decline/retirement, yearly brood of youngsters, role fit in combat, Training & Staff screens,
+  three themes (night/brown/parchment), gold currency. 72 tests.
+  Known: average potential drifts up slowly over seasons (AI keeps its best youngsters) — watch it.
+- [x] **Phase 5** — 2 divisions of 10 (player starts in D2, 2 up / 2 down, money ×1.5 in D1), Shadow Cup for
+  all 20 stables (preliminary round for the 8 weakest, midweek after matchdays 3/7/11/14/17, half rest, prizes),
+  4 facilities × 3 levels (training ground, infirmary, stands, nursery; paid up front, weeks of works, upkeep),
+  board objective & confidence (bonus, warnings, no sacking), news feed, relations (bonds from fighting together,
+  quarrels, match-start morale, friends mourn departures), grouped navigation, save migration v3→v4. 77 tests.
+- [x] **Tutorial**: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
+  unseen one whose anchor is visible is shown; progress in localStorage; only during a game), Help page (`?` button)
+  with the manual and tutorial controls, opt-out checkbox on the start screen. Adding a screen ⇒ add a `data-tip`
+  anchor + a step + `tut.<id>.title/body` strings if it needs explaining.
+- [ ] Next: more creatures (species, abilities, traits, French texts).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot (professional vs professional, 1000 matches)

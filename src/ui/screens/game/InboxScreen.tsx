@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react';
 import { playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
-import type { GameState, InboxMessage } from '../../../engine/league/types.ts';
+import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
+import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
+import { divisionOf } from '../../../engine/league/divisions.ts';
+import { Bar } from '../../components/common.tsx';
+import type { StringKey } from '../../i18n/strings.ts';
+import { cupRoundKey } from './LeagueScreen.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { locate } from '../../../engine/economy/market.ts';
-import { injuryText, speciesName } from '../../../engine/text/localize.ts';
+import { categoryName, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 
-function wording(tr: Translator, m: InboxMessage): { title: string; body: string; tone: 'good' | 'bad' | 'info' } {
+export function objectiveText(tr: Translator, o: ObjectiveId): string {
+  return tr.t(`obj.${o}` as StringKey, { n: DEFAULT_CONFIG.league.promoted });
+}
+
+function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: string; body: string; tone: 'good' | 'bad' | 'info' } {
   const { t } = tr;
+  const cupRound = (r: number) => t(cupRoundKey(r, cupRounds));
   switch (m.kind) {
     case 'welcome':
       return { title: t('msg.welcome.title', { team: m.teamName }), body: t('msg.welcome.body', { teams: m.teams, matchdays: m.matchdays }), tone: 'info' };
@@ -69,6 +79,54 @@ function wording(tr: Translator, m: InboxMessage): { title: string; body: string
       const lines = m.moves.map((x) => `${x.name} (${speciesName(x.speciesId, tr.lang)}) : ${x.from ?? free} → ${x.to ?? free}${x.fee ? ` · ${tr.money(x.fee, true)}` : ''}`);
       return { title: t('msg.marketNews.title'), body: lines.join('\n'), tone: 'info' };
     }
+    case 'youthIntake':
+      return { title: t('msg.youthIntake.title'), body: t('msg.youthIntake.body', { names: m.names.join(', ') }), tone: 'good' };
+    case 'youthReleased':
+      return { title: t('msg.youthReleased.title'), body: t('msg.youthReleased.body', { names: m.names.join(', ') }), tone: 'info' };
+    case 'retired':
+      return { title: t('msg.retired.title'), body: t('msg.retired.body', { names: m.names.join(', ') }), tone: 'info' };
+    case 'trainingReport':
+      return {
+        title: t('msg.trainingReport.title'),
+        body: t('msg.trainingReport.body', { list: m.items.map((x) => `${x.name} (+${x.gain})`).join(', ') }),
+        tone: 'good',
+      };
+    case 'coachHired':
+      return { title: t('msg.coachHired.title', { name: m.name }), body: t('msg.coachHired.body', { domain: categoryName(m.domain, tr.lang).toLowerCase(), q: m.quality }), tone: 'good' };
+    case 'cupDraw':
+      return {
+        title: t('msg.cupDraw.title', { round: cupRound(m.round) }),
+        body: m.home ? t('msg.cupDraw.home', { opp: m.opponent }) : t('msg.cupDraw.away', { opp: m.opponent }),
+        tone: 'info',
+      };
+    case 'cupOut':
+      return { title: t('msg.cupOut.title'), body: t('msg.cupOut.body', { by: m.by, round: cupRound(m.round).toLowerCase() }), tone: 'bad' };
+    case 'cupWon':
+      return { title: t('msg.cupWon.title'), body: t('msg.cupWon.body', { prize: tr.money(m.prize) }), tone: 'good' };
+    case 'promoted':
+      return { title: t('msg.promoted.title'), body: t('msg.promoted.body', { n: m.division + 1 }), tone: 'good' };
+    case 'relegated':
+      return { title: t('msg.relegated.title'), body: t('msg.relegated.body', { n: m.division + 1 }), tone: 'bad' };
+    case 'boardObjective':
+      return { title: t('msg.boardObjective.title'), body: t('msg.boardObjective.body', { n: m.division + 1, objective: objectiveText(tr, m.objective) }), tone: 'info' };
+    case 'boardVerdict':
+      return {
+        title: t(m.met ? 'msg.boardVerdict.met' : 'msg.boardVerdict.missed'),
+        body: m.met
+          ? t('msg.boardVerdict.metBody', { pos: tr.ordinal(m.position), bonus: tr.money(m.bonus), c: m.confidence })
+          : t('msg.boardVerdict.missedBody', { pos: tr.ordinal(m.position), c: m.confidence }),
+        tone: m.met ? 'good' : 'bad',
+      };
+    case 'boardWarning':
+      return { title: t('msg.boardWarning.title'), body: t('msg.boardWarning.body', { c: m.confidence }), tone: 'bad' };
+    case 'facilityDone':
+      return { title: t('msg.facilityDone.title', { facility: t(`fac.${m.facility}` as StringKey), n: m.level }), body: t('msg.facilityDone.body'), tone: 'good' };
+    case 'friendLeft':
+      return { title: t('msg.friendLeft.title', { name: m.name }), body: t('msg.friendLeft.body', { friends: m.friends.join(', ') }), tone: 'bad' };
+    case 'relation':
+      return m.bond === 'friends'
+        ? { title: t('msg.relation.friends'), body: t('msg.relation.friendsBody', { a: m.a, b: m.b }), tone: 'good' }
+        : { title: t('msg.relation.rivals'), body: t('msg.relation.rivalsBody', { a: m.a, b: m.b }), tone: 'bad' };
     case 'emergencySigning':
       return { title: t('msg.emergencySigning.title'), body: t('msg.emergencySigning.body', { names: m.names.join(', ') }), tone: 'bad' };
   }
@@ -120,6 +178,12 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
         {t('msg.openSheet')}
       </button>
     );
+  if (m.kind === 'youthIntake' && game.youth.length)
+    return (
+      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen('training')}>
+        {t('msg.openTraining')}
+      </button>
+    );
   if (m.kind === 'scoutReport' || m.kind === 'contractExpiring')
     return (
       <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen(m.kind === 'scoutReport' ? 'recruit' : 'finances')}>
@@ -127,6 +191,28 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
       </button>
     );
   return null;
+}
+
+function BoardCard({ game }: { game: GameState }) {
+  const tr = useT();
+  const { t } = tr;
+  const c = game.board.confidence;
+  return (
+    <section className="panel board-card" title={t('board.confidence.title')} data-tip="board">
+      <div className="row wrap" style={{ gap: 12 }}>
+        <b>🏛 {t('board.title')}</b>
+        <span>
+          {t('league.division', { n: divisionOf(game, game.playerTeamId) + 1 })} — {t('board.objective', { objective: objectiveText(tr, game.board.objective) })}
+        </span>
+        <span className="spacer" />
+        <span className="muted">{t('board.confidence')}</span>
+        <span style={{ width: 120 }}>
+          <Bar value={c} max={100} color={c >= 60 ? 'var(--good)' : c >= 30 ? 'var(--warn)' : 'var(--bad)'} />
+        </span>
+        <b className="mono">{c} %</b>
+      </div>
+    </section>
+  );
 }
 
 function NextMatch({ game }: { game: GameState }) {
@@ -169,14 +255,15 @@ export function InboxScreen() {
   }, [game.inbox.length, markAllRead]);
 
   return (
-    <div className="stack narrow">
+    <div className="stack narrow" data-tip="inbox">
+      <BoardCard game={game} />
       <NextMatch game={game} />
       <section className="panel">
         <h2 style={{ marginBottom: 10 }}>{t('inbox.title')}</h2>
         {messages.length === 0 && <div className="muted">{t('inbox.empty')}</div>}
         <ul className="inbox">
           {messages.map((m) => {
-            const w = wording(tr, m);
+            const w = wording(tr, m, game.cup.rounds);
             const canReport = m.kind === 'matchResult' && game.lastMatch?.fixtureId === m.fixtureId;
             return (
               <li key={m.id} className={`msg ${w.tone} ${unread.has(m.id) ? 'unread' : ''}`}>

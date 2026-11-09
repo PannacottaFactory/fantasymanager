@@ -5,6 +5,7 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import { randomSeed } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
+import { useTutorial } from '../../tutorial/tutorial.ts';
 
 /** Shown when no game is loaded, or from the "new game" button. */
 export function StartScreen({ onCancel }: { onCancel?: () => void }) {
@@ -14,9 +15,13 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
   const suggested = useMemo(() => generateTeamName(new Rng(randomSeed()), lang), [lang]);
   const [name, setName] = useState('');
   const [seed, setSeed] = useState(randomSeed);
+  const tutorial = useTutorial();
+  const [tips, setTips] = useState(tutorial.enabled);
 
   const start = () => {
     if (game && !window.confirm(t('start.overwrite'))) return;
+    if (tips) tutorial.restart();
+    else tutorial.setEnabled(false);
     newGame(name.trim() || suggested, seed);
   };
 
@@ -47,6 +52,10 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
                 ⚄
               </button>
             </span>
+          </label>
+          <label className="row" style={{ gap: 6, fontSize: 13 }}>
+            <input type="checkbox" checked={tips} onChange={(e) => setTips(e.target.checked)} />
+            {t('start.tutorial')}
           </label>
           <button className="btn primary" onClick={start} style={{ padding: '8px 22px' }}>
             {t('start.begin')}

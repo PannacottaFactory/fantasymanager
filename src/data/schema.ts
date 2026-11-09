@@ -52,7 +52,7 @@ export interface SpeciesDef {
   nameCulture: string;
   /** Relative chance for traits (default 1). */
   traitWeights?: Record<string, number>;
-  /** Weekly food & keep, in crowns. Used from phase 3. */
+  /** Weekly food & keep, in gold pieces. Used from phase 3. */
   upkeep: number;
   rarity: number;
 }

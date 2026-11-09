@@ -6,7 +6,7 @@ import type { Creature } from '../model.ts';
 
 export const roundTo = (v: number, step: number) => Math.max(step, Math.round(v / step) * step);
 
-/** True market value in crowns (the player only ever sees an estimate for other stables' creatures). */
+/** True market value in gold pieces (the player only ever sees an estimate for other stables' creatures). */
 export function creatureValue(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): number {
   const v = cfg.economy.value;
   const sp = getSpecies(c);

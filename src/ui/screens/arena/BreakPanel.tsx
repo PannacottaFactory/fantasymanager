@@ -166,7 +166,7 @@ export function BreakPanel({ combat, onResume }: Props) {
             </select>
           </label>
           <span className="spacer" />
-          <button className="btn primary" onClick={resume}>
+          <button className="btn primary" onClick={resume} data-tip="break">
             {t('break.resume')}
           </button>
         </div>

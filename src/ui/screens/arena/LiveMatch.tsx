@@ -306,11 +306,11 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
             </div>
           </div>
           <div className="row wrap" style={{ marginBottom: 8 }}>
-            <Seg
+            <span data-tip="live-speed" style={{ display: 'inline-flex' }}><Seg
               value={speed}
               onChange={setSpeed}
               options={(['slow', 'normal', 'fast', 'instant'] as const).map((s) => ({ value: s, label: t(`speed.${s}`) }))}
-            />
+            /></span>
             <button className="btn small" onClick={() => setPaused((p) => !p)} disabled={ended}>
               {paused ? t('live.resume') : t('live.pause')}
             </button>
@@ -326,7 +326,7 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
               </button>
             )}
           </div>
-          <div className="feed" ref={feedRef} aria-live="polite" onMouseLeave={() => setFocus(null)}>
+          <div className="feed" data-tip="live-feed" ref={feedRef} aria-live="polite" onMouseLeave={() => setFocus(null)}>
             {lines.map((l, i) => {
               const sep = l.round !== lastRound && l.round > 0;
               lastRound = l.round;

@@ -20,7 +20,9 @@ const k = (v: number) => `${(v / 1000).toFixed(1)}k`;
 function print(g: GameState, start: Record<string, number>, injuries: number) {
   console.log(`\n——— Season ${g.season} ———`);
   console.log(' #  Team                          Pts  KO-W  P-W  P-L  KO-L  Fat  Sq   Wages/wk   Treasury (start → end)   Rep');
-  standings(g).forEach((r, i) => {
+  g.divisions.forEach((_, d) => {
+    console.log(`D${d + 1}`);
+    standings(g, d).forEach((r, i) => {
     const t = teamById(g, r.teamId);
     const club = g.clubs[t.id]!;
     const fatigue = Math.round(t.creatures.reduce((s, c) => s + c.condition.fatigue, 0) / t.creatures.length);
@@ -31,10 +33,15 @@ function print(g: GameState, start: Record<string, number>, injuries: number) {
         `${String(r.pointsLosses).padStart(5)}${String(r.koLosses).padStart(6)}${String(fatigue).padStart(5)}${String(t.creatures.length).padStart(4)}` +
         `${String(wages).padStart(11)}   ${k(start[t.id]!).padStart(7)} → ${k(club.balance).padEnd(12)}${String(club.reputation).padStart(6)}`,
     );
+    });
   });
+  if (g.cup.winner) console.log(`Cup winner: ${teamById(g, g.cup.winner).name}`);
   const moves = g.inbox.filter((m) => m.kind === 'marketNews' && m.season === g.season).reduce((s, m) => s + (m.kind === 'marketNews' ? m.moves.length : 0), 0);
   const offers = g.inbox.filter((m) => m.kind === 'offerReceived' && m.season === g.season).length;
   const values = g.teams.flatMap((t) => t.creatures.map((c) => creatureValue(c)));
+  const all = g.teams.flatMap((t) => t.creatures);
+  const avg = (f: (c: (typeof all)[number]) => number) => (all.reduce((s, c) => s + f(c), 0) / all.length).toFixed(1);
+  console.log(`Creatures: avg ability ${avg((c) => c.ability)} · avg potential ${avg((c) => c.potential)} · avg age ${avg((c) => c.age)} · avg attr points gained ${avg((c) => c.growth?.season ?? 0)}`);
   console.log(
     `Injured creature-weeks: ${injuries} · AI transfers: ${moves} · offers to player: ${offers} · free agents: ${g.freeAgents.length}` +
       ` · creature value avg ${k(values.reduce((a, b) => a + b, 0) / values.length)} (max ${k(Math.max(...values))})`,

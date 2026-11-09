@@ -2,7 +2,7 @@
  * Save games in IndexedDB (one autosave slot for now; slots & import/export come in phase 6).
  */
 import { openDB, type IDBPDatabase } from 'idb';
-import { migrateGame } from '../../engine/economy/setup.ts';
+import { migrateGame } from '../../engine/league/migrate.ts';
 import type { GameState } from '../../engine/league/types.ts';
 
 const DB_NAME = 'shadow-arenas';

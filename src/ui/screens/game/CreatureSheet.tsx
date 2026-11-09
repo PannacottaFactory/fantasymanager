@@ -16,6 +16,8 @@ import { Knowledge, Stars } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
+import { planOf, setPlan } from '../../../engine/progression/training.ts';
+import { IntensitySelect, ProgramSelect } from './TrainingScreen.tsx';
 
 const YEARS = [1, 2, 3];
 
@@ -198,11 +200,54 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
   );
 }
 
+function RelationsRow({ team, creature }: { team: Team; creature: Creature }) {
+  const { t } = useT();
+  const r = DEFAULT_CONFIG.club.relations;
+  const mates = team.creatures.filter((c) => c.id !== creature.id).map((c) => ({ c, v: creature.relations[c.id] ?? 0 }));
+  const friends = mates.filter((x) => x.v >= r.friend).sort((a, b) => b.v - a.v);
+  const rivals = mates.filter((x) => x.v <= r.rival).sort((a, b) => a.v - b.v);
+  const open = useGame.getState().openSheet;
+  const chip = (x: { c: Creature; v: number }, cls: string) => (
+    <button key={x.c.id} className={`rel-chip ${cls}`} onClick={() => open(x.c.id)} title={String(x.v)}>
+      {x.c.name}
+    </button>
+  );
+  return (
+    <div className="row wrap" style={{ gap: 8 }}>
+      <b>{t('cr.relations')}</b>
+      {friends.length === 0 && rivals.length === 0 && <span className="faint">{t('cr.noRelations')}</span>}
+      {friends.length > 0 && <span className="muted">{t('cr.friends')} :</span>}
+      {friends.map((x) => chip(x, 'friend'))}
+      {rivals.length > 0 && <span className="muted">{t('cr.rivals')} :</span>}
+      {rivals.map((x) => chip(x, 'rival'))}
+    </div>
+  );
+}
+
+function TrainingRow({ game, creature }: { game: GameState; creature: Creature }) {
+  const { t } = useT();
+  const plan = planOf(game, creature.id);
+  const update = useGame.getState().update;
+  const gain = creature.growth?.season ?? 0;
+  return (
+    <div className="row wrap" style={{ gap: 10 }}>
+      <b>{t('cr.training')}</b>
+      <ProgramSelect value={plan.program} onChange={(program) => update((g) => setPlan(g, [creature.id], { program }))} />
+      <IntensitySelect value={plan.intensity} onChange={(intensity) => update((g) => setPlan(g, [creature.id], { intensity }))} />
+      <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: 13 }}>
+        {t('cr.seasonGain', { n: gain > 0 ? `+${gain}` : gain })}
+      </span>
+    </div>
+  );
+}
+
 function Sheet({ id }: { id: string }) {
   const tr = useT();
   const { t, money } = tr;
   const game = useGame((s) => s.game)!;
   const { openSheet, setPlayerTeam } = useGame.getState();
+  const kid = game.youth.find((c) => c.id === id);
+  if (kid) return <CreatureModal creature={kid} onClose={() => openSheet(null)} showHidden={false} />;
   const loc = locate(game, id);
   if (!loc) return null;
   const { creature, team } = loc;
@@ -226,6 +271,8 @@ function Sheet({ id }: { id: string }) {
         </div>
       )}
       {!own && k < 100 && <div className="faint" style={{ fontSize: 12 }}>{t('cr.estimate')}</div>}
+      {own && <TrainingRow game={game} creature={creature} />}
+      {own && <RelationsRow team={team!} creature={creature} />}
       {own && <ContractPanel game={game} creature={creature} />}
       {!own && team && <BidPanel key={id} game={game} creature={creature} team={team} />}
       {!own && !team && <SignPanel key={id} game={game} creature={creature} />}

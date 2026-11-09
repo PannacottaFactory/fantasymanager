@@ -19,7 +19,8 @@ import { TRAITS } from '../../data/traits.ts';
 import { ATTRIBUTE_KEYS, type Attributes } from '../../data/attributes.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import type { AbilityDef } from '../../data/schema.ts';
-import { bestRole, getAbilities, maxHp, maxStamina } from '../creature/derived.ts';
+import { bestRole, getAbilities, maxHp, maxStamina, roleFit } from '../creature/derived.ts';
+import { relationMorale } from '../club/relations.ts';
 import { ROLES } from '../../data/roles.ts';
 import type { Creature, TeamOrders } from '../model.ts';
 import { chooseAction, instinctPriority, type AiContext, type ChosenAction } from './ai.ts';
@@ -106,6 +107,12 @@ export class Combat {
         if (!cr) throw new Error(`Bench creature ${id} not in team ${team.name}`);
         const role = bestRole(cr);
         this.addCombatant(cr, side, role, ROLES[role].defaultLine, 'normal', false, team.tactic.favorites?.[cr.id]);
+      }
+      // Friends lift each other before the first blow; rivals sap the mood.
+      const starters = team.tactic.lineup.map((sl) => byCreature.get(sl.creatureId)!);
+      for (const cr of starters) {
+        const c = this.byId.get(cr.id);
+        if (c) c.morale = clamp(c.morale + relationMorale(cr, starters, cfg), 5, 100);
       }
     });
 
@@ -311,6 +318,11 @@ export class Combat {
       traits: cr.traits,
       abilities: getAbilities(cr).map((a) => a.id),
       favorites: [],
+      roleFactor: clamp(
+        1 + (roleFit({ ...cr, attributes: attrs }, role) - 10) * this.cfg.combat.roleFit.perPoint,
+        this.cfg.combat.roleFit.min,
+        this.cfg.combat.roleFit.max,
+      ),
       ability: cr.ability,
       injuryProneness: cr.hidden.injuryProneness,
       cooldowns: {},

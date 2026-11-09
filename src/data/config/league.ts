@@ -1,12 +1,33 @@
 /** League & season balancing (phase 2: one division, double round-robin). */
 export const LEAGUE_CONFIG = {
+  /** Stables per division. */
   teams: 10,
   /** Creatures per stable (5 starters + 3 bench + reserves to rotate). */
   squadSize: 12,
   /** Quality tier of the player's stable. */
-  playerQuality: 'professional' as const,
-  /** Quality tier of each AI stable (teams − 1 entries). A mix makes a readable table. */
-  aiQualities: ['elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'professional'] as const,
+  playerQuality: 'regional' as const,
+  /** Division the player starts in (0 = top division). */
+  playerDivision: 1,
+  /**
+   * Quality tier of each stable, per division (index 0 = D1). The player's stable takes the last slot
+   * of its division.
+   */
+  divisions: [
+    ['elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional', 'regional'],
+    ['professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'regional'],
+  ] as const,
+  /** Teams going up / down between two divisions each season. */
+  promoted: 2,
+  /** Money scale by division (tickets, sponsor, prizes). */
+  divisionMoney: [1.5, 1],
+  cup: {
+    /** Round r is played in the week after league matchday after[r]. */
+    after: [3, 7, 11, 14, 17],
+    /** Teams entering in round 2 directly (the strongest), the others play a preliminary round. */
+    byes: 12,
+    /** Prize for winning each round (the last one = the trophy). */
+    prize: [1500, 3000, 6000, 12000, 25000],
+  },
   /** Each pairing meets this many times (2 = home and away). */
   legs: 2,
   week: {

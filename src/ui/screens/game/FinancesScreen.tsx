@@ -14,7 +14,7 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 
 const INCOME: IncomeKind[] = ['tickets', 'sponsor', 'prizes', 'sales'];
-const EXPENSE: ExpenseKind[] = ['wages', 'upkeep', 'medical', 'scouting', 'purchases', 'compensation'];
+const EXPENSE: ExpenseKind[] = ['wages', 'staff', 'upkeep', 'medical', 'scouting', 'facilities', 'purchases', 'compensation'];
 
 function totals(entries: LedgerEntry[]) {
   const income: Partial<Record<IncomeKind, number>> = {};
@@ -203,7 +203,7 @@ export function FinancesScreen() {
   return (
     <div className="stack">
       <section className="panel">
-        <div className="fin-tiles">
+        <div className="fin-tiles" data-tip="finances">
           <div className="tile">
             <span className="muted">{t('fin.balance')}</span>
             <b className={club.balance < 0 ? 'bad-text' : ''}>{money(club.balance)}</b>

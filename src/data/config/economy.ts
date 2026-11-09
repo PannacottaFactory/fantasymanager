@@ -1,4 +1,4 @@
-/** Economy, contracts, transfers and scouting balancing (phase 3). Money is in crowns. */
+/** Economy, contracts, transfers and scouting balancing (phase 3). Money is in gold pieces. */
 export const ECONOMY_CONFIG = {
   value: {
     /** Value of a creature with current ability 100 (before age / potential / rarity factors). */

@@ -4,7 +4,7 @@ import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 import { answerOffer, bid, release, releaseCost, renew, sendScout, signFreeAgent } from '../src/engine/economy/actions.ts';
 import { askingPrice, locate } from '../src/engine/economy/market.ts';
 import { attributeRange, knowledgeOf, overallRange } from '../src/engine/economy/scouting.ts';
-import { migrateGame } from '../src/engine/economy/setup.ts';
+import { migrateGame } from '../src/engine/league/migrate.ts';
 import { askingWage, creatureValue } from '../src/engine/economy/value.ts';
 import { newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
 import type { GameState } from '../src/engine/league/types.ts';
@@ -43,7 +43,7 @@ describe('economy setup', () => {
     old.version = 1;
     for (const t of old.teams as GameState['teams']) for (const c of t.creatures) delete c.contract;
     const m = migrateGame(old)!;
-    expect(m.version).toBe(2);
+    expect(m.version).toBe(4);
     expect(Object.keys(m.clubs).length).toBe(m.teams.length);
     expect(m.teams.every((t) => t.creatures.every((c) => c.contract))).toBe(true);
     expect(() => playMatchday(m)).not.toThrow();

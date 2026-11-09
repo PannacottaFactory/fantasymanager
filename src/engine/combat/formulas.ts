@@ -131,7 +131,8 @@ export function hitChance(
   p += h.sizeMod[defender.size];
   p += ability.accuracyMod ?? 0;
   if (kind === 'spell') p += h.spellBonus;
-  if (ctx.flank) p -= h.flankPenalty;
+  // A skilled skirmisher loses less accuracy when reaching the back line.
+  if (ctx.flank) p -= h.flankPenalty * (2 - attacker.roleFactor);
   if (ctx.combo) p += attacker.attrs.teamwork * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
   p += effectMod(attacker, 'hitBonus') - effectMod(defender, 'dodgeBonus');
   if (ctx.orders.risk === 'high') p += cfg.combat.orders.riskHigh.hitBonus;
@@ -166,6 +167,14 @@ export interface DamageContext {
 }
 
 /** Damage before variance, crits and mitigation. */
+/** Role fit only boosts (or hampers) the role's own speciality. */
+export function roleDamageFactor(c: Combatant, kind: AttackKind): number {
+  if (c.role === 'striker' && kind === 'melee') return c.roleFactor;
+  if (c.role === 'caster' && kind === 'spell') return c.roleFactor;
+  if (c.role === 'skirmisher' && kind !== 'spell') return c.roleFactor;
+  return 1;
+}
+
 export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageContext, cfg: GameConfig): number {
   const d = cfg.combat.damage;
   const kind = attackKind(ability);
@@ -173,6 +182,7 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   if (kind !== 'spell') dmg *= 1 + attacker.attrs.aggression * d.aggressionPerPoint;
   dmg *= effectMod(attacker, 'damageMult');
   dmg *= traitMult(attacker, 'damageMult');
+  dmg *= roleDamageFactor(attacker, kind);
   dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
   if (attacker.stance === 'allOut') dmg *= 1.08;
   if (ctx.solo) dmg *= traitMult(attacker, 'soloDamageMult');
@@ -200,7 +210,8 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
 
 export function healAmount(healer: Combatant, ability: AbilityDef, cfg: GameConfig): number {
   const h = cfg.combat.heal;
-  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg);
+  const role = healer.role === 'support' ? healer.roleFactor : 1;
+  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg) * role;
 }
 
 export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {
@@ -220,7 +231,8 @@ export function interceptChance(guard: Combatant, cfg: GameConfig): number {
   const g = cfg.combat.guard;
   const base = guard.guarding ? g.activeBase : g.passiveBase;
   const p = base + guard.attrs.anticipation * g.perAnticipation + guard.attrs.teamwork * g.perTeamwork + traitSum(guard, 'interceptBonus');
-  return clamp(p * (1 - fatiguePenalty(guard, cfg)), 0, g.max);
+  const role = guard.role === 'tank' ? guard.roleFactor : 1;
+  return clamp(p * role * (1 - fatiguePenalty(guard, cfg)), 0, g.max);
 }
 
 /** Chance to ignore the manager's orders this turn. */

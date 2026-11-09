@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { lastMatchday, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
+import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
+import { lastMatchday, playerDivision, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import type { Fixture, GameState } from '../../../engine/league/types.ts';
+import { Seg } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 
 const FORM_KEY: Record<string, StringKey> = { W: 'form.W', w: 'form.w', l: 'form.l', L: 'form.L' };
+
+/** Name of a cup round, counted from the final. */
+export function cupRoundKey(round: number, rounds: number): StringKey {
+  const fromFinal = rounds - 1 - round;
+  return (['cup.final', 'cup.semi', 'cup.quarter', 'cup.r16'] as const)[fromFinal] ?? 'cup.prelim';
+}
 
 function FormDots({ form }: { form: string[] }) {
   const { t } = useT();
@@ -18,13 +26,17 @@ function FormDots({ form }: { form: string[] }) {
   );
 }
 
-function Standings({ game }: { game: GameState }) {
+function Standings({ game, division }: { game: GameState; division: number }) {
   const { t } = useT();
-  const rows = standings(game);
+  const rows = standings(game, division);
   const n = rows.length;
+  const promoted = DEFAULT_CONFIG.league.promoted;
+  const last = game.divisions.length - 1;
   return (
     <section className="panel">
-      <h2 style={{ marginBottom: 8 }}>{t('league.standings')}</h2>
+      <h2 style={{ marginBottom: 8 }}>
+        {t('league.standings')} — {t('league.division', { n: division + 1 })}
+      </h2>
       <div className="table-wrap">
         <table className="data standings">
           <thead>
@@ -57,7 +69,9 @@ function Standings({ game }: { game: GameState }) {
           <tbody>
             {rows.map((r, i) => {
               const diff = r.scoreFor - r.scoreAgainst;
-              const zone = i === 0 ? 'top' : i === n - 1 ? 'bottom' : '';
+              const up = division > 0 && i < promoted;
+              const down = division < last && i >= n - promoted;
+              const zone = up || (division === 0 && i === 0) ? 'top' : down ? 'bottom' : '';
               return (
                 <tr key={r.teamId} className={`${r.teamId === game.playerTeamId ? 'mine' : ''} ${zone}`}>
                   <td className="num">{i + 1}</td>
@@ -82,7 +96,7 @@ function Standings({ game }: { game: GameState }) {
         </table>
       </div>
       <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>
-        {t('league.legend')}
+        {t('league.legend')} {t('league.zones')}
       </div>
     </section>
   );
@@ -113,12 +127,12 @@ function FixtureRow({ game, f }: { game: GameState; f: Fixture }) {
   );
 }
 
-function Fixtures({ game }: { game: GameState }) {
+function Fixtures({ game, division }: { game: GameState; division: number }) {
   const { t } = useT();
   const last = lastMatchday(game);
   const current = seasonOver(game) ? last : Math.max(1, game.matchday - 1 || 1);
   const [day, setDay] = useState(current);
-  const list = game.fixtures.filter((f) => f.matchday === day);
+  const list = game.fixtures.filter((f) => f.competition !== 'cup' && (f.division ?? 0) === division && f.matchday === day);
   return (
     <section className="panel">
       <div className="panel-head">
@@ -149,12 +163,70 @@ function Fixtures({ game }: { game: GameState }) {
   );
 }
 
-export function LeagueScreen() {
-  const game = useGame((s) => s.game)!;
+function Cup({ game }: { game: GameState }) {
+  const tr = useT();
+  const { t, money } = tr;
+  const c = DEFAULT_CONFIG.league.cup;
+  const rounds = game.cup.rounds || c.after.length;
   return (
-    <div className="league-grid">
-      <Standings game={game} />
-      <Fixtures game={game} />
+    <section className="panel" style={{ gridColumn: '1 / -1' }}>
+      <div className="panel-head">
+        <h2>🏆 {t('cup.title')}</h2>
+        <span className="spacer" />
+        {game.cup.winner && <b className="good-text">{t('cup.winner', { team: teamById(game, game.cup.winner).name })}</b>}
+      </div>
+      <p className="muted" style={{ marginTop: 0 }}>
+        {t('cup.intro', { days: c.after.join(', '), byes: c.byes })}
+      </p>
+      <div className="cup-rounds">
+        {Array.from({ length: rounds }, (_, r) => {
+          const ties = game.fixtures.filter((f) => f.competition === 'cup' && f.round === r);
+          return (
+            <div key={r} className={`cup-round ${r === game.cup.round ? 'current' : ''}`}>
+              <h4>{t(cupRoundKey(r, rounds))}</h4>
+              <div className="faint" style={{ fontSize: 12, marginBottom: 6 }}>
+                {t('cup.after', { d: c.after[r] ?? '?' })} · {t('cup.prize', { prize: money(c.prize[r] ?? 0) })}
+              </div>
+              {ties.length === 0 && <div className="faint">{t('cup.notDrawn')}</div>}
+              <table className="data fixtures">
+                <tbody>
+                  {ties.map((f) => (
+                    <FixtureRow key={f.id} game={game} f={f} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+export function LeagueScreen() {
+  const { t } = useT();
+  const game = useGame((s) => s.game)!;
+  const [tab, setTab] = useState<string>(String(playerDivision(game)));
+  return (
+    <div className="stack">
+      <div data-tip="league-tabs" style={{ alignSelf: 'start' }}>
+      <Seg
+        value={tab}
+        onChange={setTab}
+        options={[
+          ...game.divisions.map((_, d) => ({ value: String(d), label: t('league.division', { n: d + 1 }) })),
+          { value: 'cup', label: `🏆 ${t('league.tab.cup')}` },
+        ]}
+      />
+      </div>
+      {tab === 'cup' ? (
+        <Cup game={game} />
+      ) : (
+        <div className="league-grid">
+          <Standings game={game} division={Number(tab)} />
+          <Fixtures key={tab} game={game} division={Number(tab)} />
+        </div>
+      )}
     </div>
   );
 }

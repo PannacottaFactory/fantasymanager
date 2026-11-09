@@ -1,9 +1,11 @@
+import { CLUB_CONFIG } from './club.ts';
 import { COMBAT_CONFIG } from './combat.ts';
 import { ECONOMY_CONFIG } from './economy.ts';
 import { ELEMENT_CONFIG } from './elements.ts';
 import { GENERATION_CONFIG } from './generation.ts';
 import { LEAGUE_CONFIG } from './league.ts';
 import { MATCH_CONFIG } from './match.ts';
+import { TRAINING_CONFIG } from './training.ts';
 import { REPORT_CONFIG } from './report.ts';
 
 /**
@@ -18,6 +20,8 @@ export const DEFAULT_CONFIG = {
   report: REPORT_CONFIG,
   league: LEAGUE_CONFIG,
   economy: ECONOMY_CONFIG,
+  training: TRAINING_CONFIG,
+  club: CLUB_CONFIG,
 };
 
 export type GameConfig = typeof DEFAULT_CONFIG;

@@ -36,13 +36,18 @@ describe('season', () => {
 
   it('creates a league with the configured size and a welcome message', () => {
     const g = start();
-    expect(g.teams.length).toBe(DEFAULT_CONFIG.league.teams);
+    const divisions = DEFAULT_CONFIG.league.divisions.length;
+    expect(g.teams.length).toBe(DEFAULT_CONFIG.league.teams * divisions);
+    expect(g.divisions.length).toBe(divisions);
+    for (const d of g.divisions) expect(d.length).toBe(DEFAULT_CONFIG.league.teams);
+    // The player starts in the configured division.
+    expect(g.divisions[DEFAULT_CONFIG.league.playerDivision]).toContain(g.playerTeamId);
     for (const t of g.teams) {
       expect(t.creatures.length).toBe(DEFAULT_CONFIG.league.squadSize);
       expect(validateTactic(t)).toEqual([]);
     }
     expect(new Set(g.teams.map((t) => t.name)).size).toBe(g.teams.length);
-    expect(g.teams[0]!.name).toBe('Test Stable');
+    expect(g.teams.find((t) => t.id === g.playerTeamId)!.name).toBe('Test Stable');
     expect(g.inbox[0]!.kind).toBe('welcome');
     expect(lastMatchday(g)).toBe(18);
     expect(playerFixture(g)).toBeDefined();
@@ -59,14 +64,20 @@ describe('season', () => {
     expect(JSON.stringify(a.fixtures)).toBe(JSON.stringify(b.fixtures));
     expect(start()).toEqual(first);
     expect(a.fixtures.every((f) => f.result)).toBe(true);
-    const table = standings(a);
-    expect(table.length).toBe(10);
-    for (const r of table) expect(r.played).toBe(18);
-    // Points: each match hands out 3+0 (KO) or 2+1 (points).
-    const totalPoints = table.reduce((s, r) => s + r.points, 0);
-    expect(totalPoints).toBe(90 * 3);
+    for (let d = 0; d < a.divisions.length; d++) {
+      const table = standings(a, d);
+      expect(table.length).toBe(10);
+      for (const r of table) expect(r.played).toBe(18);
+      // Points: each match hands out 3+0 (KO) or 2+1 (points); cup ties never count.
+      const totalPoints = table.reduce((s, r) => s + r.points, 0);
+      expect(totalPoints).toBe(90 * 3);
+    }
     expect(a.inbox.some((m) => m.kind === 'seasonEnd')).toBe(true);
-    expect(a.inbox.filter((m) => m.kind === 'matchResult').length).toBe(18);
+    const cupTies = a.fixtures.filter((f) => f.competition === 'cup' && (f.home === a.playerTeamId || f.away === a.playerTeamId)).length;
+    expect(a.inbox.filter((m) => m.kind === 'matchResult').length).toBe(18 + cupTies);
+    // The cup is played to the end and has a winner.
+    expect(a.cup.round).toBe(a.cup.rounds);
+    expect(a.cup.winner).toBeDefined();
     // Fatigue and morale stay in range.
     for (const t of a.teams)
       for (const c of t.creatures) {
@@ -80,7 +91,11 @@ describe('season', () => {
     expect(s2.season).toBe(2);
     expect(s2.matchday).toBe(1);
     expect(s2.fixtures.every((f) => !f.result)).toBe(true);
-  });
+    // Promotion & relegation: two teams swapped between the divisions.
+    const n = DEFAULT_CONFIG.league.promoted;
+    const d1Before = new Set(a.divisions[0]);
+    expect(s2.divisions[0]!.filter((id) => !d1Before.has(id)).length).toBe(n);
+  }, 30000);
 
   it('a live player match is recorded with the player as side 0', () => {
     const g = start();

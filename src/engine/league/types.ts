@@ -1,5 +1,8 @@
 /** Season state. Plain serializable data: this is what a save file contains. */
 import type { Lang } from '../../core/i18n.ts';
+import type { AttributeCategory } from '../../data/attributes.ts';
+import type { IntensityId, ProgramId } from '../../data/config/training.ts';
+import type { FacilityId } from '../../data/config/club.ts';
 import type { MatchMethod, MatchResult, Side } from '../combat/types.ts';
 import type { Creature, Team } from '../model.ts';
 
@@ -17,11 +20,17 @@ export interface FixtureResult {
 
 export interface Fixture {
   id: string;
-  /** 1-based. */
+  /** 1-based. Cup ties carry the league matchday they follow. */
   matchday: number;
   home: string;
   away: string;
   result?: FixtureResult;
+  /** League fixtures: division index (0 = D1). */
+  division?: number;
+  /** Cup ties only. */
+  competition?: 'cup';
+  /** Cup round (0-based). */
+  round?: number;
 }
 
 export interface StandingRow {
@@ -62,6 +71,24 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'financeWarning'; balance: number }
   | { kind: 'marketNews'; moves: TransferMove[] }
   | { kind: 'emergencySigning'; names: string[] }
+  // ——— Phase 4: training & life cycle ———
+  | { kind: 'youthIntake'; names: string[] }
+  | { kind: 'youthReleased'; names: string[] }
+  | { kind: 'retired'; names: string[] }
+  | { kind: 'trainingReport'; items: { creatureId: string; name: string; gain: number }[] }
+  | { kind: 'coachHired'; name: string; domain: AttributeCategory; quality: number }
+  // ——— Phase 5: divisions, cup, club ———
+  | { kind: 'cupDraw'; round: number; opponent: string; home: boolean }
+  | { kind: 'cupOut'; round: number; by: string }
+  | { kind: 'cupWon'; prize: number }
+  | { kind: 'promoted'; division: number }
+  | { kind: 'relegated'; division: number }
+  | { kind: 'boardObjective'; objective: ObjectiveId; division: number }
+  | { kind: 'boardVerdict'; objective: ObjectiveId; met: boolean; position: number; bonus: number; confidence: number }
+  | { kind: 'boardWarning'; confidence: number }
+  | { kind: 'facilityDone'; facility: FacilityId; level: number }
+  | { kind: 'friendLeft'; name: string; friends: string[] }
+  | { kind: 'relation'; a: string; b: string; bond: 'friends' | 'rivals' }
 );
 
 /** A transfer between two stables (null = free agent pool). */
@@ -74,7 +101,7 @@ export interface TransferMove {
 }
 
 export type IncomeKind = 'tickets' | 'sponsor' | 'prizes' | 'sales';
-export type ExpenseKind = 'wages' | 'upkeep' | 'medical' | 'scouting' | 'purchases' | 'compensation';
+export type ExpenseKind = 'wages' | 'staff' | 'upkeep' | 'medical' | 'scouting' | 'facilities' | 'purchases' | 'compensation';
 
 /** Money in and out during one matchday week. */
 export interface LedgerEntry {
@@ -134,8 +161,63 @@ export interface StoredMatch {
   result: MatchResult;
 }
 
+export interface TrainingPlan {
+  program: ProgramId;
+  intensity: IntensityId;
+}
+
+export interface Coach {
+  id: string;
+  name: string;
+  domain: AttributeCategory;
+  /** 1–20. */
+  quality: number;
+  /** Gold per week. */
+  wage: number;
+}
+
+export type ObjectiveId = 'title' | 'promotion' | 'topHalf' | 'midTable' | 'survive';
+
+export interface BoardState {
+  objective: ObjectiveId;
+  /** 0–100. */
+  confidence: number;
+}
+
+export interface CupState {
+  /** Next round to play (0-based); equals the number of rounds once the cup is over. */
+  round: number;
+  rounds: number;
+  /** Teams still in the cup. */
+  alive: string[];
+  winner?: string;
+}
+
+export interface FacilityState {
+  level: number;
+  /** Level being built and weeks left (null when idle). */
+  building: { level: number; weeksLeft: number } | null;
+}
+
+export type Facilities = Record<FacilityId, FacilityState>;
+
+/** League news, stored as data and worded by the UI. */
+export type NewsItem = { id: string; season: number; matchday: number } & (
+  | { kind: 'upset'; winner: string; loser: string; cup: boolean }
+  | { kind: 'quickKo'; winner: string; loser: string; rounds: number }
+  | { kind: 'streak'; team: string; wins: number }
+  | { kind: 'leader'; team: string; division: number }
+  | { kind: 'bigTransfer'; name: string; from: string | null; to: string; fee: number }
+  | { kind: 'starInjury'; name: string; team: string; weeks: number }
+  | { kind: 'cupWinner'; team: string }
+  | { kind: 'champion'; team: string; division: number }
+  | { kind: 'promotion'; teams: string[]; division: number }
+  | { kind: 'relegation'; teams: string[]; division: number }
+  | { kind: 'retirement'; name: string; team: string }
+);
+
 export interface GameState {
-  version: 2;
+  version: 4;
   worldSeed: string;
   /** Language of names generated during the game (free agents). */
   lang: Lang;
@@ -162,4 +244,20 @@ export interface GameState {
   forSale: string[];
   /** Counter for offer / mission ids. */
   nextId: number;
+  // ——— Phase 4 ———
+  /** Player's training plans (missing = balanced, normal). */
+  training: Record<string, TrainingPlan>;
+  /** Coaches of each stable, one per domain at most. */
+  staff: Record<string, Partial<Record<AttributeCategory, Coach>>>;
+  /** Coaches looking for a stable. */
+  coachMarket: Coach[];
+  /** This off-season's young creatures awaiting the player's decision. */
+  youth: Creature[];
+  // ——— Phase 5 ———
+  /** Team ids per division (index 0 = D1). */
+  divisions: string[][];
+  cup: CupState;
+  board: BoardState;
+  facilities: Record<string, Facilities>;
+  news: NewsItem[];
 }

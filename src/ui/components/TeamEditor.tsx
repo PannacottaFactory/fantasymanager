@@ -271,7 +271,9 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     <section className={`panel ${className ?? ''}`}>
       {header && <div className="panel-head">{header}</div>}
       <div className="row wrap" style={{ marginBottom: 10, gap: 14 }}>
-        <OrdersFields team={team} onChange={onChange} />
+        <span data-tip={league ? 'orders' : undefined} className="row wrap" style={{ gap: 14, alignItems: 'flex-end' }}>
+          <OrdersFields team={team} onChange={onChange} />
+        </span>
         <span className="muted" style={{ fontSize: 12, alignSelf: 'end' }}>
           {t('tactics.count', { s: team.tactic.lineup.length, smax: m.starters, b: team.tactic.bench.length, bmax: m.benchSize })}
         </span>
@@ -281,6 +283,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
           </span>
         )}
       </div>
+      <div data-tip={league ? 'lineup' : undefined}>
       <SortableTable
         rows={team.creatures}
         columns={columns}
@@ -293,6 +296,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
           return `${st === 2 ? 'dim' : ''} ${st !== prev ? 'sep' : ''} ${injured ? 'warn-row' : ''}`;
         }}
       />
+      </div>
       {open && (
         <CreatureModal
           creature={open}
