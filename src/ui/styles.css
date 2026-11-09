@@ -146,7 +146,7 @@ label.field { display: flex; flex-direction: column; gap: 2px; font-size: 12px; 
 .nav button.on { color: var(--text); border-bottom-color: var(--accent); }
 .nav button:disabled { color: var(--faint); cursor: default; }
 .main { overflow: auto; padding: 16px; }
-.main > * { max-width: 1500px; margin: 0 auto; }
+.main > * { max-width: 2400px; margin: 0 auto; }
 
 /* ——— Panels ——— */
 .panel {
@@ -346,7 +346,7 @@ table.data tr.sep td { border-top: 2px solid var(--border-strong); }
   background: var(--accent); color: var(--accent-text); font-size: 10px; font-weight: 700; text-align: center;
 }
 .save-error { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 30; background: color-mix(in srgb, var(--bad) 35%, var(--panel)); border: 1px solid var(--bad); border-radius: var(--radius); color: var(--text); padding: 8px 16px; font-size: 13px; box-shadow: var(--shadow); }
-.narrow { max-width: 900px !important; }
+.narrow { max-width: 1200px !important; }
 .start { display: grid; place-items: start center; padding-top: 4vh; }
 .start-card { width: min(760px, 100%); padding: 22px; }
 .start-card h2 { font-size: 1.5rem; color: var(--accent); margin-bottom: 6px; }
