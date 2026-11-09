@@ -1,3 +1,4 @@
+/* global URL, console */
 /**
  * Extracts the few game-icons.net icons the game uses into src/ui/icons/gameIcons.ts, so the bundle does not
  * ship the whole 4,000-icon set. Run after changing the lists below:  node scripts/extract-icons.mjs
