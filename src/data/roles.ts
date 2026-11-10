@@ -4,7 +4,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
   tank: {
     id: 'tank',
     name: 'Tank',
-    description: 'Holds the front line and intercepts blows aimed at allies. +6 % armour (more with a good fit), −10 % damage.',
+    description: 'Holds the front line and intercepts blows aimed at allies. +3 % armour (more with a good fit), −12 % damage.',
     defaultLine: 'front',
     fit: { toughness: 3, defense: 2.5, stamina: 1.5, courage: 1.5, anticipation: 1, teamwork: 1, strength: 1 },
     ai: { damage: 0.8, heal: 0, buff: 1, debuff: 0.8, guard: 1.6, backlineHunter: 0 },

@@ -196,6 +196,8 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   per-stable style focus (eclectic → purist), coloured inbox by category with filters, prices recalibrated.
   `sim:levers` now: wrong roles −5, all back line −7, no break management −18, tired squad −21, targeting the
   back line vs brutes +12; aggression/cautious are neutral on average (situational). 101 tests.
+  Then: tanks toned down (role armour +3 %, −12 % damage; guard interception max 60 %; stone body 5 %; frost giant
+  stats), "Build" column renamed "Preference", Approach orders explained in a tooltip.
   Next: encyclopedia; post-match analysis; more situational value for orders.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 

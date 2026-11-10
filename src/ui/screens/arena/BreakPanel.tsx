@@ -143,7 +143,7 @@ export function BreakPanel({ combat, onResume }: Props) {
 
         <div className="row wrap" style={{ gap: 14 }}>
           <label className="field">
-            {t('orders.approach')}
+            <span title={t('orders.approach.title')}>{t('orders.approach')} ⓘ</span>
             <select value={orders.aggression} onChange={(e) => setOrders({ ...orders, aggression: e.target.value as Aggression })}>
               <option value="cautious">{t('orders.cautious')}</option>
               <option value="balanced">{t('orders.balanced')}</option>

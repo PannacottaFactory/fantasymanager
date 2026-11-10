@@ -43,7 +43,7 @@ export function OrdersFields({ team, onChange }: { team: Team; onChange: (t: Tea
   return (
     <>
       <label className="field">
-        {t('orders.approach')}
+        <span title={t('orders.approach.title')}>{t('orders.approach')} ⓘ</span>
         <select value={o.aggression} onChange={(e) => onChange(setOrders(team, { aggression: e.target.value as Aggression }))}>
           <option value="cautious">{t('orders.cautious')}</option>
           <option value="balanced">{t('orders.balanced')}</option>

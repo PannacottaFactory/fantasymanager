@@ -35,7 +35,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'tank'],
     abilities: [{ id: 'axe-swing' }, { id: 'cleave', minAbility: 60 }, { id: 'war-cry', minAbility: 110 }],
     nameCulture: 'orc', traitWeights: { hothead: 2, berserker: 2, stubborn: 1.5, 'pack-leader': 1.5 },
-    upkeep: 30, rarity: 9, valueMult: 0.92,
+    upkeep: 30, rarity: 9, valueMult: 0.9,
   },
   {
     id: 'troll', name: 'Troll', plural: 'Trolls', size: 'large', elements: ['earth', 'water'],
@@ -52,7 +52,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'club-smash' }, { id: 'crushing-blow', minAbility: 70 }],
     passives: ['trollblood'],
     nameCulture: 'troll', traitWeights: { lazy: 3, berserker: 1.5, 'iron-hide': 1.5 },
-    upkeep: 55, rarity: 6, valueMult: 1.23,
+    upkeep: 55, rarity: 6, valueMult: 1.21,
   },
   {
     id: 'elf', name: 'Wood Elf', plural: 'Wood Elves', size: 'medium', elements: ['nature', 'light'],
@@ -68,7 +68,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support', 'skirmisher'],
     abilities: [{ id: 'longbow' }, { id: 'moonbeam', minAbility: 40 }, { id: 'healing-song', minAbility: 70 }, { id: 'aimed-shot', minAbility: 100 }],
     nameCulture: 'elf', traitWeights: { professional: 2, 'cool-headed': 2, ambitious: 1.5, loner: 1.5 },
-    upkeep: 35, rarity: 6, valueMult: 0.9,
+    upkeep: 35, rarity: 6, valueMult: 1.01,
   },
   {
     id: 'golem', name: 'Stone Golem', plural: 'Stone Golems', size: 'large', elements: ['earth'],
@@ -85,7 +85,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'stone-fist' }, { id: 'stone-skin', minAbility: 50 }, { id: 'seismic-slam', minAbility: 100 }],
     passives: ['stoneform'],
     nameCulture: 'golem', traitWeights: { guardian: 3, professional: 2, coward: 0.1, hothead: 0.2, showboat: 0.1 },
-    upkeep: 20, rarity: 5, valueMult: 1.48,
+    upkeep: 20, rarity: 5, valueMult: 1.46,
   },
   {
     id: 'wyvern', name: 'Wyvern', plural: 'Wyverns', size: 'large', elements: ['air'], flying: true,
@@ -101,7 +101,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'talons' }, { id: 'venom-sting', minAbility: 40 }, { id: 'dive', minAbility: 80 }],
     nameCulture: 'beast', traitWeights: { bloodthirsty: 2, loner: 2, hothead: 1.5 },
-    upkeep: 60, rarity: 5, valueMult: 1.02,
+    upkeep: 60, rarity: 5, valueMult: 0.99,
   },
   {
     id: 'dragon', name: 'Dragon', plural: 'Dragons', size: 'huge', elements: ['fire'], flying: true,
@@ -133,7 +133,7 @@ const list: SpeciesDef[] = [
     roles: ['striker'],
     abilities: [{ id: 'horn-gore' }, { id: 'bull-charge', minAbility: 60 }, { id: 'rampage', minAbility: 110 }],
     nameCulture: 'minotaur', traitWeights: { berserker: 2.5, hothead: 2.5, stubborn: 1.5 },
-    upkeep: 50, rarity: 5, valueMult: 1.29,
+    upkeep: 50, rarity: 5, valueMult: 1.31,
   },
   {
     id: 'harpy', name: 'Harpy', plural: 'Harpies', size: 'medium', elements: ['air'], flying: true,
@@ -149,7 +149,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher'],
     abilities: [{ id: 'rake' }, { id: 'screech', minAbility: 60 }],
     nameCulture: 'beast', traitWeights: { showboat: 2, 'glory-hunter': 1.5, coward: 1.5 },
-    upkeep: 25, rarity: 7, valueMult: 0.62,
+    upkeep: 25, rarity: 7, valueMult: 0.61,
   },
   {
     id: 'shade', name: 'Shade', plural: 'Shades', size: 'medium', elements: ['shadow'],
@@ -166,7 +166,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'chill-touch' }, { id: 'shadow-bolt' }, { id: 'dread', minAbility: 60 }, { id: 'life-drain', minAbility: 90 }],
     passives: ['incorporeal'],
     nameCulture: 'shade', traitWeights: { loner: 2, cunning: 2, vengeful: 2, 'team-player': 0.5 },
-    upkeep: 20, rarity: 4, valueMult: 1.02,
+    upkeep: 20, rarity: 4, valueMult: 1.0,
   },
   {
     id: 'treant', name: 'Treant', plural: 'Treants', size: 'huge', elements: ['nature'],
@@ -182,7 +182,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'support'],
     abilities: [{ id: 'branch-slam' }, { id: 'entangle', minAbility: 40 }, { id: 'barkskin', minAbility: 70 }, { id: 'sap-mend', minAbility: 100 }],
     nameCulture: 'treant', traitWeights: { 'team-player': 2, guardian: 2, 'pack-leader': 2, lazy: 1.5, hothead: 0.2 },
-    upkeep: 40, rarity: 3, valueMult: 1.19,
+    upkeep: 40, rarity: 3, valueMult: 1.21,
   },
   {
     id: 'naga', name: 'Naga', plural: 'Nagas', size: 'medium', elements: ['water'],
@@ -198,7 +198,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support', 'striker'],
     abilities: [{ id: 'trident' }, { id: 'tidal-lash' }, { id: 'constrict', minAbility: 70 }, { id: 'healing-waters', minAbility: 100 }],
     nameCulture: 'naga', traitWeights: { cunning: 2, ambitious: 1.5 },
-    upkeep: 35, rarity: 5, valueMult: 1.04,
+    upkeep: 35, rarity: 5, valueMult: 0.98,
   },
   {
     id: 'griffin', name: 'Griffin', plural: 'Griffins', size: 'large', elements: ['air', 'light'], flying: true,
@@ -214,7 +214,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'beak-and-claw' }, { id: 'radiant-dive', minAbility: 70 }, { id: 'sky-cry', minAbility: 120 }],
     nameCulture: 'beast', traitWeights: { loyal: 3, fearless: 2, 'pack-leader': 1.5, coward: 0.2 },
-    upkeep: 55, rarity: 3, valueMult: 1.18,
+    upkeep: 55, rarity: 3, valueMult: 1.23,
   },
   {
     id: 'lich', name: 'Lich', plural: 'Liches', size: 'medium', elements: ['shadow'],
@@ -230,7 +230,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support'],
     abilities: [{ id: 'necrotic-bolt' }, { id: 'withering-curse', minAbility: 40 }, { id: 'soul-harvest', minAbility: 90 }, { id: 'bone-ward', minAbility: 120 }],
     nameCulture: 'lich', traitWeights: { loner: 2, cunning: 2, ambitious: 1.5, 'team-player': 0.4 },
-    upkeep: 30, rarity: 2, valueMult: 1.18,
+    upkeep: 30, rarity: 2, valueMult: 1.13,
   },
   {
     id: 'kraken', name: 'Kraken', plural: 'Krakens', size: 'huge', elements: ['water'],
@@ -246,7 +246,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'striker'],
     abilities: [{ id: 'tentacle-lash' }, { id: 'crushing-grip', minAbility: 50 }, { id: 'ink-cloud', minAbility: 80 }, { id: 'maelstrom', minAbility: 120 }],
     nameCulture: 'deep', traitWeights: { loner: 2, bloodthirsty: 1.5, stubborn: 1.5 },
-    upkeep: 90, rarity: 2, valueMult: 1.35,
+    upkeep: 90, rarity: 2, valueMult: 1.48,
   },
   {
     id: 'phoenix', name: 'Phoenix', plural: 'Phoenixes', size: 'large', elements: ['fire', 'light'], flying: true,
@@ -263,7 +263,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'ember-talons' }, { id: 'flame-burst', minAbility: 40 }, { id: 'rebirth-flame', minAbility: 90 }, { id: 'solar-flare', minAbility: 130 }],
     passives: ['rekindling'],
     nameCulture: 'phoenix', traitWeights: { loyal: 2, fearless: 2, 'pack-leader': 1.5, coward: 0.1 },
-    upkeep: 120, rarity: 1, valueMult: 1.14,
+    upkeep: 120, rarity: 1, valueMult: 1.08,
   },
   {
     id: 'dryad', name: 'Dryad', plural: 'Dryads', size: 'medium', elements: ['nature'],
@@ -279,7 +279,7 @@ const list: SpeciesDef[] = [
     roles: ['support', 'caster'],
     abilities: [{ id: 'thorn-whip' }, { id: 'bloom', minAbility: 30 }, { id: 'pollen-cloud', minAbility: 70 }, { id: 'oak-blessing', minAbility: 110 }],
     nameCulture: 'elf', traitWeights: { 'team-player': 2.5, loyal: 2, coward: 1.3, bloodthirsty: 0.2 },
-    upkeep: 20, rarity: 6, valueMult: 0.62,
+    upkeep: 20, rarity: 6, valueMult: 0.61,
   },
   {
     id: 'basilisk', name: 'Basilisk', plural: 'Basilisks', size: 'large', elements: ['earth'],
@@ -295,7 +295,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'tank'],
     abilities: [{ id: 'venom-fang' }, { id: 'tail-crush', minAbility: 40 }, { id: 'stone-gaze', minAbility: 100 }],
     nameCulture: 'naga', traitWeights: { loner: 2, bloodthirsty: 1.5, vengeful: 1.5 },
-    upkeep: 45, rarity: 4, valueMult: 1.11,
+    upkeep: 45, rarity: 4, valueMult: 1.14,
   },
   {
     id: 'djinn', name: 'Djinn', plural: 'Djinns', size: 'medium', elements: ['air', 'fire'], flying: true,
@@ -311,7 +311,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'skirmisher'],
     abilities: [{ id: 'wind-blade' }, { id: 'mirage', minAbility: 40 }, { id: 'whirlwind', minAbility: 80 }, { id: 'granted-wish', minAbility: 120 }],
     nameCulture: 'djinn', traitWeights: { ambitious: 2.5, showboat: 2, cunning: 1.5, loyal: 0.4 },
-    upkeep: 40, rarity: 3, valueMult: 1.07,
+    upkeep: 40, rarity: 3, valueMult: 1.04,
   },
   {
     id: 'centaur', name: 'Centaur', plural: 'Centaurs', size: 'large', elements: ['earth'],
@@ -327,7 +327,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'recurve-bow' }, { id: 'hoof-strike' }, { id: 'lance-charge', minAbility: 60 }, { id: 'trample', minAbility: 100 }],
     nameCulture: 'centaur', traitWeights: { 'pack-leader': 2, 'glory-hunter': 1.5, stubborn: 1.5 },
-    upkeep: 45, rarity: 5, valueMult: 1.07,
+    upkeep: 45, rarity: 5, valueMult: 1.1,
   },
   {
     id: 'wendigo', name: 'Wendigo', plural: 'Wendigos', size: 'large', elements: ['shadow', 'water'],
@@ -343,7 +343,7 @@ const list: SpeciesDef[] = [
     roles: ['striker'],
     abilities: [{ id: 'frost-claws' }, { id: 'ravenous-bite', minAbility: 50 }, { id: 'chilling-howl', minAbility: 90 }],
     nameCulture: 'beast', traitWeights: { bloodthirsty: 3, berserker: 2, hothead: 2, 'team-player': 0.2 },
-    upkeep: 35, rarity: 4, valueMult: 1.12,
+    upkeep: 35, rarity: 4, valueMult: 1.19,
   },
   {
     id: 'crystal-golem', name: 'Crystal Golem', plural: 'Crystal Golems', size: 'large', elements: ['light', 'earth'],
@@ -360,7 +360,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'crystal-fist' }, { id: 'prism-beam', minAbility: 50 }, { id: 'refraction', minAbility: 90 }],
     passives: ['stoneform'],
     nameCulture: 'golem', traitWeights: { guardian: 2, professional: 2, 'team-player': 1.5, hothead: 0.1 },
-    upkeep: 25, rarity: 3, valueMult: 1.14,
+    upkeep: 25, rarity: 3, valueMult: 1.16,
   },
   {
     id: 'salamander', name: 'Salamander', plural: 'Salamanders', size: 'small', elements: ['fire'],
@@ -392,7 +392,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'spider-bite' }, { id: 'web', minAbility: 40 }, { id: 'venom-pounce', minAbility: 90 }],
     nameCulture: 'vermin', traitWeights: { loner: 2, cunning: 1.5, coward: 1.2 },
-    upkeep: 18, rarity: 6, valueMult: 0.88,
+    upkeep: 18, rarity: 6, valueMult: 0.85,
   },
   {
     id: 'giant-scorpion', name: 'Giant Scorpion', plural: 'Giant Scorpions', size: 'large', elements: ['earth', 'nature'],
@@ -408,7 +408,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'striker'],
     abilities: [{ id: 'pincer' }, { id: 'scorpion-sting', minAbility: 50 }, { id: 'carapace', minAbility: 80 }],
     nameCulture: 'vermin', traitWeights: { stubborn: 1.5, loner: 1.5, 'iron-hide': 1.5 },
-    upkeep: 30, rarity: 5, valueMult: 1.2,
+    upkeep: 30, rarity: 5, valueMult: 1.25,
   },
   {
     id: 'myconid', name: 'Myconid', plural: 'Myconids', size: 'medium', elements: ['nature', 'earth'],
@@ -424,7 +424,7 @@ const list: SpeciesDef[] = [
     roles: ['support', 'tank'],
     abilities: [{ id: 'fungal-slam' }, { id: 'toxic-spores', minAbility: 30 }, { id: 'mycelial-mend', minAbility: 80 }],
     nameCulture: 'treant', traitWeights: { 'team-player': 2.5, loyal: 1.5, hothead: 0.2 },
-    upkeep: 15, rarity: 6, valueMult: 0.65,
+    upkeep: 15, rarity: 6, valueMult: 0.62,
   },
   {
     id: 'winter-wolf', name: 'Winter Wolf', plural: 'Winter Wolves', size: 'medium', elements: ['water'],
@@ -446,7 +446,7 @@ const list: SpeciesDef[] = [
     id: 'frost-giant', name: 'Frost Giant', plural: 'Frost Giants', size: 'huge', elements: ['water', 'earth'],
     description: 'A giant from the glaciers. Slow and colossal: its ice club and avalanches freeze whole front lines.',
     attributes: {
-      strength: [12, 20], stamina: [9, 17], speed: [3, 10], agility: [2, 8], toughness: [10, 19], recovery: [4, 11],
+      strength: [11, 19], stamina: [9, 17], speed: [3, 10], agility: [2, 8], toughness: [9, 17], recovery: [4, 11],
       attack: [7, 16], accuracy: [3, 10], defense: [6, 15], magic: [2, 9], focus: [4, 12], technique: [3, 11],
       courage: [10, 19], composure: [7, 16], aggression: [8, 17], tactics: [3, 11], discipline: [5, 14],
       anticipation: [3, 11], determination: [7, 16], teamwork: [3, 11], leadership: [5, 14],
@@ -456,7 +456,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'striker'],
     abilities: [{ id: 'glacial-club' }, { id: 'avalanche', minAbility: 70 }, { id: 'ice-armor', minAbility: 110 }],
     nameCulture: 'giant', traitWeights: { stubborn: 2, guardian: 1.5, hothead: 1.2 },
-    upkeep: 55, rarity: 2, valueMult: 1.45,
+    upkeep: 55, rarity: 2, valueMult: 1.42,
   },
   {
     id: 'frost-wraith', name: 'Frost Wraith', plural: 'Frost Wraiths', size: 'medium', elements: ['water', 'shadow'],
@@ -473,7 +473,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'frost-bolt' }, { id: 'blizzard', minAbility: 60 }, { id: 'deep-freeze', minAbility: 100 }],
     passives: ['incorporeal'],
     nameCulture: 'shade', traitWeights: { loner: 2, cunning: 1.5 },
-    upkeep: 30, rarity: 4, valueMult: 0.98,
+    upkeep: 30, rarity: 4, valueMult: 1.0,
   },
   {
     id: 'hag', name: 'Hag', plural: 'Hags', size: 'medium', elements: ['shadow', 'nature'],
@@ -489,7 +489,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'support'],
     abilities: [{ id: 'hex-bolt' }, { id: 'curse-of-frailty', minAbility: 30 }, { id: 'blight', minAbility: 70 }, { id: 'evil-eye', minAbility: 110 }],
     nameCulture: 'hag', traitWeights: { cunning: 2.5, vengeful: 2, loyal: 0.4 },
-    upkeep: 25, rarity: 4, valueMult: 0.77,
+    upkeep: 25, rarity: 4, valueMult: 0.8,
   },
   {
     id: 'unicorn', name: 'Unicorn', plural: 'Unicorns', size: 'large', elements: ['light', 'nature'],
@@ -505,7 +505,7 @@ const list: SpeciesDef[] = [
     roles: ['support', 'striker'],
     abilities: [{ id: 'horn-strike' }, { id: 'purifying-light', minAbility: 30 }, { id: 'sanctuary', minAbility: 100 }],
     nameCulture: 'elf', traitWeights: { loyal: 2, 'team-player': 2, showboat: 1.3, bloodthirsty: 0.1 },
-    upkeep: 40, rarity: 3, valueMult: 0.78,
+    upkeep: 40, rarity: 3, valueMult: 0.76,
   },
   {
     id: 'hellhound', name: 'Hellhound', plural: 'Hellhounds', size: 'medium', elements: ['fire', 'shadow'],
@@ -521,7 +521,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'hellfire-bite' }, { id: 'flame-lunge', minAbility: 60 }],
     nameCulture: 'beast', traitWeights: { bloodthirsty: 2, hothead: 2, loyal: 1.3 },
-    upkeep: 20, rarity: 6, valueMult: 0.84,
+    upkeep: 20, rarity: 6, valueMult: 0.9,
   },
   {
     id: 'imp', name: 'Imp', plural: 'Imps', size: 'small', elements: ['fire', 'shadow'],
@@ -537,7 +537,7 @@ const list: SpeciesDef[] = [
     roles: ['caster', 'skirmisher'],
     abilities: [{ id: 'firebolt' }, { id: 'cinder-cloud', minAbility: 50 }, { id: 'blink', minAbility: 90 }],
     nameCulture: 'goblin', traitWeights: { coward: 2, showboat: 2, cunning: 1.5, loyal: 0.5 },
-    upkeep: 10, rarity: 9, valueMult: 0.83,
+    upkeep: 10, rarity: 9, valueMult: 0.88,
   },
   {
     id: 'werewolf', name: 'Werewolf', plural: 'Werewolves', size: 'large', elements: ['shadow', 'earth'],
@@ -553,7 +553,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'skirmisher'],
     abilities: [{ id: 'savage-claws' }, { id: 'rend-flesh', minAbility: 50 }, { id: 'moon-howl', minAbility: 100 }],
     nameCulture: 'beast', traitWeights: { berserker: 2.5, bloodthirsty: 2, hothead: 1.5, 'cool-headed': 0.3 },
-    upkeep: 35, rarity: 4, valueMult: 1.29,
+    upkeep: 35, rarity: 4, valueMult: 1.34,
   },
   {
     id: 'bramble-horror', name: 'Bramble Horror', plural: 'Bramble Horrors', size: 'large', elements: ['nature'],
@@ -570,7 +570,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'thorn-lash' }, { id: 'bramble-ward', minAbility: 50 }, { id: 'strangling-vines', minAbility: 90 }],
     passives: ['thornhide'],
     nameCulture: 'treant', traitWeights: { guardian: 2, stubborn: 1.5, 'iron-hide': 1.5, showboat: 0.3 },
-    upkeep: 30, rarity: 4, valueMult: 1.11,
+    upkeep: 30, rarity: 4, valueMult: 1.17,
   },
   {
     id: 'vampire', name: 'Vampire', plural: 'Vampires', size: 'medium', elements: ['shadow'],
@@ -586,7 +586,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'caster'],
     abilities: [{ id: 'vampiric-bite' }, { id: 'blood-bolt', minAbility: 50 }, { id: 'crimson-feast', minAbility: 120 }],
     nameCulture: 'vampire', traitWeights: { ambitious: 2.5, 'glory-hunter': 2, loner: 1.5, 'team-player': 0.4 },
-    upkeep: 50, rarity: 2, valueMult: 0.98,
+    upkeep: 50, rarity: 2, valueMult: 0.94,
   },
   {
     id: 'giant-bat', name: 'Giant Bat', plural: 'Giant Bats', size: 'medium', elements: ['shadow', 'air'], flying: true,
@@ -602,7 +602,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher'],
     abilities: [{ id: 'leeching-bite' }, { id: 'sonic-shriek', minAbility: 60 }],
     nameCulture: 'beast', traitWeights: { coward: 1.5, 'team-player': 1.5, hothead: 1.2 },
-    upkeep: 12, rarity: 8, valueMult: 0.68,
+    upkeep: 12, rarity: 8, valueMult: 0.67,
   },
   {
     id: 'giant-mantis', name: 'Giant Mantis', plural: 'Giant Mantises', size: 'medium', elements: ['nature'],
@@ -618,7 +618,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'scythe-arms' }, { id: 'decapitate', minAbility: 50 }, { id: 'mantis-stance', minAbility: 100 }],
     nameCulture: 'vermin', traitWeights: { loner: 2.5, cunning: 1.5, 'cool-headed': 1.5, 'team-player': 0.3 },
-    upkeep: 18, rarity: 5, valueMult: 0.81,
+    upkeep: 18, rarity: 5, valueMult: 0.77,
   },
   {
     id: 'ooze', name: 'Ooze', plural: 'Oozes', size: 'large', elements: ['water', 'earth'],
@@ -634,7 +634,7 @@ const list: SpeciesDef[] = [
     roles: ['tank'],
     abilities: [{ id: 'engulf' }, { id: 'sapping-spray', minAbility: 50 }, { id: 'gelatinous-wall', minAbility: 90 }],
     nameCulture: 'deep', traitWeights: { 'iron-hide': 2, stubborn: 1.5, fearless: 2 },
-    upkeep: 15, rarity: 6, valueMult: 0.96,
+    upkeep: 15, rarity: 6, valueMult: 1.0,
   },
   {
     id: 'magma-golem', name: 'Magma Golem', plural: 'Magma Golems', size: 'large', elements: ['fire', 'earth'],
@@ -651,7 +651,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'molten-fist' }, { id: 'lava-burst', minAbility: 60 }, { id: 'magma-skin', minAbility: 100 }],
     passives: ['stoneform'],
     nameCulture: 'golem', traitWeights: { guardian: 1.5, hothead: 1.5, professional: 1.5 },
-    upkeep: 30, rarity: 4, valueMult: 1.1,
+    upkeep: 30, rarity: 4, valueMult: 1.18,
   },
   {
     id: 'banshee', name: 'Banshee', plural: 'Banshees', size: 'medium', elements: ['shadow', 'air'],
@@ -668,7 +668,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'keening-bolt' }, { id: 'death-wail', minAbility: 50 }, { id: 'harrowing-shriek', minAbility: 100 }],
     passives: ['incorporeal'],
     nameCulture: 'shade', traitWeights: { loner: 2, vengeful: 2, 'frail-nerves': 0.5 },
-    upkeep: 25, rarity: 4, valueMult: 0.77,
+    upkeep: 25, rarity: 4, valueMult: 0.71,
   },
   {
     id: 'nightmare', name: 'Nightmare', plural: 'Nightmares', size: 'large', elements: ['shadow', 'fire'],
@@ -684,7 +684,7 @@ const list: SpeciesDef[] = [
     roles: ['skirmisher', 'striker'],
     abilities: [{ id: 'nightmare-hoof' }, { id: 'dread-charge', minAbility: 60 }],
     nameCulture: 'shade', traitWeights: { fearless: 2, hothead: 1.5, showboat: 1.3 },
-    upkeep: 35, rarity: 4, valueMult: 1.03,
+    upkeep: 35, rarity: 4, valueMult: 1.02,
   },
   {
     id: 'giant-hyena', name: 'Giant Hyena', plural: 'Giant Hyenas', size: 'medium', elements: ['earth'],
@@ -748,7 +748,7 @@ const list: SpeciesDef[] = [
     roles: ['caster'],
     abilities: [{ id: 'lightning-bolt' }, { id: 'chain-lightning', minAbility: 50 }, { id: 'thunderclap', minAbility: 100 }],
     nameCulture: 'djinn', traitWeights: { hothead: 2, showboat: 1.5, 'cool-headed': 0.3 },
-    upkeep: 35, rarity: 3, valueMult: 0.8,
+    upkeep: 35, rarity: 3, valueMult: 0.76,
   },
   {
     id: 'ogre', name: 'Ogre', plural: 'Ogres', size: 'large', elements: ['earth'],
@@ -765,7 +765,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'ogre-club' }, { id: 'blood-frenzy', minAbility: 70 }],
     passives: ['bloodlust'],
     nameCulture: 'troll', traitWeights: { berserker: 2, hothead: 2, lazy: 1.5 },
-    upkeep: 40, rarity: 5, valueMult: 1.06,
+    upkeep: 40, rarity: 5, valueMult: 1.1,
   },
   {
     id: 'blood-demon', name: 'Blood Demon', plural: 'Blood Demons', size: 'large', elements: ['fire', 'shadow'],
@@ -781,7 +781,7 @@ const list: SpeciesDef[] = [
     roles: ['striker', 'caster'],
     abilities: [{ id: 'hellclaw' }, { id: 'blood-price', minAbility: 40 }, { id: 'infernal-sacrifice', minAbility: 110 }],
     nameCulture: 'demon', traitWeights: { ambitious: 2, bloodthirsty: 2.5, loyal: 0.3 },
-    upkeep: 50, rarity: 2, valueMult: 0.98,
+    upkeep: 50, rarity: 2, valueMult: 1.04,
   },
   {
     id: 'seraph', name: 'Seraph', plural: 'Seraphim', size: 'medium', elements: ['light', 'air'], flying: true,
@@ -797,7 +797,7 @@ const list: SpeciesDef[] = [
     roles: ['support'],
     abilities: [{ id: 'radiant-blade' }, { id: 'martyrdom', minAbility: 40 }, { id: 'hymn-of-valor', minAbility: 90 }],
     nameCulture: 'seraph', traitWeights: { loyal: 2.5, 'team-player': 2.5, 'pack-leader': 1.5, bloodthirsty: 0.1 },
-    upkeep: 40, rarity: 3, valueMult: 0.89,
+    upkeep: 40, rarity: 3, valueMult: 0.88,
   },
 ];
 

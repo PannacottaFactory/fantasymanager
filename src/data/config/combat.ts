@@ -87,12 +87,12 @@ export const COMBAT_CONFIG = {
     /** Passive intercept chance for front-line tanks. */
     passiveBase: 0.1,
     /** Intercept chance when the tank chose to guard this round. */
-    activeBase: 0.4,
+    activeBase: 0.32,
     perAnticipation: 0.012,
     perTeamwork: 0.006,
-    max: 0.75,
+    max: 0.6,
     /** Damage reduction while guarding. */
-    guardMitigation: 0.15,
+    guardMitigation: 0.12,
     staminaCost: 3,
   },
   morale: {
@@ -144,7 +144,7 @@ export const COMBAT_CONFIG = {
    * species, a creature also deals and heals `roleFit.offRole` times as much.
    */
   roles: {
-    tank: { melee: 0.9, ranged: 0.9, spell: 0.9, heal: 1, mitigation: 0.06 },
+    tank: { melee: 0.88, ranged: 0.88, spell: 0.88, heal: 1, mitigation: 0.03 },
     striker: { melee: 1.15, ranged: 1, spell: 1, heal: 1, mitigation: -0.05 },
     caster: { melee: 1, ranged: 1, spell: 1.15, heal: 1, mitigation: -0.05 },
     support: { melee: 0.85, ranged: 0.85, spell: 0.85, heal: 1.25, mitigation: 0 },

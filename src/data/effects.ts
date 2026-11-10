@@ -119,7 +119,7 @@ export const EFFECTS: Record<string, EffectDef> = {
   },
   stoneform: {
     id: 'stoneform', name: 'Stone Body', kind: 'mods', beneficial: true, defaultDuration: 999,
-    mods: { mitigation: 0.08 }, description: 'Made of rock: shrugs off part of every blow.',
+    mods: { mitigation: 0.05 }, description: 'Made of rock: shrugs off part of every blow.',
   },
   incorporeal: {
     id: 'incorporeal', name: 'Incorporeal', kind: 'mods', beneficial: true, defaultDuration: 999,
