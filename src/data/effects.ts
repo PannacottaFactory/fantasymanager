@@ -3,12 +3,12 @@ import type { EffectDef } from './schema.ts';
 export const EFFECTS: Record<string, EffectDef> = {
   /** Short and fierce; also halves the healing received. */
   burning: {
-    id: 'burning', name: 'Burning', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.05,
+    id: 'burning', name: 'Burning', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.056,
     mods: { healingTaken: 0.4 }, description: 'Loses a lot of health every round, and healing received is cut by 60 %.',
   },
   /** Stacks up to 5 doses; each dose drains health every round (armour does not help). */
   poisoned: {
-    id: 'poisoned', name: 'Poisoned', kind: 'dot', beneficial: false, defaultDuration: 4, magnitude: 0.028, maxStacks: 5,
+    id: 'poisoned', name: 'Poisoned', kind: 'dot', beneficial: false, defaultDuration: 4, magnitude: 0.032, maxStacks: 5,
     mods: { damageMult: 0.95 },
     description: 'Loses health every round for each dose (up to 5, armour does not help) and hits a little softer. Every new dose renews the duration.',
   },
@@ -96,21 +96,21 @@ export const EFFECTS: Record<string, EffectDef> = {
   /** Buff: thorns that hurt melee attackers. */
   thorned: {
     id: 'thorned', name: 'Thorns', kind: 'mods', beneficial: true, defaultDuration: 3,
-    mods: { thorns: 0.3 }, description: 'Sends 30 % of the melee damage it takes back to the attacker.',
+    mods: { thorns: 0.2 }, description: 'Sends 20 % of the melee damage it takes back to the attacker.',
   },
   /** Bramble horror passive. */
   thornhide: {
     id: 'thornhide', name: 'Thorn Hide', kind: 'mods', beneficial: true, defaultDuration: 999,
-    mods: { thorns: 0.25 }, description: 'Covered in thorns: sends 25 % of the melee damage it takes back to the attacker.',
+    mods: { thorns: 0.15 }, description: 'Covered in thorns: sends 15 % of the melee damage it takes back to the attacker.',
   },
   /** Ogre passive: hits harder the more it is hurt. */
   bloodlust: {
     id: 'bloodlust', name: 'Bloodlust', kind: 'mods', beneficial: true, defaultDuration: 999,
-    mods: { fury: 0.4 }, description: 'The more wounded, the harder it hits: up to +40 % damage near 0 health.',
+    mods: { fury: 0.3 }, description: 'The more wounded, the harder it hits: up to +30 % damage near 0 health.',
   },
   frenzied: {
     id: 'frenzied', name: 'Frenzied', kind: 'mods', beneficial: true, defaultDuration: 3,
-    mods: { fury: 0.6 }, description: 'Up to +60 % damage, the more wounded the stronger.',
+    mods: { fury: 0.4 }, description: 'Up to +40 % damage, the more wounded the stronger.',
   },
   /** Troll passive: permanent, weaker regeneration. */
   trollblood: {

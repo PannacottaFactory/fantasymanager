@@ -142,7 +142,7 @@ const list: AbilityDef[] = [
   { id: 'mycelial-mend', name: 'Mycelial Mend', kind: 'heal', element: 'nature', target: 'ally', power: 16, staminaCost: 9, cooldown: 2, effects: [{ effect: 'regenerating', chance: 1, on: 'target' }], verb: 'knits fungal threads into the wounds of', description: 'Heals an ally, and the threads keep working.' },
 
   // ——— Winter wolf ———
-  { id: 'frost-bite', name: 'Frost Bite', kind: 'melee', element: 'water', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.35, on: 'target' }], verb: 'bites with icy jaws into', description: 'Each bite adds a charge of cold.' },
+  { id: 'frost-bite', name: 'Frost Bite', kind: 'melee', element: 'water', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.3, on: 'target' }], verb: 'bites with icy jaws into', description: 'Each bite adds a charge of cold.' },
   { id: 'frost-breath', name: 'Frost Breath', kind: 'spell', element: 'water', target: 'enemyFront', power: 8, staminaCost: 12, cooldown: 3, effects: [{ effect: 'chilled', chance: 0.5, on: 'target' }], verb: 'breathes a freezing gale over', description: 'Chills the whole enemy front line.' },
 
   // ——— Frost giant ———
@@ -176,8 +176,8 @@ const list: AbilityDef[] = [
   { id: 'blink', name: 'Blink', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'blinks in and out of sight', description: 'Pops in and out of existence, hard to hit.' },
 
   // ——— Werewolf ———
-  { id: 'savage-claws', name: 'Savage Claws', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.4, on: 'target' }], verb: 'tears savage claws through', description: 'Each slash may open a wound.' },
-  { id: 'rend-flesh', name: 'Rend Flesh', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 11, cooldown: 2, effects: [{ effect: 'bleeding', chance: 0.9, on: 'target', stacks: 2 }], verb: 'rips into the flesh of', description: 'Opens two wounds at once.' },
+  { id: 'savage-claws', name: 'Savage Claws', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 7, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.33, on: 'target' }], verb: 'tears savage claws through', description: 'Each slash may open a wound.' },
+  { id: 'rend-flesh', name: 'Rend Flesh', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 11, cooldown: 2, effects: [{ effect: 'bleeding', chance: 0.85, on: 'target', stacks: 2 }], verb: 'rips into the flesh of', description: 'Opens two wounds at once.' },
   { id: 'moon-howl', name: 'Moon Howl', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 6, cooldown: 6, effects: [{ effect: 'enraged', chance: 1, on: 'self' }], verb: 'howls at an invisible moon', description: 'Gives in to the beast.' },
 
   // ——— Bramble horror ———
@@ -186,12 +186,12 @@ const list: AbilityDef[] = [
   { id: 'strangling-vines', name: 'Strangling Vines', kind: 'debuff', element: 'nature', target: 'enemy', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.9, on: 'target' }, { effect: 'stunned', chance: 0.35, on: 'target' }], verb: 'sends strangling vines around', description: 'Vines grip a foe.' },
 
   // ——— Vampire ———
-  { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 15, staminaCost: 8, cooldown: 0, lifesteal: 0.7, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
+  { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 16, staminaCost: 8, cooldown: 0, lifesteal: 0.75, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
   { id: 'blood-bolt', name: 'Blood Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 8, cooldown: 1, lifesteal: 0.35, verb: 'hurls a bolt of blood at', description: 'A spell that heals its caster.' },
   { id: 'crimson-feast', name: 'Crimson Feast', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 8, staminaCost: 18, cooldown: 5, lifesteal: 0.5, verb: 'draws the blood out of', description: 'Drains every foe at once.' },
 
   // ——— Giant bat ———
-  { id: 'leeching-bite', name: 'Leeching Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, lifesteal: 0.65, verb: 'latches on to', description: 'Feeds as it bites.' },
+  { id: 'leeching-bite', name: 'Leeching Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 13, staminaCost: 5, cooldown: 0, lifesteal: 0.7, verb: 'latches on to', description: 'Feeds as it bites.' },
   { id: 'sonic-shriek', name: 'Sonic Shriek', kind: 'debuff', element: 'air', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 4, staminaDrain: 8, effects: [{ effect: 'slowed', chance: 0.4, on: 'target' }], verb: 'lets out a piercing shriek at', description: 'A shriek that slows and tires every foe.' },
 
   // ——— Giant mantis ———
@@ -210,8 +210,8 @@ const list: AbilityDef[] = [
   { id: 'magma-skin', name: 'Magma Skin', kind: 'buff', element: 'fire', target: 'self', power: 0, staminaCost: 6, cooldown: 4, effects: [{ effect: 'fortified', chance: 1, on: 'self', duration: 3 }], verb: 'lets its crust harden', description: 'Takes much less damage for a while.' },
 
   // ——— Banshee ———
-  { id: 'keening-bolt', name: 'Keening Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, fear: 7, verb: 'sends a keening bolt at', description: 'Hurts the body and the nerves.' },
-  { id: 'death-wail', name: 'Death Wail', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 4, fear: 14, effects: [{ effect: 'terrified', chance: 0.5, on: 'target' }], verb: 'wails a death-cry at', description: 'A cry that shakes the courage of every foe.' },
+  { id: 'keening-bolt', name: 'Keening Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, fear: 8, verb: 'sends a keening bolt at', description: 'Hurts the body and the nerves.' },
+  { id: 'death-wail', name: 'Death Wail', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 4, fear: 17, effects: [{ effect: 'terrified', chance: 0.6, on: 'target' }], verb: 'wails a death-cry at', description: 'A cry that shakes the courage of every foe.' },
   { id: 'harrowing-shriek', name: 'Harrowing Shriek', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 9, cooldown: 3, fear: 24, effects: [{ effect: 'terrified', chance: 1, on: 'target' }], verb: 'shrieks into the face of', description: 'Breaks the nerve of one foe.' },
 
   // ——— Nightmare ———
@@ -219,11 +219,11 @@ const list: AbilityDef[] = [
   { id: 'dread-charge', name: 'Dread Charge', kind: 'melee', element: 'shadow', target: 'enemy', power: 18, staminaCost: 12, cooldown: 3, reachBack: true, fear: 10, effects: [{ effect: 'terrified', chance: 0.6, on: 'target' }], verb: 'charges out of a bad dream at', description: 'Charges any target, even in the back line, and terrifies it.' },
 
   // ——— Giant hyena ———
-  { id: 'hyena-bite', name: 'Hyena Bite', kind: 'melee', element: 'physical', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, pack: 0.3, verb: 'snaps at', description: '+30 % damage for each ally that already hit the target this round.' },
+  { id: 'hyena-bite', name: 'Hyena Bite', kind: 'melee', element: 'physical', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, pack: 0.35, verb: 'snaps at', description: '+35 % damage for each ally that already hit the target this round.' },
   { id: 'cackle', name: 'Cackle', kind: 'debuff', element: 'physical', target: 'allEnemies', power: 0, staminaCost: 8, cooldown: 4, fear: 8, verb: 'cackles madly at', description: 'An unnerving laugh.' },
 
   // ——— Raptor ———
-  { id: 'raptor-claw', name: 'Sickle Claw', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, pack: 0.3, effects: [{ effect: 'bleeding', chance: 0.2, on: 'target' }], verb: 'slashes its sickle claw across', description: '+30 % damage for each ally that already hit the target this round.' },
+  { id: 'raptor-claw', name: 'Sickle Claw', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, pack: 0.35, effects: [{ effect: 'bleeding', chance: 0.2, on: 'target' }], verb: 'slashes its sickle claw across', description: '+35 % damage for each ally that already hit the target this round.' },
   { id: 'pounce', name: 'Pounce', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 10, cooldown: 2, reachBack: true, pack: 0.4, verb: 'pounces on', description: 'Leaps on any target; +40 % damage for each ally already on it this round.' },
 
   // ——— Cyclops ———
@@ -242,7 +242,7 @@ const list: AbilityDef[] = [
 
   // ——— Blood demon ———
   { id: 'hellclaw', name: 'Hellclaw', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'rakes burning claws across', description: 'Claws from below.' },
-  { id: 'blood-price', name: 'Blood Price', kind: 'melee', element: 'shadow', target: 'enemy', power: 25, staminaCost: 8, cooldown: 3, hpCost: 0.1, verb: 'pays in blood and smashes', description: 'A huge blow that costs 10 % of its own health.' },
+  { id: 'blood-price', name: 'Blood Price', kind: 'melee', element: 'shadow', target: 'enemy', power: 22, staminaCost: 8, cooldown: 3, hpCost: 0.1, verb: 'pays in blood and smashes', description: 'A huge blow that costs 10 % of its own health.' },
   { id: 'infernal-sacrifice', name: 'Infernal Sacrifice', kind: 'spell', element: 'fire', target: 'allEnemies', power: 13, staminaCost: 12, cooldown: 5, hpCost: 0.2, verb: 'sets its own blood alight over', description: 'Burns the whole enemy team; costs 20 % of its own health.' },
 
   // ——— Seraph ———

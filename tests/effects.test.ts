@@ -179,7 +179,7 @@ describe('wave 3 mechanics', () => {
     const fresh = rawDamage(a, ab, ctx, c.cfg);
     a.hp = a.maxHp * 0.5;
     // Composure softens the low-health penalty, which only starts lower: at half health only fury changes.
-    expect(rawDamage(a, ab, ctx, c.cfg) / fresh).toBeCloseTo(1 + 0.4 * 0.5);
+    expect(rawDamage(a, ab, ctx, c.cfg) / fresh).toBeCloseTo(1 + EFFECTS.bloodlust!.mods!.fury! * 0.5);
   });
 
   it('a sacrifice costs health but never kills its user', () => {

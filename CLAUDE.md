@@ -220,6 +220,10 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   line −16, best starters benched −13, tired squad (60) −22, no break management −36. Fatigue softened (pre-match
   loss 50 %, penalties below 50 % stamina, max −35 %), base HP 60 (league KO ≈ 49 %). AI managers now matter
   (tactician vs plain 64 %); autopilot finishes ~4th / 7th / 8–9th (easy / normal / hard). 110 tests.
+- [x] **Style balance pass** (on correct measurements): fury 30 % / frenzy 40 %, thorns 20 % / thorn hide 15 %,
+  burn 5.6 %/round, poison 3.2 %/dose, frost giant / ogre / bramble horror toned down, vampire / bat / hyena / banshee
+  helped, prices recalibrated. Pure styles vs mixed teams: 33–60 % (bleed team ~65 % because of its minotaurs and
+  werewolves; drain and pack lowest — they need a front line). League KO ≈ 50 %.
   Next (later): phase 6 (save slots, import/export, worker sims).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
