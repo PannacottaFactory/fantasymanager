@@ -323,7 +323,7 @@ table.data tr.sep td { border-top: 2px solid var(--border-strong); }
 /* Creature modal */
 .attr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .attr-list { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 0.929rem; }
-.attr-list span:nth-child(odd) { color: var(--muted); }
+.attr-list .attr-name { color: var(--muted); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 0.929rem; }
 .kv dt { color: var(--muted); }
 .kv dd { margin: 0; }

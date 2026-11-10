@@ -116,7 +116,9 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               <div className="attr-list">
                 {ATTRIBUTE_CATEGORIES[cat].map((k) => (
                   <span key={k} style={{ display: 'contents' }}>
-                    <span title={attributeText(k, lang).description}>{attributeText(k, lang).name}</span>
+                    <span className="attr-name" title={attributeText(k, lang).description}>
+                      {attributeText(k, lang).name}
+                    </span>
                     <span className="attr-cell">
                       {known ? <Attr v={creature.attributes[k]} /> : <AttrRange r={attributeRange(creature, k, knowledge)} />}
                       {known && deltas?.[k] ? (
