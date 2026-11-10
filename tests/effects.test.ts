@@ -3,6 +3,7 @@ import { Rng, deriveSeed } from '../src/core/rng.ts';
 import { ABILITIES } from '../src/data/abilities.ts';
 import { EFFECTS } from '../src/data/effects.ts';
 import { Combat } from '../src/engine/combat/combat.ts';
+import { executeMult, staminaRegen } from '../src/engine/combat/formulas.ts';
 import { initialView, applyEvent } from '../src/engine/combat/view.ts';
 import { simulateMatch } from '../src/engine/combat/simulate.ts';
 import { generateTeam } from '../src/engine/team/team.ts';
@@ -106,5 +107,49 @@ describe('new styles in real matches', () => {
       }
       if (pool[0] !== 'hag') expect(maxStack).toBeGreaterThan(1);
     }
+  });
+});
+
+describe('wave 2 mechanics', () => {
+  it('bleeding stacks to 3 and any healing stops it', () => {
+    const c = new Combat(setup(10));
+    const [healer, t] = c.active(0);
+    addEffect(c, t!, 'bleeding', 5);
+    expect(t!.effects.find((e) => e.id === 'bleeding')!.stacks).toBe(3);
+    c['stopOnHeal'](t!);
+    expect(t!.effects.some((e) => e.id === 'bleeding')).toBe(false);
+    expect(healer).toBeDefined();
+  });
+
+  it('thorns send melee damage back to the attacker', () => {
+    const c = new Combat(setup(11));
+    const attacker = c.active(0)[0]!;
+    const target = c.active(1)[0]!;
+    addEffect(c, target, 'thorned');
+    const before = attacker.hp;
+    for (let i = 0; i < 20 && attacker.hp === before; i++) c['attack'](attacker, target, ABILITIES['axe-swing']!, false, false);
+    const thorns = c.events.find((e) => e.type === 'thorns');
+    expect(thorns).toBeDefined();
+    expect(attacker.hp).toBeLessThan(before);
+  });
+
+  it('execution hits harder on a target below 30 % health', () => {
+    const c = new Combat(setup(12));
+    const target = c.active(1)[0]!;
+    const dec = ABILITIES.decapitate!;
+    expect(executeMult(dec, target, c.cfg)).toBe(1);
+    target.hp = Math.floor(target.maxHp * 0.2);
+    expect(executeMult(dec, target, c.cfg)).toBe(2);
+  });
+
+  it('draining removes stamina and sapping halves its recovery', () => {
+    const c = new Combat(setup(13));
+    const [a, t] = [c.active(0)[0]!, c.active(1)[0]!];
+    const st = t.stamina;
+    c['drainStamina'](a, ABILITIES.engulf!, t);
+    expect(t.stamina).toBe(st - ABILITIES.engulf!.staminaDrain!);
+    const regen = staminaRegen(t, c.cfg);
+    addEffect(c, t, 'sapped');
+    expect(staminaRegen(t, c.cfg)).toBeCloseTo(regen / 2);
   });
 });

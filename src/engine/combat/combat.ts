@@ -29,6 +29,7 @@ import {
   critChance,
   disobeyChance,
   effectMod,
+  executeMult,
   isCleansable,
   elementMultiplier,
   hasEffect,
@@ -584,6 +585,7 @@ export class Combat {
             t.hp += amount;
             this.emit({ type: 'heal', round: this.round, actor: actor.id, target: t.id, ability: ability.id, amount, targetHp: Math.round(t.hp) });
             if (ability.cleanse) this.cleanse(actor, ability, t);
+            this.stopOnHeal(t);
             this.applyAbilityEffects(actor, ability, t, 'target');
           }
         } else {
@@ -611,6 +613,7 @@ export class Combat {
         hit = true;
       }
       if (this.applyAbilityEffects(actor, ability, t, 'target')) hit = true;
+      if (ability.staminaDrain && this.drainStamina(actor, ability, t)) hit = true;
       if (hit) affected.push(t.id);
     }
     this.applyAbilityEffects(actor, ability, actor, 'self');
@@ -737,6 +740,8 @@ export class Combat {
     dmg *= elementMult;
     if (crit) dmg *= d.critMult;
     if (aoe) dmg *= d.aoeFactor;
+    const exec = executeMult(ability, target, cfg);
+    dmg *= exec;
     dmg *= 1 - mitigation(target, kind, this.sides[target.side].orders, cfg);
     let damage = Math.max(1, Math.round(dmg));
 
@@ -765,7 +770,10 @@ export class Combat {
     if (!this.hitThisRound.has(target.id)) this.hitThisRound.set(target.id, new Set());
     this.hitThisRound.get(target.id)!.add(actor.id);
 
-    this.emit({ ...base, hit: true, damage: real, crit, elementMult: round(elementMult, 2), absorbed, targetHp: Math.round(target.hp), healed });
+    this.emit({ ...base, hit: true, damage: real, crit, elementMult: round(elementMult, 2), absorbed, targetHp: Math.round(target.hp), healed, ...(exec > 1 ? { execute: true } : {}) });
+    // Thorns: part of a melee blow comes back to the attacker.
+    const thorns = kind === 'melee' && real > 0 ? Math.round(real * effectMod(target, 'thorns')) : 0;
+    if (thorns > 0) this.reflect(target, actor, thorns);
 
     const m = cfg.combat.morale;
     if (crit) this.changeMorale(actor, m.critDealt);
@@ -779,9 +787,38 @@ export class Combat {
       return;
     }
     if (ability.fear) this.changeMorale(target, -ability.fear);
+    if (ability.staminaDrain) this.drainStamina(actor, ability, target);
     this.applyAbilityEffects(actor, ability, target, 'target');
-    if (!aoe) this.applyAbilityEffects(actor, ability, actor, 'self');
+    if (!aoe && actor.state === 'active') this.applyAbilityEffects(actor, ability, actor, 'self');
     this.checkLowHpRage(target);
+    if (actor.state === 'active') this.checkLowHpRage(actor);
+  }
+
+  private reflect(from: Combatant, to: Combatant, amount: number) {
+    if (to.state !== 'active') return;
+    const real = Math.min(amount, to.hp);
+    to.hp -= real;
+    from.damageDealt += real;
+    this.emit({ type: 'thorns', round: this.round, actor: from.id, target: to.id, amount: real, hp: Math.round(to.hp) });
+    if (to.hp <= 0) this.knockOut(to, from);
+  }
+
+  /** Removes stamina from a target. Returns true if any was drained. */
+  private drainStamina(actor: Combatant, ability: AbilityDef, target: Combatant): boolean {
+    if (target.state !== 'active') return false;
+    const amount = Math.round(Math.min(target.stamina, ability.staminaDrain ?? 0));
+    if (amount <= 0) return false;
+    target.stamina -= amount;
+    this.emit({ type: 'drain', round: this.round, actor: actor.id, target: target.id, ability: ability.id, amount, stamina: Math.round(target.stamina) });
+    return true;
+  }
+
+  /** Healing stops effects such as bleeding. */
+  private stopOnHeal(target: Combatant) {
+    for (const e of target.effects.filter((x) => EFFECTS[x.id]?.endsOnHeal)) {
+      target.effects = target.effects.filter((x) => x !== e);
+      this.emit({ type: 'effectExpired', round: this.round, target: target.id, effect: e.id });
+    }
   }
 
   private checkLowHpRage(c: Combatant) {

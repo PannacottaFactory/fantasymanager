@@ -13,7 +13,9 @@ import type { Rng } from '../../core/rng.ts';
 import type { TeamOrders } from '../model.ts';
 import {
   attackKind,
+  effectMod,
   effectStacks,
+  executeMult,
   elementMultiplier,
   hasEffect,
   isCleansable,
@@ -113,7 +115,7 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const perceivedMult = 1 + (trueMult - 1) * awareness;
   const mit = mitigation(target, attackKind(ability), ctx.orders(target), cfg);
   const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders }, cfg);
-  return raw * perceivedMult * (1 - mit) * p;
+  return raw * perceivedMult * executeMult(ability, target, cfg) * (1 - mit) * p;
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */
@@ -136,6 +138,21 @@ function effectValue(ability: AbilityDef, targets: Combatant[]): number {
     if (ref.on !== 'target') continue;
     for (const t of targets) v += ref.chance * 0.15 * effectGain(ref.effect, t) * Math.min(2, ref.stacks ?? 1);
   }
+  return v;
+}
+
+/** Stamina drained matters most against creatures low on stamina. */
+function drainValue(ability: AbilityDef, targets: Combatant[]): number {
+  if (!ability.staminaDrain) return 0;
+  let v = 0;
+  for (const t of targets) v += Math.min(1, ability.staminaDrain / Math.max(1, t.stamina)) * 0.25;
+  return v;
+}
+
+/** A heal also stops bleeding. */
+function bleedValue(t: Combatant): number {
+  let v = 0;
+  for (const e of t.effects) if (EFFECTS[e.id]?.endsOnHeal) v += 0.12 * (e.stacks ?? 1);
   return v;
 }
 
@@ -197,6 +214,10 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         }
         if (ability.kind === 'debuff') score += effectValue(ability, [target]) * role.debuff * 2 + (ability.fear ?? 0) * 0.01 * role.debuff;
         else score += effectValue(ability, [target]) * Math.max(role.debuff, 0.5);
+        score += drainValue(ability, [target]) * Math.max(role.debuff, 0.5);
+        // Thorns hurt whoever strikes them in melee (seen in proportion to tactics).
+        const thorns = attackKind(ability) === 'melee' ? effectMod(target, 'thorns') : 0;
+        if (thorns > 0 && damaging) score -= ((expectedDamage(ctx, actor, ability, target, flank) * thorns) / actor.maxHp) * 3 * (actor.attrs.tactics / 20);
         score += priorityMatch(opts.priority, target, enemies) * ai.priorityBonus;
         if (target.line === 'back') score += role.backlineHunter * 0.12;
         options.push({ type: 'ability', ability, target, flank, score: score * bigMult });
@@ -215,6 +236,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         score += (ability.fear ?? 0) * 0.008 * role.debuff;
       }
       score += effectValue(ability, targets) * Math.max(role.debuff, 0.5);
+      score += drainValue(ability, targets) * Math.max(role.debuff, 0.5);
       options.push({ type: 'ability', ability, target: null, flank: false, score: score * bigMult });
     } else if (ability.kind === 'heal') {
       const candidates = ability.target === 'allAllies' ? [null] : allies;
@@ -222,7 +244,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         const hurt = t ? [t] : allies;
         const missing = hurt.reduce((s, a) => s + (1 - hpFraction(a)), 0);
         const worst = Math.max(...hurt.map((a) => 1 - hpFraction(a)));
-        const purge = ability.cleanse ? hurt.reduce((s, a) => s + cleanseValue(a), 0) : 0;
+        const purge = (ability.cleanse ? hurt.reduce((s, a) => s + cleanseValue(a), 0) : 0) + hurt.reduce((s, a) => s + bleedValue(a), 0);
         if (worst < 0.25 && purge < 0.2) continue;
         const score = (missing * 1.6 + purge * 1.5) * role.heal * (t ? 1 : 0.6);
         options.push({ type: 'ability', ability, target: t, flank: false, score: score * bigMult });
@@ -238,6 +260,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         if (effectId === 'enraged') score += 0.3 * role.damage * (0.5 + hurt);
         if (effectId === 'fortified') score += 0.3 * role.guard * (0.3 + hurt);
         if (effectId === 'evasive') score += 0.3 * (0.3 + hurt);
+        if (effectId === 'shielded') score += 0.3 * role.guard * (0.3 + hurt);
         options.push({ type: 'ability', ability, target: actor, flank: false, score: score * bigMult });
       } else if (ability.target === 'allAllies') {
         const without = allies.filter((a) => !effectId || !hasEffect(a, effectId)).length;

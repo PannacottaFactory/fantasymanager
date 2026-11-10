@@ -56,6 +56,8 @@ export const COMBAT_CONFIG = {
     critPerTechnique: 0.004,
     critPerComposure: 0.002,
     critMult: 1.6,
+    /** Execution abilities hit harder on targets below this health fraction. */
+    executeBelow: 0.3,
     /** Physical mitigation per point of toughness. */
     physMitigationPerToughness: 0.017,
     /** Spell mitigation per point of (focus + courage) / 2. */

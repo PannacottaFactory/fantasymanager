@@ -159,6 +159,13 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
         // (a 'cleanse' always follows the heal/buff of the same ability, already counted)
         st(e.actor).abilitiesUsed[e.ability] = (st(e.actor).abilitiesUsed[e.ability] ?? 0) + 1;
         break;
+      case 'thorns': {
+        st(e.actor).damageDealt += e.amount;
+        st(e.target).damageTaken += e.amount;
+        teams[st(e.actor).side].damageDealt += e.amount;
+        teams[st(e.target).side].damageTaken += e.amount;
+        break;
+      }
       case 'effectTick': {
         if (e.amount < 0) {
           const t = st(e.target);

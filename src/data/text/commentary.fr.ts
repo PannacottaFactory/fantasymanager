@@ -64,6 +64,8 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['flank', 'Débordement ! {a} surprend {t} en deuxième ligne — {dmg}.'],
     ['shielded', '{a} {verb} {t}, mais la barrière absorbe l’essentiel ({absorbed} absorbés, {dmg} passent).'],
     ['lifesteal', '{a} {verb} {t} et se nourrit de la vie volée : {dmg} dégâts, {healed} soignés.'],
+    ['execute', '{a} sent la faiblesse et {verb} {t} sans pitié — {dmg} !'],
+    ['execute', 'Pas de quartier pour les blessés : {a} {verb} {t} ({dmg}).'],
     ['finishing', '{t} ne tient plus qu’à un fil après {ab} ({dmg}). Plus que {hp} PV !'],
     ['finishing', '{a} {verb} {t} — {dmg}. Encore un comme ça et c’est terminé.'],
   ],
@@ -163,6 +165,16 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['', '{a} est pris{aE} dans la glace et ne peut plus bouger !'],
     ['', 'Une statue de glace : {a} perd son tour.'],
     ['', '{a} lutte contre la glace, en vain.'],
+  ],
+  thorns: [
+    ['', '{t} le paie cher : les épines piquent en retour ({n}).'],
+    ['', 'Des pointes partout : {t} perd {n} sur les épines.'],
+    ['', 'Frapper {a} fait mal — {t} perd {n}.'],
+  ],
+  drain: [
+    ['', '{a} sape les forces chez {t} (-{n} endurance).'],
+    ['', '{t} sent son énergie s’échapper.'],
+    ['empty', '{t} est complètement vidé{tE} — plus rien dans le réservoir !'],
   ],
   cleanse: [
     ['', '{a} purifie {t} de tous ses maux.'],

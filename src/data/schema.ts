@@ -89,6 +89,10 @@ export interface AbilityDef {
   lifesteal?: number;
   /** Removes every harmful effect that can be cleansed (not curses) from the targets. */
   cleanse?: boolean;
+  /** Execution: damage × (1 + execute) against a target below cfg executeBelow health. */
+  execute?: number;
+  /** Stamina removed from each target hit (or affected, for debuffs). */
+  staminaDrain?: number;
   /** Morale damage inflicted on targets. */
   fear?: number;
   effects?: AbilityEffectRef[];
@@ -105,6 +109,10 @@ export interface EffectMods {
   critBonus?: number;
   /** Multiplier on healing received (heals, regeneration, life drain). */
   healingTaken?: number;
+  /** Multiplier on stamina recovered each round. */
+  staminaRegenMult?: number;
+  /** Fraction of melee damage taken that is sent back to the attacker (additive). */
+  thorns?: number;
 }
 
 export interface EffectDef {
@@ -124,6 +132,8 @@ export interface EffectDef {
   onMaxStacks?: string;
   /** Curse: lasts until the next break (or the end of the match) and cannot be cleansed. */
   curse?: boolean;
+  /** Removed by any healing ability (bleeding). */
+  endsOnHeal?: boolean;
 }
 
 export interface TraitCombatEffects {

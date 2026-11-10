@@ -42,6 +42,8 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
     case 'attack':
     case 'heal':
     case 'cleanse':
+    case 'thorns':
+    case 'drain':
       return { actor: e.actor, target: e.target };
     case 'buff':
     case 'debuff':
@@ -205,6 +207,7 @@ export class Commentator {
         if (e.flank) tags.push('flank');
         if (e.absorbed > 0) tags.push('shielded');
         if (e.healed) tags.push('lifesteal');
+        if (e.execute) tags.push('execute');
         if (r && e.targetHp > 0 && e.targetHp < r.maxHp * 0.2) tags.push('finishing');
         const vars: Vars = {
           a: this.ref(e.actor),
@@ -290,6 +293,14 @@ export class Commentator {
       case 'stunned':
         if (e.effect === 'frozen') return this.line(e, 'frozen', [], this.actorVars(e.actor), 1, this.sideOf(e.actor));
         return this.line(e, 'stunned', [], this.actorVars(e.actor), 0, this.sideOf(e.actor));
+      case 'thorns': {
+        const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), n: e.amount, aE: this.fem(e.actor), tE: this.fem(e.target) };
+        return this.rng.chance(0.6) || e.hp <= 0 ? this.line(e, 'thorns', [], vars, 0, this.sideOf(e.actor)) : [];
+      }
+      case 'drain': {
+        const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), n: e.amount, aE: this.fem(e.actor), tE: this.fem(e.target) };
+        return this.rng.chance(0.5) || e.stamina <= 0 ? this.line(e, 'drain', e.stamina <= 5 ? ['empty'] : [], vars, 0, this.sideOf(e.actor)) : [];
+      }
       case 'cleanse': {
         const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), aE: this.fem(e.actor), tE: this.fem(e.target) };
         return this.line(e, 'cleanse', e.actor === e.target ? ['self'] : [], vars, 1, this.sideOf(e.actor));

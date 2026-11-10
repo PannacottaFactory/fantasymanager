@@ -63,6 +63,8 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['flank', 'Flanking run from {a}! {t} is caught at the back — {dmg}.'],
     ['shielded', '{a} {verb} {t}, but the barrier soaks most of it ({absorbed} absorbed, {dmg} through).'],
     ['lifesteal', '{a} {verb} {t} and drinks in the stolen life: {dmg} damage, {healed} healed.'],
+    ['execute', '{a} smells weakness and {verb} {t} without mercy — {dmg}!'],
+    ['execute', 'No mercy for the wounded: {a} {verb} {t} for {dmg}.'],
     ['finishing', '{t} is hanging by a thread after {a}’s {ab} ({dmg}). {hp} health left!'],
     ['finishing', '{a} {verb} {t} — {dmg}. One more like that and {t} is done.'],
   ],
@@ -160,6 +162,16 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['', '{a} is frozen solid and cannot move!'],
     ['', 'A statue of ice — {a} loses its turn.'],
     ['', '{a} strains against the ice, in vain.'],
+  ],
+  thorns: [
+    ['', '{t} pays for it — {a}’s thorns bite back ({n}).'],
+    ['', 'Spikes everywhere: {t} takes {n} from {a}’s thorns.'],
+    ['', 'Hitting {a} hurts — {t} loses {n}.'],
+  ],
+  drain: [
+    ['', '{a} saps the strength of {t} (-{n} stamina).'],
+    ['', '{t} feels the energy drain away.'],
+    ['empty', '{t} is completely drained — nothing left in the tank!'],
   ],
   cleanse: [
     ['', '{a} purges every ailment from {t}.'],

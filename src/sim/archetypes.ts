@@ -25,6 +25,12 @@ const STYLES: Record<string, string[]> = {
   curse: ['hag', 'lich', 'hag', 'troll', 'orc', 'lich', 'hag', 'troll'],
   purify: ['unicorn', 'unicorn', 'golem', 'elf', 'orc', 'unicorn', 'troll', 'centaur'],
   fortress: ['golem', 'troll', 'treant', 'naga', 'crystal-golem', 'dryad', 'golem', 'troll'],
+  burn: ['hellhound', 'imp', 'phoenix', 'magma-golem', 'hellhound', 'imp', 'magma-golem', 'phoenix'],
+  bleed: ['werewolf', 'minotaur', 'harpy', 'werewolf', 'dryad', 'werewolf', 'minotaur', 'harpy'],
+  thorns: ['bramble-horror', 'bramble-horror', 'troll', 'elf', 'treant', 'bramble-horror', 'orc', 'naga'],
+  drain: ['vampire', 'giant-bat', 'shade', 'wendigo', 'giant-bat', 'vampire', 'lich', 'giant-bat'],
+  execute: ['giant-mantis', 'giant-mantis', 'centaur', 'griffin', 'orc', 'giant-mantis', 'elf', 'troll'],
+  exhaust: ['ooze', 'ooze', 'giant-bat', 'kraken', 'centaur', 'ooze', 'naga', 'giant-bat'],
 };
 
 for (const list of Object.values(STYLES)) for (const id of list) if (!SPECIES[id]) throw new Error(`Unknown species ${id}`);
@@ -93,9 +99,9 @@ for (const a of names) {
 
 const pct = (x: number) => `${(x * 100).toFixed(0)}%`.padStart(6);
 console.log(`${N} matches per pairing in ${((performance.now() - t0) / 1000).toFixed(1)} s (row = win rate against column)\n`);
-console.log(''.padEnd(10) + names.map((n) => n.padStart(9)).join('') + '     avg    KO%  rounds');
+console.log(''.padEnd(10) + names.map((n) => n.slice(0, 7).padStart(8)).join('') + '     avg    KO%  rounds');
 for (const a of names) {
-  const cells = names.map((b) => (a === b ? '—'.padStart(9) : pct(win[a]![b]!).padStart(9)));
+  const cells = names.map((b) => (a === b ? '—'.padStart(8) : pct(win[a]![b]!).padStart(8)));
   const others = names.filter((b) => b !== a).map((b) => win[a]![b]!);
   const avg = others.reduce((s, x) => s + x, 0) / others.length;
   console.log(a.padEnd(10) + cells.join('') + pct(avg).padStart(8) + pct(ko[a]! / played[a]!).padStart(7) + (rounds[a]! / played[a]!).toFixed(1).padStart(8));

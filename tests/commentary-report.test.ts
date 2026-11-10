@@ -73,7 +73,7 @@ describe('match report', () => {
   it('damage totals in the report match the event log', () => {
     const r = match(300);
     const rep = buildReport(r, 1);
-    const fromEvents = r.events.reduce((s, e) => s + (e.type === 'attack' && e.hit ? e.damage : 0), 0);
+    const fromEvents = r.events.reduce((s, e) => s + (e.type === 'attack' && e.hit ? e.damage : e.type === 'thorns' ? e.amount : 0), 0);
     expect(rep.creatures.reduce((s, c) => s + c.damageDealt, 0)).toBe(fromEvents);
   });
 

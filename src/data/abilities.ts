@@ -39,7 +39,7 @@ const list: AbilityDef[] = [
   { id: 'terrifying-roar', name: 'Terrifying Roar', kind: 'debuff', element: 'physical', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 5, fear: 14, verb: 'unleashes a terrifying roar at', description: 'Shakes the courage of every foe.', effects: [{ effect: 'terrified', chance: 0.4, on: 'target' }] },
 
   // ——— Minotaur ———
-  { id: 'horn-gore', name: 'Horn Gore', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 8, cooldown: 0, verb: 'gores', description: 'Horns first.', effects: [{ effect: 'bleeding', chance: 0.25, on: 'target' }] },
+  { id: 'horn-gore', name: 'Horn Gore', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 8, cooldown: 0, verb: 'gores', description: 'Horns first.', effects: [{ effect: 'bleeding', chance: 0.3, on: 'target' }] },
   { id: 'bull-charge', name: 'Bull Charge', kind: 'melee', element: 'physical', target: 'enemy', power: 24, staminaCost: 15, cooldown: 3, reachBack: true, accuracyMod: -0.05, verb: 'charges headlong into', description: 'Bulldozes through the lines to any target.', effects: [{ effect: 'exposed', chance: 0.5, on: 'target' }] },
   { id: 'rampage', name: 'Rampage', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 6, cooldown: 6, verb: 'snorts and works itself into a rampage', description: 'Deliberately enrages itself.', effects: [{ effect: 'enraged', chance: 1, on: 'self' }] },
 
@@ -165,6 +165,49 @@ const list: AbilityDef[] = [
   { id: 'horn-strike', name: 'Horn Strike', kind: 'melee', element: 'light', target: 'enemy', power: 17, staminaCost: 7, cooldown: 0, verb: 'drives its shining horn into', description: 'A spiral of hardened light.' },
   { id: 'purifying-light', name: 'Purifying Light', kind: 'heal', element: 'light', target: 'ally', power: 19, staminaCost: 9, cooldown: 2, cleanse: true, verb: 'pours purifying light over', description: 'Heals an ally and removes its poisons, cold, stuns and other ailments (not curses).' },
   { id: 'sanctuary', name: 'Sanctuary', kind: 'heal', element: 'light', target: 'allAllies', power: 6, staminaCost: 15, cooldown: 5, cleanse: true, verb: 'raises a sanctuary of light around', description: 'Heals and purifies every ally (not curses).' },
+
+  // ——— Hellhound ———
+  { id: 'hellfire-bite', name: 'Hellfire Bite', kind: 'melee', element: 'fire', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'burning', chance: 0.5, on: 'target' }], verb: 'sinks smouldering fangs into', description: 'A bite that sets the wound on fire.' },
+  { id: 'flame-lunge', name: 'Flame Lunge', kind: 'melee', element: 'fire', target: 'enemy', power: 17, staminaCost: 12, cooldown: 3, reachBack: true, effects: [{ effect: 'burning', chance: 0.7, on: 'target' }], verb: 'leaps in a burst of flame at', description: 'Leaps on any target, even in the back line, and sets it ablaze.' },
+
+  // ——— Imp ———
+  { id: 'firebolt', name: 'Firebolt', kind: 'spell', element: 'fire', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'burning', chance: 0.5, on: 'target' }], verb: 'flings a firebolt at', description: 'A cheap, nasty little spell.' },
+  { id: 'cinder-cloud', name: 'Cinder Cloud', kind: 'spell', element: 'fire', target: 'enemyFront', power: 7, staminaCost: 12, cooldown: 4, effects: [{ effect: 'burning', chance: 0.6, on: 'target' }], verb: 'showers burning cinders on', description: 'Sets the enemy front line alight.' },
+  { id: 'blink', name: 'Blink', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'blinks in and out of sight', description: 'Pops in and out of existence, hard to hit.' },
+
+  // ——— Werewolf ———
+  { id: 'savage-claws', name: 'Savage Claws', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.4, on: 'target' }], verb: 'tears savage claws through', description: 'Each slash may open a wound.' },
+  { id: 'rend-flesh', name: 'Rend Flesh', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 11, cooldown: 2, effects: [{ effect: 'bleeding', chance: 0.9, on: 'target', stacks: 2 }], verb: 'rips into the flesh of', description: 'Opens two wounds at once.' },
+  { id: 'moon-howl', name: 'Moon Howl', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 6, cooldown: 6, effects: [{ effect: 'enraged', chance: 1, on: 'self' }], verb: 'howls at an invisible moon', description: 'Gives in to the beast.' },
+
+  // ——— Bramble horror ———
+  { id: 'thorn-lash', name: 'Thorn Lash', kind: 'melee', element: 'nature', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.3, on: 'target' }], verb: 'lashes a thorny limb across', description: 'Brambles that tear.' },
+  { id: 'bramble-ward', name: 'Bramble Ward', kind: 'buff', element: 'nature', target: 'ally', power: 0, staminaCost: 9, cooldown: 3, effects: [{ effect: 'thorned', chance: 1, on: 'target' }], verb: 'wraps brambles around', description: 'An ally grows thorns that hurt melee attackers.' },
+  { id: 'strangling-vines', name: 'Strangling Vines', kind: 'debuff', element: 'nature', target: 'enemy', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.9, on: 'target' }, { effect: 'stunned', chance: 0.35, on: 'target' }], verb: 'sends strangling vines around', description: 'Vines grip a foe.' },
+
+  // ——— Vampire ———
+  { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 14, staminaCost: 8, cooldown: 0, lifesteal: 0.6, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
+  { id: 'blood-bolt', name: 'Blood Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 8, cooldown: 1, lifesteal: 0.35, verb: 'hurls a bolt of blood at', description: 'A spell that heals its caster.' },
+  { id: 'crimson-feast', name: 'Crimson Feast', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 8, staminaCost: 18, cooldown: 5, lifesteal: 0.5, verb: 'draws the blood out of', description: 'Drains every foe at once.' },
+
+  // ——— Giant bat ———
+  { id: 'leeching-bite', name: 'Leeching Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, lifesteal: 0.5, verb: 'latches on to', description: 'Feeds as it bites.' },
+  { id: 'sonic-shriek', name: 'Sonic Shriek', kind: 'debuff', element: 'air', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 4, staminaDrain: 8, effects: [{ effect: 'slowed', chance: 0.4, on: 'target' }], verb: 'lets out a piercing shriek at', description: 'A shriek that slows and tires every foe.' },
+
+  // ——— Giant mantis ———
+  { id: 'scythe-arms', name: 'Scythe Arms', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, critMod: 0.05, execute: 0.5, verb: 'slices its scythes across', description: 'Hits 50 % harder on a target below 30 % health.' },
+  { id: 'decapitate', name: 'Decapitate', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 12, cooldown: 3, reachBack: true, execute: 1, verb: 'strikes at the neck of', description: 'Reaches any target; deals double damage to one below 30 % health.' },
+  { id: 'mantis-stance', name: 'Mantis Stance', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'freezes into a patient stance', description: 'Waits, sways, hard to hit.' },
+
+  // ——— Ooze ———
+  { id: 'engulf', name: 'Engulf', kind: 'melee', element: 'water', target: 'enemy', power: 11, staminaCost: 6, cooldown: 0, staminaDrain: 14, effects: [{ effect: 'sapped', chance: 0.6, on: 'target' }], verb: 'engulfs', description: 'Drains 14 stamina and may sap the target’s recovery.' },
+  { id: 'sapping-spray', name: 'Sapping Spray', kind: 'spell', element: 'water', target: 'enemyFront', power: 6, staminaCost: 11, cooldown: 4, staminaDrain: 12, effects: [{ effect: 'sapped', chance: 0.8, on: 'target' }], verb: 'sprays enervating slime over', description: 'Drains stamina from the whole enemy front line.' },
+  { id: 'gelatinous-wall', name: 'Gelatinous Wall', kind: 'buff', element: 'water', target: 'self', power: 0, staminaCost: 7, cooldown: 5, effects: [{ effect: 'shielded', chance: 1, on: 'self' }], verb: 'swells into a quivering wall', description: 'Its jelly absorbs the next blows.' },
+
+  // ——— Magma golem ———
+  { id: 'molten-fist', name: 'Molten Fist', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, effects: [{ effect: 'burning', chance: 0.35, on: 'target' }], verb: 'drives a molten fist into', description: 'Rock hot enough to set the wound on fire.' },
+  { id: 'lava-burst', name: 'Lava Burst', kind: 'melee', element: 'fire', target: 'enemyFront', power: 11, staminaCost: 14, cooldown: 4, effects: [{ effect: 'burning', chance: 0.55, on: 'target' }], verb: 'splashes lava over', description: 'Sets the whole enemy front line on fire.' },
+  { id: 'magma-skin', name: 'Magma Skin', kind: 'buff', element: 'fire', target: 'self', power: 0, staminaCost: 6, cooldown: 4, effects: [{ effect: 'fortified', chance: 1, on: 'self', duration: 3 }], verb: 'lets its crust harden', description: 'Takes much less damage for a while.' },
 ];
 
 export const ABILITIES: Record<string, AbilityDef> = Object.fromEntries(list.map((a) => [a.id, a]));

@@ -150,8 +150,12 @@ describe('transfers', () => {
   });
 
   it('selling to an AI offer and releasing with compensation', () => {
+    // AI offers are rare events: try a few worlds until one comes in.
     let g = game('offers');
-    for (let i = 0; i < 18 && !g.offers.length; i++) g = playMatchday(g);
+    for (let w = 0; w < 6 && !g.offers.length; w++) {
+      g = game(`offers-${w}`);
+      for (let i = 0; i < 18 && !g.offers.length; i++) g = playMatchday(g);
+    }
     expect(g.offers.length).toBeGreaterThan(0);
     const o = g.offers[0]!;
     const r = answerOffer(g, o.id, true);

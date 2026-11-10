@@ -117,7 +117,10 @@ tests/       Vitest
   no cross-effect combos. Mechanics: stacking effects (`EffectDef.maxStacks`, `AbilityEffectRef.stacks`; poison up to
   5 doses, dot × stacks), `onMaxStacks` (3 chill charges → frozen, a stun; no chill while frozen), curses
   (`EffectDef.curse`: no countdown, lifted at each break, not cleansable), `AbilityDef.cleanse` (removes harmful
-  non-curse effects, `cleanse` event), `EffectMods.healingTaken`. Validate with `sim:archetypes` (pure styles
+  non-curse effects, `cleanse` event), `EffectMods.healingTaken`; wave 2: burn (short, healing −60 %), bleed
+  (3 wounds, `endsOnHeal`), thorns (`EffectMods.thorns`, `thorns` event, melee only), execution
+  (`AbilityDef.execute`, below `executeBelow` health), stamina drain (`AbilityDef.staminaDrain`, `drain` event,
+  `sapped` halves stamina recovery via `staminaRegenMult`). Validate with `sim:archetypes` (pure styles
   ≈ 35–45 % vs mixed teams, strong/weak match-ups between styles) and price species with `sim:species`.
 - **Saves**: `GameState.version` 3; `loadGame` runs `migrateGame` (v1 → economy, v2 → staff, plans, youth).
 
@@ -158,8 +161,10 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
 - [x] **Play styles, wave 1**: stacking poison, chill → freeze, curses until the break, purification; 8 new species
   (giant spider, giant scorpion, myconid, winter wolf, frost giant, frost wraith, hag, unicorn) → 31 species,
   23 new abilities; lich curses, wendigo chills; `sim:archetypes`. 83 tests.
-  Next waves: burn (less healing), bleed, thorns, life drain, execute, exhaustion; then terror, swarm, area, rage,
-  sacrifice; then AI identities per stable + difficulty chosen at start; encyclopedia; post-match analysis.
+- [x] **Play styles, wave 2**: burn, bleed, thorns, life drain, execution, exhaustion; 9 new species (hellhound,
+  imp, werewolf, bramble horror, vampire, giant bat, giant mantis, ooze, magma golem) → 40 species. Power shown as ✸.
+  Next: wave 3 (terror, swarm, area, rage, sacrifice), then AI identities per stable + difficulty chosen at start;
+  encyclopedia; post-match analysis.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

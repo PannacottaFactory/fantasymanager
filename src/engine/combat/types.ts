@@ -137,7 +137,13 @@ export type MatchEvent =
       aoe: boolean;
       flank: boolean;
       healed?: number;
+      /** Execution bonus applied (target was low on health). */
+      execute?: boolean;
     }
+  /** Thorns: `actor` (the one hit) sends `amount` back to `target` (the melee attacker). */
+  | { type: 'thorns'; round: number; actor: string; target: string; amount: number; hp: number }
+  /** Stamina drained from `target`. */
+  | { type: 'drain'; round: number; actor: string; target: string; ability: string; amount: number; stamina: number }
   | { type: 'heal'; round: number; actor: string; target: string; ability: string; amount: number; targetHp: number }
   | { type: 'buff'; round: number; actor: string; ability: string; targets: string[] }
   | { type: 'debuff'; round: number; actor: string; ability: string; targets: string[]; affected: string[] }

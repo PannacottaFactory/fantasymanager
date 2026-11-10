@@ -180,4 +180,13 @@ export const NAME_CULTURES: Record<string, NameCulture> = {
     surnames: ['Mother Bog', 'the Crooked', 'Toadkisser', 'of the Fen'],
     surnameChance: 0.45,
   },
+  vampire: {
+    style: 'syllables',
+    starts: ['Vlad', 'Cas', 'Ser', 'Mir', 'Lucr', 'Drav', 'Ist', 'Elis'],
+    middles: ['i', 'e', 'an'],
+    ends: ['imir', 'ena', 'ius', 'ova', 'an', 'eska', 'or'],
+    middleChance: 0.35,
+    surnames: ['the Count', 'of the Black Keep', 'Nightblood', 'the Thirsting'],
+    surnameChance: 0.5,
+  },
 };

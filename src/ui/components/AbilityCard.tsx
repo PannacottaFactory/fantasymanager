@@ -59,7 +59,7 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite }
       <div className="ability-stats">
         <span>{abilityKindName(def.kind, lang)}</span>
         {el && el !== 'physical' && <span style={{ color }}>{elementName(el as ElementId, lang)}</span>}
-        {def.power > 0 && <span>{t('ab.power', { n: def.power })}</span>}
+        {def.power > 0 && <span title={t('ab.power.title')}>✸ {def.power}</span>}
         <span className="cost" title={t('ab.cost.title')}>
           ⚡ {def.staminaCost}
         </span>

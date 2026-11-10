@@ -44,6 +44,15 @@ const SPECIES = {
   'frost-wraith': 'floating-ghost',
   hag: 'witch-face',
   unicorn: 'unicorn',
+  hellhound: 'hound',
+  imp: 'imp',
+  werewolf: 'werewolf',
+  'bramble-horror': 'thorny-vine',
+  vampire: 'vampire-dracula',
+  'giant-bat': 'bat',
+  'giant-mantis': 'praying-mantis',
+  ooze: 'slime',
+  'magma-golem': 'golem-head',
 };
 
 /** Role id → icon name. */

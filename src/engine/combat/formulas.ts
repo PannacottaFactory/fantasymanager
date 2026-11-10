@@ -57,7 +57,7 @@ export function hasTraitFlag(c: Combatant, key: keyof TraitCombatEffects): boole
 
 /** Sum (additive mods) or product (multiplier mods) of active effect modifiers. */
 export function effectMod(c: Combatant, key: keyof EffectMods): number {
-  const multiplicative = key === 'damageMult' || key === 'initiativeMult' || key === 'healingTaken';
+  const multiplicative = key === 'damageMult' || key === 'initiativeMult' || key === 'healingTaken' || key === 'staminaRegenMult';
   let v = multiplicative ? 1 : 0;
   for (const e of c.effects) {
     const m = EFFECTS[e.id]?.mods?.[key];
@@ -205,6 +205,11 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   return dmg;
 }
 
+/** Damage multiplier of an execution ability on this target. */
+export function executeMult(ability: AbilityDef, target: Combatant, cfg: GameConfig): number {
+  return ability.execute && hpFraction(target) < cfg.combat.damage.executeBelow ? 1 + ability.execute : 1;
+}
+
 export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOrders, cfg: GameConfig): number {
   const d = cfg.combat.damage;
   const a = defender.attrs;
@@ -236,7 +241,7 @@ export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrder
 
 export function staminaRegen(c: Combatant, cfg: GameConfig): number {
   const s = cfg.combat.stamina;
-  return s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina;
+  return (s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina) * effectMod(c, 'staminaRegenMult');
 }
 
 export function interceptChance(guard: Combatant, cfg: GameConfig): number {

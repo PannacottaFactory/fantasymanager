@@ -1,9 +1,10 @@
 import type { EffectDef } from './schema.ts';
 
 export const EFFECTS: Record<string, EffectDef> = {
+  /** Short and fierce; also halves the healing received. */
   burning: {
-    id: 'burning', name: 'Burning', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.04,
-    description: 'Loses health every round.',
+    id: 'burning', name: 'Burning', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.05,
+    mods: { healingTaken: 0.4 }, description: 'Loses a lot of health every round, and healing received is cut by 60 %.',
   },
   /** Stacks up to 5 doses; each dose drains health every round (armour does not help). */
   poisoned: {
@@ -11,9 +12,10 @@ export const EFFECTS: Record<string, EffectDef> = {
     mods: { damageMult: 0.95 },
     description: 'Loses health every round for each dose (up to 5, armour does not help) and hits a little softer. Every new dose renews the duration.',
   },
+  /** Stacks up to 3 wounds; any healing ability closes them all. */
   bleeding: {
-    id: 'bleeding', name: 'Bleeding', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.03,
-    description: 'Loses health every round.',
+    id: 'bleeding', name: 'Bleeding', kind: 'dot', beneficial: false, defaultDuration: 4, magnitude: 0.025, maxStacks: 3, endsOnHeal: true,
+    description: 'Loses health every round for each wound (up to 3). Any healing stops the bleeding at once.',
   },
   stunned: {
     id: 'stunned', name: 'Stunned', kind: 'stun', beneficial: false, defaultDuration: 1,
@@ -85,6 +87,21 @@ export const EFFECTS: Record<string, EffectDef> = {
   regenerating: {
     id: 'regenerating', name: 'Regenerating', kind: 'hot', beneficial: true, defaultDuration: 3, magnitude: 0.05,
     description: 'Recovers health every round.',
+  },
+  /** Stamina drained: recovers less of it. */
+  sapped: {
+    id: 'sapped', name: 'Sapped', kind: 'mods', beneficial: false, defaultDuration: 3,
+    mods: { staminaRegenMult: 0.5 }, description: 'Recovers half as much stamina each round.',
+  },
+  /** Buff: thorns that hurt melee attackers. */
+  thorned: {
+    id: 'thorned', name: 'Thorns', kind: 'mods', beneficial: true, defaultDuration: 3,
+    mods: { thorns: 0.3 }, description: 'Sends 30 % of the melee damage it takes back to the attacker.',
+  },
+  /** Bramble horror passive. */
+  thornhide: {
+    id: 'thornhide', name: 'Thorn Hide', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { thorns: 0.25 }, description: 'Covered in thorns: sends 25 % of the melee damage it takes back to the attacker.',
   },
   /** Troll passive: permanent, weaker regeneration. */
   trollblood: {
