@@ -25,6 +25,7 @@ Saves use IndexedDB (`idb`, one autosave slot, `src/ui/store/saves.ts`); heavy s
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
+| `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 
 Quality tiers: `novice | regional | professional | elite | legendary`.
 
@@ -105,7 +106,7 @@ tests/       Vitest
   0–100 XP; underneath, one level = 20 points of the hidden aptitude (`ability`, 1–200), which still drives the
   attributes, AI and prices. Max level = level of the potential. Abilities unlock by level (`unlockLevel(minAbility)`,
   `isUnlocked`, used by `getAbilities`). XP per week = training share of the former gain (none while resting /
-  injured) + match XP (`matchXp`: played, starter, rating above 5, KOs, win; stored in `growth.matchXp` by the match
+  injured) + match XP (`matchXp`: played, starter, rating above 5, win — no KO bonus so healers and tanks are not penalised; stored in `growth.matchXp` by the match
   effects), × life stage, capped by the potential. XP feeds the attribute pool by program; each level gained gives
   the player a free point (`growth.freePoints`, `spendFreePoint`, + buttons in the sheet; AI places it by program)
   and `levelUp` / `abilityUnlocked` messages. New creatures start 10–25 % below what their age allows
@@ -239,6 +240,7 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   both line-ups with the abilities seen used, **replays**: `GameState.matchHistory` keeps the last 10 player
   matches (setup snapshot + break decisions; `replayMatch` / `replayDeciders` reproduce them exactly), "Watch
   again" and "Report" in the inbox, `LiveMatch` `replay` mode. 113 tests.
+- UI errors are caught by `ui/components/ErrorBoundary.tsx` (main content and the creature sheet): a message instead of a blank screen.
 - [x] **Levels & XP rework** (10 levels, match + training XP, max level from potential, a free point per level,
   unlocks by level, encyclopedia "Levels and experience" rule, Level column / badge / chart in levels). 115 tests.
   Next (later): phase 6 (save slots, import/export, worker sims).

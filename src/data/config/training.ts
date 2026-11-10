@@ -14,9 +14,10 @@ export const TRAINING_CONFIG = {
   levels: { max: 10, abilityPerLevel: 20, xpPerLevel: 100 },
   /**
    * Experience. Training gives `trainingShare` of the former weekly gain; a match gives
-   * played + starter + (rating − 5) × perRatingPoint + KOs × ko + win (× life stage, up to the potential).
+   * played + starter + (rating − 5) × perRatingPoint + win (× life stage, up to the potential). No KO bonus: it would
+   * favour strikers over healers and tanks; the rating already rewards every role.
    */
-  xp: { trainingShare: 0.6, played: 3, starter: 1, perRatingPoint: 1, ko: 1, win: 1 },
+  xp: { trainingShare: 0.6, played: 3, starter: 1, perRatingPoint: 1, ko: 0, win: 1 },
   /** Intensity: growth multiplier, extra fatigue per week, injury chance per week (× proneness/10). */
   /** Visual progression kept for the player's creatures. */
   progressLog: { recent: 16, history: 72 },

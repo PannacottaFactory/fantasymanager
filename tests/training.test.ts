@@ -167,7 +167,7 @@ describe('levels and experience', () => {
     expect(xp).toBeLessThan(100);
     expect(unlockLevel(90)).toBe(5);
     expect(getAbilities(c).length).toBe(c.speciesId ? (await import('../src/data/species.ts')).SPECIES[c.speciesId]!.abilities.filter((a) => isUnlocked(c, a.minAbility)).length : 0);
-    expect(matchXp({ played: true, starter: true, rating: 8, kos: 1, won: true })).toBeGreaterThan(matchXp({ played: true, starter: false, rating: 5, kos: 0, won: false }));
+    expect(matchXp({ played: true, starter: true, rating: 8, kos: 0, won: true })).toBeGreaterThan(matchXp({ played: true, starter: false, rating: 5, kos: 0, won: false }));
     expect(matchXp({ played: false, starter: false, rating: 9, kos: 3, won: true })).toBe(0);
   });
 

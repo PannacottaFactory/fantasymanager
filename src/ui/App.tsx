@@ -21,6 +21,7 @@ import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
 import { useGame } from './store/gameStore.ts';
 import { NavBar } from './components/NavBar.tsx';
 import { HelpScreen } from './screens/HelpScreen.tsx';
+import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { LiveMatch } from './screens/arena/LiveMatch.tsx';
 import { EncyclopediaScreen } from './screens/EncyclopediaScreen.tsx';
 import { TutorialOverlay } from './tutorial/TutorialOverlay.tsx';
@@ -176,8 +177,14 @@ export function App() {
         </div>
       </header>
       {saveError && <div className="save-error">{t('save.failed')}</div>}
-      <main className="main">{content}</main>
-      {game && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && <GameSheet />}
+      <main className="main">
+        <ErrorBoundary key={`${screen}-${viewing ? 'report' : ''}-${replaying ? 'replay' : ''}`}>{content}</ErrorBoundary>
+      </main>
+      {game && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && (
+        <ErrorBoundary onReset={() => useGame.getState().openSheet(null)}>
+          <GameSheet />
+        </ErrorBoundary>
+      )}
       <TutorialOverlay active={!!game && !newGameOpen && ready && !viewing} />
     </div>
   );

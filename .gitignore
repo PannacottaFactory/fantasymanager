@@ -6,3 +6,4 @@ dist
 !.vscode/extensions.json
 coverage
 sim-output
+ui-shots/

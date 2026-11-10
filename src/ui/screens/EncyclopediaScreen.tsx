@@ -714,7 +714,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     injury: { ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false) },
     levels: {
       max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: cfg.training.xp.played, starter: cfg.training.xp.starter,
-      rating: cfg.training.xp.perRatingPoint, ko: cfg.training.xp.ko, win: cfg.training.xp.win,
+      rating: cfg.training.xp.perRatingPoint, win: cfg.training.xp.win,
       young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining),
     },
   };

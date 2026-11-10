@@ -779,3 +779,6 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
   border: 1px solid var(--good); background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); font-weight: 700;
 }
 .free-points { margin: 4px 0; }
+
+.error-panel { border-left: 4px solid var(--bad); }
+.error-panel pre { white-space: pre-wrap; font-size: 0.857rem; background: var(--panel-2); padding: 6px 8px; border-radius: var(--radius); }

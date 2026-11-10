@@ -19,7 +19,8 @@
     "sim:species": "tsx src/sim/species.ts",
     "sim:archetypes": "tsx src/sim/archetypes.ts",
     "sim:ai": "tsx src/sim/ai.ts",
-    "sim:levers": "tsx src/sim/levers.ts"
+    "sim:levers": "tsx src/sim/levers.ts",
+    "ui:check": "node scripts/ui-check.mjs"
   },
   "dependencies": {
     "idb": "^8.0.4",
@@ -37,6 +38,7 @@
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
+    "playwright": "^1.65.0",
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
