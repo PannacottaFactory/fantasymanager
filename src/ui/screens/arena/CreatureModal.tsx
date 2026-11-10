@@ -16,12 +16,14 @@ import {
 } from '../../../engine/text/localize.ts';
 import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
 import { AbilityCard } from '../../components/AbilityCard.tsx';
-import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip } from '../../components/common.tsx';
+import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip, LevelBadge } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
+import { isUnlocked, levelOf, unlockLevel } from '../../../engine/progression/levels.ts';
+import { attributeCeiling } from '../../../engine/progression/training.ts';
 
 interface Props {
   creature: Creature;
@@ -34,11 +36,14 @@ interface Props {
   extra?: ReactNode;
   /** Attribute changes to show next to the values (own creatures: since the season started). */
   deltas?: Partial<Record<AttributeKey, number>>;
+  /** Own creatures with free points: places one on an attribute (undefined = not allowed). */
+  onSpendPoint?: (k: AttributeKey) => void;
   /** 0–100: below 100, attributes are shown as estimated ranges and private details are hidden. */
   knowledge?: number;
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, knowledge = 100, deltas }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, knowledge = 100, deltas, onSpendPoint }: Props) {
+  const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
   const sp = getSpecies(creature);
@@ -67,6 +72,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           <span>
             {t('cr.overall')} <b>{known ? overallRating(creature) : `${ovr.low}–${ovr.high}`}</b>
           </span>
+          {known && <LevelBadge c={creature} />}
           {known && (
             <span className="muted">{t('cr.hpStamina', { hp: maxHp(creature, DEFAULT_CONFIG), st: maxStamina(creature, DEFAULT_CONFIG) })}</span>
           )}
@@ -91,9 +97,9 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                 key={a.id}
                 id={a.id}
                 elements={sp.elements}
-                locked={(a.minAbility ?? 0) > creature.ability}
-                unlockAt={a.minAbility}
-                current={knowledge >= 100 ? creature.ability : undefined}
+                locked={!isUnlocked(creature, a.minAbility)}
+                unlockAt={unlockLevel(a.minAbility)}
+                current={knowledge >= 100 ? levelOf(creature) : undefined}
                 favorite={favorites.includes(a.id)}
                 onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(a.id) : undefined}
               />
@@ -109,6 +115,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           ))}
         </div>
 
+        {freePoints > 0 && <div className="remark good free-points">{t('lvl.freePoints', { n: freePoints })}</div>}
         <div className="attr-grid">
           {(Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).map((cat) => (
             <div key={cat}>
@@ -121,6 +128,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                     </span>
                     <span className="attr-cell">
                       {known ? <Attr v={creature.attributes[k]} /> : <AttrRange r={attributeRange(creature, k, knowledge)} />}
+                      {freePoints > 0 && creature.attributes[k] < attributeCeiling(creature, k) && (
+                        <button className="plus-btn" title={t('lvl.raise', { attr: attributeText(k, lang).name })} onClick={() => onSpendPoint!(k)}>
+                          +
+                        </button>
+                      )}
                       {known && deltas?.[k] ? (
                         <span className={`attr-delta ${deltas[k]! > 0 ? 'up' : 'down'}`} title={t('cr.sinceSeason')}>
                           {deltas[k]! > 0 ? `▲${deltas[k]}` : `▼${-deltas[k]!}`}

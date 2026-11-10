@@ -22,12 +22,13 @@ import { RoleIcon, SpeciesIcon } from '../icons/Icon.tsx';
 import { encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
 import { KIND_GLYPH } from '../components/AbilityCard.tsx';
+import { unlockLevel } from '../../engine/progression/levels.ts';
 
 const cfg = DEFAULT_CONFIG;
 type Tab = 'species' | 'abilities' | 'effects' | 'traits' | 'roles' | 'elements' | 'attributes' | 'injuries' | 'rules';
 const TABS: Tab[] = ['species', 'abilities', 'effects', 'traits', 'roles', 'elements', 'attributes', 'injuries', 'rules'];
 const ROLE_IDS = Object.keys(ROLES) as RoleId[];
-export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury'] as const;
+export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury', 'levels'] as const;
 
 /** Accent-insensitive, case-insensitive match. */
 const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -278,7 +279,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
               <A to={{ tab: 'abilities', id: a.id }} go={go}>
                 {abilityText(a.id, lang).name}
               </A>{' '}
-              <span className="faint">— {a.minAbility ? e('sp.unlock', { n: a.minAbility }) : e('sp.always')}</span>
+              <span className="faint">— {a.minAbility && unlockLevel(a.minAbility) > 1 ? e('sp.unlock', { n: unlockLevel(a.minAbility) }) : e('sp.always')}</span>
             </li>
           );
         })}
@@ -421,7 +422,7 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
             <A to={{ tab: 'species', id: l.sid }} go={go}>
               {speciesText(l.sid, lang).name}
             </A>{' '}
-            <span className="faint">— {l.min ? e('sp.unlock', { n: l.min }) : e('sp.always')}</span>
+            <span className="faint">— {l.min && unlockLevel(l.min) > 1 ? e('sp.unlock', { n: unlockLevel(l.min) }) : e('sp.always')}</span>
           </>
         ))}
       />
@@ -711,6 +712,11 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       swing: p(c.morale.performanceSwing), hes: c.morale.hesitateBelow, flee: c.morale.fleeBelow, fleeHp: p(c.morale.fleeHpBelow),
     },
     injury: { ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false) },
+    levels: {
+      max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: cfg.training.xp.played, starter: cfg.training.xp.starter,
+      rating: cfg.training.xp.perRatingPoint, ko: cfg.training.xp.ko, win: cfg.training.xp.win,
+      young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining),
+    },
   };
   return (
     <div>

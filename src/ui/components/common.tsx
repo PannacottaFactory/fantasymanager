@@ -7,6 +7,9 @@ import { elementName, speciesName, traitText } from '../../engine/text/localize.
 import { attrClass, initials } from '../format.ts';
 import { useT } from '../i18n/index.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
+import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.ts';
+import type { Creature } from '../../engine/model.ts';
+import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 
 export function Attr({ v }: { v: number }) {
   return <span className={`attr ${attrClass(v)}`}>{v}</span>;
@@ -148,5 +151,24 @@ export function Seg<T extends string>({ value, options, onChange }: { value: T; 
         </button>
       ))}
     </div>
+  );
+}
+
+/** Level 1–10 with the XP bar of the current level and the creature's maximum level (own creatures). */
+export function LevelBadge({ c, compact }: { c: Creature; compact?: boolean }) {
+  const { t } = useT();
+  const lv = levelOf(c);
+  const max = maxLevelOf(c);
+  const xp = xpInLevel(c);
+  const atMax = lv >= max;
+  const per = DEFAULT_CONFIG.training.levels.xpPerLevel;
+  return (
+    <span className="level-badge" title={atMax ? t('lvl.atMax', { n: lv }) : t('lvl.tip', { n: lv, xp, per, max })}>
+      <b>{t('lvl.short', { n: lv })}</b>
+      <span className="xp-bar">
+        <i style={{ width: atMax ? '100%' : `${(100 * xp) / per}%` }} className={atMax ? 'max' : ''} />
+      </span>
+      {!compact && <span className="faint">{atMax ? t('lvl.max') : t('lvl.of', { max })}</span>}
+    </span>
   );
 }

@@ -99,7 +99,9 @@ export function generateCreature(
   );
   const lc = species.lifeCurve;
   const age = opts.age ?? rng.int(lc.minAge, Math.round(lc.minAge + (lc.maxAge - lc.minAge) * g.ageSpanMax));
-  const ability = clamp(Math.round(potential * ageAbilityFactor(species, age, cfg)), g.minAbility, potential);
+  // Room to grow: a new creature is a little below what its age allows, so it can still level up.
+  const room = 1 - rng.range(g.headroom.min, g.headroom.max);
+  const ability = clamp(Math.round(potential * ageAbilityFactor(species, age, cfg) * room), g.minAbility, potential);
   const c = g.condition;
   return {
     id: makeId(rng, 'cr'),

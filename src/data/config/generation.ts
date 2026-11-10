@@ -18,6 +18,8 @@ export const GENERATION_CONFIG = {
   mentalAbilityWeight: 0.55,
   /** Age distribution of generated (non-youth) creatures: fraction of span minAge → maxAge. */
   ageSpanMax: 0.75,
+  /** New creatures start this share below what their age allows (room to level up): uniform min–max. */
+  headroom: { min: 0.1, max: 0.25 },
   /** Probability of having 0, 1, 2, 3 traits. */
   traitCountWeights: [0.15, 0.45, 0.3, 0.1],
   hidden: { mean: 10, sd: 4 },

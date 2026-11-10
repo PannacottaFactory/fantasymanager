@@ -6,6 +6,7 @@ import { SPECIES } from '../../data/species.ts';
 import type { AbilityDef, RoleId, SpeciesDef } from '../../data/schema.ts';
 import type { GameConfig } from '../../data/config/index.ts';
 import type { Creature } from '../model.ts';
+import { isUnlocked } from '../progression/levels.ts';
 
 export function getSpecies(creature: Creature): SpeciesDef {
   const s = SPECIES[creature.speciesId];
@@ -15,7 +16,7 @@ export function getSpecies(creature: Creature): SpeciesDef {
 
 export function getAbilities(creature: Creature): AbilityDef[] {
   return getSpecies(creature)
-    .abilities.filter((a) => (a.minAbility ?? 0) <= creature.ability)
+    .abilities.filter((a) => isUnlocked(creature, a.minAbility))
     .map((a) => {
       const def = ABILITIES[a.id];
       if (!def) throw new Error(`Unknown ability ${a.id}`);

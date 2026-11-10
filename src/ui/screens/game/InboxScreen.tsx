@@ -14,6 +14,7 @@ import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { BadgeIcon } from '../../icons/Icon.tsx';
+import { levelOfAbility, xpPerAbility } from '../../../engine/progression/levels.ts';
 
 /** Message families: each has a colour and a symbol in the inbox. */
 export type MessageCategory = 'match' | 'medical' | 'market' | 'club' | 'squad' | 'competition' | 'scouting';
@@ -52,6 +53,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'retired':
     case 'trainingReport':
     case 'abilityUnlocked':
+    case 'levelUp':
     case 'coachHired':
     case 'friendLeft':
     case 'relation':
@@ -147,11 +149,24 @@ function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: s
           t('msg.trainingReport.intro', { weeks: m.weeks ?? 6 }),
           ...m.items.map((x) => {
             const moves = (x.attrs ?? []).map((a) => `${attributeText(a.k, tr.lang).name} ${a.d > 0 ? '+' : ''}${a.d}`).join(', ');
-            const apt = x.abilityFrom !== undefined && x.abilityTo !== undefined ? t('msg.trainingReport.aptitude', { from: x.abilityFrom, to: x.abilityTo }) : '';
+            const apt =
+              x.abilityFrom !== undefined && x.abilityTo !== undefined
+                ? t('msg.trainingReport.xp', {
+                    xp: Math.round((x.abilityTo - x.abilityFrom) * xpPerAbility()),
+                    from: levelOfAbility(x.abilityFrom),
+                    to: levelOfAbility(x.abilityTo),
+                  })
+                : '';
             return `• ${t('msg.trainingReport.line', { name: x.name, n: x.gain, attrs: moves || '—', aptitude: apt })}`;
           }),
           t('msg.trainingReport.outro'),
         ].join('\n'),
+        tone: 'good',
+      };
+    case 'levelUp':
+      return {
+        title: t('msg.levelUp.title', { name: m.name, n: m.level }),
+        body: t('msg.levelUp.body', { name: m.name, n: m.level, p: m.points }),
         tone: 'good',
       };
     case 'abilityUnlocked':

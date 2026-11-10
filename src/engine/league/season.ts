@@ -14,6 +14,7 @@ import type { Team } from '../model.ts';
 import { buildReport } from '../report/report.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
 import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
+import { matchXp } from '../progression/levels.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
 import { injuryWeeksFactor, startingFacilities, weeklyFacilities } from '../club/facilities.ts';
@@ -243,6 +244,9 @@ function applyMatchEffects(team: Team, result: MatchResult, side: Side, injuryFa
     }
     if (!pm.played) continue;
     const st = ratings.get(c.id);
+    // Experience from the fight (turned into progress by this week's training).
+    const g = (c.growth ??= { ability: 0, pool: 0, season: 0 });
+    g.matchXp = (g.matchXp ?? 0) + matchXp({ played: true, starter: !!result.roster[c.id]?.starter, rating: st?.rating ?? 5, kos: st?.kos ?? 0, won }, cfg);
     let morale = cond.morale + moraleDelta;
     if (report.mvp === c.id) morale += lc.mvpMorale;
     cond.morale = clamp(Math.round(morale), 0, 100);

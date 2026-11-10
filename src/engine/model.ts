@@ -68,6 +68,10 @@ export interface CreatureGrowth {
   pool: number;
   /** Attribute points gained (− lost) this season. */
   season: number;
+  /** XP earned in this week's match, turned into progress by the weekly training. */
+  matchXp?: number;
+  /** Player's creatures: attribute points to place by hand (one per level gained). */
+  freePoints?: number;
   // ——— Player's creatures only (visual progression) ———
   /** Attributes when the season started (or when the creature joined). */
   seasonStart?: Partial<Record<AttributeKey, number>>;

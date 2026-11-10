@@ -101,10 +101,16 @@ tests/       Vitest
   ageing (+1 year, decline past the prime, retirement past maxAge) → expired contracts leave (player) or are
   renewed/released (AI) → brood of 2–4 youngsters (player decides in Training; AI keeps the promising ones) →
   new coach market → `ensureSquads` keeps every squad ≥ 9.
-- **Progression** (phase 4, `data/config/training.ts`): weekly ability gain = gap to potential × rate × life stage
-  × professionalism × intensity × coaches; it feeds a pool of attribute points (`Creature.growth.pool`), each whole
-  point going to an attribute drawn by program weight (so progress is visible). Attributes are capped by the
-  species range at full potential (+2). Ageing uses the same mechanism with negative amounts.
+- **Levels & XP** (`engine/progression/levels.ts`, `cfg.training.levels / xp`): the player sees a level 1–10 and
+  0–100 XP; underneath, one level = 20 points of the hidden aptitude (`ability`, 1–200), which still drives the
+  attributes, AI and prices. Max level = level of the potential. Abilities unlock by level (`unlockLevel(minAbility)`,
+  `isUnlocked`, used by `getAbilities`). XP per week = training share of the former gain (none while resting /
+  injured) + match XP (`matchXp`: played, starter, rating above 5, KOs, win; stored in `growth.matchXp` by the match
+  effects), × life stage, capped by the potential. XP feeds the attribute pool by program; each level gained gives
+  the player a free point (`growth.freePoints`, `spendFreePoint`, + buttons in the sheet; AI places it by program)
+  and `levelUp` / `abilityUnlocked` messages. New creatures start 10–25 % below what their age allows
+  (`generation.headroom`) so they can level up; the league starts weaker (~92) and settles at the same plateau.
+  Attributes are capped by the species range at full potential (+2). Ageing uses the same mechanism, negative.
 - **Roles** (`cfg.combat.roles`): each role has a bonus and a cost (tank +armour −damage, striker +melee −armour,
   caster +spells −armour, support +healing −damage, skirmisher +ranged/+melee −armour). Bonuses scale with
   `roleFactor` (role fit, 0.78–1.2); outside the species' natural roles (`Combatant.naturalRole`) damage and healing
@@ -233,6 +239,8 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   both line-ups with the abilities seen used, **replays**: `GameState.matchHistory` keeps the last 10 player
   matches (setup snapshot + break decisions; `replayMatch` / `replayDeciders` reproduce them exactly), "Watch
   again" and "Report" in the inbox, `LiveMatch` `replay` mode. 113 tests.
+- [x] **Levels & XP rework** (10 levels, match + training XP, max level from potential, a free point per level,
+  unlocks by level, encyclopedia "Levels and experience" rule, Level column / badge / chart in levels). 115 tests.
   Next (later): phase 6 (save slots, import/export, worker sims).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 

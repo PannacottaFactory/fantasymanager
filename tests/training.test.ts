@@ -150,3 +150,41 @@ describe('visual progression', () => {
     if (report && report.kind === 'trainingReport') expect(report.items.some((x) => (x.attrs?.length ?? 0) > 0)).toBe(true);
   });
 });
+
+describe('levels and experience', () => {
+  it('maps aptitude to levels 1–10 with 100 XP per level, and abilities unlock by level', async () => {
+    const { levelOfAbility, xpInLevel, unlockLevel, isUnlocked, matchXp } = await import('../src/engine/progression/levels.ts');
+    const { getAbilities } = await import('../src/engine/creature/derived.ts');
+    const { generateCreature } = await import('../src/engine/creature/generate.ts');
+    const { Rng } = await import('../src/core/rng.ts');
+    expect(levelOfAbility(1)).toBe(1);
+    expect(levelOfAbility(20)).toBe(1);
+    expect(levelOfAbility(21)).toBe(2);
+    expect(levelOfAbility(200)).toBe(10);
+    const c = generateCreature(new Rng(3), { quality: 'professional' });
+    const xp = xpInLevel(c);
+    expect(xp).toBeGreaterThanOrEqual(0);
+    expect(xp).toBeLessThan(100);
+    expect(unlockLevel(90)).toBe(5);
+    expect(getAbilities(c).length).toBe(c.speciesId ? (await import('../src/data/species.ts')).SPECIES[c.speciesId]!.abilities.filter((a) => isUnlocked(c, a.minAbility)).length : 0);
+    expect(matchXp({ played: true, starter: true, rating: 8, kos: 1, won: true })).toBeGreaterThan(matchXp({ played: true, starter: false, rating: 5, kos: 0, won: false }));
+    expect(matchXp({ played: false, starter: false, rating: 9, kos: 3, won: true })).toBe(0);
+  });
+
+  it('level-ups give the player points to place, which raise an attribute', async () => {
+    const { newGame, playMatchday, playerTeam } = await import('../src/engine/league/season.ts');
+    const { spendFreePoint } = await import('../src/engine/progression/training.ts');
+    let g = newGame({ seed: 'levels', teamName: 'Me', lang: 'en' });
+    for (let i = 0; i < 18 && !g.inbox.some((m) => m.kind === 'levelUp'); i++) g = playMatchday(g);
+    const up = g.inbox.find((m) => m.kind === 'levelUp');
+    expect(up).toBeDefined();
+    if (!up || up.kind !== 'levelUp') return;
+    const c = playerTeam(g).creatures.find((x) => x.id === up.creatureId)!;
+    expect(c.growth!.freePoints).toBeGreaterThan(0);
+    const key = (Object.keys(c.attributes) as (keyof typeof c.attributes)[]).find((k) => c.attributes[k] < 15)!;
+    const next = spendFreePoint(g, c.id, key);
+    const after = playerTeam(next).creatures.find((x) => x.id === c.id)!;
+    expect(after.attributes[key]).toBe(c.attributes[key] + 1);
+    expect(after.growth!.freePoints).toBe(c.growth!.freePoints! - 1);
+  });
+});

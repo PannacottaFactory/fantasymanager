@@ -82,7 +82,9 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
       items: { creatureId: string; name: string; gain: number; attrs?: { k: AttributeKey; d: number }[]; abilityFrom?: number; abilityTo?: number }[];
       weeks?: number;
     }
+  /** `ability` = level at which it unlocked. */
   | { kind: 'abilityUnlocked'; creatureId: string; name: string; abilityId: string; ability: number }
+  | { kind: 'levelUp'; creatureId: string; name: string; level: number; points: number }
   | { kind: 'coachHired'; name: string; domain: AttributeCategory; quality: number }
   // ——— Phase 5: divisions, cup, club ———
   | { kind: 'cupDraw'; round: number; opponent: string; home: boolean }

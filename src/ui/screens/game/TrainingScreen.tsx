@@ -9,7 +9,7 @@ import { coachFactor, dismissYouth, keepYouth, lifeStage, planOf, setPlan, youth
 import { abilityText, attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
 import { SPECIES } from '../../../data/species.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
-import { Bar, Crest, ElementDots, Stars } from '../../components/common.tsx';
+import { Bar, Crest, ElementDots, LevelBadge, Stars } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -17,6 +17,7 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
+import { levelOf, maxLevelOf, unlockLevel } from '../../../engine/progression/levels.ts';
 
 const STAGE_KEY = { young: 'cr.developing', prime: 'cr.prime', declining: 'cr.declining' } as const;
 
@@ -140,31 +141,24 @@ export function TrainingScreen() {
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
     { key: 'pot', label: t('col.potential'), title: t('col.potential.title'), sort: (c) => c.potential, render: (c) => <Stars value={potentialStars(c, 100)} /> },
     {
-      key: 'aptitude',
-      label: t('col.aptitude'),
-      title: t('col.aptitude.title'),
+      key: 'level',
+      label: t('col.level'),
+      title: t('col.level.title'),
       sort: (c) => c.ability,
-      render: (c) => (
-        <span className="apt-cell" title={t('train.aptitudeTip', { a: c.ability, p: c.potential })}>
-          <span className="apt-bar">
-            <i className="apt-pot" style={{ width: `${(c.potential / 200) * 100}%` }} />
-            <i className="apt-now" style={{ width: `${(c.ability / 200) * 100}%` }} />
-          </span>
-          <span className="mono">{c.ability}</span>
-        </span>
-      ),
+      render: (c) => <LevelBadge c={c} />,
     },
     {
       key: 'next',
       label: t('col.nextAbility'),
       title: t('col.nextAbility.title'),
-      sort: (c) => nextUnlock(c)?.min ?? 999,
+      sort: (c) => nextUnlock(c)?.level ?? 99,
       render: (c) => {
         const n = nextUnlock(c);
         if (!n) return <span className="faint">{t('train.allUnlocked')}</span>;
+        const out = n.level > maxLevelOf(c);
         return (
-          <span title={t('train.nextTip', { ability: abilityText(n.id, lang).name, n: n.min })}>
-            {abilityText(n.id, lang).name} <span className="faint">({t('train.nextIn', { n: n.min - c.ability })})</span>
+          <span title={t('train.nextTip', { ability: abilityText(n.id, lang).name, n: n.level })} className={out ? 'faint' : ''}>
+            {abilityText(n.id, lang).name} <span className="faint">({out ? t('train.beyondMax', { n: n.level }) : t('lvl.short', { n: n.level })})</span>
           </span>
         );
       },
@@ -264,8 +258,12 @@ export function TrainingScreen() {
   );
 }
 
-/** The next ability this creature will unlock, and at which aptitude. */
-function nextUnlock(c: Creature): { id: string; min: number } | null {
-  const next = SPECIES[c.speciesId]?.abilities.filter((a) => (a.minAbility ?? 0) > c.ability).sort((a, b) => (a.minAbility ?? 0) - (b.minAbility ?? 0))[0];
-  return next ? { id: next.id, min: next.minAbility ?? 0 } : null;
+/** The next ability this creature will unlock, and at which level. */
+function nextUnlock(c: Creature): { id: string; level: number } | null {
+  const lv = levelOf(c);
+  const next = (SPECIES[c.speciesId]?.abilities ?? [])
+    .map((a) => ({ id: a.id, level: unlockLevel(a.minAbility) }))
+    .filter((a) => a.level > lv)
+    .sort((a, b) => a.level - b.level)[0];
+  return next ?? null;
 }

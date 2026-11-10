@@ -37,7 +37,7 @@ const en = {
   'sp.priceText': '×{v} the value of an average creature of the same level',
   'sp.attributes': 'Attributes (weak specimen → outstanding one, on 1–20)',
   'sp.abilities': 'Abilities',
-  'sp.unlock': 'from ability {n}/200',
+  'sp.unlock': 'from level {n}',
   'sp.always': 'from the start',
   'sp.traits': 'Character',
   'sp.traitsMore': 'Often',
@@ -222,6 +222,9 @@ const en = {
   'ru.morale.title': 'Morale',
   'ru.morale.body':
     'Morale (0–100) starts from the creature’s mood and form, and shifts in the fight: ally knocked out {allyKo}, enemy knocked out +{enemyKo}, heavy hit taken {heavy}, critical hit dealt +{crit}. Courage softens losses. A leader (leadership {lead}+) steadies the team every round.\nMorale changes performance by up to ±{swing} %. Below {hes} a creature may hesitate (lose its turn); below {flee} and under {fleeHp} % health it may flee the arena.',
+  'ru.levels.title': 'Levels and experience',
+  'ru.levels.body':
+    'Creatures have a level from 1 to {max}; {xp} XP make a level. Their maximum level is set by their potential. Abilities unlock at given levels.\nXP per match: taking part {played}, starter +{starter}, +{rating} per rating point above 5, +{ko} per KO, +{win} for a win. Training adds a little every week (none while resting or injured). XP is multiplied by the life stage: young ×{young}, at the peak ×{prime}, past the prime ×{old}.\nXP becomes attribute points as it comes, spread by the training program; each level gained also gives one point placed by hand (AI stables place theirs by their program).',
   'ru.injury.title': 'Injuries',
   'ru.injury.body':
     'A creature knocked out has a {ko} % chance of injury, a heavy hit (over {heavyHit} % of its health) {heavy} % — modified by its hidden injury proneness, its traits and its fatigue. Injuries keep a creature out for weeks; the infirmary shortens them.',
@@ -260,7 +263,7 @@ const fr: Record<EncKey, string> = {
   'sp.priceText': '×{v} la valeur d’une créature moyenne de même niveau',
   'sp.attributes': 'Attributs (spécimen faible → exceptionnel, sur 1–20)',
   'sp.abilities': 'Capacités',
-  'sp.unlock': 'dès l’aptitude {n}/200',
+  'sp.unlock': 'dès le niveau {n}',
   'sp.always': 'dès le départ',
   'sp.traits': 'Caractère',
   'sp.traitsMore': 'Souvent',
@@ -438,6 +441,9 @@ const fr: Record<EncKey, string> = {
   'ru.morale.title': 'Moral',
   'ru.morale.body':
     'Le moral (0–100) part de l’humeur et de la forme de la créature, puis évolue en combat : allié mis KO {allyKo}, ennemi mis KO +{enemyKo}, gros coup reçu {heavy}, coup critique porté +{crit}. Le courage amortit les pertes. Un meneur (leadership {lead}+) rassure l’équipe à chaque round.\nLe moral change les performances jusqu’à ±{swing} %. Sous {hes}, une créature peut hésiter (perdre son tour) ; sous {flee} et sous {fleeHp} % de vie, elle peut fuir l’arène.',
+  'ru.levels.title': 'Niveaux et expérience',
+  'ru.levels.body':
+    'Les créatures ont un niveau de 1 à {max} ; {xp} XP font un niveau. Leur niveau maximum dépend de leur potentiel. Les capacités se débloquent à certains niveaux.\nXP par match : participer {played}, titulaire +{starter}, +{rating} par point de note au-dessus de 5, +{ko} par KO, +{win} pour une victoire. L’entraînement en ajoute un peu chaque semaine (rien en repos ou blessé). L’XP est multipliée selon l’âge : jeune ×{young}, à l’apogée ×{prime}, après l’apogée ×{old}.\nL’XP se transforme au fur et à mesure en points d’attributs, répartis selon le programme d’entraînement ; chaque niveau gagné donne aussi un point placé à la main (les écuries IA placent les leurs selon leur programme).',
   'ru.injury.title': 'Blessures',
   'ru.injury.body':
     'Une créature mise KO a {ko} % de risque de blessure, un gros coup (plus de {heavyHit} % de sa vie) {heavy} % — modifiés par sa fragilité cachée, ses traits et sa fatigue. Les blessures écartent une créature pendant des semaines ; l’infirmerie les raccourcit.',

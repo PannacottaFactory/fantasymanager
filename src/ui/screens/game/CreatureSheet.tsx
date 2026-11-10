@@ -18,8 +18,9 @@ import { Knowledge, Stars } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
-import { planOf, setPlan } from '../../../engine/progression/training.ts';
+import { planOf, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
 import { IntensitySelect, ProgramSelect } from './TrainingScreen.tsx';
+import { maxLevelOf } from '../../../engine/progression/levels.ts';
 
 const YEARS = [1, 2, 3];
 
@@ -255,12 +256,14 @@ function ProgressPanel({ creature }: { creature: Creature }) {
   const w = 320;
   const h = 90;
   const pad = { l: 28, r: 6, t: 6, b: 14 };
-  const values = hist.map((x) => x[2]);
-  const lo = Math.max(1, Math.min(...values, creature.potential) - 10);
-  const hi = Math.min(200, Math.max(...values, creature.potential) + 5);
+  const lvl = (a: number) => 1 + (a - 1) / DEFAULT_CONFIG.training.levels.abilityPerLevel;
+  const values = hist.map((x) => lvl(x[2]));
+  const ceiling = maxLevelOf(creature);
+  const lo = Math.max(1, Math.floor(Math.min(...values) - 0.5));
+  const hi = Math.min(DEFAULT_CONFIG.training.levels.max + 1, Math.ceil(Math.max(...values, ceiling + 1)));
   const x = (i: number) => pad.l + (hist.length <= 1 ? 0 : (i / (hist.length - 1)) * (w - pad.l - pad.r));
   const y = (v: number) => pad.t + (1 - (v - lo) / Math.max(1, hi - lo)) * (h - pad.t - pad.b);
-  const d = hist.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[2]).toFixed(1)}`).join(' ');
+  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
   const when = (s: number, wk: number) => (wk === 0 ? t('cr.offseason', { s }) : t('cr.when', { s, w: wk }));
   const shown = hover ?? hist.length - 1;
   return (
@@ -269,20 +272,23 @@ function ProgressPanel({ creature }: { creature: Creature }) {
         <b>{t('cr.progress')}</b>
         {hist[shown] && (
           <span className="muted" style={{ fontSize: '0.857rem' }}>
-            {when(hist[shown]![0], hist[shown]![1])} · {t('cr.abilityAt', { n: hist[shown]![2] })} · <span className="faint">{t('cr.potentialLine', { n: creature.potential })}</span>
+            {when(hist[shown]![0], hist[shown]![1])} · {t('lvl.short', { n: Math.floor(values[shown]!) })} · <span className="faint">{t('cr.potentialLine', { n: ceiling })}</span>
           </span>
         )}
       </div>
       {hist.length >= 2 && (
         <svg className="ana-chart" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={t('cr.progress')} onMouseLeave={() => setHover(null)} style={{ maxWidth: 420 }}>
-          <line x1={pad.l} x2={w - pad.r} y1={y(creature.potential)} y2={y(creature.potential)} stroke="var(--faint)" strokeDasharray="4 3" />
-          {[lo, hi].map((v) => (
-            <text key={v} x={pad.l - 4} y={y(v) + 4} textAnchor="end" className="ana-axis">
-              {Math.round(v)}
-            </text>
+          <line x1={pad.l} x2={w - pad.r} y1={y(lvl(creature.potential))} y2={y(lvl(creature.potential))} stroke="var(--faint)" strokeDasharray="4 3" />
+          {Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).map((v) => (
+            <g key={v}>
+              <line x1={pad.l} x2={w - pad.r} y1={y(v)} y2={y(v)} stroke="var(--border)" strokeWidth={0.5} />
+              <text x={pad.l - 4} y={y(v) + 4} textAnchor="end" className="ana-axis">
+                {v}
+              </text>
+            </g>
           ))}
           <path d={d} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" />
-          <circle cx={x(shown)} cy={y(hist[shown]![2])} r={4} fill="var(--accent)" stroke="var(--panel)" strokeWidth={2} />
+          <circle cx={x(shown)} cy={y(values[shown]!)} r={4} fill="var(--accent)" stroke="var(--panel)" strokeWidth={2} />
           {hist.map((_, i) => (
             <rect key={i} x={x(i) - (w - pad.l - pad.r) / Math.max(1, hist.length - 1) / 2} y={0} width={(w - pad.l - pad.r) / Math.max(1, hist.length - 1)} height={h} fill="transparent" onMouseEnter={() => setHover(i)} />
           ))}
@@ -317,7 +323,7 @@ function Sheet({ id }: { id: string }) {
   const tr = useT();
   const { t, money } = tr;
   const game = useGame((s) => s.game)!;
-  const { openSheet, setPlayerTeam } = useGame.getState();
+  const { openSheet, setPlayerTeam, update } = useGame.getState();
   const kid = game.youth.find((c) => c.id === id);
   if (kid) return <CreatureModal creature={kid} onClose={() => openSheet(null)} showHidden={false} />;
   const loc = locate(game, id);
@@ -359,6 +365,7 @@ function Sheet({ id }: { id: string }) {
       showHidden={false}
       knowledge={k}
       deltas={own ? seasonDeltas(creature) : undefined}
+      onSpendPoint={own ? (k) => update((g) => spendFreePoint(g, id, k)) : undefined}
       favorites={favorites}
       onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
       extra={extra}
