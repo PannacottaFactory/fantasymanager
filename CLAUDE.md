@@ -211,7 +211,16 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   `shiftAbility` through a logger; `snapshotSeasonStart` at game and season start): ▲/▼ next to attributes changed
   since the season started, ability curve with the potential as a ceiling and latest changes in the sheet, trend
   sparkline in Training, attributes named in the training report. 107 tests.
-  Next: more situational value for orders; phase 6 (save slots, worker sims).
+- [x] **Orders that matter**: ascendancy between approaches (`cfg.combat.orders.ascendancy`: cautious > aggressive >
+  balanced > cautious, +8 % damage), reading managers counter the opponent's approach (pre-match and at breaks), the
+  break panel shows the opponent's approach and who has the upper hand, the assistant's suggestion reads too.
+  **Sim bug fixed**: mirror matches cloned teams with identical creature ids (corrupting `sim:levers`/`sim:ai`);
+  `cloneTeam()` gives fresh ids and `Combat` now refuses duplicate ids. Measured against varied opponents
+  (`sim:levers`, paired with/without): counter approach +14, aggressive vs balanced +16, wrong roles −17, all back
+  line −16, best starters benched −13, tired squad (60) −22, no break management −36. Fatigue softened (pre-match
+  loss 50 %, penalties below 50 % stamina, max −35 %), base HP 60 (league KO ≈ 49 %). AI managers now matter
+  (tactician vs plain 64 %); autopilot finishes ~4th / 7th / 8–9th (easy / normal / hard). 110 tests.
+  Next (later): phase 6 (save slots, import/export, worker sims).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot
@@ -219,7 +228,9 @@ Tools: `sim:batch` (match stats), `sim:species` (strength of each species at equ
 `valueMult`), `sim:balance -- --seasons 10` (long-run drift: ability/potential, ages, pre-match fatigue,
 injuries, KO rate, treasuries per division, reputation, transfers).
 
-Professional vs professional (600 matches): ~17 rounds, ~57 % KO finishes, ~0.75 injuries per match.
+Professional vs professional (600 matches): ~17 rounds, ~59 % KO finishes, ~0.75 injuries per match (full league
+season ≈ 49 % KO). At equal squads one attribute point everywhere ≈ 93 % wins: measure levers against varied
+opponents, never mirrors (and never with duplicate ids).
 Long run (balance pass, after phase 5): average ability ~97 → ~104 and potential ~101 → ~113 over 8–10 seasons,
 then flat; starters ~20–27 % fatigued before a match (rotation matters); league KO rate 40–55 %; treasuries stay
 positive (AI stables in the red sell to richer ones; rich ones buy and build more); reputation reverts towards

@@ -363,6 +363,8 @@ export class Combat {
       lastDamageElement: 'physical',
     };
     c.favorites = favorites.filter((id) => c.abilities.includes(id)).slice(0, this.cfg.combat.favorites.max);
+    // Ids index the whole fight (targets, effect sources, the report): two creatures can never share one.
+    if (this.byId.has(c.id)) throw new Error(`Duplicate creature id ${c.id} in a match`);
     this.combatants.push(c);
     this.byId.set(c.id, c);
     this.roster[c.id] = {
@@ -755,7 +757,7 @@ export class Combat {
     const elementMult = elementMultiplier(element, target.elements, cfg);
     const crit = this.rng.chance(critChance(actor, ability, orders, cfg));
     const d = cfg.combat.damage;
-    let dmg = rawDamage(actor, ability, { orders, behind: this.ai.behind(actor), solo: !combo }, cfg);
+    let dmg = rawDamage(actor, ability, { orders, foeOrders: this.sides[target.side].orders, behind: this.ai.behind(actor), solo: !combo }, cfg);
     dmg *= this.rng.range(1 - d.variance, 1 + d.variance);
     dmg *= elementMult;
     if (crit) dmg *= d.critMult;

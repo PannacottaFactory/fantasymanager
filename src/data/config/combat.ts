@@ -3,7 +3,7 @@ import type { RoleId, SizeClass } from '../schema.ts';
 /** All combat balancing numbers. Attributes are on a 1–20 scale. */
 export const COMBAT_CONFIG = {
   hp: {
-    base: 55,
+    base: 60,
     perToughness: 3,
     perStrength: 1,
     sizeMult: { small: 0.8, medium: 1, large: 1.35, huge: 1.75 } as Record<SizeClass, number>,
@@ -18,13 +18,13 @@ export const COMBAT_CONFIG = {
     restMult: 4,
     sizeCostMult: { small: 0.85, medium: 1, large: 1.15, huge: 1.3 } as Record<SizeClass, number>,
     /** Pre-match fatigue (0–100) removes this fraction of the pool at 100. */
-    preMatchFatigueLoss: 0.7,
+    preMatchFatigueLoss: 0.5,
   },
   fatigue: {
     /** Penalties start when stamina falls below this fraction of max. */
-    threshold: 0.6,
+    threshold: 0.5,
     /** Penalty (hit, damage, initiative) at 0 stamina. */
-    maxPenalty: 0.4,
+    maxPenalty: 0.35,
     /** Injury chances × (1 + pre-match fatigue/100 × this). */
     injuryFromFatigue: 1,
     /** "Exhausted" announced below this fraction. */
@@ -126,9 +126,14 @@ export const COMBAT_CONFIG = {
     /** chance = base × (1 − discipline/20)^exponent × trait multipliers. */
     disobeyExponent: 1.5,
     /** Aggression trades stamina for damage: strong for a few rounds, ruinous over a whole match. */
-    aggressive: { damageMult: 1.18, mitigation: -0.03, staminaCostMult: 1.45, restBias: -0.3 },
+    aggressive: { damageMult: 1.2, mitigation: -0.04, staminaCostMult: 1.25, restBias: -0.3 },
     balanced: { damageMult: 1, mitigation: 0, staminaCostMult: 1, restBias: 0 },
-    cautious: { damageMult: 0.9, mitigation: 0.07, staminaCostMult: 0.8, restBias: 0.35 },
+    cautious: { damageMult: 0.88, mitigation: 0.05, staminaCostMult: 0.9, restBias: 0.35 },
+    /**
+     * Ascendancy: an approach that "beats" the opponent's deals more damage.
+     * Cautious thwarts aggressive, aggressive overwhelms balanced, balanced wears down cautious.
+     */
+    ascendancy: { bonus: 0.08, beats: { cautious: 'aggressive', aggressive: 'balanced', balanced: 'cautious' } as Record<'cautious' | 'balanced' | 'aggressive', 'cautious' | 'balanced' | 'aggressive'> },
     riskHigh: { critBonus: 0.02, hitBonus: -0.03, bigAbilityBias: 0.3 },
     riskLow: { critBonus: -0.01, hitBonus: 0.02, bigAbilityBias: -0.3 },
   },

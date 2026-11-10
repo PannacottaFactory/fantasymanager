@@ -6,7 +6,7 @@ import type { GameConfig } from '../../data/config/index.ts';
 import type { AiManagerStyle, TeamOrders } from '../model.ts';
 import { counterTarget } from '../team/identity.ts';
 import { other, type Combat } from './combat.ts';
-import { hpFraction, staminaFraction } from './formulas.ts';
+import { counterApproach, hpFraction, staminaFraction } from './formulas.ts';
 import type { BreakDecision, Combatant, Side, SubstitutionDecision } from './types.ts';
 
 export type { AiManagerStyle };
@@ -57,6 +57,9 @@ export function readTarget(combat: Combat, side: Side): TeamOrders['target'] {
 export function aiBreakDecision(combat: Combat, side: Side, style: AiManagerStyle = combat.sides[side].ai ?? DEFAULT_AI_STYLE): BreakDecision {
   const d: BreakDecision = { substitutions: suggestSubstitutions(combat, side, style) };
   if (style.adaptOrders) d.orders = suggestOrders(combat, side, style.base ?? combat.sides[side].baseOrders);
-  if (style.reads) d.orders = { ...(d.orders ?? combat.sides[side].orders), target: readTarget(combat, side) };
+  if (style.reads) {
+    const foe = combat.sides[other(side)].orders;
+    d.orders = { ...(d.orders ?? combat.sides[side].orders), target: readTarget(combat, side), aggression: counterApproach(foe.aggression, combat.cfg) };
+  }
   return d;
 }

@@ -8,7 +8,7 @@ import { migrateGame } from '../src/engine/league/migrate.ts';
 import { counterTarget } from '../src/engine/team/identity.ts';
 import { SPECIES } from '../src/data/species.ts';
 import { ABILITIES } from '../src/data/abilities.ts';
-import { coverMult, roleDamageFactor } from '../src/engine/combat/formulas.ts';
+import { ascendancyMult, counterApproach, coverMult, roleDamageFactor } from '../src/engine/combat/formulas.ts';
 
 describe('AI stable identities', () => {
   it('style data only names existing species and abilities', () => {
@@ -110,5 +110,32 @@ describe('levers', () => {
     const d = aiBreakDecision(c, 0);
     if (d.orders && d.orders.aggression === mine.tactic.orders.aggression) expect(d.orders.target).toBe('weakest');
     expect(c.sides[0].baseOrders.aggression).toBe('cautious');
+  });
+});
+
+describe('ascendancy between approaches', () => {
+  it('cautious thwarts aggressive, aggressive overwhelms balanced, balanced wears down cautious', () => {
+    const cfg = DEFAULT_CONFIG;
+    const o = (aggression: 'cautious' | 'balanced' | 'aggressive') => ({ aggression, target: 'nearest' as const, risk: 'normal' as const });
+    expect(ascendancyMult(o('cautious'), o('aggressive'), cfg)).toBeCloseTo(1 + cfg.combat.orders.ascendancy.bonus);
+    expect(ascendancyMult(o('aggressive'), o('balanced'), cfg)).toBeGreaterThan(1);
+    expect(ascendancyMult(o('balanced'), o('cautious'), cfg)).toBeGreaterThan(1);
+    expect(ascendancyMult(o('aggressive'), o('cautious'), cfg)).toBe(1);
+    expect(counterApproach('aggressive', cfg)).toBe('cautious');
+    expect(counterApproach('balanced', cfg)).toBe('aggressive');
+  });
+
+  it('a reading manager picks the approach that has the upper hand on the opponent', () => {
+    const g = newGame({ seed: 'asc', teamName: 'Me', lang: 'en', difficulty: 'hard' });
+    const me = g.teams.find((t) => t.id === g.playerTeamId)!;
+    const ai = g.teams.find((t) => t.id !== g.playerTeamId)!;
+    const mine = { ...me, tactic: { ...me.tactic, orders: { ...me.tactic.orders, aggression: 'aggressive' as const } } };
+    expect(aiPrepare(ai, DEFAULT_CONFIG, 'hard', mine).tactic.orders.aggression).toBe('cautious');
+  });
+
+  it('duplicate creature ids in one match are refused', () => {
+    const g = newGame({ seed: 'dup', teamName: 'Me', lang: 'en' });
+    const t = g.teams[0]!;
+    expect(() => new Combat({ seed: 1, teams: [t, structuredClone(t)] })).toThrow(/Duplicate/);
   });
 });

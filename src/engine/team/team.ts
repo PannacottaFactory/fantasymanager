@@ -53,6 +53,22 @@ export interface GenerateTeamOptions {
   lang?: Lang;
 }
 
+/** Deep copy of a team with fresh ids (same squad on both sides of a test match). */
+export function cloneTeam(team: Team, suffix: string): Team {
+  const copy = structuredClone(team);
+  const map = new Map(copy.creatures.map((c) => [c.id, `${c.id}~${suffix}`]));
+  const re = (id: string) => map.get(id) ?? id;
+  for (const c of copy.creatures) {
+    c.id = re(c.id);
+    c.relations = Object.fromEntries(Object.entries(c.relations).map(([k, v]) => [re(k), v]));
+  }
+  copy.id = `${copy.id}~${suffix}`;
+  copy.tactic.lineup = copy.tactic.lineup.map((s) => ({ ...s, creatureId: re(s.creatureId) }));
+  copy.tactic.bench = copy.tactic.bench.map(re);
+  if (copy.tactic.favorites) copy.tactic.favorites = Object.fromEntries(Object.entries(copy.tactic.favorites).map(([k, v]) => [re(k), v]));
+  return copy;
+}
+
 export function generateTeam(rng: Rng, opts: GenerateTeamOptions = {}, cfg: GameConfig = DEFAULT_CONFIG): Team {
   const id = makeId(rng, 'tm');
   const size = opts.size ?? cfg.generation.team.starters + cfg.generation.team.bench;

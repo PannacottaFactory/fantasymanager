@@ -171,8 +171,22 @@ export function powerStat(c: Combatant, kind: AttackKind): number {
   return a.magic;
 }
 
+/** Damage multiplier when one's approach has the upper hand on the opponent's. */
+export function ascendancyMult(mine: TeamOrders, theirs: TeamOrders | undefined, cfg: GameConfig): number {
+  const a = cfg.combat.orders.ascendancy;
+  return theirs && a.beats[mine.aggression] === theirs.aggression ? 1 + a.bonus : 1;
+}
+
+/** The approach that has the upper hand on this one. */
+export function counterApproach(theirs: TeamOrders['aggression'], cfg: GameConfig): TeamOrders['aggression'] {
+  const beats = cfg.combat.orders.ascendancy.beats;
+  return (Object.keys(beats) as TeamOrders['aggression'][]).find((k) => beats[k] === theirs) ?? 'balanced';
+}
+
 export interface DamageContext {
   orders: TeamOrders;
+  /** Orders of the target's side (ascendancy between approaches). */
+  foeOrders?: TeamOrders;
   /** Fraction (0–1) by which the attacker's team trails on health. */
   behind: number;
   solo: boolean;
@@ -212,6 +226,7 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   dmg *= traitMult(attacker, 'damageMult');
   dmg *= roleDamageFactor(attacker, kind, cfg);
   dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
+  dmg *= ascendancyMult(ctx.orders, ctx.foeOrders, cfg);
   if (attacker.stance === 'allOut') dmg *= 1.08;
   if (ctx.solo) dmg *= traitMult(attacker, 'soloDamageMult');
   dmg *= 1 - fatiguePenalty(attacker, cfg);

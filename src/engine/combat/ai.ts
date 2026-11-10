@@ -115,7 +115,7 @@ export function priorityMatch(priority: TargetPriority, target: Combatant, enemi
 export function expectedDamage(ctx: AiContext, actor: Combatant, ability: AbilityDef, target: Combatant, flank: boolean): number {
   const { cfg } = ctx;
   const orders = ctx.orders(actor);
-  const raw = rawDamage(actor, ability, { orders, behind: ctx.behind(actor), solo: !ctx.comboOn(actor, target) }, cfg);
+  const raw = rawDamage(actor, ability, { orders, foeOrders: ctx.orders(target), behind: ctx.behind(actor), solo: !ctx.comboOn(actor, target) }, cfg);
   const trueMult = elementMultiplier(resolveElement(ability.element, actor), target.elements, cfg);
   // A creature only "sees" type matchups in proportion to its tactical sense.
   const awareness = (actor.attrs.tactics / 20) * cfg.combat.ai.elementAwareness;

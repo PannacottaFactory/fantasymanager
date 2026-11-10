@@ -12,7 +12,7 @@ import { DIFFICULTY_IDS, MANAGER_IDS, PLAY_STYLES, PLAY_STYLE_IDS } from '../dat
 import { simulateMatch } from '../engine/combat/simulate.ts';
 import { aiPrepare, newGame, playMatchday, playerTeam, seasonOver, standings } from '../engine/league/season.ts';
 import type { Team } from '../engine/model.ts';
-import { generateTeam } from '../engine/team/team.ts';
+import { cloneTeam, generateTeam } from '../engine/team/team.ts';
 import { parseArgs } from './args.ts';
 
 const args = parseArgs(process.argv.slice(2));
@@ -43,7 +43,7 @@ function duel(make: (i: number) => [Team, Team], difficulty: DifficultyId): numb
   return wins / N;
 }
 
-const clone = (t: Team): Team => structuredClone(t);
+const clone = (t: Team): Team => cloneTeam(t, 'b');
 // --season-only skips the match duels.
 if (!args['season-only']) {
   console.log(`1) Same squad, managed with identity vs plainly (${N} matches each)`);

@@ -8,6 +8,7 @@ import { DEFAULT_CONFIG, type DifficultyId, type GameConfig, type ManagerId, typ
 import { MANAGER_IDS, PLAY_STYLE_IDS, STYLE_FOCUS } from '../../data/config/identity.ts';
 import type { TargetPriority } from '../../data/schema.ts';
 import { getAbilities } from '../creature/derived.ts';
+import { counterApproach } from '../combat/formulas.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
 
 /** Distinct styles for as many stables as possible (then repeats), each with a manager temperament and a focus. */
@@ -84,6 +85,8 @@ export function applyIdentity(team: Team, tactic: Tactic, difficulty: Difficulty
     const byId = new Map(opponent.creatures.map((c) => [c.id, c]));
     const lineup = opponent.tactic.lineup.map((s) => ({ role: s.role, ability: byId.get(s.creatureId)?.ability ?? 0 }));
     orders.target = counterTarget(lineup);
+    // Pick the approach that has the upper hand on the opponent's.
+    orders.aggression = counterApproach(opponent.tactic.orders.aggression, cfg);
   }
   const favorites: Record<string, string[]> = {};
   // Eclectic stables don't bother with builds.
