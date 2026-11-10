@@ -710,33 +710,6 @@ class Flash implements Effect {
   }
 }
 
-/** Coloured glow on the screen edges (crits and KOs). */
-class Vignette implements Effect {
-  private t0 = performance.now();
-  constructor(
-    private color: string,
-    private strength: number,
-  ) {}
-  update(now: number) {
-    return Math.max(0, now - this.t0) < 650;
-  }
-  draw(ctx: CanvasRenderingContext2D, now: number) {
-    const k = Math.max(0, now - this.t0) / 650;
-    const a = (k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85) * this.strength;
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.75);
-    g.addColorStop(0, `${this.color}00`);
-    g.addColorStop(1, this.color);
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = a;
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalAlpha = 1;
-    ctx.globalCompositeOperation = 'lighter';
-  }
-}
-
 function shake(strength: number, dur: number) {
   const arena = document.querySelector<HTMLElement>('.live');
   if (!arena?.animate) return;
@@ -829,7 +802,10 @@ function impact(fx: FxCanvas, shot: Shot, at: Vec, angle: number, pal: readonly 
       break;
   }
   if (heavy) {
-    fx.add(new Vignette(shot.ko ? '#ff2a1a' : shot.element === 'physical' ? '#ff7a2f' : pal[2]!, shot.ko ? 0.55 : 0.4));
+    // Kept on the struck card: a wider shockwave and a second flash (never a full-screen tint).
+    const tint = shot.ko ? '#ff3b26' : shot.element === 'physical' ? '#ff8a3c' : pal[2]!;
+    fx.add(new Ring(at, tint, shot.ko ? 110 : 80, 520, 4));
+    fx.add(new Flash(at, tint, shot.ko ? 110 : 80, false));
     shake(shot.ko ? 9 : 6, shot.ko ? 460 : 340);
   }
 }
