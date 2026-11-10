@@ -1,5 +1,5 @@
 /** Runtime data model shared by every engine module. Everything here is plain, serializable data. */
-import type { Attributes } from '../data/attributes.ts';
+import type { AttributeKey, Attributes } from '../data/attributes.ts';
 import type { Line, RoleId, TargetPriority } from '../data/schema.ts';
 import type { ManagerId, PlayStyleId } from '../data/config/identity.ts';
 
@@ -68,6 +68,13 @@ export interface CreatureGrowth {
   pool: number;
   /** Attribute points gained (− lost) this season. */
   season: number;
+  // ——— Player's creatures only (visual progression) ———
+  /** Attributes when the season started (or when the creature joined). */
+  seasonStart?: Partial<Record<AttributeKey, number>>;
+  /** Latest attribute changes, newest last: attribute, +1/−1, season, matchday (0 = off-season). */
+  recent?: { k: AttributeKey; d: number; s: number; w: number }[];
+  /** Ability over time: [season, matchday, ability]. */
+  history?: [number, number, number][];
 }
 
 export type Aggression = 'cautious' | 'balanced' | 'aggressive';

@@ -728,3 +728,14 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .ana-duel-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ana-bar { height: 8px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
 .ana-bar i { display: block; height: 100%; border-radius: 4px; }
+
+/* ——— Creature progression ——— */
+.attr-cell { display: inline-flex; align-items: center; gap: 4px; }
+.attr-delta { font-size: 0.714rem; font-weight: 600; }
+.attr-delta.up { color: var(--good); }
+.attr-delta.down { color: var(--bad); }
+.progress-panel { display: flex; flex-direction: column; gap: 4px; }
+.recent-moves { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+.attr-move { font-size: 0.857rem; padding: 1px 6px; border-radius: 999px; background: var(--panel-2); }
+.attr-move.up { color: var(--good); }
+.attr-move.down { color: var(--bad); }

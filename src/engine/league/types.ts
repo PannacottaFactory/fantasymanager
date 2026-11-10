@@ -1,6 +1,6 @@
 /** Season state. Plain serializable data: this is what a save file contains. */
 import type { Lang } from '../../core/i18n.ts';
-import type { AttributeCategory } from '../../data/attributes.ts';
+import type { AttributeCategory, AttributeKey } from '../../data/attributes.ts';
 import type { IntensityId, ProgramId } from '../../data/config/training.ts';
 import type { FacilityId } from '../../data/config/club.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
@@ -76,7 +76,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'youthIntake'; names: string[] }
   | { kind: 'youthReleased'; names: string[] }
   | { kind: 'retired'; names: string[] }
-  | { kind: 'trainingReport'; items: { creatureId: string; name: string; gain: number }[] }
+  | { kind: 'trainingReport'; items: { creatureId: string; name: string; gain: number; attrs?: { k: AttributeKey; d: number }[] }[] }
   | { kind: 'coachHired'; name: string; domain: AttributeCategory; quality: number }
   // ——— Phase 5: divisions, cup, club ———
   | { kind: 'cupDraw'; round: number; opponent: string; home: boolean }

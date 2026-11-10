@@ -123,7 +123,14 @@ function growthOf(c: Creature) {
  * Ability change turned into whole attribute points: gains (or losses) pile up in one pool and each
  * full point goes to an attribute drawn by weight, so progress shows up regularly. Returns points changed.
  */
-function shiftAbility(c: Creature, amount: number, weights: Record<AttributeKey, number>, rng: Rng, cfg: GameConfig): number {
+function shiftAbility(
+  c: Creature,
+  amount: number,
+  weights: Record<AttributeKey, number>,
+  rng: Rng,
+  cfg: GameConfig,
+  log?: (k: AttributeKey, d: number) => void,
+): number {
   if (!amount) return 0;
   const g = growthOf(c);
   const next = c.ability + g.ability + amount;
@@ -143,6 +150,7 @@ function shiftAbility(c: Creature, amount: number, weights: Record<AttributeKey,
     c.attributes[k]++;
     g.pool -= 1;
     whole++;
+    log?.(k, 1);
   }
   while (g.pool <= -1) {
     const open = ATTRIBUTE_KEYS.filter((k) => c.attributes[k] > 1);
@@ -154,9 +162,39 @@ function shiftAbility(c: Creature, amount: number, weights: Record<AttributeKey,
     c.attributes[k]--;
     g.pool += 1;
     whole--;
+    log?.(k, -1);
   }
   g.season += whole;
   return whole;
+}
+
+/** Records an attribute change of one of the player's creatures (kept short). */
+function progressLogger(c: Creature, season: number, matchday: number, cfg: GameConfig) {
+  return (k: AttributeKey, d: number) => {
+    const g = growthOf(c);
+    const recent = (g.recent ??= []);
+    recent.push({ k, d, s: season, w: matchday });
+    if (recent.length > cfg.training.progressLog.recent) recent.splice(0, recent.length - cfg.training.progressLog.recent);
+  };
+}
+
+/** Notes the ability of one of the player's creatures this week (kept short). */
+function recordAbility(c: Creature, season: number, matchday: number, cfg: GameConfig) {
+  const g = growthOf(c);
+  const h = (g.history ??= []);
+  const last = h[h.length - 1];
+  if (last && last[0] === season && last[1] === matchday) last[2] = c.ability;
+  else h.push([season, matchday, c.ability]);
+  if (h.length > cfg.training.progressLog.history) h.splice(0, h.length - cfg.training.progressLog.history);
+}
+
+/** Start-of-season snapshot of the player's creatures (attribute arrows are measured from it). */
+export function snapshotSeasonStart(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
+  const team = state.teams.find((x) => x.id === state.playerTeamId);
+  for (const c of team?.creatures ?? []) {
+    growthOf(c).seasonStart = { ...c.attributes };
+    recordAbility(c, state.season, 0, cfg);
+  }
 }
 
 /**
@@ -175,6 +213,7 @@ export function weeklyTraining(state: GameState, played: Set<string>, cfg: GameC
         if (plan.program === 'rest') c.condition.fatigue = clamp(c.condition.fatigue - t.restRecovery, 0, 100);
         continue;
       }
+      if (isPlayer) growthOf(c).seasonStart ??= { ...c.attributes };
       const intensity = t.intensity[plan.intensity as IntensityId];
       c.condition.fatigue = clamp(c.condition.fatigue + intensity.fatigue, 0, 100);
       const stage = lifeStage(c);
@@ -187,8 +226,10 @@ export function weeklyTraining(state: GameState, played: Set<string>, cfg: GameC
         // Coaches: each attribute grows with the coach of its domain.
         for (const k of ATTRIBUTE_KEYS) weights[k] *= coachFactor(state, team.id, CATEGORY_OF[k], cfg);
         const avgCoach = (['physical', 'combat', 'mental'] as AttributeCategory[]).reduce((s, d) => s + coachFactor(state, team.id, d, cfg), 0) / 3;
-        shiftAbility(c, Math.min(gap, gain * avgCoach * trainingFactor(state, team.id, cfg)), weights, rng, cfg);
+        const log = isPlayer ? progressLogger(c, state.season, state.matchday, cfg) : undefined;
+        shiftAbility(c, Math.min(gap, gain * avgCoach * trainingFactor(state, team.id, cfg)), weights, rng, cfg, log);
       }
+      if (isPlayer) recordAbility(c, state.season, state.matchday, cfg);
       // Hard training can hurt.
       if (intensity.injury > 0 && rng.chance(intensity.injury * (c.hidden.injuryProneness / 10))) {
         const weeks = Math.max(1, Math.round(rng.int(1, 3) * injuryWeeksFactor(state, team.id, cfg)));
@@ -203,8 +244,15 @@ export function weeklyTraining(state: GameState, played: Set<string>, cfg: GameC
 export function trainingReport(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
   if (state.matchday % cfg.training.reportEvery !== 0) return;
   const team = state.teams.find((x) => x.id === state.playerTeamId)!;
+  const since = state.matchday - cfg.training.reportEvery;
   const items = team.creatures
-    .map((c) => ({ creatureId: c.id, name: c.name, gain: c.growth?.season ?? 0 }))
+    .map((c) => {
+      // Attributes that moved since the last report.
+      const moved: Partial<Record<AttributeKey, number>> = {};
+      for (const r of c.growth?.recent ?? []) if (r.s === state.season && r.w > since) moved[r.k] = (moved[r.k] ?? 0) + r.d;
+      const attrs = (Object.entries(moved) as [AttributeKey, number][]).filter(([, d]) => d !== 0).map(([k, d]) => ({ k, d }));
+      return { creatureId: c.id, name: c.name, gain: c.growth?.season ?? 0, attrs };
+    })
     .filter((x) => x.gain > 0)
     .sort((a, b) => b.gain - a.gain)
     .slice(0, 5);
@@ -234,7 +282,8 @@ export function ageing(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
         const loss = c.potential * lc.declineRate;
         const weights = {} as Record<AttributeKey, number>;
         for (const k of ATTRIBUTE_KEYS) weights[k] = decline[CATEGORY_OF[k]];
-        shiftAbility(c, -Math.min(loss, c.ability - cfg.generation.minAbility), weights, rng, cfg);
+        const log = team?.id === state.playerTeamId ? progressLogger(c, state.season, 0, cfg) : undefined;
+        shiftAbility(c, -Math.min(loss, c.ability - cfg.generation.minAbility), weights, rng, cfg, log);
       }
     }
   }

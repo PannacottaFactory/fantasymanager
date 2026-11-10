@@ -9,7 +9,7 @@ import { cupRoundKey } from './LeagueScreen.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { locate } from '../../../engine/economy/market.ts';
-import { categoryName, injuryText, speciesName } from '../../../engine/text/localize.ts';
+import { attributeText, categoryName, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -141,7 +141,14 @@ function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: s
     case 'trainingReport':
       return {
         title: t('msg.trainingReport.title'),
-        body: t('msg.trainingReport.body', { list: m.items.map((x) => `${x.name} (+${x.gain})`).join(', ') }),
+        body: t('msg.trainingReport.body', {
+          list: m.items
+            .map((x) => {
+              const moves = (x.attrs ?? []).map((a) => `${attributeText(a.k, tr.lang).name} ${a.d > 0 ? '+' : ''}${a.d}`).join(', ');
+              return `${x.name} (+${x.gain}${moves ? ` — ${moves}` : ''})`;
+            })
+            .join('\n'),
+        }),
         tone: 'good',
       };
     case 'coachHired':

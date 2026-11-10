@@ -207,7 +207,11 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   `ui/i18n/analysis.ts`): conclusions (data + key, worded by the UI), damage sources (validated categorical palette
   `--viz-1..5`), team & creature health per round, periods between breaks with the changes made, duels, lost turns.
   French texts use "vous" everywhere (the player is a coach).
-  Next: visual progression of creatures; more situational value for orders.
+- [x] **Visual progression** (player's creatures only, `CreatureGrowth.seasonStart / recent / history`, logged by
+  `shiftAbility` through a logger; `snapshotSeasonStart` at game and season start): ▲/▼ next to attributes changed
+  since the season started, ability curve with the potential as a ceiling and latest changes in the sheet, trend
+  sparkline in Training, attributes named in the training report. 107 tests.
+  Next: more situational value for orders; phase 6 (save slots, worker sims).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

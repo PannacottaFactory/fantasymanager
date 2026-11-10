@@ -21,7 +21,7 @@ import { seedRelations, weeklyRelations } from '../club/relations.ts';
 import { earn, seasonPrizes, ticketRevenue, trimLedgers, weeklyFinances } from '../economy/finance.ts';
 import { contractsTurnover, contractWarning, ensureSquads, fillFreeAgents, weeklyMarket, weeklyScouting } from '../economy/market.ts';
 import { initEconomy } from '../economy/setup.ts';
-import { ageing, initTraining, refreshCoachMarket, releaseYouth, trainingReport, weeklyTraining, youthIntake } from '../progression/training.ts';
+import { ageing, initTraining, refreshCoachMarket, releaseYouth, snapshotSeasonStart, trainingReport, weeklyTraining, youthIntake } from '../progression/training.ts';
 import { divisionFixtures, divisionOf } from './divisions.ts';
 import { pushMessage } from './messages.ts';
 import { addNews, divisionTables, isStar, newsFromResults } from './news.ts';
@@ -122,6 +122,7 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
   pushMessage(state, { kind: 'welcome', teamName: teamById(state, playerId).name, teams: divisions[divisionOf(state, playerId)]!.length, matchdays: matchdayCount(state.fixtures) });
   newSeasonObjective(state, cfg);
   startCup(state, cfg);
+  snapshotSeasonStart(state, cfg);
   return state;
 }
 
@@ -510,6 +511,7 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
     if (team.id !== next.playerTeamId) team.tactic = aiPrepare(team, cfg, next.difficulty ?? 'normal').tactic;
   }
   startCup(next, cfg);
+  snapshotSeasonStart(next, cfg);
   pushMessage(next, { kind: 'newSeason' });
   newSeasonObjective(next, cfg);
   return next;

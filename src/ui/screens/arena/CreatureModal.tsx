@@ -1,4 +1,4 @@
-import { ATTRIBUTE_CATEGORIES, type AttributeCategory } from '../../../data/attributes.ts';
+import { ATTRIBUTE_CATEGORIES, type AttributeCategory, type AttributeKey } from '../../../data/attributes.ts';
 import type { ReactNode } from 'react';
 import { ROLE_IDS } from '../../../data/roles.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -32,11 +32,13 @@ interface Props {
   onToggleFavorite?: (abilityId: string) => void;
   /** Extra content under the header (e.g. live match state). */
   extra?: ReactNode;
+  /** Attribute changes to show next to the values (own creatures: since the season started). */
+  deltas?: Partial<Record<AttributeKey, number>>;
   /** 0–100: below 100, attributes are shown as estimated ranges and private details are hidden. */
   knowledge?: number;
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, knowledge = 100 }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, knowledge = 100, deltas }: Props) {
   const tr = useT();
   const { t, lang } = tr;
   const sp = getSpecies(creature);
@@ -113,7 +115,14 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                 {ATTRIBUTE_CATEGORIES[cat].map((k) => (
                   <span key={k} style={{ display: 'contents' }}>
                     <span title={attributeText(k, lang).description}>{attributeText(k, lang).name}</span>
-                    {known ? <Attr v={creature.attributes[k]} /> : <AttrRange r={attributeRange(creature, k, knowledge)} />}
+                    <span className="attr-cell">
+                      {known ? <Attr v={creature.attributes[k]} /> : <AttrRange r={attributeRange(creature, k, knowledge)} />}
+                      {known && deltas?.[k] ? (
+                        <span className={`attr-delta ${deltas[k]! > 0 ? 'up' : 'down'}`} title={t('cr.sinceSeason')}>
+                          {deltas[k]! > 0 ? `▲${deltas[k]}` : `▼${-deltas[k]!}`}
+                        </span>
+                      ) : null}
+                    </span>
                   </span>
                 ))}
               </div>

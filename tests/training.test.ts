@@ -126,3 +126,27 @@ describe('coaches & role fit', () => {
     }
   });
 });
+
+describe('visual progression', () => {
+  it('records the player creatures’ ability history and attribute changes, consistent with the season-start snapshot', async () => {
+    const { newGame, playMatchday, playerTeam } = await import('../src/engine/league/season.ts');
+    let g = newGame({ seed: 'progress', teamName: 'Me', lang: 'en' });
+    for (let i = 0; i < 8; i++) g = playMatchday(g);
+    const mine = playerTeam(g).creatures;
+    expect(mine.every((c) => (c.growth?.history?.length ?? 0) >= 2)).toBe(true);
+    for (const c of mine) {
+      const start = c.growth!.seasonStart!;
+      const fromLog: Record<string, number> = {};
+      for (const r of c.growth!.recent ?? []) if (r.s === g.season) fromLog[r.k] = (fromLog[r.k] ?? 0) + r.d;
+      // When the log was not truncated, it explains every attribute change since the season started.
+      if ((c.growth!.recent?.length ?? 0) < 16) {
+        for (const [k, v] of Object.entries(start)) expect(c.attributes[k as keyof typeof c.attributes] - v!, `${c.name} ${k}`).toBe(fromLog[k] ?? 0);
+      }
+    }
+    // AI creatures carry no progression log.
+    const ai = g.teams.find((t) => t.id !== g.playerTeamId)!;
+    expect(ai.creatures.every((c) => !c.growth?.history && !c.growth?.recent)).toBe(true);
+    const report = g.inbox.find((m) => m.kind === 'trainingReport');
+    if (report && report.kind === 'trainingReport') expect(report.items.some((x) => (x.attrs?.length ?? 0) > 0)).toBe(true);
+  });
+});

@@ -1,9 +1,10 @@
-import { createElement } from 'react';
+import { createElement, type FC } from 'react';
+import type { MatchResult } from '../src/engine/combat/types.ts';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { Rng, deriveSeed } from '../src/core/rng.ts';
 import { simulateMatch } from '../src/engine/combat/simulate.ts';
-import { analyzeMatch, DAMAGE_SOURCES } from '../src/engine/report/analysis.ts';
+import { analyzeMatch, DAMAGE_SOURCES, type MatchAnalysis } from '../src/engine/report/analysis.ts';
 import { buildReport } from '../src/engine/report/report.ts';
 import { generateTeam } from '../src/engine/team/team.ts';
 import { ANA_DICTS } from '../src/ui/i18n/analysis.ts';
@@ -43,7 +44,8 @@ describe('post-match analysis', () => {
         const result = match(10 + i, i % 2 ? ['winter-wolf', 'hag', 'raptor'] : undefined);
         const analysis = analyzeMatch(result, 0);
         for (const C of [Ana.Summary, Ana.Sources, Ana.Flow, Ana.Periods, Ana.Duels, Ana.Turns]) {
-          const html = renderToString(createElement(C as (p: object) => ReturnType<typeof createElement>, { analysis, result }));
+          const Comp = C as unknown as FC<{ analysis: MatchAnalysis; result: MatchResult }>;
+          const html = renderToString(createElement(Comp, { analysis, result }));
           expect(html).not.toMatch(/\{\w+\}|undefined|NaN/);
         }
       }

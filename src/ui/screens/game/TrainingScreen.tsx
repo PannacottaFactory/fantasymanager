@@ -6,7 +6,7 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { coachFactor, dismissYouth, keepYouth, lifeStage, planOf, setPlan, youthWage } from '../../../engine/progression/training.ts';
-import { categoryName, speciesName } from '../../../engine/text/localize.ts';
+import { attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { Bar, Crest, ElementDots, Stars } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
@@ -146,7 +146,18 @@ export function TrainingScreen() {
       sort: (c) => c.growth?.season ?? 0,
       render: (c) => {
         const n = c.growth?.season ?? 0;
-        return <span className={n > 0 ? 'good-text' : n < 0 ? 'bad-text' : 'faint'}>{n > 0 ? `+${n}` : n}</span>;
+        const moves = (c.growth?.recent ?? [])
+          .filter((r) => r.s === game.season)
+          .map((r) => `${attributeText(r.k, lang).name} ${r.d > 0 ? '+' : ''}${r.d}`)
+          .join(', ');
+        return (
+          <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }} title={moves || undefined}>
+            <TrendSpark values={(c.growth?.history ?? []).slice(-18).map((h) => h[2])} />
+            <span className={n > 0 ? 'good-text' : n < 0 ? 'bad-text' : 'faint'}>
+              {n > 0 ? `▲ +${n}` : n < 0 ? `▼ ${n}` : '·'}
+            </span>
+          </span>
+        );
       },
     },
     {
@@ -216,5 +227,23 @@ export function TrainingScreen() {
         </div>
       </section>
     </div>
+  );
+}
+
+/** Tiny ability trend over the last weeks (own creatures). */
+function TrendSpark({ values }: { values: number[] }) {
+  if (values.length < 2) return null;
+  const w = 48;
+  const h = 14;
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  const x = (i: number) => 1 + (i / (values.length - 1)) * (w - 2);
+  const y = (v: number) => 1 + (1 - (v - lo) / Math.max(1, hi - lo)) * (h - 2);
+  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const up = values[values.length - 1]! >= values[0]!;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <path d={d} fill="none" stroke={up ? 'var(--good)' : 'var(--bad)'} strokeWidth={1.5} strokeLinejoin="round" />
+    </svg>
   );
 }

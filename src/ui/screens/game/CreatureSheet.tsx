@@ -3,6 +3,8 @@
  * (contract, sale, release for their own; offer or signing and scouting for the others).
  */
 import { useState } from 'react';
+import type { AttributeKey } from '../../../data/attributes.ts';
+import { attributeText } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
@@ -241,6 +243,76 @@ function TrainingRow({ game, creature }: { game: GameState; creature: Creature }
   );
 }
 
+/** Ability over the weeks (own creatures), with the potential as a dashed ceiling, and the latest changes. */
+function ProgressPanel({ creature }: { creature: Creature }) {
+  const tr = useT();
+  const { t, lang } = tr;
+  const g = creature.growth;
+  const hist = g?.history ?? [];
+  const recent = [...(g?.recent ?? [])].reverse().slice(0, 8);
+  const [hover, setHover] = useState<number | null>(null);
+  if (hist.length < 2 && !recent.length) return null;
+  const w = 320;
+  const h = 90;
+  const pad = { l: 28, r: 6, t: 6, b: 14 };
+  const values = hist.map((x) => x[2]);
+  const lo = Math.max(1, Math.min(...values, creature.potential) - 10);
+  const hi = Math.min(200, Math.max(...values, creature.potential) + 5);
+  const x = (i: number) => pad.l + (hist.length <= 1 ? 0 : (i / (hist.length - 1)) * (w - pad.l - pad.r));
+  const y = (v: number) => pad.t + (1 - (v - lo) / Math.max(1, hi - lo)) * (h - pad.t - pad.b);
+  const d = hist.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p[2]).toFixed(1)}`).join(' ');
+  const when = (s: number, wk: number) => (wk === 0 ? t('cr.offseason', { s }) : t('cr.when', { s, w: wk }));
+  const shown = hover ?? hist.length - 1;
+  return (
+    <div className="progress-panel">
+      <div className="row wrap" style={{ gap: 8, alignItems: 'baseline' }}>
+        <b>{t('cr.progress')}</b>
+        {hist[shown] && (
+          <span className="muted" style={{ fontSize: '0.857rem' }}>
+            {when(hist[shown]![0], hist[shown]![1])} · {t('cr.abilityAt', { n: hist[shown]![2] })} · <span className="faint">{t('cr.potentialLine', { n: creature.potential })}</span>
+          </span>
+        )}
+      </div>
+      {hist.length >= 2 && (
+        <svg className="ana-chart" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={t('cr.progress')} onMouseLeave={() => setHover(null)} style={{ maxWidth: 420 }}>
+          <line x1={pad.l} x2={w - pad.r} y1={y(creature.potential)} y2={y(creature.potential)} stroke="var(--faint)" strokeDasharray="4 3" />
+          {[lo, hi].map((v) => (
+            <text key={v} x={pad.l - 4} y={y(v) + 4} textAnchor="end" className="ana-axis">
+              {Math.round(v)}
+            </text>
+          ))}
+          <path d={d} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" />
+          <circle cx={x(shown)} cy={y(hist[shown]![2])} r={4} fill="var(--accent)" stroke="var(--panel)" strokeWidth={2} />
+          {hist.map((_, i) => (
+            <rect key={i} x={x(i) - (w - pad.l - pad.r) / Math.max(1, hist.length - 1) / 2} y={0} width={(w - pad.l - pad.r) / Math.max(1, hist.length - 1)} height={h} fill="transparent" onMouseEnter={() => setHover(i)} />
+          ))}
+        </svg>
+      )}
+      {recent.length > 0 && (
+        <div className="recent-moves">
+          <span className="faint" style={{ fontSize: '0.857rem' }}>
+            {t('cr.recent')}
+          </span>
+          {recent.map((r, i) => (
+            <span key={i} className={`attr-move ${r.d > 0 ? 'up' : 'down'}`} title={when(r.s, r.w)}>
+              {attributeText(r.k, lang).name} {r.d > 0 ? `+${r.d}` : r.d}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Attribute changes since the season started (own creatures). */
+function seasonDeltas(c: Creature): Partial<Record<AttributeKey, number>> | undefined {
+  const start = c.growth?.seasonStart;
+  if (!start) return undefined;
+  const out: Partial<Record<AttributeKey, number>> = {};
+  for (const [k, v] of Object.entries(start) as [AttributeKey, number][]) if (c.attributes[k] !== v) out[k] = c.attributes[k] - v;
+  return out;
+}
+
 function Sheet({ id }: { id: string }) {
   const tr = useT();
   const { t, money } = tr;
@@ -272,6 +344,7 @@ function Sheet({ id }: { id: string }) {
       )}
       {!own && k < 100 && <div className="faint" style={{ fontSize: '0.857rem' }}>{t('cr.estimate')}</div>}
       {own && <TrainingRow game={game} creature={creature} />}
+      {own && <ProgressPanel creature={creature} />}
       {own && <RelationsRow team={team!} creature={creature} />}
       {own && <ContractPanel game={game} creature={creature} />}
       {!own && team && <BidPanel key={id} game={game} creature={creature} team={team} />}
@@ -285,6 +358,7 @@ function Sheet({ id }: { id: string }) {
       onClose={() => openSheet(null)}
       showHidden={false}
       knowledge={k}
+      deltas={own ? seasonDeltas(creature) : undefined}
       favorites={favorites}
       onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
       extra={extra}

@@ -11,6 +11,8 @@ export const TRAINING_CONFIG = {
   /** Playing in the week's match helps. */
   playedBonus: 0.15,
   /** Intensity: growth multiplier, extra fatigue per week, injury chance per week (× proneness/10). */
+  /** Visual progression kept for the player's creatures. */
+  progressLog: { recent: 16, history: 72 },
   intensity: {
     light: { growth: 0.6, fatigue: -6, injury: 0 },
     normal: { growth: 1, fatigue: 0, injury: 0.003 },
