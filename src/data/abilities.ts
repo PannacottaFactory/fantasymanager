@@ -208,6 +208,47 @@ const list: AbilityDef[] = [
   { id: 'molten-fist', name: 'Molten Fist', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, effects: [{ effect: 'burning', chance: 0.35, on: 'target' }], verb: 'drives a molten fist into', description: 'Rock hot enough to set the wound on fire.' },
   { id: 'lava-burst', name: 'Lava Burst', kind: 'melee', element: 'fire', target: 'enemyFront', power: 11, staminaCost: 14, cooldown: 4, effects: [{ effect: 'burning', chance: 0.55, on: 'target' }], verb: 'splashes lava over', description: 'Sets the whole enemy front line on fire.' },
   { id: 'magma-skin', name: 'Magma Skin', kind: 'buff', element: 'fire', target: 'self', power: 0, staminaCost: 6, cooldown: 4, effects: [{ effect: 'fortified', chance: 1, on: 'self', duration: 3 }], verb: 'lets its crust harden', description: 'Takes much less damage for a while.' },
+
+  // ——— Banshee ———
+  { id: 'keening-bolt', name: 'Keening Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, fear: 7, verb: 'sends a keening bolt at', description: 'Hurts the body and the nerves.' },
+  { id: 'death-wail', name: 'Death Wail', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 4, fear: 14, effects: [{ effect: 'terrified', chance: 0.5, on: 'target' }], verb: 'wails a death-cry at', description: 'A cry that shakes the courage of every foe.' },
+  { id: 'harrowing-shriek', name: 'Harrowing Shriek', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 9, cooldown: 3, fear: 24, effects: [{ effect: 'terrified', chance: 1, on: 'target' }], verb: 'shrieks into the face of', description: 'Breaks the nerve of one foe.' },
+
+  // ——— Nightmare ———
+  { id: 'nightmare-hoof', name: 'Nightmare Hoof', kind: 'melee', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, fear: 5, verb: 'brings burning hooves down on', description: 'Hooves of smoke and embers.' },
+  { id: 'dread-charge', name: 'Dread Charge', kind: 'melee', element: 'shadow', target: 'enemy', power: 18, staminaCost: 12, cooldown: 3, reachBack: true, fear: 10, effects: [{ effect: 'terrified', chance: 0.6, on: 'target' }], verb: 'charges out of a bad dream at', description: 'Charges any target, even in the back line, and terrifies it.' },
+
+  // ——— Giant hyena ———
+  { id: 'hyena-bite', name: 'Hyena Bite', kind: 'melee', element: 'physical', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, pack: 0.3, verb: 'snaps at', description: '+30 % damage for each ally that already hit the target this round.' },
+  { id: 'cackle', name: 'Cackle', kind: 'debuff', element: 'physical', target: 'allEnemies', power: 0, staminaCost: 8, cooldown: 4, fear: 8, verb: 'cackles madly at', description: 'An unnerving laugh.' },
+
+  // ——— Raptor ———
+  { id: 'raptor-claw', name: 'Sickle Claw', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, pack: 0.3, effects: [{ effect: 'bleeding', chance: 0.2, on: 'target' }], verb: 'slashes its sickle claw across', description: '+30 % damage for each ally that already hit the target this round.' },
+  { id: 'pounce', name: 'Pounce', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 10, cooldown: 2, reachBack: true, pack: 0.4, verb: 'pounces on', description: 'Leaps on any target; +40 % damage for each ally already on it this round.' },
+
+  // ——— Cyclops ———
+  { id: 'cyclops-club', name: 'Giant Club', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 9, cooldown: 0, accuracyMod: -0.04, verb: 'swings a tree trunk at', description: 'A whole tree, swung.' },
+  { id: 'boulder-throw', name: 'Boulder Throw', kind: 'ranged', element: 'earth', target: 'enemyBack', power: 8, staminaCost: 15, cooldown: 4, verb: 'hurls a boulder into', description: 'Hits the whole enemy back line.' },
+  { id: 'earthshaker', name: 'Earthshaker', kind: 'melee', element: 'earth', target: 'enemyFront', power: 10, staminaCost: 15, cooldown: 4, effects: [{ effect: 'stunned', chance: 0.2, on: 'target' }], verb: 'stamps the ground under', description: 'Shakes the whole enemy front line; may stun.' },
+
+  // ——— Storm elemental ———
+  { id: 'lightning-bolt', name: 'Lightning Bolt', kind: 'spell', element: 'air', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'calls lightning down on', description: 'A bolt from a clear sky.' },
+  { id: 'chain-lightning', name: 'Chain Lightning', kind: 'spell', element: 'air', target: 'allEnemies', power: 7, staminaCost: 16, cooldown: 4, verb: 'unleashes chain lightning through', description: 'Arcs through the whole enemy team.' },
+  { id: 'thunderclap', name: 'Thunderclap', kind: 'spell', element: 'air', target: 'enemyBack', power: 7, staminaCost: 13, cooldown: 4, effects: [{ effect: 'stunned', chance: 0.25, on: 'target' }], verb: 'calls a thunderclap down on', description: 'Strikes the whole enemy back line; may stun.' },
+
+  // ——— Ogre ———
+  { id: 'ogre-club', name: 'Ogre Club', kind: 'melee', element: 'physical', target: 'enemy', power: 17, staminaCost: 8, cooldown: 0, verb: 'clubs', description: 'Simple and effective.' },
+  { id: 'blood-frenzy', name: 'Blood Frenzy', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 6, cooldown: 5, effects: [{ effect: 'frenzied', chance: 1, on: 'self' }], verb: 'licks its wounds and goes into a frenzy', description: 'The more wounded, the harder it hits for 3 rounds.' },
+
+  // ——— Blood demon ———
+  { id: 'hellclaw', name: 'Hellclaw', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'rakes burning claws across', description: 'Claws from below.' },
+  { id: 'blood-price', name: 'Blood Price', kind: 'melee', element: 'shadow', target: 'enemy', power: 25, staminaCost: 8, cooldown: 3, hpCost: 0.1, verb: 'pays in blood and smashes', description: 'A huge blow that costs 10 % of its own health.' },
+  { id: 'infernal-sacrifice', name: 'Infernal Sacrifice', kind: 'spell', element: 'fire', target: 'allEnemies', power: 13, staminaCost: 12, cooldown: 5, hpCost: 0.2, verb: 'sets its own blood alight over', description: 'Burns the whole enemy team; costs 20 % of its own health.' },
+
+  // ——— Seraph ———
+  { id: 'radiant-blade', name: 'Radiant Blade', kind: 'melee', element: 'light', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, verb: 'slashes a blade of light across', description: 'Light with an edge.' },
+  { id: 'martyrdom', name: 'Martyrdom', kind: 'heal', element: 'light', target: 'ally', power: 32, staminaCost: 8, cooldown: 2, hpCost: 0.12, verb: 'gives of its own life to heal', description: 'A huge heal for an ally, paid with 12 % of its own health.' },
+  { id: 'hymn-of-valor', name: 'Hymn of Valour', kind: 'buff', element: 'light', target: 'allAllies', power: 0, staminaCost: 10, cooldown: 5, effects: [{ effect: 'rallied', chance: 1, on: 'target' }], verb: 'sings a hymn of valour', description: 'Rallies every ally: courage, harder and truer blows.' },
 ];
 
 export const ABILITIES: Record<string, AbilityDef> = Object.fromEntries(list.map((a) => [a.id, a]));

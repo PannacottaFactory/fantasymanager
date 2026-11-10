@@ -58,6 +58,7 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
       return { target: e.target };
     case 'substitution':
       return { actor: e.inId, target: e.outId };
+    case 'sacrifice':
     case 'guard':
     case 'rest':
     case 'hesitate':
@@ -208,6 +209,7 @@ export class Commentator {
         if (e.absorbed > 0) tags.push('shielded');
         if (e.healed) tags.push('lifesteal');
         if (e.execute) tags.push('execute');
+        if ((e.pack ?? 0) >= 2) tags.push('pack');
         if (r && e.targetHp > 0 && e.targetHp < r.maxHp * 0.2) tags.push('finishing');
         const vars: Vars = {
           a: this.ref(e.actor),
@@ -293,6 +295,8 @@ export class Commentator {
       case 'stunned':
         if (e.effect === 'frozen') return this.line(e, 'frozen', [], this.actorVars(e.actor), 1, this.sideOf(e.actor));
         return this.line(e, 'stunned', [], this.actorVars(e.actor), 0, this.sideOf(e.actor));
+      case 'sacrifice':
+        return this.line(e, 'sacrifice', [], { ...this.actorVars(e.actor), n: e.amount, ab: abilityText(e.ability, lang).name }, 1, this.sideOf(e.actor));
       case 'thorns': {
         const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), n: e.amount, aE: this.fem(e.actor), tE: this.fem(e.target) };
         return this.rng.chance(0.6) || e.hp <= 0 ? this.line(e, 'thorns', [], vars, 0, this.sideOf(e.actor)) : [];

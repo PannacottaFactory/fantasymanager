@@ -53,6 +53,15 @@ const SPECIES = {
   'giant-mantis': 'praying-mantis',
   ooze: 'slime',
   'magma-golem': 'golem-head',
+  banshee: 'haunting',
+  nightmare: 'horse-head',
+  'giant-hyena': 'hyena-head',
+  raptor: 'velociraptor',
+  cyclops: 'cyclops',
+  'storm-elemental': 'lightning-storm',
+  ogre: 'ogre',
+  'blood-demon': 'daemon-skull',
+  seraph: 'angel-wings',
 };
 
 /** Role id → icon name. */

@@ -3,7 +3,7 @@ import { Rng, deriveSeed } from '../src/core/rng.ts';
 import { ABILITIES } from '../src/data/abilities.ts';
 import { EFFECTS } from '../src/data/effects.ts';
 import { Combat } from '../src/engine/combat/combat.ts';
-import { executeMult, staminaRegen } from '../src/engine/combat/formulas.ts';
+import { executeMult, lineTargets, packMult, rawDamage, staminaRegen } from '../src/engine/combat/formulas.ts';
 import { initialView, applyEvent } from '../src/engine/combat/view.ts';
 import { simulateMatch } from '../src/engine/combat/simulate.ts';
 import { generateTeam } from '../src/engine/team/team.ts';
@@ -151,5 +151,48 @@ describe('wave 2 mechanics', () => {
     const regen = staminaRegen(t, c.cfg);
     addEffect(c, t, 'sapped');
     expect(staminaRegen(t, c.cfg)).toBeCloseTo(regen / 2);
+  });
+});
+
+describe('wave 3 mechanics', () => {
+  it('pack abilities grow with allies already on the target (capped)', () => {
+    const c = new Combat(setup(20));
+    const bite = ABILITIES['hyena-bite']!;
+    expect(packMult(bite, 0, c.cfg)).toBe(1);
+    expect(packMult(bite, 2, c.cfg)).toBeCloseTo(1 + 2 * bite.pack!);
+    expect(packMult(bite, 9, c.cfg)).toBeCloseTo(1 + c.cfg.combat.damage.packMax * bite.pack!);
+  });
+
+  it('back-line abilities hit the whole back line, or everyone if it is empty', () => {
+    const foes = [{ line: 'front' }, { line: 'back' }, { line: 'back' }];
+    expect(lineTargets('enemyBack', foes)).toHaveLength(2);
+    expect(lineTargets('enemyFront', foes)).toHaveLength(1);
+    expect(lineTargets('enemyBack', [{ line: 'front' }])).toHaveLength(1);
+  });
+
+  it('fury hits harder the more wounded the creature is', () => {
+    const c = new Combat(setup(21));
+    const a = c.active(0)[0]!;
+    const ab = ABILITIES['ogre-club']!;
+    const ctx = { orders: c.sides[0].orders, behind: 0, solo: false };
+    addEffect(c, a, 'bloodlust');
+    const fresh = rawDamage(a, ab, ctx, c.cfg);
+    a.hp = a.maxHp * 0.5;
+    // Composure softens the low-health penalty, which only starts lower: at half health only fury changes.
+    expect(rawDamage(a, ab, ctx, c.cfg) / fresh).toBeCloseTo(1 + 0.4 * 0.5);
+  });
+
+  it('a sacrifice costs health but never kills its user', () => {
+    const c = new Combat(setup(22));
+    const a = c.active(0)[0]!;
+    const t = c.active(1)[0]!;
+    a.stamina = a.maxStamina;
+    a.hp = 2;
+    c['execute'](a, { type: 'ability', ability: ABILITIES['blood-price']!, target: t, flank: false, score: 1 });
+    expect(a.hp).toBeGreaterThanOrEqual(1);
+    a.hp = a.maxHp;
+    c['execute'](a, { type: 'ability', ability: ABILITIES['blood-price']!, target: t, flank: false, score: 1 });
+    const ev = c.events.filter((e) => e.type === 'sacrifice' && e.actor === a.id).at(-1);
+    expect(ev).toMatchObject({ amount: Math.round(a.maxHp * 0.1) });
   });
 });

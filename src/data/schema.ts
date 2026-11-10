@@ -60,7 +60,8 @@ export interface SpeciesDef {
 }
 
 export type AbilityKind = 'melee' | 'ranged' | 'spell' | 'heal' | 'buff' | 'debuff';
-export type AbilityTarget = 'enemy' | 'enemyFront' | 'allEnemies' | 'ally' | 'allAllies' | 'self';
+/** enemyFront / enemyBack hit a whole line (everyone if that line is empty). */
+export type AbilityTarget = 'enemy' | 'enemyFront' | 'enemyBack' | 'allEnemies' | 'ally' | 'allAllies' | 'self';
 
 export interface AbilityEffectRef {
   effect: string;
@@ -93,6 +94,10 @@ export interface AbilityDef {
   execute?: number;
   /** Stamina removed from each target hit (or affected, for debuffs). */
   staminaDrain?: number;
+  /** Pack: damage +pack for each ally that already hit the same target this round (up to 4). */
+  pack?: number;
+  /** Sacrifice: fraction of the user's max health paid to use it (never below 1 HP). */
+  hpCost?: number;
   /** Morale damage inflicted on targets. */
   fear?: number;
   effects?: AbilityEffectRef[];
@@ -113,6 +118,8 @@ export interface EffectMods {
   staminaRegenMult?: number;
   /** Fraction of melee damage taken that is sent back to the attacker (additive). */
   thorns?: number;
+  /** Fury: damage bonus that grows with missing health (full value at 0 HP; additive). */
+  fury?: number;
 }
 
 export interface EffectDef {

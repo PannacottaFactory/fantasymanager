@@ -16,6 +16,8 @@ import {
   effectMod,
   effectStacks,
   executeMult,
+  lineTargets,
+  packMult,
   elementMultiplier,
   hasEffect,
   isCleansable,
@@ -42,6 +44,8 @@ export interface AiContext {
   orders(c: Combatant): TeamOrders;
   /** Has an ally of `attacker` already hit `target` this round? */
   comboOn(attacker: Combatant, target: Combatant): boolean;
+  /** How many allies of `attacker` already hit `target` this round. */
+  alliesOn(attacker: Combatant, target: Combatant): number;
   /** Fraction by which the creature's team trails on health (0 if ahead). */
   behind(c: Combatant): number;
 }
@@ -115,7 +119,8 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const perceivedMult = 1 + (trueMult - 1) * awareness;
   const mit = mitigation(target, attackKind(ability), ctx.orders(target), cfg);
   const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders }, cfg);
-  return raw * perceivedMult * executeMult(ability, target, cfg) * (1 - mit) * p;
+  const pack = packMult(ability, ctx.alliesOn(actor, target), cfg);
+  return raw * perceivedMult * executeMult(ability, target, cfg) * pack * (1 - mit) * p;
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */
@@ -190,6 +195,12 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     const cost = staminaCost(actor, ability, orders, cfg);
     if (cost > actor.stamina) continue;
     let bigMult = 1;
+    if (ability.hpCost) {
+      // Sacrifice: never at death's door, and less eagerly the more it costs.
+      const hp = hpFraction(actor);
+      if (hp < ability.hpCost + 0.2) continue;
+      bigMult *= 1 - ability.hpCost * (1.5 - hp);
+    }
     if (actor.favorites.includes(id)) {
       const f = cfg.combat.favorites;
       bigMult *= 1 + f.bonus * (0.4 + (0.6 * actor.attrs.discipline) / 20);
@@ -219,12 +230,13 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         const thorns = attackKind(ability) === 'melee' ? effectMod(target, 'thorns') : 0;
         if (thorns > 0 && damaging) score -= ((expectedDamage(ctx, actor, ability, target, flank) * thorns) / actor.maxHp) * 3 * (actor.attrs.tactics / 20);
         score += priorityMatch(opts.priority, target, enemies) * ai.priorityBonus;
+        // Pack hunters converge on prey their allies are already biting.
+        if (ability.pack) score += Math.min(ctx.alliesOn(actor, target), cfg.combat.damage.packMax) * ability.pack * 2;
         if (target.line === 'back') score += role.backlineHunter * 0.12;
         options.push({ type: 'ability', ability, target, flank, score: score * bigMult });
       }
-    } else if (ability.target === 'enemyFront' || ability.target === 'allEnemies') {
-      const front = enemies.filter((e) => e.line === 'front');
-      const targets = ability.target === 'allEnemies' || !front.length ? enemies : front;
+    } else if (ability.target === 'enemyFront' || ability.target === 'enemyBack' || ability.target === 'allEnemies') {
+      const targets = lineTargets(ability.target, enemies);
       if (!targets.length) continue;
       let score = 0;
       for (const t of targets) {
@@ -239,7 +251,8 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
       score += drainValue(ability, targets) * Math.max(role.debuff, 0.5);
       options.push({ type: 'ability', ability, target: null, flank: false, score: score * bigMult });
     } else if (ability.kind === 'heal') {
-      const candidates = ability.target === 'allAllies' ? [null] : allies;
+      // A sacrifice heal is for others.
+      const candidates = ability.target === 'allAllies' ? [null] : ability.hpCost ? allies.filter((a) => a.id !== actor.id) : allies;
       for (const t of candidates) {
         const hurt = t ? [t] : allies;
         const missing = hurt.reduce((s, a) => s + (1 - hpFraction(a)), 0);

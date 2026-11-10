@@ -120,7 +120,10 @@ tests/       Vitest
   non-curse effects, `cleanse` event), `EffectMods.healingTaken`; wave 2: burn (short, healing −60 %), bleed
   (3 wounds, `endsOnHeal`), thorns (`EffectMods.thorns`, `thorns` event, melee only), execution
   (`AbilityDef.execute`, below `executeBelow` health), stamina drain (`AbilityDef.staminaDrain`, `drain` event,
-  `sapped` halves stamina recovery via `staminaRegenMult`). Validate with `sim:archetypes` (pure styles
+  `sapped` halves stamina recovery via `staminaRegenMult`); wave 3: pack (`AbilityDef.pack`, per ally already on
+  the target this round, capped by `packMax`; the AI converges on bitten prey), line attacks (`enemyBack` target,
+  `lineTargets`), fury (`EffectMods.fury`, scales with missing health), sacrifice (`AbilityDef.hpCost`, never below
+  1 HP, `sacrifice` event); terror reuses fear / terrified / flight. Validate with `sim:archetypes` (pure styles
   ≈ 35–45 % vs mixed teams, strong/weak match-ups between styles) and price species with `sim:species`.
 - **Saves**: `GameState.version` 3; `loadGame` runs `migrateGame` (v1 → economy, v2 → staff, plans, youth).
 
@@ -163,8 +166,11 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   23 new abilities; lich curses, wendigo chills; `sim:archetypes`. 83 tests.
 - [x] **Play styles, wave 2**: burn, bleed, thorns, life drain, execution, exhaustion; 9 new species (hellhound,
   imp, werewolf, bramble horror, vampire, giant bat, giant mantis, ooze, magma golem) → 40 species. Power shown as ✸.
-  Next: wave 3 (terror, swarm, area, rage, sacrifice), then AI identities per stable + difficulty chosen at start;
-  encyclopedia; post-match analysis.
+- [x] **Play styles, wave 3**: terror, pack, area (back-line attacks), rage (fury), sacrifice; 9 new species
+  (banshee, nightmare, giant hyena, raptor, cyclops, storm elemental, ogre, blood demon, seraph) → 49 species.
+  17 styles in `sim:archetypes`: averages 33–70 % (frost strongest vs other pure styles, pack weakest). League KO
+  rate now ~48–59 %. 91 tests.
+  Next: AI identities per stable + difficulty chosen at start; encyclopedia; post-match analysis.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

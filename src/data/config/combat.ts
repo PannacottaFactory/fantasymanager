@@ -58,6 +58,8 @@ export const COMBAT_CONFIG = {
     critMult: 1.6,
     /** Execution abilities hit harder on targets below this health fraction. */
     executeBelow: 0.3,
+    /** Pack abilities count at most this many allies already on the target. */
+    packMax: 4,
     /** Physical mitigation per point of toughness. */
     physMitigationPerToughness: 0.017,
     /** Spell mitigation per point of (focus + courage) / 2. */

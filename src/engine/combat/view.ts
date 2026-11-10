@@ -99,6 +99,11 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
       if (t) t.hp = e.targetHp;
       break;
     }
+    case 'sacrifice': {
+      const a = touch(e.actor);
+      if (a) a.hp = e.hp;
+      break;
+    }
     case 'thorns': {
       const t = touch(e.target);
       if (t) t.hp = e.hp;

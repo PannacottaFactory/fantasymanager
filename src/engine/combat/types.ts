@@ -139,7 +139,11 @@ export type MatchEvent =
       healed?: number;
       /** Execution bonus applied (target was low on health). */
       execute?: boolean;
+      /** Pack: allies that had already hit the target this round (when it raised the damage). */
+      pack?: number;
     }
+  /** Sacrifice: the user paid `amount` of its own health. */
+  | { type: 'sacrifice'; round: number; actor: string; ability: string; amount: number; hp: number }
   /** Thorns: `actor` (the one hit) sends `amount` back to `target` (the melee attacker). */
   | { type: 'thorns'; round: number; actor: string; target: string; amount: number; hp: number }
   /** Stamina drained from `target`. */

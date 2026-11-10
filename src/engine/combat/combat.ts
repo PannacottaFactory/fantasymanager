@@ -30,6 +30,8 @@ import {
   disobeyChance,
   effectMod,
   executeMult,
+  lineTargets,
+  packMult,
   isCleansable,
   elementMultiplier,
   hasEffect,
@@ -125,6 +127,12 @@ export class Combat {
       allies: (c) => this.active(c.side),
       enemies: (c) => this.active(other(c.side)),
       orders: (c) => this.sides[c.side].orders,
+      alliesOn: (attacker, target) => {
+        const set = this.hitThisRound.get(target.id);
+        let n = 0;
+        if (set) for (const id of set) if (id !== attacker.id && this.byId.get(id)?.side === attacker.side) n++;
+        return n;
+      },
       comboOn: (attacker, target) => {
         const set = this.hitThisRound.get(target.id);
         if (!set) return false;
@@ -556,6 +564,13 @@ export class Combat {
     actor.stamina = Math.max(0, actor.stamina - staminaCost(actor, ability, orders, cfg));
     if (ability.cooldown > 0) actor.cooldowns[ability.id] = ability.cooldown + 1; // +1: decremented at end of this round
     this.emitSpend(actor, ability.id, before, ability.cooldown);
+    if (ability.hpCost) {
+      const pay = Math.max(0, Math.min(Math.round(actor.maxHp * ability.hpCost), Math.ceil(actor.hp) - 1));
+      if (pay > 0) {
+        actor.hp -= pay;
+        this.emit({ type: 'sacrifice', round: this.round, actor: actor.id, ability: ability.id, amount: pay, hp: Math.round(actor.hp) });
+      }
+    }
 
     const enemies = this.active(other(actor.side));
     const allies = this.active(actor.side);
@@ -567,9 +582,9 @@ export class Combat {
         return;
       }
       case 'enemyFront':
+      case 'enemyBack':
       case 'allEnemies': {
-        const front = enemies.filter((e) => e.line === 'front');
-        const targets = ability.target === 'allEnemies' || !front.length ? enemies : front;
+        const targets = lineTargets(ability.target, enemies);
         if (ability.power > 0) for (const t of targets) if (t.state === 'active') this.attack(actor, t, ability, true, false);
         if (ability.power <= 0) this.debuff(actor, ability, targets);
         return;
@@ -742,6 +757,8 @@ export class Combat {
     if (aoe) dmg *= d.aoeFactor;
     const exec = executeMult(ability, target, cfg);
     dmg *= exec;
+    const pack = ability.pack ? this.ai.alliesOn(actor, target) : 0;
+    dmg *= packMult(ability, pack, cfg);
     dmg *= 1 - mitigation(target, kind, this.sides[target.side].orders, cfg);
     let damage = Math.max(1, Math.round(dmg));
 
@@ -770,7 +787,7 @@ export class Combat {
     if (!this.hitThisRound.has(target.id)) this.hitThisRound.set(target.id, new Set());
     this.hitThisRound.get(target.id)!.add(actor.id);
 
-    this.emit({ ...base, hit: true, damage: real, crit, elementMult: round(elementMult, 2), absorbed, targetHp: Math.round(target.hp), healed, ...(exec > 1 ? { execute: true } : {}) });
+    this.emit({ ...base, hit: true, damage: real, crit, elementMult: round(elementMult, 2), absorbed, targetHp: Math.round(target.hp), healed, ...(exec > 1 ? { execute: true } : {}), ...(pack > 0 ? { pack } : {}) });
     // Thorns: part of a melee blow comes back to the attacker.
     const thorns = kind === 'melee' && real > 0 ? Math.round(real * effectMod(target, 'thorns')) : 0;
     if (thorns > 0) this.reflect(target, actor, thorns);

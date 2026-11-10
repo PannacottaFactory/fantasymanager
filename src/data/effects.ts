@@ -103,6 +103,15 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'thornhide', name: 'Thorn Hide', kind: 'mods', beneficial: true, defaultDuration: 999,
     mods: { thorns: 0.25 }, description: 'Covered in thorns: sends 25 % of the melee damage it takes back to the attacker.',
   },
+  /** Ogre passive: hits harder the more it is hurt. */
+  bloodlust: {
+    id: 'bloodlust', name: 'Bloodlust', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { fury: 0.4 }, description: 'The more wounded, the harder it hits: up to +40 % damage near 0 health.',
+  },
+  frenzied: {
+    id: 'frenzied', name: 'Frenzied', kind: 'mods', beneficial: true, defaultDuration: 3,
+    mods: { fury: 0.6 }, description: 'Up to +60 % damage, the more wounded the stronger.',
+  },
   /** Troll passive: permanent, weaker regeneration. */
   trollblood: {
     id: 'trollblood', name: 'Troll Blood', kind: 'hot', beneficial: true, defaultDuration: 999, magnitude: 0.025,

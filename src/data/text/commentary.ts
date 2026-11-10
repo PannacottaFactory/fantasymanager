@@ -63,6 +63,8 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['flank', 'Flanking run from {a}! {t} is caught at the back — {dmg}.'],
     ['shielded', '{a} {verb} {t}, but the barrier soaks most of it ({absorbed} absorbed, {dmg} through).'],
     ['lifesteal', '{a} {verb} {t} and drinks in the stolen life: {dmg} damage, {healed} healed.'],
+    ['pack', 'The pack closes in: {a} {verb} {t} — {dmg}!'],
+    ['pack', '{t} is surrounded — {a} piles in for {dmg}.'],
     ['execute', '{a} smells weakness and {verb} {t} without mercy — {dmg}!'],
     ['execute', 'No mercy for the wounded: {a} {verb} {t} for {dmg}.'],
     ['finishing', '{t} is hanging by a thread after {a}’s {ab} ({dmg}). {hp} health left!'],
@@ -162,6 +164,10 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['', '{a} is frozen solid and cannot move!'],
     ['', 'A statue of ice — {a} loses its turn.'],
     ['', '{a} strains against the ice, in vain.'],
+  ],
+  sacrifice: [
+    ['', '{a} pays in blood for {ab} (-{n}).'],
+    ['', '{a} tears its own flesh to unleash {ab}!'],
   ],
   thorns: [
     ['', '{t} pays for it — {a}’s thorns bite back ({n}).'],

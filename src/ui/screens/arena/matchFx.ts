@@ -89,6 +89,7 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
     case 'drain':
       return 'debuff';
     case 'thorns':
+    case 'sacrifice':
       return 'dot';
     case 'effectApplied': {
       const def = EFFECTS[e.effect];
@@ -164,6 +165,9 @@ export function addEventFx(
       break;
     case 'thorns':
       put(e.target, 'dot', `-${e.amount}`);
+      break;
+    case 'sacrifice':
+      put(e.actor, 'dot', `-${e.amount}`);
       break;
     case 'drain':
       put(e.target, 'debuff', `-${e.amount}⚡`);

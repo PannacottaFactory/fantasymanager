@@ -64,6 +64,8 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['flank', 'Débordement ! {a} surprend {t} en deuxième ligne — {dmg}.'],
     ['shielded', '{a} {verb} {t}, mais la barrière absorbe l’essentiel ({absorbed} absorbés, {dmg} passent).'],
     ['lifesteal', '{a} {verb} {t} et se nourrit de la vie volée : {dmg} dégâts, {healed} soignés.'],
+    ['pack', 'La meute se referme : {a} {verb} {t} — {dmg} !'],
+    ['pack', '{t} est cerné{tE} — {a} s’y met aussi ({dmg}).'],
     ['execute', '{a} sent la faiblesse et {verb} {t} sans pitié — {dmg} !'],
     ['execute', 'Pas de quartier pour les blessés : {a} {verb} {t} ({dmg}).'],
     ['finishing', '{t} ne tient plus qu’à un fil après {ab} ({dmg}). Plus que {hp} PV !'],
@@ -165,6 +167,10 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['', '{a} est pris{aE} dans la glace et ne peut plus bouger !'],
     ['', 'Une statue de glace : {a} perd son tour.'],
     ['', '{a} lutte contre la glace, en vain.'],
+  ],
+  sacrifice: [
+    ['', '{a} paie {ab} de son propre sang (-{n}).'],
+    ['', '{a} se déchire la chair pour déchaîner {ab} !'],
   ],
   thorns: [
     ['', '{t} le paie cher : les épines piquent en retour ({n}).'],

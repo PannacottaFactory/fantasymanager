@@ -31,6 +31,11 @@ const STYLES: Record<string, string[]> = {
   drain: ['vampire', 'giant-bat', 'shade', 'wendigo', 'giant-bat', 'vampire', 'lich', 'giant-bat'],
   execute: ['giant-mantis', 'giant-mantis', 'centaur', 'griffin', 'orc', 'giant-mantis', 'elf', 'troll'],
   exhaust: ['ooze', 'ooze', 'giant-bat', 'kraken', 'centaur', 'ooze', 'naga', 'giant-bat'],
+  terror: ['banshee', 'nightmare', 'shade', 'wendigo', 'troll', 'banshee', 'nightmare', 'orc'],
+  pack: ['raptor', 'raptor', 'giant-hyena', 'troll', 'raptor', 'giant-hyena', 'orc', 'raptor'],
+  area: ['cyclops', 'storm-elemental', 'golem', 'storm-elemental', 'cyclops', 'naga', 'orc', 'elf'],
+  rage: ['ogre', 'ogre', 'orc', 'werewolf', 'orc', 'ogre', 'troll', 'orc'],
+  sacrifice: ['blood-demon', 'seraph', 'blood-demon', 'golem', 'seraph', 'troll', 'blood-demon', 'elf'],
 };
 
 for (const list of Object.values(STYLES)) for (const id of list) if (!SPECIES[id]) throw new Error(`Unknown species ${id}`);

@@ -189,4 +189,22 @@ export const NAME_CULTURES: Record<string, NameCulture> = {
     surnames: ['the Count', 'of the Black Keep', 'Nightblood', 'the Thirsting'],
     surnameChance: 0.5,
   },
+  demon: {
+    style: 'syllables',
+    starts: ['Baal', 'Mal', 'Azg', 'Bel', 'Xar', 'Mol', 'Gor', 'Ash'],
+    middles: ['ag', 'ze', 'or'],
+    ends: ['oth', 'zar', 'ial', 'goth', 'ek', 'phas', 'ul'],
+    middleChance: 0.4,
+    surnames: ['the Bloodbound', 'of the Ninth Pit', 'Ashmaw', 'the Unbowed'],
+    surnameChance: 0.4,
+  },
+  seraph: {
+    style: 'syllables',
+    starts: ['Ari', 'Cel', 'Ura', 'Seph', 'Lum', 'Ael', 'Ith', 'Zad'],
+    middles: ['i', 'a', 'el'],
+    ends: ['iel', 'ael', 'ion', 'ara', 'iah', 'ys'],
+    middleChance: 0.35,
+    surnames: ['of the Seventh Light', 'Dawnwing', 'the Merciful', 'Who Gives'],
+    surnameChance: 0.4,
+  },
 };

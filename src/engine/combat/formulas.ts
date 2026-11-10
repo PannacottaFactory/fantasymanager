@@ -193,6 +193,8 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   let dmg = ability.power * (d.statBase + powerStat(attacker, kind) * d.statPerPoint);
   if (kind !== 'spell') dmg *= 1 + attacker.attrs.aggression * d.aggressionPerPoint;
   dmg *= effectMod(attacker, 'damageMult');
+  // Fury: the more wounded, the harder it hits.
+  dmg *= 1 + effectMod(attacker, 'fury') * (1 - hpFraction(attacker));
   dmg *= traitMult(attacker, 'damageMult');
   dmg *= roleDamageFactor(attacker, kind);
   dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
@@ -208,6 +210,19 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
 /** Damage multiplier of an execution ability on this target. */
 export function executeMult(ability: AbilityDef, target: Combatant, cfg: GameConfig): number {
   return ability.execute && hpFraction(target) < cfg.combat.damage.executeBelow ? 1 + ability.execute : 1;
+}
+
+/** Pack multiplier: allies that already struck this target this round. */
+export function packMult(ability: AbilityDef, alliesOnTarget: number, cfg: GameConfig): number {
+  return ability.pack ? 1 + ability.pack * Math.min(alliesOnTarget, cfg.combat.damage.packMax) : 1;
+}
+
+/** Enemies hit by a line / area ability. */
+export function lineTargets<T extends { line: string }>(target: AbilityDef['target'], enemies: T[]): T[] {
+  if (target === 'allEnemies') return enemies;
+  const line = target === 'enemyBack' ? 'back' : 'front';
+  const inLine = enemies.filter((e) => e.line === line);
+  return inLine.length ? inLine : enemies;
 }
 
 export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOrders, cfg: GameConfig): number {
