@@ -184,6 +184,7 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
             {c.effects.map((e) => (
               <span key={e} className={EFFECTS[e]?.beneficial ? 'good' : 'bad'} title={effectText(e, lang).description}>
                 {effectText(e, lang).name}
+                {c.stacks[e] ? ` ×${c.stacks[e]}` : ''}
               </span>
             ))}
           </div>

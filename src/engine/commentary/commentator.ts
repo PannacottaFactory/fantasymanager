@@ -41,6 +41,7 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
   switch (e.type) {
     case 'attack':
     case 'heal':
+    case 'cleanse':
       return { actor: e.actor, target: e.target };
     case 'buff':
     case 'debuff':
@@ -287,7 +288,12 @@ export class Commentator {
       case 'flee':
         return [...this.line(e, 'flee', [], this.actorVars(e.actor), 2, this.sideOf(e.actor)), ...this.crowd(e, 0.5)];
       case 'stunned':
+        if (e.effect === 'frozen') return this.line(e, 'frozen', [], this.actorVars(e.actor), 1, this.sideOf(e.actor));
         return this.line(e, 'stunned', [], this.actorVars(e.actor), 0, this.sideOf(e.actor));
+      case 'cleanse': {
+        const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), aE: this.fem(e.actor), tE: this.fem(e.target) };
+        return this.line(e, 'cleanse', e.actor === e.target ? ['self'] : [], vars, 1, this.sideOf(e.actor));
+      }
       case 'showboat':
         return this.line(e, 'showboat', [], this.actorVars(e.actor), 1, this.sideOf(e.actor));
       case 'disobey':
@@ -325,7 +331,11 @@ export class Commentator {
         // Beneficial effects are already told by the buff/heal line that caused them.
         if (EFFECTS[e.effect]?.beneficial) return [];
         const key = COMMENTARY_BY_LANG[lang][`effect.${e.effect}`] ? `effect.${e.effect}` : 'effect.generic';
-        return this.line(e, key, [], { t: this.ref(e.target), effect: effectText(e.effect, lang).noun, tE: this.fem(e.target) }, 0, this.sideOf(e.target));
+        const def = EFFECTS[e.effect];
+        const stacked = (e.stacks ?? 1) > 1;
+        const tags = stacked ? (e.stacks === def?.maxStacks ? ['stack', 'max'] : ['stack']) : [];
+        const vars: Vars = { t: this.ref(e.target), effect: effectText(e.effect, lang).noun, n: e.stacks, tE: this.fem(e.target) };
+        return this.line(e, key, tags, vars, e.effect === 'frozen' || (stacked && e.stacks === def?.maxStacks) ? 1 : 0, this.sideOf(e.target));
       }
       case 'effectTick': {
         const def = EFFECTS[e.effect];

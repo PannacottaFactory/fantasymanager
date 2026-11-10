@@ -67,6 +67,8 @@ export interface AbilityEffectRef {
   chance: number;
   on: 'target' | 'self';
   duration?: number;
+  /** Stacks added at once (stacking effects such as poison or chill; default 1). */
+  stacks?: number;
 }
 
 export interface AbilityDef {
@@ -85,6 +87,8 @@ export interface AbilityDef {
   accuracyMod?: number;
   critMod?: number;
   lifesteal?: number;
+  /** Removes every harmful effect that can be cleansed (not curses) from the targets. */
+  cleanse?: boolean;
   /** Morale damage inflicted on targets. */
   fear?: number;
   effects?: AbilityEffectRef[];
@@ -99,6 +103,8 @@ export interface EffectMods {
   dodgeBonus?: number;
   initiativeMult?: number;
   critBonus?: number;
+  /** Multiplier on healing received (heals, regeneration, life drain). */
+  healingTaken?: number;
 }
 
 export interface EffectDef {
@@ -112,6 +118,12 @@ export interface EffectDef {
   mods?: EffectMods;
   moralePerRound?: number;
   beneficial: boolean;
+  /** Stacking effect: each application adds a stack up to this cap (dot damage scales with stacks). */
+  maxStacks?: number;
+  /** Reaching maxStacks turns the effect into this one (chill → frozen). */
+  onMaxStacks?: string;
+  /** Curse: lasts until the next break (or the end of the match) and cannot be cleansed. */
+  curse?: boolean;
 }
 
 export interface TraitCombatEffects {

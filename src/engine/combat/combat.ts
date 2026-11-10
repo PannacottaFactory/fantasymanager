@@ -28,6 +28,8 @@ import {
   attackKind,
   critChance,
   disobeyChance,
+  effectMod,
+  isCleansable,
   elementMultiplier,
   hasEffect,
   hitChance,
@@ -165,6 +167,7 @@ export class Combat {
       this.playRound();
       if (this.phase !== 'running') break;
       if (this.cfg.match.breakRounds.includes(this.round)) {
+        this.liftCurses();
         this.phase = 'break';
         this.emit({ type: 'break', round: this.round, index: this.breakIndex++ });
       }
@@ -282,6 +285,9 @@ export class Combat {
       state: c.state,
       line: c.line,
       effects: c.effects.map((e) => e.id),
+      ...(c.effects.some((e) => (e.stacks ?? 1) > 1)
+        ? { stacks: Object.fromEntries(c.effects.filter((e) => (e.stacks ?? 1) > 1).map((e) => [e.id, e.stacks!])) }
+        : {}),
       cooldowns: Object.fromEntries(Object.entries(c.cooldowns).filter(([, v]) => v > 0)),
     }));
   }
@@ -391,7 +397,7 @@ export class Combat {
         const def = EFFECTS[e.id];
         if (!def) continue;
         if (def.kind === 'dot') {
-          const dmg = Math.max(1, Math.round(c.maxHp * (def.magnitude ?? 0)));
+          const dmg = Math.max(1, Math.round(c.maxHp * (def.magnitude ?? 0) * (e.stacks ?? 1)));
           const real = Math.min(dmg, c.hp);
           c.hp -= real;
           const src = e.sourceId ? this.byId.get(e.sourceId) : undefined;
@@ -402,7 +408,7 @@ export class Combat {
             break;
           }
         } else if (def.kind === 'hot') {
-          const heal = Math.min(c.maxHp - c.hp, Math.round(c.maxHp * (def.magnitude ?? 0)));
+          const heal = Math.min(c.maxHp - c.hp, Math.round(c.maxHp * (def.magnitude ?? 0) * effectMod(c, 'healingTaken')));
           if (heal > 0) {
             c.hp += heal;
             this.emit({ type: 'effectTick', round: this.round, target: c.id, effect: e.id, amount: heal, hp: c.hp });
@@ -421,7 +427,7 @@ export class Combat {
       for (const k of Object.keys(c.cooldowns)) if (c.cooldowns[k]! > 0) c.cooldowns[k]!--;
       for (const e of [...c.effects]) {
         const def = EFFECTS[e.id];
-        if (!def || def.kind === 'stun' || e.remaining >= 999) continue;
+        if (!def || def.kind === 'stun' || def.curse || e.remaining >= 999) continue;
         e.remaining--;
         if (e.remaining <= 0) {
           c.effects = c.effects.filter((x) => x !== e);
@@ -472,7 +478,7 @@ export class Combat {
     if (stun) {
       stun.remaining--;
       if (stun.remaining <= 0) actor.effects = actor.effects.filter((e) => e !== stun);
-      this.emit({ type: 'stunned', round: this.round, actor: actor.id });
+      this.emit({ type: 'stunned', round: this.round, actor: actor.id, effect: stun.id });
       return;
     }
 
@@ -573,14 +579,19 @@ export class Combat {
         const targets = ability.target === 'self' ? [actor] : ability.target === 'allAllies' ? allies : action.target ? [action.target] : [];
         if (ability.kind === 'heal') {
           for (const t of targets) {
-            const amount = Math.round(Math.min(t.maxHp - t.hp, healAmount(actor, ability, cfg) * this.rng.range(0.9, 1.1)));
+            const roll = healAmount(actor, ability, cfg) * this.rng.range(0.9, 1.1) * effectMod(t, 'healingTaken');
+            const amount = Math.round(Math.min(t.maxHp - t.hp, roll));
             t.hp += amount;
             this.emit({ type: 'heal', round: this.round, actor: actor.id, target: t.id, ability: ability.id, amount, targetHp: Math.round(t.hp) });
+            if (ability.cleanse) this.cleanse(actor, ability, t);
             this.applyAbilityEffects(actor, ability, t, 'target');
           }
         } else {
           this.emit({ type: 'buff', round: this.round, actor: actor.id, ability: ability.id, targets: targets.map((t) => t.id) });
-          for (const t of targets) this.applyAbilityEffects(actor, ability, t, 'target');
+          for (const t of targets) {
+            if (ability.cleanse) this.cleanse(actor, ability, t);
+            this.applyAbilityEffects(actor, ability, t, 'target');
+          }
         }
         this.applyAbilityEffects(actor, ability, actor, 'self');
         return;
@@ -615,25 +626,66 @@ export class Combat {
       let p = ref.chance;
       if (!def.beneficial && target.side !== actor.side) p *= 1 - target.attrs.focus * 0.015;
       if (this.rng.chance(p)) {
-        this.addEffect(target, ref.effect, ref.duration ?? def.defaultDuration, actor.id);
+        this.addEffect(target, ref.effect, ref.duration ?? def.defaultDuration, actor.id, false, ref.stacks ?? 1);
         any = true;
       }
     }
     return any;
   }
 
-  private addEffect(target: Combatant, id: string, duration: number, sourceId?: string, silent = false) {
+  private addEffect(target: Combatant, id: string, duration: number, sourceId?: string, silent = false, stacks = 1) {
     const def = EFFECTS[id];
     if (!def) return;
+    // A frozen creature cannot gather more cold.
+    if (def.onMaxStacks && target.effects.some((e) => e.id === def.onMaxStacks)) return;
     const existing = target.effects.find((e) => e.id === id);
     const shieldHp = def.kind === 'shield' ? Math.round(target.maxHp * (def.magnitude ?? 0)) : undefined;
     if (existing) {
       existing.remaining = Math.max(existing.remaining, duration);
       if (shieldHp !== undefined) existing.shieldHp = Math.max(existing.shieldHp ?? 0, shieldHp);
+      if (!def.maxStacks) return;
+      const before = existing.stacks ?? 1;
+      existing.stacks = Math.min(def.maxStacks, before + stacks);
+      if (sourceId) existing.sourceId = sourceId;
+      if (existing.stacks === before) return;
+      if (!silent) this.emit({ type: 'effectApplied', round: this.round, target: target.id, effect: id, source: sourceId, stacks: existing.stacks });
+      this.checkMaxStacks(target, existing, sourceId);
       return;
     }
-    target.effects.push({ id, remaining: duration, shieldHp, sourceId });
-    if (!silent) this.emit({ type: 'effectApplied', round: this.round, target: target.id, effect: id, source: sourceId });
+    const n = def.maxStacks ? Math.min(def.maxStacks, stacks) : undefined;
+    const fx = { id, remaining: duration, shieldHp, sourceId, ...(n ? { stacks: n } : {}) };
+    target.effects.push(fx);
+    if (!silent) this.emit({ type: 'effectApplied', round: this.round, target: target.id, effect: id, source: sourceId, ...(n ? { stacks: n } : {}) });
+    this.checkMaxStacks(target, fx, sourceId);
+  }
+
+  /** Chill at full charge turns into a freeze. */
+  private checkMaxStacks(target: Combatant, fx: Combatant['effects'][number], sourceId?: string) {
+    const def = EFFECTS[fx.id];
+    if (!def?.onMaxStacks || !def.maxStacks || (fx.stacks ?? 1) < def.maxStacks) return;
+    target.effects = target.effects.filter((e) => e !== fx);
+    this.emit({ type: 'effectExpired', round: this.round, target: target.id, effect: fx.id });
+    const next = EFFECTS[def.onMaxStacks];
+    if (next) this.addEffect(target, next.id, next.defaultDuration, sourceId);
+  }
+
+  /** Removes every cleansable harmful effect from an ally. */
+  private cleanse(actor: Combatant, ability: AbilityDef, target: Combatant) {
+    const removed = target.effects.filter((e) => isCleansable(e.id, e.remaining)).map((e) => e.id);
+    if (!removed.length) return;
+    target.effects = target.effects.filter((e) => !removed.includes(e.id));
+    this.emit({ type: 'cleanse', round: this.round, actor: actor.id, target: target.id, ability: ability.id, removed });
+  }
+
+  /** Curses fade at each break. */
+  private liftCurses() {
+    for (const c of this.combatants) {
+      if (c.state !== 'active') continue;
+      for (const e of c.effects.filter((x) => EFFECTS[x.id]?.curse)) {
+        c.effects = c.effects.filter((x) => x !== e);
+        this.emit({ type: 'effectExpired', round: this.round, target: c.id, effect: e.id });
+      }
+    }
   }
 
   private attack(actor: Combatant, initialTarget: Combatant, ability: AbilityDef, aoe: boolean, flank: boolean) {
@@ -706,7 +758,7 @@ export class Combat {
 
     let healed: number | undefined;
     if (ability.lifesteal && real > 0) {
-      healed = Math.round(Math.min(actor.maxHp - actor.hp, real * ability.lifesteal));
+      healed = Math.round(Math.min(actor.maxHp - actor.hp, real * ability.lifesteal * effectMod(actor, 'healingTaken')));
       actor.hp += healed;
     }
 

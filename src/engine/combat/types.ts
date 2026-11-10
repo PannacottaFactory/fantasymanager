@@ -12,6 +12,8 @@ export interface ActiveEffect {
   /** Remaining absorption for shields. */
   shieldHp?: number;
   sourceId?: string;
+  /** Stacks of a stacking effect (poison doses, chill charges). */
+  stacks?: number;
 }
 
 export interface Combatant {
@@ -106,6 +108,8 @@ export interface CombatantSnapshot {
   state: CombatantState;
   line: Line;
   effects: string[];
+  /** Stacks of stacking effects (only those above 1). */
+  stacks?: Record<string, number>;
   /** Rounds before each ability can be used again (only abilities on cooldown). */
   cooldowns: Record<string, number>;
 }
@@ -143,10 +147,14 @@ export type MatchEvent =
   | { type: 'rest'; round: number; actor: string; gained: number }
   | { type: 'hesitate'; round: number; actor: string }
   | { type: 'flee'; round: number; actor: string }
-  | { type: 'stunned'; round: number; actor: string }
+  /** Turn lost; `effect` says why (stunned, frozen). */
+  | { type: 'stunned'; round: number; actor: string; effect?: string }
   | { type: 'showboat'; round: number; actor: string }
   | { type: 'disobey'; round: number; actor: string; ordered: string; chose: string }
-  | { type: 'effectApplied'; round: number; target: string; effect: string; source?: string }
+  /** `stacks` = total stacks after this application (stacking effects only). */
+  | { type: 'effectApplied'; round: number; target: string; effect: string; source?: string; stacks?: number }
+  /** Harmful effects removed by a purifying ability. */
+  | { type: 'cleanse'; round: number; actor: string; target: string; ability: string; removed: string[] }
   | { type: 'effectTick'; round: number; target: string; effect: string; amount: number; hp: number }
   | { type: 'effectExpired'; round: number; target: string; effect: string }
   | { type: 'enrage'; round: number; actor: string; reason: 'lowHp' | 'allyKo' }

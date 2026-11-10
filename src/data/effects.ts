@@ -5,9 +5,11 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'burning', name: 'Burning', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.04,
     description: 'Loses health every round.',
   },
+  /** Stacks up to 5 doses; each dose drains health every round (armour does not help). */
   poisoned: {
-    id: 'poisoned', name: 'Poisoned', kind: 'dot', beneficial: false, defaultDuration: 4, magnitude: 0.035,
-    mods: { damageMult: 0.92 }, description: 'Loses health every round and hits a little softer.',
+    id: 'poisoned', name: 'Poisoned', kind: 'dot', beneficial: false, defaultDuration: 4, magnitude: 0.028, maxStacks: 5,
+    mods: { damageMult: 0.95 },
+    description: 'Loses health every round for each dose (up to 5, armour does not help) and hits a little softer. Every new dose renews the duration.',
   },
   bleeding: {
     id: 'bleeding', name: 'Bleeding', kind: 'dot', beneficial: false, defaultDuration: 3, magnitude: 0.03,
@@ -53,6 +55,32 @@ export const EFFECTS: Record<string, EffectDef> = {
   evasive: {
     id: 'evasive', name: 'Evasive', kind: 'mods', beneficial: true, defaultDuration: 2,
     mods: { dodgeBonus: 0.15, initiativeMult: 1.2 }, description: 'Darts around, hard to pin down.',
+  },
+  /** Three charges of cold freeze the target solid. */
+  chilled: {
+    id: 'chilled', name: 'Chilled', kind: 'mods', beneficial: false, defaultDuration: 3, maxStacks: 3, onMaxStacks: 'frozen',
+    mods: { initiativeMult: 0.85 }, description: 'Acts a little later. At 3 charges of cold, freezes solid.',
+  },
+  frozen: {
+    id: 'frozen', name: 'Frozen', kind: 'stun', beneficial: false, defaultDuration: 1,
+    mods: { dodgeBonus: -0.2 }, description: 'Frozen solid: loses its next turn and cannot dodge well. Cannot be chilled while frozen.',
+  },
+  // ——— Curses: last until the next break (or the end of the match), cannot be cleansed ———
+  hexed: {
+    id: 'hexed', name: 'Hexed', kind: 'mods', beneficial: false, defaultDuration: 1, curse: true,
+    mods: { damageMult: 0.8 }, description: 'Curse: deals 20 % less damage until the next break.',
+  },
+  frailty: {
+    id: 'frailty', name: 'Frailty', kind: 'mods', beneficial: false, defaultDuration: 1, curse: true,
+    mods: { mitigation: -0.15 }, description: 'Curse: armour and spell resistance reduced until the next break.',
+  },
+  blighted: {
+    id: 'blighted', name: 'Blighted', kind: 'mods', beneficial: false, defaultDuration: 1, curse: true,
+    mods: { healingTaken: 0.5 }, description: 'Curse: receives half healing until the next break.',
+  },
+  jinxed: {
+    id: 'jinxed', name: 'Jinxed', kind: 'mods', beneficial: false, defaultDuration: 1, curse: true,
+    mods: { hitBonus: -0.1, critBonus: -0.05 }, description: 'Curse: misses more and lands fewer critical hits until the next break.',
   },
   regenerating: {
     id: 'regenerating', name: 'Regenerating', kind: 'hot', beneficial: true, defaultDuration: 3, magnitude: 0.05,

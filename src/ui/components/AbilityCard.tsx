@@ -65,13 +65,15 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite }
         </span>
         {def.cooldown > 0 && <span title={t('ab.cooldown.title')}>⟳ {t('ab.cooldown', { n: def.cooldown })}</span>}
       </div>
-      {def.effects && def.effects.length > 0 && (
+      {((def.effects && def.effects.length > 0) || def.cleanse) && (
         <div className="ability-stats">
-          {def.effects.map((e) => (
+          {def.effects?.map((e) => (
             <span key={e.effect} title={effectText(e.effect, lang).description}>
-              {effectText(e.effect, lang).name} {Math.round(e.chance * 100)} %
+              {effectText(e.effect, lang).name}
+              {(e.stacks ?? 1) > 1 ? ` ×${e.stacks}` : ''} {Math.round(e.chance * 100)} %
             </span>
           ))}
+          {def.cleanse && <span title={t('ab.cleanse.title')}>{t('ab.cleanse')}</span>}
         </div>
       )}
       <div className="muted ability-desc">{txt.description}</div>

@@ -156,6 +156,7 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
       }
       case 'buff':
       case 'debuff':
+        // (a 'cleanse' always follows the heal/buff of the same ability, already counted)
         st(e.actor).abilitiesUsed[e.ability] = (st(e.actor).abilitiesUsed[e.ability] ?? 0) + 1;
         break;
       case 'effectTick': {

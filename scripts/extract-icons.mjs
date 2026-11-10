@@ -36,6 +36,14 @@ const SPECIES = {
   wendigo: 'animal-skull',
   'crystal-golem': 'ice-golem',
   salamander: 'salamander',
+  'giant-spider': 'spider-face',
+  'giant-scorpion': 'scorpion',
+  myconid: 'mushroom-gills',
+  'winter-wolf': 'wolf-howl',
+  'frost-giant': 'giant',
+  'frost-wraith': 'floating-ghost',
+  hag: 'witch-face',
+  unicorn: 'unicorn',
 };
 
 /** Role id → icon name. */

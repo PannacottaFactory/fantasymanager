@@ -22,6 +22,7 @@ Saves use IndexedDB (`idb`, one autosave slot, `src/ui/store/saves.ts`); heavy s
 | `npm run sim:match -- --seed 42 --a professional --b regional` | one match in the terminal with commentary + report |
 | `npm run sim:batch -- --matches 1000 --a elite --b novice` | balancing stats over many headless matches |
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
+| `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 
 Quality tiers: `novice | regional | professional | elite | legendary`.
 
@@ -111,6 +112,13 @@ tests/       Vitest
   free agents 10; matches +20 up to 60; scouts 70/90). Ranges come from a fixed per-creature offset
   (`noise(id, key)`), always contain the truth and narrow monotonically — never show raw attributes,
   ability or potential of a creature the player does not own.
+- **Play styles** (design only — never named in the game or the encyclopedia; teams mix them freely): each style
+  must work through its own abilities and effects, with one readable rule and a counter. No team/synergy bonuses,
+  no cross-effect combos. Mechanics: stacking effects (`EffectDef.maxStacks`, `AbilityEffectRef.stacks`; poison up to
+  5 doses, dot × stacks), `onMaxStacks` (3 chill charges → frozen, a stun; no chill while frozen), curses
+  (`EffectDef.curse`: no countdown, lifted at each break, not cleansable), `AbilityDef.cleanse` (removes harmful
+  non-curse effects, `cleanse` event), `EffectMods.healingTaken`. Validate with `sim:archetypes` (pure styles
+  ≈ 35–45 % vs mixed teams, strong/weak match-ups between styles) and price species with `sim:species`.
 - **Saves**: `GameState.version` 3; `loadGame` runs `migrateGame` (v1 → economy, v2 → staff, plans, youth).
 
 ## Arena rules (current)
@@ -147,6 +155,11 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
 - [x] **Bestiary ×2**: 23 species (+ lich, kraken, phoenix, dryad, basilisk, djinn, centaur, wendigo, crystal golem,
   salamander), 77 abilities, `rekindling` passive, 5 new name cultures, all translated. Adding a species = species.ts +
   abilities.ts + names.ts (culture) + fr.ts (FR_SPECIES with `the`/`fem`, FR_ABILITIES verbs, FR_SURNAMES aligned).
+- [x] **Play styles, wave 1**: stacking poison, chill → freeze, curses until the break, purification; 8 new species
+  (giant spider, giant scorpion, myconid, winter wolf, frost giant, frost wraith, hag, unicorn) → 31 species,
+  23 new abilities; lich curses, wendigo chills; `sim:archetypes`. 83 tests.
+  Next waves: burn (less healing), bleed, thorns, life drain, execute, exhaustion; then terror, swarm, area, rage,
+  sacrifice; then AI identities per stable + difficulty chosen at start; encyclopedia; post-match analysis.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

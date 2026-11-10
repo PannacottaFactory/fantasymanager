@@ -75,6 +75,7 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
     case 'attack':
       return !e.hit ? 'miss' : e.crit ? 'crit' : undefined;
     case 'heal':
+    case 'cleanse':
       return 'heal';
     case 'effectTick':
       return e.amount > 0 ? 'heal' : 'dot';
@@ -154,6 +155,9 @@ export function addEventFx(
         shoot(e.actor, id, e.ability, 'debuff');
         put(id, 'debuff', '');
       }
+      break;
+    case 'cleanse':
+      put(e.target, 'buff', '');
       break;
     case 'guard':
     case 'rest':

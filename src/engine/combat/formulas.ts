@@ -57,7 +57,7 @@ export function hasTraitFlag(c: Combatant, key: keyof TraitCombatEffects): boole
 
 /** Sum (additive mods) or product (multiplier mods) of active effect modifiers. */
 export function effectMod(c: Combatant, key: keyof EffectMods): number {
-  const multiplicative = key === 'damageMult' || key === 'initiativeMult';
+  const multiplicative = key === 'damageMult' || key === 'initiativeMult' || key === 'healingTaken';
   let v = multiplicative ? 1 : 0;
   for (const e of c.effects) {
     const m = EFFECTS[e.id]?.mods?.[key];
@@ -69,6 +69,18 @@ export function effectMod(c: Combatant, key: keyof EffectMods): number {
 
 export function hasEffect(c: Combatant, id: string): boolean {
   return c.effects.some((e) => e.id === id);
+}
+
+/** Stacks of an effect on a combatant (0 when absent, 1 for non-stacking effects). */
+export function effectStacks(c: Combatant, id: string): number {
+  const e = c.effects.find((x) => x.id === id);
+  return e ? (e.stacks ?? 1) : 0;
+}
+
+/** Harmful effects a cleanse removes: not curses, not permanent passives. */
+export function isCleansable(id: string, remaining: number): boolean {
+  const def = EFFECTS[id];
+  return Boolean(def && !def.beneficial && !def.curse && remaining < 999);
 }
 
 export function staminaFraction(c: Combatant): number {

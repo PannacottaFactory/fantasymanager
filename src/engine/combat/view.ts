@@ -16,6 +16,8 @@ export interface CombatantView {
   state: CombatantState;
   line: Line;
   effects: string[];
+  /** Stacks of stacking effects (poison doses, chill charges), when above 1. */
+  stacks: Record<string, number>;
   abilities: string[];
   favorites: string[];
   /** Rounds left before each ability is available again. */
@@ -36,7 +38,7 @@ export function initialView(roster: Record<string, RosterEntry>): MatchView {
   for (const r of Object.values(roster)) {
     creatures[r.id] = {
       id: r.id, side: r.side, hp: r.maxHp, maxHp: r.maxHp, stamina: r.maxStamina, maxStamina: r.maxStamina,
-      morale: 50, state: r.starter ? 'active' : 'bench', line: r.line, effects: [],
+      morale: 50, state: r.starter ? 'active' : 'bench', line: r.line, effects: [], stacks: {},
       abilities: r.abilities ?? [], favorites: r.favorites ?? [], cooldowns: {}, cooldownMax: {},
     };
   }
@@ -47,7 +49,7 @@ function applySnapshot(view: MatchView, snapshot: CombatantSnapshot[]) {
   for (const s of snapshot) {
     const c = view.creatures[s.id];
     if (!c) continue;
-    Object.assign(c, { hp: s.hp, stamina: s.stamina, morale: s.morale, state: s.state, line: s.line, effects: [...s.effects] });
+    Object.assign(c, { hp: s.hp, stamina: s.stamina, morale: s.morale, state: s.state, line: s.line, effects: [...s.effects], stacks: { ...(s.stacks ?? {}) } });
     // Older stored matches have no cooldowns in their snapshots.
     if (s.cooldowns) c.cooldowns = { ...s.cooldowns };
   }
@@ -105,11 +107,23 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
     case 'effectApplied': {
       const t = touch(e.target);
       if (t && !t.effects.includes(e.effect)) t.effects.push(e.effect);
+      if (t && e.stacks) t.stacks = { ...t.stacks, [e.effect]: e.stacks };
       break;
     }
     case 'effectExpired': {
       const t = touch(e.target);
-      if (t) t.effects = t.effects.filter((x) => x !== e.effect);
+      if (t) {
+        t.effects = t.effects.filter((x) => x !== e.effect);
+        if (t.stacks[e.effect]) t.stacks = Object.fromEntries(Object.entries(t.stacks).filter(([k]) => k !== e.effect));
+      }
+      break;
+    }
+    case 'cleanse': {
+      const t = touch(e.target);
+      if (t) {
+        t.effects = t.effects.filter((x) => !e.removed.includes(x));
+        t.stacks = Object.fromEntries(Object.entries(t.stacks).filter(([k]) => !e.removed.includes(k)));
+      }
       break;
     }
     case 'rest': {
@@ -123,6 +137,7 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
         t.hp = 0;
         t.state = 'ko';
         t.effects = [];
+        t.stacks = {};
       }
       break;
     }

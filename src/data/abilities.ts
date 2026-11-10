@@ -72,7 +72,7 @@ const list: AbilityDef[] = [
 
   // ——— Lich ———
   { id: 'necrotic-bolt', name: 'Necrotic Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'hurls a necrotic bolt at', description: 'Death shaped into a missile.' },
-  { id: 'withering-curse', name: 'Withering Curse', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 9, cooldown: 3, effects: [{ effect: 'weakened', chance: 0.9, on: 'target' }, { effect: 'exposed', chance: 0.6, on: 'target' }], verb: 'lays a withering curse on', description: 'Saps strength and armour.' },
+  { id: 'withering-curse', name: 'Withering Curse', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 9, cooldown: 3, effects: [{ effect: 'hexed', chance: 0.8, on: 'target' }, { effect: 'frailty', chance: 0.5, on: 'target' }], verb: 'lays a withering curse on', description: 'Curses strength and armour until the next break.' },
   { id: 'soul-harvest', name: 'Soul Harvest', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 9, staminaCost: 18, cooldown: 4, lifesteal: 0.3, fear: 6, verb: 'reaps the souls of', description: 'A scythe of shadow through the whole enemy team.' },
   { id: 'bone-ward', name: 'Bone Ward', kind: 'buff', element: 'shadow', target: 'ally', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'shielded', chance: 1, on: 'target' }], verb: 'raises a ward of bones before', description: 'A rampart of bones shields an ally.' },
 
@@ -112,7 +112,7 @@ const list: AbilityDef[] = [
   { id: 'trample', name: 'Trample', kind: 'melee', element: 'earth', target: 'enemyFront', power: 11, staminaCost: 13, cooldown: 3, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'tramples', description: 'Rides over the enemy front line.' },
 
   // ——— Wendigo ———
-  { id: 'frost-claws', name: 'Frost Claws', kind: 'melee', element: 'water', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'rakes frozen claws across', description: 'Claws of ice.' },
+  { id: 'frost-claws', name: 'Frost Claws', kind: 'melee', element: 'water', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.3, on: 'target' }], verb: 'rakes frozen claws across', description: 'Claws of ice.' },
   { id: 'ravenous-bite', name: 'Ravenous Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 14, staminaCost: 9, cooldown: 2, lifesteal: 0.5, verb: 'takes a ravenous bite out of', description: 'Feeds on its prey.' },
   { id: 'chilling-howl', name: 'Chilling Howl', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 5, fear: 12, effects: [{ effect: 'terrified', chance: 0.4, on: 'target' }], verb: 'lets loose a chilling howl at', description: 'A howl from the frozen woods.' },
 
@@ -125,6 +125,46 @@ const list: AbilityDef[] = [
   { id: 'quick-bite', name: 'Quick Bite', kind: 'melee', element: 'physical', target: 'enemy', power: 11, staminaCost: 4, cooldown: 0, verb: 'snaps at', description: 'Fast and annoying.' },
   { id: 'fire-spit', name: 'Fire Spit', kind: 'ranged', element: 'fire', target: 'enemy', power: 11, staminaCost: 5, cooldown: 0, effects: [{ effect: 'burning', chance: 0.4, on: 'target' }], verb: 'spits fire at', description: 'A gob of flame.' },
   { id: 'ember-dash', name: 'Ember Dash', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 10, cooldown: 2, reachBack: true, verb: 'darts in a trail of embers at', description: 'Dashes to any target, even in the back line.' },
+
+  // ——— Giant spider ———
+  { id: 'spider-bite', name: 'Venomous Bite', kind: 'melee', element: 'nature', target: 'enemy', power: 12, staminaCost: 6, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.8, on: 'target' }], verb: 'sinks dripping fangs into', description: 'Each bite adds a dose of venom.' },
+  { id: 'web', name: 'Web', kind: 'debuff', element: 'nature', target: 'enemy', power: 0, staminaCost: 8, cooldown: 3, accuracyMod: 0.05, effects: [{ effect: 'slowed', chance: 0.9, on: 'target' }, { effect: 'stunned', chance: 0.25, on: 'target' }], verb: 'shoots a sticky web over', description: 'Binds a foe in silk.' },
+  { id: 'venom-pounce', name: 'Venom Pounce', kind: 'melee', element: 'nature', target: 'enemy', power: 15, staminaCost: 12, cooldown: 3, reachBack: true, effects: [{ effect: 'poisoned', chance: 0.9, on: 'target', stacks: 2 }], verb: 'drops from above onto', description: 'Leaps on any target, even in the back line, and injects two doses of venom.' },
+
+  // ——— Giant scorpion ———
+  { id: 'pincer', name: 'Pincer', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'snaps its pincers on', description: 'A vice of chitin.' },
+  { id: 'scorpion-sting', name: 'Deadly Sting', kind: 'melee', element: 'nature', target: 'enemy', power: 12, staminaCost: 9, cooldown: 2, effects: [{ effect: 'poisoned', chance: 1, on: 'target', stacks: 2 }], verb: 'drives its stinger into', description: 'Injects two doses of venom.' },
+  { id: 'carapace', name: 'Carapace', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 6, cooldown: 4, effects: [{ effect: 'fortified', chance: 1, on: 'self', duration: 3 }], verb: 'hunkers down behind its carapace', description: 'Takes much less damage for a while.' },
+
+  // ——— Myconid ———
+  { id: 'fungal-slam', name: 'Fungal Slam', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.3, on: 'target' }], verb: 'slams its spongy bulk into', description: 'Soft, heavy, damp — and sometimes toxic.' },
+  { id: 'toxic-spores', name: 'Toxic Spores', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 3, effects: [{ effect: 'poisoned', chance: 0.75, on: 'target' }], verb: 'releases a cloud of toxic spores over', description: 'Poisons the whole enemy team.' },
+  { id: 'mycelial-mend', name: 'Mycelial Mend', kind: 'heal', element: 'nature', target: 'ally', power: 16, staminaCost: 9, cooldown: 2, effects: [{ effect: 'regenerating', chance: 1, on: 'target' }], verb: 'knits fungal threads into the wounds of', description: 'Heals an ally, and the threads keep working.' },
+
+  // ——— Winter wolf ———
+  { id: 'frost-bite', name: 'Frost Bite', kind: 'melee', element: 'water', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.35, on: 'target' }], verb: 'bites with icy jaws into', description: 'Each bite adds a charge of cold.' },
+  { id: 'frost-breath', name: 'Frost Breath', kind: 'spell', element: 'water', target: 'enemyFront', power: 8, staminaCost: 12, cooldown: 3, effects: [{ effect: 'chilled', chance: 0.5, on: 'target' }], verb: 'breathes a freezing gale over', description: 'Chills the whole enemy front line.' },
+
+  // ——— Frost giant ———
+  { id: 'glacial-club', name: 'Glacial Club', kind: 'melee', element: 'water', target: 'enemy', power: 18, staminaCost: 9, cooldown: 0, accuracyMod: -0.04, effects: [{ effect: 'chilled', chance: 0.35, on: 'target' }], verb: 'brings a club of ice down on', description: 'A club of never-melting ice.' },
+  { id: 'avalanche', name: 'Avalanche', kind: 'melee', element: 'earth', target: 'enemyFront', power: 12, staminaCost: 15, cooldown: 4, effects: [{ effect: 'chilled', chance: 0.5, on: 'target' }], verb: 'brings an avalanche down on', description: 'Snow and rock bury the enemy front line.' },
+  { id: 'ice-armor', name: 'Ice Armour', kind: 'buff', element: 'water', target: 'self', power: 0, staminaCost: 8, cooldown: 5, effects: [{ effect: 'shielded', chance: 1, on: 'self' }], verb: 'grows a shell of ice', description: 'A thick crust of ice absorbs blows.' },
+
+  // ——— Frost wraith ———
+  { id: 'frost-bolt', name: 'Frost Bolt', kind: 'spell', element: 'water', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.5, on: 'target' }], verb: 'hurls a shard of ice at', description: 'Each bolt adds a charge of cold.' },
+  { id: 'blizzard', name: 'Blizzard', kind: 'spell', element: 'water', target: 'allEnemies', power: 7, staminaCost: 16, cooldown: 4, effects: [{ effect: 'chilled', chance: 0.45, on: 'target' }], verb: 'summons a blizzard over', description: 'Chills the whole enemy team.' },
+  { id: 'deep-freeze', name: 'Deep Freeze', kind: 'debuff', element: 'water', target: 'enemy', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'chilled', chance: 1, on: 'target', stacks: 2 }], verb: 'breathes a deathly cold over', description: 'Two charges of cold at once.' },
+
+  // ——— Hag ———
+  { id: 'hex-bolt', name: 'Hex Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'hexed', chance: 0.45, on: 'target' }], verb: 'spits a crackling hex at', description: 'May hex the target until the next break.' },
+  { id: 'curse-of-frailty', name: 'Curse of Frailty', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 8, cooldown: 3, effects: [{ effect: 'frailty', chance: 0.9, on: 'target' }], verb: 'points a crooked finger at', description: 'Armour fails until the next break.' },
+  { id: 'blight', name: 'Blight', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 12, cooldown: 5, effects: [{ effect: 'blighted', chance: 0.7, on: 'target' }], verb: 'calls a creeping blight down on', description: 'Halves the healing every foe receives until the next break.' },
+  { id: 'evil-eye', name: 'Evil Eye', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'jinxed', chance: 0.9, on: 'target' }, { effect: 'hexed', chance: 0.6, on: 'target' }], verb: 'casts the evil eye on', description: 'Bad luck and weak blows until the next break.' },
+
+  // ——— Unicorn ———
+  { id: 'horn-strike', name: 'Horn Strike', kind: 'melee', element: 'light', target: 'enemy', power: 17, staminaCost: 7, cooldown: 0, verb: 'drives its shining horn into', description: 'A spiral of hardened light.' },
+  { id: 'purifying-light', name: 'Purifying Light', kind: 'heal', element: 'light', target: 'ally', power: 19, staminaCost: 9, cooldown: 2, cleanse: true, verb: 'pours purifying light over', description: 'Heals an ally and removes its poisons, cold, stuns and other ailments (not curses).' },
+  { id: 'sanctuary', name: 'Sanctuary', kind: 'heal', element: 'light', target: 'allAllies', power: 6, staminaCost: 15, cooldown: 5, cleanse: true, verb: 'raises a sanctuary of light around', description: 'Heals and purifies every ally (not curses).' },
 ];
 
 export const ABILITIES: Record<string, AbilityDef> = Object.fromEntries(list.map((a) => [a.id, a]));

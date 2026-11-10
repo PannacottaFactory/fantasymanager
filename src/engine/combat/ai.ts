@@ -13,8 +13,10 @@ import type { Rng } from '../../core/rng.ts';
 import type { TeamOrders } from '../model.ts';
 import {
   attackKind,
+  effectStacks,
   elementMultiplier,
   hasEffect,
+  isCleansable,
   hitChance,
   hpFraction,
   mitigation,
@@ -114,11 +116,40 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   return raw * perceivedMult * (1 - mit) * p;
 }
 
+/** How much one more application of an effect is worth on a target (0 = useless). */
+function effectGain(effectId: string, t: Combatant): number {
+  const def = EFFECTS[effectId];
+  if (!def) return 0;
+  const stacks = effectStacks(t, effectId);
+  if (def.onMaxStacks && hasEffect(t, def.onMaxStacks)) return 0;
+  // Curses last until the break: worth more early in the period.
+  const weight = def.curse ? 1.5 : 1;
+  if (!stacks) return weight;
+  if (!def.maxStacks || stacks >= def.maxStacks) return 0;
+  // A charge closer to a freeze is worth more; poison doses keep their value.
+  return def.onMaxStacks ? 1 + stacks * 0.6 : 0.9;
+}
+
 function effectValue(ability: AbilityDef, targets: Combatant[]): number {
   let v = 0;
   for (const ref of ability.effects ?? []) {
     if (ref.on !== 'target') continue;
-    for (const t of targets) if (!hasEffect(t, ref.effect)) v += ref.chance * 0.15;
+    for (const t of targets) v += ref.chance * 0.15 * effectGain(ref.effect, t) * Math.min(2, ref.stacks ?? 1);
+  }
+  return v;
+}
+
+/** Value of purifying an ally: poison doses, chill charges, stuns weigh most. */
+export function cleanseValue(t: Combatant): number {
+  let v = 0;
+  for (const e of t.effects) {
+    if (!isCleansable(e.id, e.remaining)) continue;
+    const def = EFFECTS[e.id]!;
+    if (def.kind === 'dot') v += 0.12 * (e.stacks ?? 1);
+    else if (def.kind === 'stun') v += 0.3;
+    // A charge of cold short of a freeze is worth clearing now.
+    else if (def.onMaxStacks) v += 0.15 * (e.stacks ?? 1) * (e.stacks ?? 1);
+    else v += 0.1;
   }
   return v;
 }
@@ -191,8 +222,9 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         const hurt = t ? [t] : allies;
         const missing = hurt.reduce((s, a) => s + (1 - hpFraction(a)), 0);
         const worst = Math.max(...hurt.map((a) => 1 - hpFraction(a)));
-        if (worst < 0.25) continue;
-        const score = missing * 1.6 * role.heal * (t ? 1 : 0.6);
+        const purge = ability.cleanse ? hurt.reduce((s, a) => s + cleanseValue(a), 0) : 0;
+        if (worst < 0.25 && purge < 0.2) continue;
+        const score = (missing * 1.6 + purge * 1.5) * role.heal * (t ? 1 : 0.6);
         options.push({ type: 'ability', ability, target: t, flank: false, score: score * bigMult });
       }
     } else if (ability.kind === 'buff') {
