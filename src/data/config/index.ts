@@ -3,6 +3,7 @@ import { COMBAT_CONFIG } from './combat.ts';
 import { ECONOMY_CONFIG } from './economy.ts';
 import { ELEMENT_CONFIG } from './elements.ts';
 import { GENERATION_CONFIG } from './generation.ts';
+import { DIFFICULTIES, MANAGERS, PLAY_STYLES } from './identity.ts';
 import { LEAGUE_CONFIG } from './league.ts';
 import { MATCH_CONFIG } from './match.ts';
 import { TRAINING_CONFIG } from './training.ts';
@@ -22,7 +23,9 @@ export const DEFAULT_CONFIG = {
   economy: ECONOMY_CONFIG,
   training: TRAINING_CONFIG,
   club: CLUB_CONFIG,
+  identity: { styles: PLAY_STYLES, managers: MANAGERS, difficulties: DIFFICULTIES },
 };
 
 export type GameConfig = typeof DEFAULT_CONFIG;
 export type { QualityId } from './generation.ts';
+export type { DifficultyId, ManagerId, PlayStyleId } from './identity.ts';

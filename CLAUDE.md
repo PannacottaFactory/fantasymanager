@@ -23,6 +23,7 @@ Saves use IndexedDB (`idb`, one autosave slot, `src/ui/store/saves.ts`); heavy s
 | `npm run sim:batch -- --matches 1000 --a elite --b novice` | balancing stats over many headless matches |
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
+| `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
 
 Quality tiers: `novice | regional | professional | elite | legendary`.
 
@@ -125,7 +126,16 @@ tests/       Vitest
   `lineTargets`), fury (`EffectMods.fury`, scales with missing health), sacrifice (`AbilityDef.hpCost`, never below
   1 HP, `sacrifice` event); terror reuses fear / terrified / flight. Validate with `sim:archetypes` (pure styles
   ≈ 35–45 % vs mixed teams, strong/weak match-ups between styles) and price species with `sim:species`.
-- **Saves**: `GameState.version` 3; `loadGame` runs `migrateGame` (v1 → economy, v2 → staff, plans, youth).
+- **AI identities & difficulty** (`data/config/identity.ts`, `engine/team/identity.ts`): each AI stable has
+  `Team.identity = { style, manager }` (17 styles, 5 temperaments: cautious, aggressive, tactician, gambler, steady),
+  drawn so styles are varied. The style sets the squad share (`favoured` in `generateTeam`), signings bias, target
+  order and favourite abilities; the manager sets aggression / risk and break behaviour (`Tactic.ai`, read by
+  `Combat.sides[].ai` so `aiBreakDecision` uses it everywhere). Managers who "read" the opponent pick the target
+  from its line-up (`counterTarget`) before the match and at breaks. `GameState.difficulty` (easy / normal / hard,
+  chosen at start) sets division tiers, style share, identities on/off, who reads, favourites, AI rest threshold,
+  player's starting money, board losses. The opponent's temperament is shown before the match; styles never are.
+- **Saves**: `GameState.version` 5; `loadGame` runs `migrateGame` (v1 → economy, v2 → staff, plans, youth, v3 → divisions,
+  v4 → identities + normal difficulty).
 
 ## Arena rules (current)
 5 starters + 3 bench, 2 abstract lines (front/back). Max 20 rounds; breaks after rounds 5/10/15 with up to
@@ -170,7 +180,10 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   (banshee, nightmare, giant hyena, raptor, cyclops, storm elemental, ogre, blood demon, seraph) → 49 species.
   17 styles in `sim:archetypes`: averages 33–70 % (frost strongest vs other pure styles, pack weakest). League KO
   rate now ~48–59 %. 91 tests.
-  Next: AI identities per stable + difficulty chosen at start; encyclopedia; post-match analysis.
+- [x] **AI identities & difficulty**: styles + temperaments per AI stable, difficulty at start, save v5, `sim:ai`.
+  Autopilot player finishes ~4.8th (easy), ~6.8th (normal), ~8.8th (hard) of 10 in D2. 97 tests.
+  Found: tactical levers barely move results at equal squads (orders ±1 %, wrong roles −1 %, all back line −5 %),
+  so AI "smartness" adds nothing yet → next: make the levers matter; then encyclopedia; post-match analysis.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

@@ -10,7 +10,8 @@ import { guessQuality, initClub, initEconomy } from '../economy/setup.ts';
 import { initStaff, initTraining } from '../progression/training.ts';
 import { pushMessage } from './messages.ts';
 import { roundRobin } from './schedule.ts';
-import { fixtureSetup, generateWorld, startCup } from './season.ts';
+import { aiPrepare, fixtureSetup, generateWorld, startCup } from './season.ts';
+import { drawIdentities } from '../team/identity.ts';
 import type { GameState } from './types.ts';
 
 function guessQualities(state: GameState, cfg: GameConfig): Record<string, QualityId> {
@@ -26,8 +27,8 @@ function guessQualities(state: GameState, cfg: GameConfig): Record<string, Quali
 function toV4(state: GameState, cfg: GameConfig) {
   const qualities = guessQualities(state, cfg);
   const d1 = state.teams.map((t) => t.id);
-  const world = generateWorld(`${state.worldSeed}:d2`, '', state.lang, cfg);
-  const lowest = cfg.league.divisions.length - 1;
+  const world = generateWorld(`${state.worldSeed}:d2`, '', state.lang, cfg, 'easy');
+  const lowest = cfg.identity.difficulties.easy.divisions.length - 1;
   const newTeams = world.teams.filter((t) => world.divisions[lowest]!.includes(t.id));
   const names = new Set(state.teams.map((t) => t.name));
   const rng = new Rng(deriveSeed(state.worldSeed, 'migrate', 4));
@@ -82,5 +83,16 @@ export function migrateGame(raw: unknown, cfg: GameConfig = DEFAULT_CONFIG): Gam
     toV4(state, cfg);
     s.version = 4;
   }
-  return s.version === 4 ? state : null;
+  if (s.version === 4) {
+    // Existing leagues keep their squads; AI stables get a style and a manager, the game plays at normal difficulty.
+    state.difficulty = 'normal';
+    const ai = state.teams.filter((t) => t.id !== state.playerTeamId);
+    const ids = drawIdentities(new Rng(deriveSeed(state.worldSeed, 'migrate', 5)), ai.length);
+    ai.forEach((t, i) => {
+      t.identity = ids[i];
+      t.tactic = aiPrepare(t, cfg, 'normal').tactic;
+    });
+    s.version = 5;
+  }
+  return s.version === 5 ? state : null;
 }

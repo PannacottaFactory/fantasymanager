@@ -12,6 +12,7 @@ import { friendsMourn } from '../club/relations.ts';
 import type { GameState, TransferMove } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
 import { autoTactic, repairTactic } from '../team/team.ts';
+import { favouredSpecies } from '../team/identity.ts';
 import { clubOf, earn, spend, weeklyBill } from './finance.ts';
 import { learn } from './scouting.ts';
 import { askingWage, creatureValue, roundTo } from './value.ts';
@@ -227,8 +228,12 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   state.freeAgents = state.freeAgents.filter(() => !rng.chance(cfg.economy.freeAgents.leaveChance));
 
   const ai = state.teams.filter((x) => x.id !== state.playerTeamId);
+  const styleBias = cfg.identity.difficulties[state.difficulty ?? 'normal'].styleBias;
   for (const team of rng.shuffle(ai)) {
     const club = clubOf(state, team.id);
+    // A stable looks harder at creatures that fit its style.
+    const style = favouredSpecies(team, cfg);
+    const fit = (c: Creature) => c.ability + (style.includes(c.speciesId) ? styleBias : 0);
     // Sign a free agent when short-handed, or a clear upgrade when rich.
     const need = team.creatures.length < target;
     const room = team.creatures.length <= target;
@@ -236,8 +241,8 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
       const bar = need ? 0 : nthAbility(team, 8) + 15;
       const budget = need ? club.balance - 2000 : aiBudget(state, team, cfg);
       const pick = state.freeAgents
-        .filter((c) => c.ability > bar && signingBonus(c, cfg) <= budget)
-        .sort((a, b) => b.ability - a.ability)[0];
+        .filter((c) => fit(c) > bar && signingBonus(c, cfg) <= budget)
+        .sort((a, b) => fit(b) - fit(a))[0];
       if (pick) {
         const fee = signingBonus(pick, cfg);
         spend(state, team.id, 'purchases', fee);
@@ -254,13 +259,13 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
       for (const seller of ai) {
         if (seller.id === team.id || !canLose(seller, cfg)) continue;
         for (const c of seller.creatures) {
-          if (c.ability <= bar || importance(seller, c.id) === 1) continue;
+          if (fit(c) <= bar || importance(seller, c.id) === 1) continue;
           const price = askingPrice(seller, c, cfg);
           if (price <= budget) options.push({ c, seller, price });
         }
       }
       if (options.length) {
-        const o = rng.pick(options);
+        const o = rng.weighted(options, (x) => (style.includes(x.c.speciesId) ? 3 : 1));
         const m = transfer(state, o.c.id, team.id, o.price, { wage: askingWage(o.c, club.reputation, 2, cfg), years: 2 }, cfg);
         if (m) moves.push(m);
       }

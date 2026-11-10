@@ -1,0 +1,77 @@
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
+import { PLAY_STYLES } from '../src/data/config/identity.ts';
+import { Combat } from '../src/engine/combat/combat.ts';
+import { aiBreakDecision } from '../src/engine/combat/decisions.ts';
+import { aiPrepare, newGame, playMatchday } from '../src/engine/league/season.ts';
+import { migrateGame } from '../src/engine/league/migrate.ts';
+import { counterTarget } from '../src/engine/team/identity.ts';
+import { SPECIES } from '../src/data/species.ts';
+import { ABILITIES } from '../src/data/abilities.ts';
+
+describe('AI stable identities', () => {
+  it('style data only names existing species and abilities', () => {
+    for (const [id, s] of Object.entries(PLAY_STYLES)) {
+      for (const sp of s.species) expect(SPECIES[sp], `${id}: ${sp}`).toBeDefined();
+      for (const ab of s.abilities) expect(ABILITIES[ab], `${id}: ${ab}`).toBeDefined();
+    }
+  });
+
+  it('every AI stable gets a style and a manager, with varied styles; the player none', () => {
+    const g = newGame({ seed: 'identities', teamName: 'Me', lang: 'en' });
+    const ai = g.teams.filter((t) => t.id !== g.playerTeamId);
+    expect(ai.every((t) => t.identity)).toBe(true);
+    expect(g.teams.find((t) => t.id === g.playerTeamId)!.identity).toBeUndefined();
+    expect(new Set(ai.map((t) => t.identity!.style)).size).toBeGreaterThanOrEqual(15);
+    expect(new Set(ai.map((t) => t.identity!.manager)).size).toBe(5);
+    // Squads lean towards their style.
+    const share = ai.map((t) => t.creatures.filter((c) => PLAY_STYLES[t.identity!.style].species.includes(c.speciesId)).length / t.creatures.length);
+    expect(share.reduce((s, x) => s + x, 0) / share.length).toBeGreaterThan(0.3);
+  });
+
+  it('the difficulty changes the second division and the starting money', () => {
+    const easy = newGame({ seed: 'diff', teamName: 'Me', lang: 'en', difficulty: 'easy' });
+    const hard = newGame({ seed: 'diff', teamName: 'Me', lang: 'en', difficulty: 'hard' });
+    expect(easy.difficulty).toBe('easy');
+    expect(hard.clubs[hard.playerTeamId]!.balance).toBeLessThan(easy.clubs[easy.playerTeamId]!.balance);
+    const avg = (g: typeof easy) => {
+      const ids = g.divisions[1]!.filter((id) => id !== g.playerTeamId);
+      const teams = g.teams.filter((t) => ids.includes(t.id));
+      return teams.reduce((s, t) => s + t.creatures.reduce((x, c) => x + c.potential, 0) / t.creatures.length, 0) / teams.length;
+    };
+    expect(avg(hard)).toBeGreaterThan(avg(easy));
+  });
+
+  it('a manager who reads the game hunts the healers of a support-heavy line-up', () => {
+    expect(counterTarget([{ role: 'support', ability: 100 }, { role: 'caster', ability: 100 }, { role: 'tank', ability: 100 }])).toBe('casters');
+    expect(counterTarget([{ role: 'tank', ability: 160 }, { role: 'striker', ability: 100 }])).toBe('strongest');
+    expect(counterTarget([{ role: 'tank', ability: 100 }, { role: 'striker', ability: 100 }])).toBe('weakest');
+  });
+
+  it('prepared AI tactics carry the manager style, which the break decisions use', () => {
+    const g = newGame({ seed: 'manager', teamName: 'Me', lang: 'en', difficulty: 'hard' });
+    const [a, b] = g.teams.filter((t) => t.id !== g.playerTeamId);
+    const pa = aiPrepare(a!, DEFAULT_CONFIG, 'hard', b);
+    const pb = aiPrepare(b!, DEFAULT_CONFIG, 'hard', a);
+    expect(pa.tactic.ai?.reads).toBe(true);
+    const m = DEFAULT_CONFIG.identity.managers[a!.identity!.manager];
+    expect(pa.tactic.ai?.tiredBelow).toBe(m.tiredBelow);
+    const c = new Combat({ seed: 1, teams: [pa, pb] });
+    while (c.phase === 'running') c.advance();
+    if (c.phase === 'break') expect(aiBreakDecision(c, 0).orders?.target).toBeDefined();
+  });
+
+  it('a phase-5 save (version 4) gains identities and the normal difficulty', () => {
+    let g = newGame({ seed: 'old', teamName: 'Me', lang: 'en' });
+    g = playMatchday(g);
+    const raw = structuredClone(g) as unknown as Record<string, unknown>;
+    raw.version = 4;
+    delete raw.difficulty;
+    for (const t of raw.teams as { identity?: unknown }[]) delete t.identity;
+    const m = migrateGame(raw)!;
+    expect(m.version).toBe(5);
+    expect(m.difficulty).toBe('normal');
+    expect(m.teams.filter((t) => t.id !== m.playerTeamId).every((t) => t.identity)).toBe(true);
+    expect(playMatchday(m).matchday).toBe(m.matchday + 1);
+  });
+});

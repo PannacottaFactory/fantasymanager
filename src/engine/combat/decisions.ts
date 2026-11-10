@@ -3,19 +3,13 @@
  * Deterministic: uses no randomness, only the combat state.
  */
 import type { GameConfig } from '../../data/config/index.ts';
-import type { TeamOrders } from '../model.ts';
+import type { AiManagerStyle, TeamOrders } from '../model.ts';
+import { counterTarget } from '../team/identity.ts';
 import { other, type Combat } from './combat.ts';
 import { hpFraction, staminaFraction } from './formulas.ts';
 import type { BreakDecision, Combatant, Side, SubstitutionDecision } from './types.ts';
 
-export interface AiManagerStyle {
-  /** Swap a creature out below this stamina fraction. */
-  tiredBelow: number;
-  /** Swap a creature out below this HP fraction. */
-  hurtBelow: number;
-  /** Adjust aggression to the score. */
-  adaptOrders: boolean;
-}
+export type { AiManagerStyle };
 
 export const DEFAULT_AI_STYLE: AiManagerStyle = { tiredBelow: 0.25, hurtBelow: 0.25, adaptOrders: true };
 
@@ -44,17 +38,25 @@ export function suggestSubstitutions(combat: Combat, side: Side, style: AiManage
   return subs;
 }
 
-export function suggestOrders(combat: Combat, side: Side): TeamOrders {
+export function suggestOrders(combat: Combat, side: Side, base?: TeamOrders): TeamOrders {
   const current = combat.sides[side].orders;
   const diff = combat.teamHealth(side) - combat.teamHealth(other(side));
   const aliveDiff = combat.active(side).length - combat.active(other(side)).length;
   if (diff < -0.2 || aliveDiff <= -2) return { ...current, aggression: 'aggressive', risk: 'high' };
   if (diff > 0.3 && aliveDiff >= 1) return { ...current, aggression: 'cautious', risk: 'low' };
+  if (base) return { ...current, aggression: base.aggression, risk: base.risk };
   return { ...current, aggression: 'balanced', risk: 'normal' };
 }
 
-export function aiBreakDecision(combat: Combat, side: Side, style: AiManagerStyle = DEFAULT_AI_STYLE): BreakDecision {
+/** A manager who reads the game picks the target order against what is still standing. */
+export function readTarget(combat: Combat, side: Side): TeamOrders['target'] {
+  return counterTarget(combat.active(other(side)).map((c) => ({ role: c.role, ability: c.ability })));
+}
+
+/** Break decisions of a side; by default with the side's own manager style (AI stables) or the assistant's. */
+export function aiBreakDecision(combat: Combat, side: Side, style: AiManagerStyle = combat.sides[side].ai ?? DEFAULT_AI_STYLE): BreakDecision {
   const d: BreakDecision = { substitutions: suggestSubstitutions(combat, side, style) };
-  if (style.adaptOrders) d.orders = suggestOrders(combat, side);
+  if (style.adaptOrders) d.orders = suggestOrders(combat, side, style.base);
+  if (style.reads) d.orders = { ...(d.orders ?? combat.sides[side].orders), target: readTarget(combat, side) };
   return d;
 }

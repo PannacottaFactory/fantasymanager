@@ -4,6 +4,7 @@
  */
 import { create } from 'zustand';
 import type { MatchResult, MatchSetup } from '../../engine/combat/types.ts';
+import type { DifficultyId } from '../../data/config/identity.ts';
 import { aiPrepare, fixtureSetup, newGame, playMatchday, playerFixture, seasonOver, startNextSeason } from '../../engine/league/season.ts';
 import type { GameState } from '../../engine/league/types.ts';
 import type { Team } from '../../engine/model.ts';
@@ -34,7 +35,7 @@ interface GameStore {
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
-  newGame: (teamName: string, seed?: string) => void;
+  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId) => void;
   setScreen: (s: Screen) => void;
   setPlayerTeam: (team: Team) => void;
   autoPick: () => void;
@@ -85,8 +86,8 @@ export const useGame = create<GameStore>()((set, get) => {
       set({ game, ready: true, screen: game ? 'inbox' : get().screen });
     },
 
-    newGame: (teamName, seed) => {
-      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang });
+    newGame: (teamName, seed, difficulty) => {
+      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty });
       set({ match: null, viewing: null, screen: 'inbox' });
       commit(game);
     },

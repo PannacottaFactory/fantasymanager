@@ -103,7 +103,7 @@ describe('migration', () => {
     for (const k of ['divisions', 'cup', 'board', 'facilities', 'news']) delete old[k];
     (old as unknown as { version: number }).version = 3;
     const m = migrateGame(old)!;
-    expect(m.version).toBe(4);
+    expect(m.version).toBe(5);
     expect(m.divisions.length).toBe(2);
     expect(m.divisions[1]!.length).toBe(10);
     const d2Played = m.fixtures.filter((f) => f.division === 1 && f.result);

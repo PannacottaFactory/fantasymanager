@@ -47,6 +47,8 @@ export interface GenerateTeamOptions {
   quality?: QualityId;
   /** Restrict species (e.g. a goblin-only stable). */
   speciesPool?: string[];
+  /** Draw this share of the squad from these species (a stable's style), the rest from anywhere. */
+  favoured?: { species: string[]; share: number };
   size?: number;
   lang?: Lang;
 }
@@ -56,7 +58,12 @@ export function generateTeam(rng: Rng, opts: GenerateTeamOptions = {}, cfg: Game
   const size = opts.size ?? cfg.generation.team.starters + cfg.generation.team.bench;
   const creatures: Creature[] = [];
   for (let i = 0; i < size; i++) {
-    const speciesId = opts.speciesPool?.length ? rng.pick(opts.speciesPool) : undefined;
+    const fav = opts.favoured;
+    const speciesId = opts.speciesPool?.length
+      ? rng.pick(opts.speciesPool)
+      : fav?.species.length && rng.chance(fav.share)
+        ? rng.pick(fav.species)
+        : undefined;
     creatures.push(generateCreature(rng, { quality: opts.quality, speciesId, stableId: id, lang: opts.lang }, cfg));
   }
   return { id, name: opts.name ?? generateTeamName(rng, opts.lang), creatures, tactic: autoTactic(creatures, cfg) };

@@ -43,7 +43,7 @@ describe('economy setup', () => {
     old.version = 1;
     for (const t of old.teams as GameState['teams']) for (const c of t.creatures) delete c.contract;
     const m = migrateGame(old)!;
-    expect(m.version).toBe(4);
+    expect(m.version).toBe(5);
     expect(Object.keys(m.clubs).length).toBe(m.teams.length);
     expect(m.teams.every((t) => t.creatures.every((c) => c.contract))).toBe(true);
     expect(() => playMatchday(m)).not.toThrow();

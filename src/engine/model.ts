@@ -1,6 +1,7 @@
 /** Runtime data model shared by every engine module. Everything here is plain, serializable data. */
 import type { Attributes } from '../data/attributes.ts';
 import type { Line, RoleId, TargetPriority } from '../data/schema.ts';
+import type { ManagerId, PlayStyleId } from '../data/config/identity.ts';
 
 export interface HiddenAttributes {
   /** Training attitude (phase 4). */
@@ -86,12 +87,34 @@ export interface LineupSlot {
   stance: Stance;
 }
 
+/** How an AI manager behaves at the breaks. */
+export interface AiManagerStyle {
+  /** Swap a creature out below this stamina fraction. */
+  tiredBelow: number;
+  /** Swap a creature out below this HP fraction. */
+  hurtBelow: number;
+  /** Adjust aggression to the score. */
+  adaptOrders: boolean;
+  /** Re-reads the opponent's line-up at each break (target orders). */
+  reads?: boolean;
+  /** Orders to come back to when the score is level. */
+  base?: TeamOrders;
+}
+
 export interface Tactic {
   lineup: LineupSlot[];
   bench: string[];
   orders: TeamOrders;
   /** Favourite abilities per creature (light "builds"): the AI leans towards them in combat. */
   favorites?: Record<string, string[]>;
+  /** AI stables: their manager's break behaviour (the player decides alone). */
+  ai?: AiManagerStyle;
+}
+
+/** An AI stable's personality: the style it builds around and its manager's temperament. */
+export interface StableIdentity {
+  style: PlayStyleId;
+  manager: ManagerId;
 }
 
 export interface Team {
@@ -99,4 +122,6 @@ export interface Team {
   name: string;
   creatures: Creature[];
   tactic: Tactic;
+  /** AI stables only. */
+  identity?: StableIdentity;
 }

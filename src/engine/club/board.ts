@@ -51,6 +51,9 @@ export function newSeasonObjective(state: GameState, cfg: GameConfig = DEFAULT_C
   pushMessage(state, { kind: 'boardObjective', objective: state.board.objective, division: divisionOf(state, state.playerTeamId) });
 }
 
+/** The board is more or less forgiving depending on the difficulty. */
+const lossMult = (state: GameState, cfg: GameConfig) => cfg.identity.difficulties[state.difficulty ?? 'normal'].boardLoss;
+
 /** Results of the player's matches this week move the board's confidence. */
 export function weeklyBoard(state: GameState, played: Fixture[], cfg: GameConfig = DEFAULT_CONFIG) {
   const b = cfg.club.board;
@@ -58,7 +61,8 @@ export function weeklyBoard(state: GameState, played: Fixture[], cfg: GameConfig
     const side = f.home === state.playerTeamId ? 0 : f.away === state.playerTeamId ? 1 : -1;
     if (side < 0 || !f.result) continue;
     const won = f.result.winner === side;
-    const d = won ? (f.result.method === 'ko' ? b.result.koWin : b.result.pointsWin) : f.result.method === 'ko' ? b.result.koLoss : b.result.pointsLoss;
+    const raw = won ? (f.result.method === 'ko' ? b.result.koWin : b.result.pointsWin) : f.result.method === 'ko' ? b.result.koLoss : b.result.pointsLoss;
+    const d = raw < 0 ? raw * lossMult(state, cfg) : raw;
     const before = state.board.confidence;
     state.board.confidence = clamp(before + d, 0, 100);
     if (before >= b.warning && state.board.confidence < b.warning) pushMessage(state, { kind: 'boardWarning', confidence: state.board.confidence });
@@ -73,7 +77,7 @@ export function boardVerdict(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   const table = computeStandings(ids, divisionFixtures(state, div), cfg);
   const position = table.findIndex((r) => r.teamId === state.playerTeamId) + 1;
   const met = objectiveMet(state.board.objective, position, ids.length, cfg);
-  state.board.confidence = clamp(state.board.confidence + (met ? b.met : b.missed), 0, 100);
+  state.board.confidence = clamp(Math.round(state.board.confidence + (met ? b.met : b.missed * lossMult(state, cfg))), 0, 100);
   const bonus = met ? Math.round(b.bonus * (cfg.league.divisionMoney[div] ?? 1)) : 0;
   if (bonus) earn(state, state.playerTeamId, 'prizes', bonus);
   pushMessage(state, { kind: 'boardVerdict', objective: state.board.objective, met, position, bonus, confidence: state.board.confidence });

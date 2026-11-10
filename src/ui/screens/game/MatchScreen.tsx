@@ -2,7 +2,7 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
 import { cupRoundKey } from './LeagueScreen.tsx';
 import { isInjured } from '../../../engine/creature/derived.ts';
-import { aiPrepare, lastMatchday, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
+import { aiPrepare, lastMatchday, playerPrepare, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Team } from '../../../engine/model.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
@@ -66,7 +66,7 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
   const f = game.fixtures.find((x) => x.id === match.fixtureId)!;
   const mine = playerTeam(game);
   const home = f.home === game.playerTeamId;
-  const opp = aiPrepare(teamById(game, home ? f.away : f.home));
+  const opp = aiPrepare(teamById(game, home ? f.away : f.home), undefined, game.difficulty ?? 'normal', playerPrepare(mine));
   const oppTable = standings(game, divisionOf(game, opp.id));
   const posOf = (id: string) => oppTable.findIndex((r) => r.teamId === id) + 1;
   const title =
@@ -86,6 +86,9 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
             </h2>
             <div className="muted" style={{ fontSize: '0.857rem' }}>
               {home ? t('common.home') : t('common.away')} · {t('league.division', { n: divisionOf(game, opp.id) + 1 })} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
+              {opp.identity && DEFAULT_CONFIG.identity.difficulties[game.difficulty ?? 'normal'].identities && (
+                <span title={t(`manager.${opp.identity.manager}.desc`)}> · {t('match.manager', { m: t(`manager.${opp.identity.manager}`) })}</span>
+              )}
             </div>
           </div>
           <span className="spacer" />

@@ -22,7 +22,7 @@ import type { AbilityDef } from '../../data/schema.ts';
 import { bestRole, getAbilities, maxHp, maxStamina, roleFit } from '../creature/derived.ts';
 import { relationMorale } from '../club/relations.ts';
 import { ROLES } from '../../data/roles.ts';
-import type { Creature, TeamOrders } from '../model.ts';
+import type { AiManagerStyle, Creature, TeamOrders } from '../model.ts';
 import { chooseAction, instinctPriority, type AiContext, type ChosenAction } from './ai.ts';
 import {
   attackKind,
@@ -67,6 +67,8 @@ interface SideState {
   name: string;
   orders: TeamOrders;
   subsUsed: number;
+  /** AI manager behaviour of this side, when it has one. */
+  ai?: AiManagerStyle;
 }
 
 export type CombatPhase = 'running' | 'break' | 'ended';
@@ -96,8 +98,8 @@ export class Combat {
     this.rng = new Rng(this.seed);
     const [t0, t1] = setup.teams;
     this.sides = [
-      { teamId: t0.id, name: t0.name, orders: { ...t0.tactic.orders }, subsUsed: 0 },
-      { teamId: t1.id, name: t1.name, orders: { ...t1.tactic.orders }, subsUsed: 0 },
+      { teamId: t0.id, name: t0.name, orders: { ...t0.tactic.orders }, subsUsed: 0, ai: t0.tactic.ai },
+      { teamId: t1.id, name: t1.name, orders: { ...t1.tactic.orders }, subsUsed: 0, ai: t1.tactic.ai },
     ];
     setup.teams.forEach((team, i) => {
       const side = i as Side;

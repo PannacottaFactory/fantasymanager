@@ -3,6 +3,7 @@ import type { Lang } from '../../core/i18n.ts';
 import type { AttributeCategory } from '../../data/attributes.ts';
 import type { IntensityId, ProgramId } from '../../data/config/training.ts';
 import type { FacilityId } from '../../data/config/club.ts';
+import type { DifficultyId } from '../../data/config/identity.ts';
 import type { MatchMethod, MatchResult, Side } from '../combat/types.ts';
 import type { Creature, Team } from '../model.ts';
 
@@ -217,7 +218,7 @@ export type NewsItem = { id: string; season: number; matchday: number } & (
 );
 
 export interface GameState {
-  version: 4;
+  version: 5;
   worldSeed: string;
   /** Language of names generated during the game (free agents). */
   lang: Lang;
@@ -260,4 +261,6 @@ export interface GameState {
   board: BoardState;
   facilities: Record<string, Facilities>;
   news: NewsItem[];
+  // ——— Identities & difficulty ———
+  difficulty: DifficultyId;
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { DIFFICULTY_IDS, type DifficultyId } from '../../../data/config/identity.ts';
 import { Rng } from '../../../core/rng.ts';
 import { generateTeamName } from '../../../engine/creature/names.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
@@ -17,12 +18,13 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
   const [seed, setSeed] = useState(randomSeed);
   const tutorial = useTutorial();
   const [tips, setTips] = useState(tutorial.enabled);
+  const [difficulty, setDifficulty] = useState<DifficultyId>('normal');
 
   const start = () => {
     if (game && !window.confirm(t('start.overwrite'))) return;
     if (tips) tutorial.restart();
     else tutorial.setEnabled(false);
-    newGame(name.trim() || suggested, seed);
+    newGame(name.trim() || suggested, seed, difficulty);
   };
 
   return (
@@ -53,6 +55,16 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
               </button>
             </span>
           </label>
+          <label className="field">
+            {t('start.difficulty')}
+            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value as DifficultyId)} title={t(`diff.${difficulty}.desc`)}>
+              {DIFFICULTY_IDS.map((d) => (
+                <option key={d} value={d}>
+                  {t(`diff.${d}`)}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="row" style={{ gap: 6, fontSize: '0.929rem' }}>
             <input type="checkbox" checked={tips} onChange={(e) => setTips(e.target.checked)} />
             {t('start.tutorial')}
@@ -66,6 +78,9 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
             </button>
           )}
         </div>
+        <p className="muted" style={{ marginTop: 10, fontSize: '0.929rem' }}>
+          {t(`diff.${difficulty}.desc`)}
+        </p>
         <p className="muted" style={{ marginTop: 18, fontSize: '0.929rem' }}>
           <button className="link" onClick={() => setScreen('arena')}>
             {t('start.arena')}

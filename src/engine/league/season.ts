@@ -13,6 +13,8 @@ import { generateTeamName } from '../creature/names.ts';
 import type { Team } from '../model.ts';
 import { buildReport } from '../report/report.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
+import { applyIdentity, drawIdentities } from '../team/identity.ts';
+import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
 import { injuryWeeksFactor, startingFacilities, weeklyFacilities } from '../club/facilities.ts';
 import { seedRelations, weeklyRelations } from '../club/relations.ts';
@@ -31,25 +33,37 @@ export interface NewGameOptions {
   seed: string;
   teamName: string;
   lang: Lang;
+  /** Default: normal. */
+  difficulty?: DifficultyId;
 }
 
 /** Generates the stables of every division (the player's stable is the last slot of its division). */
-export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: GameConfig = DEFAULT_CONFIG) {
+export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: GameConfig = DEFAULT_CONFIG, difficulty: DifficultyId = 'normal') {
   const lc = cfg.league;
+  const diff = cfg.identity.difficulties[difficulty];
   const world = new Rng(deriveSeed(seed, 'world'));
+  const aiCount = diff.divisions.reduce((n, list) => n + list.length, 0) - 1;
+  const identities = drawIdentities(world.fork('identities'), aiCount);
+  let nextIdentity = 0;
   const size = lc.squadSize;
   const names = new Set<string>();
   const teams: Team[] = [];
   const divisions: string[][] = [];
   const qualities: Record<string, QualityId> = {};
   let playerId = '';
-  lc.divisions.forEach((list, d) => {
+  diff.divisions.forEach((list, d) => {
     const ids: string[] = [];
     list.forEach((q, i) => {
       const isPlayer = d === lc.playerDivision && i === list.length - 1;
       const quality = (isPlayer ? lc.playerQuality : q) as QualityId;
       const rng = world.fork(isPlayer ? 'player' : `ai${d}-${i}`);
-      const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang }, cfg);
+      const identity = isPlayer ? undefined : identities[nextIdentity++];
+      const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: diff.styleShare } : undefined;
+      const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured }, cfg);
+      if (identity) {
+        team.identity = identity;
+        team.tactic = applyIdentity(team, team.tactic, difficulty, undefined, cfg);
+      }
       for (let k = 0; !isPlayer && names.has(team.name) && k < 50; k++) team.name = generateTeamName(rng, lang);
       names.add(team.name);
       seedRelations(team, rng, cfg);
@@ -69,9 +83,10 @@ export function seasonFixtures(worldSeed: string, season: number, divisions: str
 }
 
 export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG): GameState {
-  const { teams, divisions, qualities, playerId } = generateWorld(opts.seed, opts.teamName, opts.lang, cfg);
+  const difficulty = opts.difficulty ?? 'normal';
+  const { teams, divisions, qualities, playerId } = generateWorld(opts.seed, opts.teamName, opts.lang, cfg, difficulty);
   const state: GameState = {
-    version: 4,
+    version: 5,
     worldSeed: opts.seed,
     lang: opts.lang,
     season: 1,
@@ -98,8 +113,11 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
     board: { objective: 'midTable', confidence: cfg.club.board.start },
     facilities: Object.fromEntries(teams.map((t) => [t.id, startingFacilities(qualities[t.id] ?? 'professional', cfg)])),
     news: [],
+    difficulty,
   };
   initEconomy(state, qualities, cfg);
+  const club = state.clubs[playerId];
+  if (club) club.balance = Math.round(club.balance * cfg.identity.difficulties[difficulty].startMoney);
   initTraining(state, qualities, cfg);
   pushMessage(state, { kind: 'welcome', teamName: teamById(state, playerId).name, teams: divisions[divisionOf(state, playerId)]!.length, matchdays: matchdayCount(state.fixtures) });
   newSeasonObjective(state, cfg);
@@ -142,12 +160,18 @@ export function standings(state: GameState, division = playerDivision(state), cf
 
 // ——— Match preparation ———
 
-/** AI manager: rests tired creatures when it can, then picks the best available lineup. */
-export function aiPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team {
+/**
+ * AI manager: rests tired creatures when it can, picks the best available lineup, then applies the stable's
+ * identity (orders, favourite abilities, break behaviour) and, if its manager does, reads the opponent.
+ */
+export function aiPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG, difficulty: DifficultyId = 'normal', opponent?: Team): Team {
   const needed = cfg.match.starters + cfg.match.benchSize;
-  const fresh = team.creatures.filter((c) => !isInjured(c) && c.condition.fatigue <= cfg.league.ai.restFatigue);
+  const restAbove = cfg.identity.difficulties[difficulty].restFatigue;
+  const fresh = team.creatures.filter((c) => !isInjured(c) && c.condition.fatigue <= restAbove);
   const pool = fresh.length >= needed ? fresh : team.creatures;
-  return { ...team, tactic: autoTactic(pool, cfg, team.tactic.orders) };
+  const tactic = autoTactic(pool, cfg, team.tactic.orders);
+  // Without an identity (the player's "pick for me"), keep the current orders.
+  return { ...team, tactic: team.identity ? applyIdentity(team, tactic, difficulty, opponent, cfg) : tactic };
 }
 
 /** Player's tactic as it will be used: the assistant repairs it if it is not valid for a league match. */
@@ -161,9 +185,12 @@ export function fixtureSeed(state: GameState, fixture: Fixture): number {
 
 /** Match setup for a fixture. When the player is involved, their team is side 0 (`swapped` if they play away). */
 export function fixtureSetup(state: GameState, fixture: Fixture, cfg: GameConfig = DEFAULT_CONFIG): { setup: MatchSetup; swapped: boolean } {
-  const prep = (id: string) => (id === state.playerTeamId ? playerPrepare(teamById(state, id), cfg) : aiPrepare(teamById(state, id), cfg));
-  const home = prep(fixture.home);
-  const away = prep(fixture.away);
+  const difficulty = state.difficulty ?? 'normal';
+  // The player's tactic is fixed first, so AI managers can read it; between two AI stables, each reads the other's usual line-up.
+  const base = (id: string) => (id === state.playerTeamId ? playerPrepare(teamById(state, id), cfg) : teamById(state, id));
+  const prep = (id: string, oppId: string) => (id === state.playerTeamId ? base(id) : aiPrepare(teamById(state, id), cfg, difficulty, base(oppId)));
+  const home = prep(fixture.home, fixture.away);
+  const away = prep(fixture.away, fixture.home);
   const swapped = fixture.away === state.playerTeamId;
   return { setup: { seed: fixtureSeed(state, fixture), teams: swapped ? [away, home] : [home, away] }, swapped };
 }
@@ -273,7 +300,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
         if (inj.weeks >= cfg.club.news.starInjuryWeeks && isStar(next, c.id)) addNews(next, { kind: 'starInjury', name: c.name, team: team.name, weeks: inj.weeks }, cfg);
       }
       if (teamId !== next.playerTeamId) {
-        team.tactic = aiPrepare(team, cfg).tactic;
+        team.tactic = aiPrepare(team, cfg, next.difficulty ?? 'normal').tactic;
         continue;
       }
       const opp = result.teams[side === 0 ? 1 : 0];
@@ -480,7 +507,7 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
   next.bids = {};
   for (const team of next.teams) {
     for (const c of team.creatures) c.condition.fatigue = 0;
-    if (team.id !== next.playerTeamId) team.tactic = aiPrepare(team, cfg).tactic;
+    if (team.id !== next.playerTeamId) team.tactic = aiPrepare(team, cfg, next.difficulty ?? 'normal').tactic;
   }
   startCup(next, cfg);
   pushMessage(next, { kind: 'newSeason' });
