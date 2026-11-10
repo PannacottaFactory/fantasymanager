@@ -13,7 +13,7 @@ import { generateTeamName } from '../creature/names.ts';
 import type { Team } from '../model.ts';
 import { buildReport } from '../report/report.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
-import { applyIdentity, drawIdentities } from '../team/identity.ts';
+import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
 import { injuryWeeksFactor, startingFacilities, weeklyFacilities } from '../club/facilities.ts';
@@ -58,7 +58,7 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
       const quality = (isPlayer ? lc.playerQuality : q) as QualityId;
       const rng = world.fork(isPlayer ? 'player' : `ai${d}-${i}`);
       const identity = isPlayer ? undefined : identities[nextIdentity++];
-      const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: diff.styleShare } : undefined;
+      const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: styleShare(identity, difficulty, cfg) } : undefined;
       const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured }, cfg);
       if (identity) {
         team.identity = identity;

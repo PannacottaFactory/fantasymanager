@@ -18,7 +18,8 @@
     "sim:balance": "tsx src/sim/balance.ts",
     "sim:species": "tsx src/sim/species.ts",
     "sim:archetypes": "tsx src/sim/archetypes.ts",
-    "sim:ai": "tsx src/sim/ai.ts"
+    "sim:ai": "tsx src/sim/ai.ts",
+    "sim:levers": "tsx src/sim/levers.ts"
   },
   "dependencies": {
     "idb": "^8.0.4",

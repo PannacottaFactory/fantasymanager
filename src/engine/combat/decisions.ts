@@ -56,7 +56,7 @@ export function readTarget(combat: Combat, side: Side): TeamOrders['target'] {
 /** Break decisions of a side; by default with the side's own manager style (AI stables) or the assistant's. */
 export function aiBreakDecision(combat: Combat, side: Side, style: AiManagerStyle = combat.sides[side].ai ?? DEFAULT_AI_STYLE): BreakDecision {
   const d: BreakDecision = { substitutions: suggestSubstitutions(combat, side, style) };
-  if (style.adaptOrders) d.orders = suggestOrders(combat, side, style.base);
+  if (style.adaptOrders) d.orders = suggestOrders(combat, side, style.base ?? combat.sides[side].baseOrders);
   if (style.reads) d.orders = { ...(d.orders ?? combat.sides[side].orders), target: readTarget(combat, side) };
   return d;
 }

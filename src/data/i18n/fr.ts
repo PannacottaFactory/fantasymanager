@@ -311,11 +311,11 @@ export const FR_ELEMENTS: Record<ElementId, string> = {
 };
 
 export const FR_ROLES: Record<RoleId, { name: string; short: string; description: string }> = {
-  tank: { name: 'Tank', short: 'TNK', description: 'Tient la première ligne et intercepte les coups destinés aux alliés.' },
-  striker: { name: 'Frappeur', short: 'FRP', description: 'Inflige de gros dégâts au corps à corps depuis la première ligne.' },
-  support: { name: 'Soutien', short: 'SOU', description: 'Soigne et renforce les alliés depuis la deuxième ligne.' },
-  caster: { name: 'Lanceur de sorts', short: 'MAG', description: 'Lance des sorts depuis la deuxième ligne en exploitant les faiblesses élémentaires.' },
-  skirmisher: { name: 'Tirailleur', short: 'TIR', description: 'Flanqueur rapide qui harcèle la deuxième ligne adverse.' },
+  tank: { name: 'Tank', short: 'TNK', description: 'Tient la première ligne et intercepte les coups destinés aux alliés. +6 % d’armure (plus s’il est bien adapté), −10 % de dégâts.' },
+  striker: { name: 'Frappeur', short: 'FRP', description: 'Inflige de gros dégâts au corps à corps depuis la première ligne. +15 % de dégâts au corps à corps, −5 % d’armure.' },
+  support: { name: 'Soutien', short: 'SOU', description: 'Soigne et renforce les alliés depuis la deuxième ligne. +25 % de soins, −15 % de dégâts.' },
+  caster: { name: 'Lanceur de sorts', short: 'MAG', description: 'Lance des sorts depuis la deuxième ligne en exploitant les faiblesses élémentaires. +15 % de dégâts des sorts, −5 % d’armure.' },
+  skirmisher: { name: 'Tirailleur', short: 'TIR', description: 'Flanqueur rapide qui atteint et harcèle la deuxième ligne adverse. +10 % de dégâts à distance et +5 % au corps à corps, −4 % d’armure.' },
 };
 
 export const FR_ATTRIBUTES: Record<AttributeKey, { name: string; short: string; description: string }> = {

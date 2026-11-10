@@ -1,4 +1,4 @@
-import type { SizeClass } from '../schema.ts';
+import type { RoleId, SizeClass } from '../schema.ts';
 
 /** All combat balancing numbers. Attributes are on a 1–20 scale. */
 export const COMBAT_CONFIG = {
@@ -18,13 +18,15 @@ export const COMBAT_CONFIG = {
     restMult: 4,
     sizeCostMult: { small: 0.85, medium: 1, large: 1.15, huge: 1.3 } as Record<SizeClass, number>,
     /** Pre-match fatigue (0–100) removes this fraction of the pool at 100. */
-    preMatchFatigueLoss: 0.5,
+    preMatchFatigueLoss: 0.7,
   },
   fatigue: {
     /** Penalties start when stamina falls below this fraction of max. */
-    threshold: 0.5,
+    threshold: 0.6,
     /** Penalty (hit, damage, initiative) at 0 stamina. */
-    maxPenalty: 0.3,
+    maxPenalty: 0.4,
+    /** Injury chances × (1 + pre-match fatigue/100 × this). */
+    injuryFromFatigue: 1,
     /** "Exhausted" announced below this fraction. */
     exhaustedBelow: 0.25,
   },
@@ -123,9 +125,10 @@ export const COMBAT_CONFIG = {
     disobeyBase: 0.28,
     /** chance = base × (1 − discipline/20)^exponent × trait multipliers. */
     disobeyExponent: 1.5,
-    aggressive: { damageMult: 1.1, mitigation: -0.05, staminaCostMult: 1.1, restBias: -0.3 },
+    /** Aggression trades stamina for damage: strong for a few rounds, ruinous over a whole match. */
+    aggressive: { damageMult: 1.18, mitigation: -0.03, staminaCostMult: 1.45, restBias: -0.3 },
     balanced: { damageMult: 1, mitigation: 0, staminaCostMult: 1, restBias: 0 },
-    cautious: { damageMult: 0.93, mitigation: 0.06, staminaCostMult: 0.92, restBias: 0.35 },
+    cautious: { damageMult: 0.9, mitigation: 0.07, staminaCostMult: 0.8, restBias: 0.35 },
     riskHigh: { critBonus: 0.02, hitBonus: -0.03, bigAbilityBias: 0.3 },
     riskLow: { critBonus: -0.01, hitBonus: 0.02, bigAbilityBias: -0.3 },
   },
@@ -134,7 +137,21 @@ export const COMBAT_CONFIG = {
    * striker melee damage, caster spell damage, support healing, skirmisher strikes on the back line.
    * factor = 1 + (fit − 10) × perPoint, clamped.
    */
-  roleFit: { perPoint: 0.015, min: 0.85, max: 1.15 },
+  roleFit: { perPoint: 0.022, min: 0.78, max: 1.2, offRole: 0.8 },
+  /**
+   * What each role does to a creature: damage multipliers per attack kind, healing multiplier and flat armour.
+   * Bonuses (> 1, or armour > 0) grow with role fit; penalties do not. Outside the roles natural to its
+   * species, a creature also deals and heals `roleFit.offRole` times as much.
+   */
+  roles: {
+    tank: { melee: 0.9, ranged: 0.9, spell: 0.9, heal: 1, mitigation: 0.06 },
+    striker: { melee: 1.15, ranged: 1, spell: 1, heal: 1, mitigation: -0.05 },
+    caster: { melee: 1, ranged: 1, spell: 1.15, heal: 1, mitigation: -0.05 },
+    support: { melee: 0.85, ranged: 0.85, spell: 0.85, heal: 1.25, mitigation: 0 },
+    skirmisher: { melee: 1.05, ranged: 1.1, spell: 1, heal: 1, mitigation: -0.04 },
+  } as Record<RoleId, { melee: number; ranged: number; spell: number; heal: number; mitigation: number }>,
+  /** Cover: while at least `minFront` allies stand in the front line, the back line takes less from ranged attacks and spells. */
+  cover: { minFront: 2, reduction: 0.2 },
   /** Favourite abilities chosen by the manager (per creature). */
   favorites: {
     max: 2,
@@ -145,7 +162,7 @@ export const COMBAT_CONFIG = {
     /** Decision noise = (1 − tactics/20) × this. Low tactics → erratic choices. */
     noiseMax: 0.6,
     killBonus: 0.6,
-    priorityBonus: 0.35,
+    priorityBonus: 0.8,
     /** Rest becomes attractive below this stamina fraction. */
     restBelow: 0.35,
     restWeight: 1.2,

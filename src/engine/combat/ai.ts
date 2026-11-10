@@ -15,6 +15,7 @@ import {
   attackKind,
   effectMod,
   effectStacks,
+  coverMult,
   executeMult,
   lineTargets,
   packMult,
@@ -48,6 +49,8 @@ export interface AiContext {
   alliesOn(attacker: Combatant, target: Combatant): number;
   /** Fraction by which the creature's team trails on health (0 if ahead). */
   behind(c: Combatant): number;
+  /** Creatures of a side standing in the front line (cover). */
+  frontStanding(side: Combatant['side']): number;
 }
 
 export interface ChooseOptions {
@@ -120,7 +123,8 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const mit = mitigation(target, attackKind(ability), ctx.orders(target), cfg);
   const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders }, cfg);
   const pack = packMult(ability, ctx.alliesOn(actor, target), cfg);
-  return raw * perceivedMult * executeMult(ability, target, cfg) * pack * (1 - mit) * p;
+  const cover = coverMult(attackKind(ability), target, ctx.frontStanding(target.side), cfg);
+  return raw * perceivedMult * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * p;
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */

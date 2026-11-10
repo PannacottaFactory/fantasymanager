@@ -25,7 +25,7 @@ function styledTeam(i: number, manager?: ManagerId): Team {
   const rng = new Rng(deriveSeed('ai-team', i));
   const style = PLAY_STYLE_IDS[i % PLAY_STYLE_IDS.length]!;
   const team = generateTeam(rng, { quality: 'professional', favoured: { species: PLAY_STYLES[style].species, share: 0.5 } });
-  team.identity = { style, manager: manager ?? 'tactician' };
+  team.identity = { style, manager: manager ?? 'tactician', focus: 0.65 };
   return team;
 }
 

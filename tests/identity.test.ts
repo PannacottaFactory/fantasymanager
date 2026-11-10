@@ -8,6 +8,7 @@ import { migrateGame } from '../src/engine/league/migrate.ts';
 import { counterTarget } from '../src/engine/team/identity.ts';
 import { SPECIES } from '../src/data/species.ts';
 import { ABILITIES } from '../src/data/abilities.ts';
+import { coverMult, roleDamageFactor } from '../src/engine/combat/formulas.ts';
 
 describe('AI stable identities', () => {
   it('style data only names existing species and abilities', () => {
@@ -73,5 +74,41 @@ describe('AI stable identities', () => {
     expect(m.difficulty).toBe('normal');
     expect(m.teams.filter((t) => t.id !== m.playerTeamId).every((t) => t.identity)).toBe(true);
     expect(playMatchday(m).matchday).toBe(m.matchday + 1);
+  });
+});
+
+describe('levers', () => {
+  it('stables differ in how much they stick to their style', () => {
+    const g = newGame({ seed: 'focus', teamName: 'Me', lang: 'en' });
+    const focus = new Set(g.teams.filter((t) => t.identity).map((t) => t.identity!.focus));
+    expect(focus.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('cover protects the back line from ranged attacks while two creatures hold the front', () => {
+    const cfg = DEFAULT_CONFIG;
+    const back = { line: 'back' } as Parameters<typeof coverMult>[1];
+    expect(coverMult('ranged', back, 2, cfg)).toBeCloseTo(1 - cfg.combat.cover.reduction);
+    expect(coverMult('spell', back, 1, cfg)).toBe(1);
+    expect(coverMult('melee', back, 3, cfg)).toBe(1);
+  });
+
+  it('a creature outside its natural roles deals less damage', () => {
+    const g = newGame({ seed: 'roles', teamName: 'Me', lang: 'en' });
+    const t = g.teams[0]!;
+    const c = new Combat({ seed: 1, teams: [t, g.teams[1]!] });
+    const a = c.active(0)[0]!;
+    const natural = roleDamageFactor({ ...a, naturalRole: true }, 'melee', DEFAULT_CONFIG);
+    expect(roleDamageFactor({ ...a, naturalRole: false }, 'melee', DEFAULT_CONFIG)).toBeCloseTo(natural * DEFAULT_CONFIG.combat.roleFit.offRole);
+  });
+
+  it('break decisions come back to the starting orders, not to "balanced"', () => {
+    const g = newGame({ seed: 'orders', teamName: 'Me', lang: 'en' });
+    const [a, b] = [g.teams[0]!, g.teams[1]!];
+    const mine = { ...a, tactic: { ...a.tactic, orders: { aggression: 'cautious' as const, target: 'weakest' as const, risk: 'low' as const }, ai: undefined } };
+    const c = new Combat({ seed: 3, teams: [mine, b] });
+    c.advance();
+    const d = aiBreakDecision(c, 0);
+    if (d.orders && d.orders.aggression === mine.tactic.orders.aggression) expect(d.orders.target).toBe('weakest');
+    expect(c.sides[0].baseOrders.aggression).toBe('cautious');
   });
 });

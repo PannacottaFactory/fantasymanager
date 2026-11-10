@@ -24,6 +24,7 @@ Saves use IndexedDB (`idb`, one autosave slot, `src/ui/store/saves.ts`); heavy s
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
+| `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 
 Quality tiers: `novice | regional | professional | elite | legendary`.
 
@@ -104,8 +105,16 @@ tests/       Vitest
   × professionalism × intensity × coaches; it feeds a pool of attribute points (`Creature.growth.pool`), each whole
   point going to an attribute drawn by program weight (so progress is visible). Attributes are capped by the
   species range at full potential (+2). Ageing uses the same mechanism with negative amounts.
-- **Role fit** now matters in combat: `Combatant.roleFactor` (0.85–1.15 from role fit) scales tank interceptions,
-  striker melee / caster spell / skirmisher strike damage, support healing and the skirmisher flank penalty.
+- **Roles** (`cfg.combat.roles`): each role has a bonus and a cost (tank +armour −damage, striker +melee −armour,
+  caster +spells −armour, support +healing −damage, skirmisher +ranged/+melee −armour). Bonuses scale with
+  `roleFactor` (role fit, 0.78–1.2); outside the species' natural roles (`Combatant.naturalRole`) damage and healing
+  ×`roleFit.offRole` (0.8). Tank interceptions and the skirmisher flank penalty also use `roleFactor`.
+- **Cover** (`cfg.combat.cover`): while ≥ 2 creatures of a side stand in the front line, its back line takes 20 % less
+  from ranged attacks and spells (melee reaching the back line ignores it).
+- **Orders**: aggressive = more damage for much more stamina (a burst, ruinous over a whole match); cautious = armour
+  and stamina savings. `Combat.sides[].baseOrders` = starting orders, which break decisions return to when level.
+- **Fatigue**: pre-match fatigue removes up to 70 % of the stamina pool, penalties start below 60 % stamina (up to
+  −40 % hit/damage/initiative/interception) and injuries are ×(1 + fatigue/100).
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
@@ -182,8 +191,12 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   rate now ~48–59 %. 91 tests.
 - [x] **AI identities & difficulty**: styles + temperaments per AI stable, difficulty at start, save v5, `sim:ai`.
   Autopilot player finishes ~4.8th (easy), ~6.8th (normal), ~8.8th (hard) of 10 in D2. 97 tests.
-  Found: tactical levers barely move results at equal squads (orders ±1 %, wrong roles −1 %, all back line −5 %),
-  so AI "smartness" adds nothing yet → next: make the levers matter; then encyclopedia; post-match analysis.
+- [x] **Levers pass**: role trade-offs + off-role penalty, cover, aggression costs stamina, harsher fatigue (faster
+  weekly recovery 22), base orders kept at breaks (bug: the assistant reset them to balanced), AI focus fire,
+  per-stable style focus (eclectic → purist), coloured inbox by category with filters, prices recalibrated.
+  `sim:levers` now: wrong roles −5, all back line −7, no break management −18, tired squad −21, targeting the
+  back line vs brutes +12; aggression/cautious are neutral on average (situational). 101 tests.
+  Next: encyclopedia; post-match analysis; more situational value for orders.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

@@ -178,13 +178,27 @@ export interface DamageContext {
   solo: boolean;
 }
 
-/** Damage before variance, crits and mitigation. */
-/** Role fit only boosts (or hampers) the role's own speciality. */
-export function roleDamageFactor(c: Combatant, kind: AttackKind): number {
-  if (c.role === 'striker' && kind === 'melee') return c.roleFactor;
-  if (c.role === 'caster' && kind === 'spell') return c.roleFactor;
-  if (c.role === 'skirmisher' && kind !== 'spell') return c.roleFactor;
-  return 1;
+/** A role bonus grows with role fit; a penalty does not. */
+function scaled(v: number, c: Combatant): number {
+  return v > 1 ? 1 + (v - 1) * c.roleFactor : v;
+}
+
+/** Role effect on damage of this kind, including the off-role penalty. */
+export function roleDamageFactor(c: Combatant, kind: AttackKind, cfg: GameConfig): number {
+  const off = c.naturalRole === false ? cfg.combat.roleFit.offRole : 1;
+  return scaled(cfg.combat.roles[c.role][kind], c) * off;
+}
+
+/** Role effect on healing given, including the off-role penalty. */
+export function roleHealFactor(c: Combatant, cfg: GameConfig): number {
+  const off = c.naturalRole === false ? cfg.combat.roleFit.offRole : 1;
+  return scaled(cfg.combat.roles[c.role].heal, c) * off;
+}
+
+/** Role armour (a tank's bonus grows with its fit). */
+export function roleMitigation(c: Combatant, cfg: GameConfig): number {
+  const m = cfg.combat.roles[c.role].mitigation;
+  return m > 0 ? m * c.roleFactor : m;
 }
 
 export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageContext, cfg: GameConfig): number {
@@ -196,7 +210,7 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   // Fury: the more wounded, the harder it hits.
   dmg *= 1 + effectMod(attacker, 'fury') * (1 - hpFraction(attacker));
   dmg *= traitMult(attacker, 'damageMult');
-  dmg *= roleDamageFactor(attacker, kind);
+  dmg *= roleDamageFactor(attacker, kind, cfg);
   dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
   if (attacker.stance === 'allOut') dmg *= 1.08;
   if (ctx.solo) dmg *= traitMult(attacker, 'soloDamageMult');
@@ -205,6 +219,15 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   if (ctx.behind > 0) dmg *= 1 + d.determinationMax * (attacker.attrs.determination / 20) * Math.min(1, ctx.behind * 2);
   if (hpFraction(attacker) < d.lowHpThreshold) dmg *= 1 - d.lowHpPenalty * (1 - attacker.attrs.composure / 20);
   return dmg;
+}
+
+/**
+ * Cover: a back-line creature takes less from ranged attacks and spells while its front line holds
+ * (at least `minFront` allies standing in front). Melee that reaches the back line (dives, charges) ignores it.
+ */
+export function coverMult(kind: AttackKind, target: Combatant, frontStanding: number, cfg: GameConfig): number {
+  const c = cfg.combat.cover;
+  return kind !== 'melee' && target.line === 'back' && frontStanding >= c.minFront ? 1 - c.reduction : 1;
 }
 
 /** Damage multiplier of an execution ability on this target. */
@@ -235,6 +258,7 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
     m = a.toughness * d.physMitigationPerToughness + d.sizeArmor[defender.size] - a.aggression * d.aggressionMitigationPenalty;
   }
   m += effectMod(defender, 'mitigation');
+  m += roleMitigation(defender, cfg);
   m += cfg.combat.orders[orders.aggression].mitigation;
   if (defender.guarding) m += cfg.combat.guard.guardMitigation;
   return clamp(m, d.minMitigation, d.maxMitigation);
@@ -242,8 +266,7 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
 
 export function healAmount(healer: Combatant, ability: AbilityDef, cfg: GameConfig): number {
   const h = cfg.combat.heal;
-  const role = healer.role === 'support' ? healer.roleFactor : 1;
-  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg) * role;
+  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg) * roleHealFactor(healer, cfg);
 }
 
 export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {

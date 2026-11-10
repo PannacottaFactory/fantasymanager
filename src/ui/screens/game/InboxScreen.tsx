@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -13,6 +13,59 @@ import { categoryName, injuryText, speciesName } from '../../../engine/text/loca
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
+
+/** Message families: each has a colour and a symbol in the inbox. */
+export type MessageCategory = 'match' | 'medical' | 'market' | 'club' | 'squad' | 'competition' | 'scouting';
+
+const CATEGORY_STYLE: Record<MessageCategory, { color: string; glyph: string }> = {
+  match: { color: 'var(--accent)', glyph: '⚔' },
+  medical: { color: 'var(--bad)', glyph: '✚' },
+  market: { color: 'var(--warn)', glyph: '⚖' },
+  club: { color: 'var(--info)', glyph: '♜' },
+  squad: { color: 'var(--good)', glyph: '❦' },
+  competition: { color: 'color-mix(in srgb, var(--info) 55%, var(--bad))', glyph: '♛' },
+  scouting: { color: 'color-mix(in srgb, var(--info) 50%, var(--good))', glyph: '◉' },
+};
+
+export function messageCategory(m: InboxMessage): MessageCategory {
+  switch (m.kind) {
+    case 'matchResult':
+      return 'match';
+    case 'injury':
+    case 'recovered':
+    case 'tired':
+      return 'medical';
+    case 'offerReceived':
+    case 'offerExpired':
+    case 'transferIn':
+    case 'transferOut':
+    case 'marketNews':
+    case 'contractExpiring':
+    case 'contractLeft':
+    case 'emergencySigning':
+      return 'market';
+    case 'scoutReport':
+      return 'scouting';
+    case 'youthIntake':
+    case 'youthReleased':
+    case 'retired':
+    case 'trainingReport':
+    case 'coachHired':
+    case 'friendLeft':
+    case 'relation':
+      return 'squad';
+    case 'seasonEnd':
+    case 'seasonPrize':
+    case 'cupDraw':
+    case 'cupOut':
+    case 'cupWon':
+    case 'promoted':
+    case 'relegated':
+      return 'competition';
+    default:
+      return 'club';
+  }
+}
 
 export function objectiveText(tr: Translator, o: ObjectiveId): string {
   return tr.t(`obj.${o}` as StringKey, { n: DEFAULT_CONFIG.league.promoted });
@@ -246,7 +299,11 @@ export function InboxScreen() {
   const { t } = tr;
   const game = useGame((s) => s.game)!;
   const { viewReport, markAllRead } = useGame.getState();
-  const messages = [...game.inbox].reverse();
+  const [filter, setFilter] = useState<MessageCategory | null>(null);
+  const all = [...game.inbox].reverse();
+  const counts = new Map<MessageCategory, number>();
+  for (const m of all) counts.set(messageCategory(m), (counts.get(messageCategory(m)) ?? 0) + 1);
+  const messages = filter ? all.filter((m) => messageCategory(m) === filter) : all;
   // Unread markers are shown once, then cleared.
   const unread = new Set(game.inbox.filter((m) => !m.read).map((m) => m.id));
   useEffect(() => {
@@ -260,15 +317,42 @@ export function InboxScreen() {
       <NextMatch game={game} />
       <section className="panel">
         <h2 style={{ marginBottom: 10 }}>{t('inbox.title')}</h2>
+        {all.length > 0 && (
+          <div className="msg-filters">
+            <button className={`chip ${filter === null ? 'on' : ''}`} onClick={() => setFilter(null)}>
+              {t('inbox.cat.all')} <span className="faint">{all.length}</span>
+            </button>
+            {(Object.keys(CATEGORY_STYLE) as MessageCategory[])
+              .filter((c) => counts.has(c))
+              .map((c) => (
+                <button
+                  key={c}
+                  className={`chip ${filter === c ? 'on' : ''}`}
+                  style={{ '--cat': CATEGORY_STYLE[c].color } as CSSProperties}
+                  onClick={() => setFilter(filter === c ? null : c)}
+                >
+                  <span className="cat-glyph">{CATEGORY_STYLE[c].glyph}</span> {t(`inbox.cat.${c}` as StringKey)} <span className="faint">{counts.get(c)}</span>
+                </button>
+              ))}
+          </div>
+        )}
         {messages.length === 0 && <div className="muted">{t('inbox.empty')}</div>}
         <ul className="inbox">
           {messages.map((m) => {
             const w = wording(tr, m, game.cup.rounds);
             const canReport = m.kind === 'matchResult' && game.lastMatch?.fixtureId === m.fixtureId;
+            const cat = messageCategory(m);
             return (
-              <li key={m.id} className={`msg ${w.tone} ${unread.has(m.id) ? 'unread' : ''}`}>
+              <li
+                key={m.id}
+                className={`msg ${w.tone} ${unread.has(m.id) ? 'unread' : ''}`}
+                style={{ '--cat': CATEGORY_STYLE[cat].color } as CSSProperties}
+              >
                 <div className="msg-head">
-                  <b>{w.title}</b>
+                  <span className="msg-cat" title={t(`inbox.cat.${cat}` as StringKey)}>
+                    {CATEGORY_STYLE[cat].glyph}
+                  </span>
+                  <b className="msg-title">{w.title}</b>
                   <span className="spacer" />
                   <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                     {t('inbox.matchday', { season: m.season, d: m.matchday })}

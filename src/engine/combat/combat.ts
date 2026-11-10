@@ -29,6 +29,7 @@ import {
   critChance,
   disobeyChance,
   effectMod,
+  coverMult,
   executeMult,
   lineTargets,
   packMult,
@@ -69,6 +70,8 @@ interface SideState {
   subsUsed: number;
   /** AI manager behaviour of this side, when it has one. */
   ai?: AiManagerStyle;
+  /** Orders the side started with (what break decisions come back to when the score is level). */
+  baseOrders: TeamOrders;
 }
 
 export type CombatPhase = 'running' | 'break' | 'ended';
@@ -98,8 +101,8 @@ export class Combat {
     this.rng = new Rng(this.seed);
     const [t0, t1] = setup.teams;
     this.sides = [
-      { teamId: t0.id, name: t0.name, orders: { ...t0.tactic.orders }, subsUsed: 0, ai: t0.tactic.ai },
-      { teamId: t1.id, name: t1.name, orders: { ...t1.tactic.orders }, subsUsed: 0, ai: t1.tactic.ai },
+      { teamId: t0.id, name: t0.name, orders: { ...t0.tactic.orders }, subsUsed: 0, ai: t0.tactic.ai, baseOrders: { ...t0.tactic.orders } },
+      { teamId: t1.id, name: t1.name, orders: { ...t1.tactic.orders }, subsUsed: 0, ai: t1.tactic.ai, baseOrders: { ...t1.tactic.orders } },
     ];
     setup.teams.forEach((team, i) => {
       const side = i as Side;
@@ -142,6 +145,7 @@ export class Combat {
         return false;
       },
       behind: (c) => Math.max(0, this.teamHealth(other(c.side)) - this.teamHealth(c.side)),
+      frontStanding: (side) => this.frontStanding(side),
     };
 
     for (const c of this.combatants) {
@@ -316,6 +320,7 @@ export class Combat {
   ) {
     const species = SPECIES[cr.speciesId];
     if (!species) throw new Error(`Unknown species ${cr.speciesId}`);
+    const rf = this.cfg.combat.roleFit;
     const attrs = effectiveAttributes(cr);
     const mHp = maxHp({ ...cr, attributes: attrs }, this.cfg);
     const mSt = maxStamina({ ...cr, attributes: attrs }, this.cfg);
@@ -335,13 +340,11 @@ export class Combat {
       traits: cr.traits,
       abilities: getAbilities(cr).map((a) => a.id),
       favorites: [],
-      roleFactor: clamp(
-        1 + (roleFit({ ...cr, attributes: attrs }, role) - 10) * this.cfg.combat.roleFit.perPoint,
-        this.cfg.combat.roleFit.min,
-        this.cfg.combat.roleFit.max,
-      ),
+      roleFactor: clamp(1 + (roleFit({ ...cr, attributes: attrs }, role) - 10) * rf.perPoint, rf.min, rf.max),
+      naturalRole: species.roles.includes(role),
       ability: cr.ability,
       injuryProneness: cr.hidden.injuryProneness,
+      preFatigue: cr.condition.fatigue,
       cooldowns: {},
       maxHp: mHp,
       hp: mHp,
@@ -759,6 +762,7 @@ export class Combat {
     if (aoe) dmg *= d.aoeFactor;
     const exec = executeMult(ability, target, cfg);
     dmg *= exec;
+    dmg *= coverMult(kind, target, this.frontStanding(target.side), cfg);
     const pack = ability.pack ? this.ai.alliesOn(actor, target) : 0;
     dmg *= packMult(ability, pack, cfg);
     dmg *= 1 - mitigation(target, kind, this.sides[target.side].orders, cfg);
@@ -811,6 +815,11 @@ export class Combat {
     if (!aoe && actor.state === 'active') this.applyAbilityEffects(actor, ability, actor, 'self');
     this.checkLowHpRage(target);
     if (actor.state === 'active') this.checkLowHpRage(actor);
+  }
+
+  /** Creatures of a side standing in the front line. */
+  frontStanding(side: Side): number {
+    return this.combatants.filter((c) => c.side === side && c.state === 'active' && c.line === 'front').length;
   }
 
   private reflect(from: Combatant, to: Combatant, amount: number) {
@@ -871,7 +880,7 @@ export class Combat {
   }
 
   private maybeInjure(c: Combatant, baseChance: number) {
-    let mult = 0.5 + c.injuryProneness / 20;
+    let mult = (0.5 + c.injuryProneness / 20) * (1 + (c.preFatigue / 100) * this.cfg.combat.fatigue.injuryFromFatigue);
     for (const t of c.traits) mult *= TRAITS[t]?.training?.injuryMult ?? 1;
     if (!this.rng.chance(baseChance * mult * this.cfg.combat.injury.pronenessWeight)) return;
     const pool = Object.values(INJURIES).filter((i) => i.cause === 'any' || i.cause === c.lastDamageElement);

@@ -5,18 +5,26 @@
 import type { Rng } from '../../core/rng.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import { DEFAULT_CONFIG, type DifficultyId, type GameConfig, type ManagerId, type PlayStyleId } from '../../data/config/index.ts';
-import { MANAGER_IDS, PLAY_STYLE_IDS } from '../../data/config/identity.ts';
+import { MANAGER_IDS, PLAY_STYLE_IDS, STYLE_FOCUS } from '../../data/config/identity.ts';
 import type { TargetPriority } from '../../data/schema.ts';
 import { getAbilities } from '../creature/derived.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
 
-/** Distinct styles for as many stables as possible (then repeats), each with a manager temperament. */
+/** Distinct styles for as many stables as possible (then repeats), each with a manager temperament and a focus. */
 export function drawIdentities(rng: Rng, count: number): StableIdentity[] {
   const styles: PlayStyleId[] = [];
   while (styles.length < count) styles.push(...rng.shuffle([...PLAY_STYLE_IDS]));
   const managers: ManagerId[] = [];
   while (managers.length < count) managers.push(...rng.shuffle([...MANAGER_IDS]));
-  return styles.slice(0, count).map((style, i) => ({ style, manager: managers[i]! }));
+  const focus: number[] = [];
+  while (focus.length < count) focus.push(...rng.shuffle([...STYLE_FOCUS]));
+  return styles.slice(0, count).map((style, i) => ({ style, manager: managers[i]!, focus: focus[i]! }));
+}
+
+/** Share of the squad drawn from the style: the stable's focus, scaled by the difficulty (0.5 = as is). */
+export function styleShare(identity: StableIdentity, difficulty: DifficultyId, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const scale = cfg.identity.difficulties[difficulty].styleShare / 0.5;
+  return Math.max(0.05, Math.min(0.95, (identity.focus ?? 0.5) * scale));
 }
 
 /** Species a stable recruits by preference (empty without identity). */
@@ -78,7 +86,8 @@ export function applyIdentity(team: Team, tactic: Tactic, difficulty: Difficulty
     orders.target = counterTarget(lineup);
   }
   const favorites: Record<string, string[]> = {};
-  if (d.favorites && team.identity) {
+  // Eclectic stables don't bother with builds.
+  if (d.favorites && team.identity && (team.identity.focus ?? 0.5) >= 0.3) {
     for (const s of tactic.lineup) {
       const c = team.creatures.find((x) => x.id === s.creatureId);
       const fav = c ? styleFavorites(c, team.identity.style, cfg.combat.favorites.max, cfg) : [];

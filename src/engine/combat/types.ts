@@ -35,9 +35,13 @@ export interface Combatant {
   favorites: string[];
   /** Multiplier on what the creature's role does, from its role fit (≈0.85–1.15). */
   roleFactor: number;
+  /** The role is one of the species' natural roles. */
+  naturalRole: boolean;
   /** Hidden ability 1–200 (used by AI "strongest" target and ratings). */
   ability: number;
   injuryProneness: number;
+  /** Fatigue (0–100) the creature carried into the match. */
+  preFatigue: number;
   cooldowns: Record<string, number>;
   maxHp: number;
   hp: number;

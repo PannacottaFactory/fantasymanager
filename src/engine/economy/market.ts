@@ -233,7 +233,8 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
     const club = clubOf(state, team.id);
     // A stable looks harder at creatures that fit its style.
     const style = favouredSpecies(team, cfg);
-    const fit = (c: Creature) => c.ability + (style.includes(c.speciesId) ? styleBias : 0);
+    const focus = team.identity?.focus ?? 0.5;
+    const fit = (c: Creature) => c.ability + (style.includes(c.speciesId) ? styleBias * focus * 2 : 0);
     // Sign a free agent when short-handed, or a clear upgrade when rich.
     const need = team.creatures.length < target;
     const room = team.creatures.length <= target;
@@ -265,7 +266,7 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
         }
       }
       if (options.length) {
-        const o = rng.weighted(options, (x) => (style.includes(x.c.speciesId) ? 3 : 1));
+        const o = rng.weighted(options, (x) => (style.includes(x.c.speciesId) ? 1 + 4 * focus : 1));
         const m = transfer(state, o.c.id, team.id, o.price, { wage: askingWage(o.c, club.reputation, 2, cfg), years: 2 }, cfg);
         if (m) moves.push(m);
       }

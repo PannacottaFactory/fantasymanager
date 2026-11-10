@@ -186,12 +186,12 @@ const list: AbilityDef[] = [
   { id: 'strangling-vines', name: 'Strangling Vines', kind: 'debuff', element: 'nature', target: 'enemy', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.9, on: 'target' }, { effect: 'stunned', chance: 0.35, on: 'target' }], verb: 'sends strangling vines around', description: 'Vines grip a foe.' },
 
   // ——— Vampire ———
-  { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 14, staminaCost: 8, cooldown: 0, lifesteal: 0.6, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
+  { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 15, staminaCost: 8, cooldown: 0, lifesteal: 0.7, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
   { id: 'blood-bolt', name: 'Blood Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 8, cooldown: 1, lifesteal: 0.35, verb: 'hurls a bolt of blood at', description: 'A spell that heals its caster.' },
   { id: 'crimson-feast', name: 'Crimson Feast', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 8, staminaCost: 18, cooldown: 5, lifesteal: 0.5, verb: 'draws the blood out of', description: 'Drains every foe at once.' },
 
   // ——— Giant bat ———
-  { id: 'leeching-bite', name: 'Leeching Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, lifesteal: 0.5, verb: 'latches on to', description: 'Feeds as it bites.' },
+  { id: 'leeching-bite', name: 'Leeching Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, lifesteal: 0.65, verb: 'latches on to', description: 'Feeds as it bites.' },
   { id: 'sonic-shriek', name: 'Sonic Shriek', kind: 'debuff', element: 'air', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 4, staminaDrain: 8, effects: [{ effect: 'slowed', chance: 0.4, on: 'target' }], verb: 'lets out a piercing shriek at', description: 'A shriek that slows and tires every foe.' },
 
   // ——— Giant mantis ———

@@ -66,6 +66,9 @@ export const MANAGERS: Record<ManagerId, ManagerDef> = {
 
 export const MANAGER_IDS = Object.keys(MANAGERS) as ManagerId[];
 
+/** Possible style focus of a stable, from eclectic to purist (drawn evenly). */
+export const STYLE_FOCUS = [0.15, 0.4, 0.65, 0.9];
+
 export type DifficultyId = 'easy' | 'normal' | 'hard';
 
 export interface DifficultyDef {
