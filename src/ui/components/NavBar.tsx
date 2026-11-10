@@ -69,6 +69,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         { id: 'facilities', label: 'nav.facilities', needsGame: true },
       ],
     },
+    { id: 'encyclopedia', label: 'nav.encyclopedia' },
     { id: 'arena', label: 'nav.arena' },
   ];
 

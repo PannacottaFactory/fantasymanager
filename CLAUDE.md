@@ -198,7 +198,12 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   back line vs brutes +12; aggression/cautious are neutral on average (situational). 101 tests.
   Then: tanks toned down (role armour +3 %, −12 % damage; guard interception max 60 %; stone body 5 %; frost giant
   stats), "Build" column renamed "Preference", Approach orders explained in a tooltip.
-  Next: encyclopedia; post-match analysis; more situational value for orders.
+- [x] **Encyclopedia** (`ui/screens/EncyclopediaScreen.tsx`, texts in `ui/i18n/encyclopedia.ts`): species, abilities,
+  effects, traits, roles, elements chart, attributes, injuries and combat rules, generated from the data and config
+  (exact numbers, cross-links, search); reachable without a game (nav + Help). Never names play styles. Adding a
+  mechanic ⇒ describe it there (ability `spec.*`, effect `mod.*` / `fx.*`, or a rule). Test renders every page in
+  both languages. 103 tests.
+  Next: post-match analysis; more situational value for orders.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

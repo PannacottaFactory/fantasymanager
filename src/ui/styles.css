@@ -671,3 +671,36 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .mirror .fighter .top { text-align: right; }
 .mirror .bar > i { inset: 0 0 0 auto; }
 .mirror .float { right: auto; left: 64px; }
+
+/* ——— Encyclopedia ——— */
+.enc-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.enc-tabs .chip, .msg-filters .chip { cursor: pointer; }
+.enc-tabs .chip {
+  border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+  border-radius: 999px; padding: 4px 12px; font-size: 0.929rem;
+}
+.enc-tabs .chip.on { background: color-mix(in srgb, var(--accent) 25%, var(--panel-2)); border-color: var(--accent); }
+.enc-layout { display: grid; grid-template-columns: minmax(200px, 260px) 1fr; gap: 12px; align-items: start; }
+@media (max-width: 760px) { .enc-layout { grid-template-columns: 1fr; } .enc-list ul { max-height: 30vh; } }
+.enc-list input { width: 100%; margin-bottom: 8px; }
+.enc-list ul { list-style: none; margin: 0; padding: 0; max-height: 70vh; overflow-y: auto; }
+.enc-list li button {
+  width: 100%; text-align: left; background: none; border: 0; color: var(--text); cursor: pointer;
+  padding: 4px 6px; border-radius: var(--radius); display: flex; gap: 6px; align-items: center; font-size: 0.929rem;
+}
+.enc-list li button:hover { background: var(--panel-2); }
+.enc-list li button.on { background: color-mix(in srgb, var(--accent) 22%, var(--panel-2)); }
+.enc-ico { width: 1.4em; display: inline-flex; justify-content: center; }
+.enc-detail h4 { margin: 14px 0 6px; color: var(--accent); }
+.enc-title { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; }
+.enc-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; margin: 8px 0; }
+.enc-facts dt { font-size: 0.786rem; color: var(--faint); text-transform: uppercase; letter-spacing: 0.04em; }
+.enc-facts dd { margin: 0; }
+.enc-lines { margin: 0; padding-left: 18px; }
+.enc-lines li { margin: 2px 0; }
+.enc-attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.enc-attr { display: grid; grid-template-columns: 7.5rem 1fr 3rem; gap: 6px; align-items: center; font-size: 0.857rem; }
+.enc-range { position: relative; height: 6px; background: var(--panel-2); border-radius: 3px; }
+.enc-range i { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 3px; min-width: 3px; }
+.enc-inline { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.enc-elements td, .enc-elements th { text-align: center; }

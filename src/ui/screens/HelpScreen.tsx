@@ -2,6 +2,7 @@ import { TEXT_SIZES, useSettings, useT, type TextSize } from '../i18n/index.ts';
 import { Seg } from '../components/common.tsx';
 import type { StringKey } from '../i18n/strings.ts';
 import { useTutorial } from '../tutorial/tutorial.ts';
+import { useGame } from '../store/gameStore.ts';
 
 const SECTIONS = ['goal', 'week', 'combat', 'roles', 'squad', 'economy', 'recruit', 'training', 'competitions', 'club'] as const;
 const ICON: Record<(typeof SECTIONS)[number], string> = {
@@ -39,6 +40,11 @@ export function HelpScreen() {
         </div>
         <p className="muted" style={{ marginTop: 0 }}>
           {t('help.intro')}
+        </p>
+        <p>
+          <button className="btn small" onClick={() => useGame.getState().setScreen('encyclopedia')}>
+            📖 {t('help.encyclopedia')}
+          </button>
         </p>
       </section>
       {SECTIONS.map((s) => (

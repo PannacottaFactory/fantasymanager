@@ -13,7 +13,7 @@ import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
 import { loadGame, saveGame } from './saves.ts';
 
-export type Screen = 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'arena' | 'match';
+export type Screen = 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
 export interface MatchFlow {
   fixtureId: string;

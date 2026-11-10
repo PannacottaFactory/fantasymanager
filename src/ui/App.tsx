@@ -21,6 +21,7 @@ import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
 import { useGame } from './store/gameStore.ts';
 import { NavBar } from './components/NavBar.tsx';
 import { HelpScreen } from './screens/HelpScreen.tsx';
+import { EncyclopediaScreen } from './screens/EncyclopediaScreen.tsx';
 import { TutorialOverlay } from './tutorial/TutorialOverlay.tsx';
 
 function ContinueButton() {
@@ -93,6 +94,7 @@ export function App() {
       />
     );
   else if (screen === 'help') content = <HelpScreen />;
+  else if (screen === 'encyclopedia') content = <EncyclopediaScreen />;
   else if (screen === 'arena') content = <ArenaScreen />;
   else if (!game || newGameOpen) content = <StartScreen onCancel={game ? () => setNewGameOpen(false) : undefined} />;
   else if (screen === 'squad') content = <SquadScreen />;
@@ -160,7 +162,7 @@ export function App() {
       </header>
       {saveError && <div className="save-error">{t('save.failed')}</div>}
       <main className="main">{content}</main>
-      {game && !newGameOpen && screen !== 'arena' && <GameSheet />}
+      {game && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && <GameSheet />}
       <TutorialOverlay active={!!game && !newGameOpen && ready && !viewing} />
     </div>
   );
