@@ -23,11 +23,11 @@
   --hp-low: #c9473b;
   --stamina: #c9a24a;
   --morale: #8f7fd0;
-  --a1: #8a5248;
-  --a2: #a48a52;
-  --a3: #c7c07a;
-  --a4: #8cc66a;
-  --a5: #4ed1a0;
+  --a1: #e5574b;
+  --a2: #e8873a;
+  --a3: #e2c14a;
+  --a4: #8fd16a;
+  --a5: #3fd68e;
   --shadow: 0 6px 24px rgb(0 0 0 / 0.45);
   --radius: 6px;
   --font-title: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
@@ -60,11 +60,11 @@
   --hp-low: #a8322a;
   --stamina: #a07b22;
   --morale: #5d4ea8;
-  --a1: #a8443a;
-  --a2: #a0782a;
-  --a3: #7f7a24;
-  --a4: #4a8a2e;
-  --a5: #137a5a;
+  --a1: #b8332a;
+  --a2: #b8641a;
+  --a3: #9a7d10;
+  --a4: #3f8a2a;
+  --a5: #147a4a;
   --shadow: 0 6px 24px rgb(80 60 20 / 0.25);
   color-scheme: light;
 }
@@ -739,3 +739,32 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .attr-move { font-size: 0.857rem; padding: 1px 6px; border-radius: 999px; background: var(--panel-2); }
 .attr-move.up { color: var(--good); }
 .attr-move.down { color: var(--bad); }
+
+.badge-icon {
+  display: inline-grid; place-items: center; flex: none; width: 1.9rem; height: 1.9rem; border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent);
+}
+
+/* ——— Training ——— */
+.how-it-works { background: var(--panel-2); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 10px; font-size: 0.929rem; }
+.how-it-works ol { margin: 6px 0 0; padding-left: 20px; }
+.how-it-works li { margin: 3px 0; }
+.apt-cell { display: inline-flex; align-items: center; gap: 6px; }
+.apt-bar { position: relative; width: 64px; height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+.apt-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.apt-pot { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.apt-now { background: var(--accent); }
+
+/* ——— Tactics: starter / bench / reserve ——— */
+.sel-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.sel-seg button { background: var(--panel-2); color: var(--muted); border: 0; padding: 2px 8px; font-size: 0.786rem; cursor: pointer; }
+.sel-seg button + button { border-left: 1px solid var(--border); }
+.sel-seg button:disabled { opacity: 0.4; cursor: not-allowed; }
+.sel-seg button.on { color: var(--text); font-weight: 600; }
+.sel-seg button.on.sel-starter { background: color-mix(in srgb, var(--accent) 35%, var(--panel-2)); }
+.sel-seg button.on.sel-bench { background: color-mix(in srgb, var(--info) 30%, var(--panel-2)); }
+.sel-seg button.on.sel-reserve { background: var(--panel); }
+.swap-select { max-width: 3.2rem; }
+
+.lineup-row { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; border-bottom: 1px solid var(--border); }
+.lineup-abilities { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; font-size: 0.857rem; }

@@ -3,7 +3,7 @@ import { roleText, speciesName } from '../../engine/text/localize.ts';
 import { useT } from '../i18n/index.ts';
 import { ELEMENTS } from '../../data/elements.ts';
 import { SPECIES } from '../../data/species.ts';
-import { ICON_VIEWBOX, ROLE_ICONS, SPECIES_ICONS } from './gameIcons.ts';
+import { ICON_VIEWBOX, ROLE_ICONS, SPECIES_ICONS, UI_ICONS } from './gameIcons.ts';
 
 /** A monochrome game icon (inherits the text colour). */
 function GameIcon({ body, size, title, className }: { body: string; size: number | string; title?: string; className?: string }) {
@@ -25,6 +25,16 @@ export function SpeciesIcon({ id, size = '1.3em' }: { id: string; size?: number 
       <GameIcon body={body} size={size} title={speciesName(id, lang)} />
     </span>
   );
+}
+
+/** An interface icon in a round badge (board, …). */
+export function BadgeIcon({ name, title }: { name: string; title?: string }) {
+  const body = UI_ICONS[name];
+  return body ? (
+    <span className="badge-icon">
+      <GameIcon body={body} size="1.1em" title={title} />
+    </span>
+  ) : null;
 }
 
 export function RoleIcon({ role, size = '1.1em' }: { role: RoleId; size?: number | string }) {

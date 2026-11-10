@@ -5,8 +5,9 @@
 import { create } from 'zustand';
 import type { MatchResult, MatchSetup } from '../../engine/combat/types.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
+import { replayMatch } from '../../engine/combat/simulate.ts';
 import { aiPrepare, fixtureSetup, newGame, playMatchday, playerFixture, seasonOver, startNextSeason } from '../../engine/league/season.ts';
-import type { GameState } from '../../engine/league/types.ts';
+import type { GameState, MatchRecord } from '../../engine/league/types.ts';
 import type { Team } from '../../engine/model.ts';
 import { repairTactic } from '../../engine/team/team.ts';
 import { randomSeed } from '../format.ts';
@@ -32,6 +33,12 @@ interface GameStore {
   match: MatchFlow | null;
   /** A stored report opened from the inbox or the league screen. */
   viewing: MatchResult | null;
+  /** A past match being watched again. */
+  replaying: MatchRecord | null;
+  watchAgain: (fixtureId: string) => void;
+  /** Report of one of the recorded matches (rebuilt by replaying it). */
+  reportOf: (fixtureId: string) => void;
+  stopReplay: () => void;
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
@@ -78,6 +85,7 @@ export const useGame = create<GameStore>()((set, get) => {
     screen: 'inbox',
     match: null,
     viewing: null,
+    replaying: null,
     saveError: false,
     playerControls: true,
 
@@ -149,6 +157,21 @@ export const useGame = create<GameStore>()((set, get) => {
     },
 
     viewReport: (viewing) => set({ viewing }),
+
+    watchAgain: (fixtureId) => {
+      const rec = get().game?.matchHistory?.find((m) => m.fixtureId === fixtureId);
+      if (rec) set({ replaying: structuredClone(rec), viewing: null });
+    },
+
+    reportOf: (fixtureId) => {
+      const g = get().game;
+      if (!g) return;
+      if (g.lastMatch?.fixtureId === fixtureId) return set({ viewing: g.lastMatch.result });
+      const rec = g.matchHistory?.find((m) => m.fixtureId === fixtureId);
+      if (rec) set({ viewing: replayMatch(structuredClone(rec.setup), rec.decisions) });
+    },
+
+    stopReplay: () => set({ replaying: null }),
 
     act: (f) => {
       const g = get().game;

@@ -64,6 +64,11 @@ const SPECIES = {
   seraph: 'angel-wings',
 };
 
+/** Interface icons. */
+const UI = {
+  board: 'scroll-unfurled',
+};
+
 /** Role id → icon name. */
 const ROLES = {
   tank: 'shield',
@@ -96,6 +101,11 @@ ${block(SPECIES)}
 /** SVG bodies of the role icons (fill = currentColor). */
 export const ROLE_ICONS: Record<string, string> = {
 ${block(ROLES)}
+};
+
+/** SVG bodies of interface icons (fill = currentColor). */
+export const UI_ICONS: Record<string, string> = {
+${block(UI)}
 };
 `;
 writeFileSync(new URL('../src/ui/icons/gameIcons.ts', import.meta.url), out);

@@ -28,6 +28,8 @@ export const LEAGUE_CONFIG = {
     /** Prize for winning each round (the last one = the trophy). */
     prize: [1500, 3000, 6000, 12000, 25000],
   },
+  /** Player's matches kept for replay. */
+  replayHistory: 10,
   /** Each pairing meets this many times (2 = home and away). */
   legs: 2,
   week: {

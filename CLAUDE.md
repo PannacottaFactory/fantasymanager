@@ -224,6 +224,15 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   burn 5.6 %/round, poison 3.2 %/dose, frost giant / ogre / bramble horror toned down, vampire / bat / hyena / banshee
   helped, prices recalibrated. Pure styles vs mixed teams: 33–60 % (bleed team ~65 % because of its minotaurs and
   werewolves; drain and pack lowest — they need a front line). League KO ≈ 50 %.
+- [x] **Feedback pass**: board badge icon (`UI_ICONS`, `<BadgeIcon>`), training screen explained (how it works,
+  Aptitude bar vs potential, Next ability column; no sparkline), `abilityUnlocked` inbox message, clearer training
+  report (changes since the last report + aptitude before → after), locked abilities show their threshold,
+  attribute colours red → green, ability kinds in bold, finances: income green / expenses red and a chart margin
+  sized to its labels, Tactics: Starter / Bench / Reserve switch + ⇄ swap (`setSelection`, `swapCreatures`),
+  "Fatigue" column, 7 light traits (lucky, clumsy, quick learner, stoic, reckless, cheerful, patient), report shows
+  both line-ups with the abilities seen used, **replays**: `GameState.matchHistory` keeps the last 10 player
+  matches (setup snapshot + break decisions; `replayMatch` / `replayDeciders` reproduce them exactly), "Watch
+  again" and "Report" in the inbox, `LiveMatch` `replay` mode. 113 tests.
   Next (later): phase 6 (save slots, import/export, worker sims).
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 

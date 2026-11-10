@@ -283,6 +283,13 @@ export const FR_TRAITS: Record<string, { name: string; description: string }> = 
   guardian: { name: 'Gardien', description: 'Se jette d’instinct devant les alliés menacés.' },
   'big-game': { name: 'Créature des grands soirs', description: 'Se surpasse quand l’équipe est en difficulté.' },
   'frail-nerves': { name: 'Nerfs fragiles', description: 'S’effondre sous la pression.' },
+  lucky: { name: 'Chanceux', description: 'Les choses ont tendance à tourner en sa faveur.' },
+  clumsy: { name: 'Maladroit', description: 'Pattes partout. Rate un coup de temps en temps.' },
+  'quick-learner': { name: 'Apprend vite', description: 'Assimile vite à l’entraînement.' },
+  stoic: { name: 'Stoïque', description: 'Ni exalté ni abattu : son moral bouge moins, dans les deux sens.' },
+  reckless: { name: 'Téméraire', description: 'Se jette dans la mêlée sans réfléchir.' },
+  cheerful: { name: 'Jovial', description: 'Toujours de bonne humeur — et c’est contagieux.' },
+  patient: { name: 'Patient', description: 'Attend le bon moment et s’en tient au plan.' },
 };
 
 export const FR_INJURIES: Record<string, { name: string; short: string }> = {

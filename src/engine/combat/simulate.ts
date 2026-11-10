@@ -24,3 +24,14 @@ export function simulateMatch(setup: MatchSetup, opts: SimulateOptions = {}): Ma
   }
   return combat.result();
 }
+
+/** Break deciders that replay recorded decisions exactly (nothing else at the breaks). */
+export function replayDeciders(decisions: MatchResult['decisions']): [BreakDecider, BreakDecider] {
+  const pick = (side: 0 | 1): BreakDecider => (combat) => decisions.find((d) => d.side === side && d.round === combat.round)?.decision ?? {};
+  return [pick(0), pick(1)];
+}
+
+/** Replays a recorded match (same seed, same teams, same decisions ⇒ the same fight). */
+export function replayMatch(setup: MatchSetup, decisions: MatchResult['decisions'], cfg: GameConfig = DEFAULT_CONFIG): MatchResult {
+  return simulateMatch(setup, { cfg, deciders: replayDeciders(decisions) });
+}

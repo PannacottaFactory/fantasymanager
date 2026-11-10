@@ -4,7 +4,7 @@ import { ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES_IDS } from '../../data/species.ts';
 import type { Line, RoleId, TargetPriority } from '../../data/schema.ts';
 import { isInjured, maxHp, overallRating } from '../../engine/creature/derived.ts';
-import { isStarter, setOrders, toggleBench, toggleFavorite, toggleStarter, updateSlot } from '../../engine/team/edit.ts';
+import { isStarter, selectionOf, setOrders, setSelection, swapCreatures, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
@@ -105,16 +105,35 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       label: t('col.selection'),
       sort: status,
       render: (c) => {
-        const st = status(c);
+        const st = selectionOf(team, c.id);
+        const full = { starter: team.tactic.lineup.length >= m.starters, bench: team.tactic.bench.length >= m.benchSize, reserve: false };
+        const others = team.creatures.filter((x) => x.id !== c.id && selectionOf(team, x.id) !== st && selectionOf(team, x.id) !== 'reserve');
         return (
           <span className="row" style={{ gap: 4 }}>
-            <button className={`btn small ${st === 0 ? 'active' : ''}`} title={t('sel.toggleStarter')} onClick={() => onChange(toggleStarter(team, c.id))}>
-              {st === 0 ? t('sel.starter') : t('sel.toStarter')}
-            </button>
-            {st !== 0 && (
-              <button className={`btn small ${st === 1 ? 'active' : ''}`} title={t('sel.toggleBench')} onClick={() => onChange(toggleBench(team, c.id))}>
-                {st === 1 ? t('sel.bench') : t('sel.toBench')}
-              </button>
+            <span className="sel-seg" role="radiogroup" aria-label={t('col.selection')}>
+              {(['starter', 'bench', 'reserve'] as const).map((to) => (
+                <button
+                  key={to}
+                  role="radio"
+                  aria-checked={st === to}
+                  className={st === to ? `on sel-${to}` : ''}
+                  disabled={st !== to && full[to]}
+                  title={st !== to && full[to] ? t(to === 'starter' ? 'sel.fullStarters' : 'sel.fullBench') : t(`sel.${to}.title`)}
+                  onClick={() => onChange(setSelection(team, c.id, to))}
+                >
+                  {t(`sel.${to}.short`)}
+                </button>
+              ))}
+            </span>
+            {others.length > 0 && (st === 'reserve' || st === 'bench') && (
+              <select className="compact swap-select" value="" title={t('sel.swap.title')} onChange={(e) => e.target.value && onChange(swapCreatures(team, c.id, e.target.value))}>
+                <option value="">⇄</option>
+                {others.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {t(isStarter(team, o.id) ? 'sel.swapStarter' : 'sel.swapBench', { name: o.name })}
+                  </option>
+                ))}
+              </select>
             )}
           </span>
         );
@@ -162,7 +181,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     columns.push(
       {
         key: 'cond',
-        label: t('col.status'),
+        label: t('col.fatigue'),
         sort: (c) => (isInjured(c) ? 200 : 0) + c.condition.fatigue,
         render: (c) => {
           const inj = c.condition.injuries.find((i) => i.weeksLeft > 0);

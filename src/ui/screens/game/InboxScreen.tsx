@@ -9,10 +9,11 @@ import { cupRoundKey } from './LeagueScreen.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { locate } from '../../../engine/economy/market.ts';
-import { attributeText, categoryName, injuryText, speciesName } from '../../../engine/text/localize.ts';
+import { abilityText, attributeText, categoryName, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
+import { BadgeIcon } from '../../icons/Icon.tsx';
 
 /** Message families: each has a colour and a symbol in the inbox. */
 export type MessageCategory = 'match' | 'medical' | 'market' | 'club' | 'squad' | 'competition' | 'scouting';
@@ -50,6 +51,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'youthReleased':
     case 'retired':
     case 'trainingReport':
+    case 'abilityUnlocked':
     case 'coachHired':
     case 'friendLeft':
     case 'relation':
@@ -141,14 +143,21 @@ function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: s
     case 'trainingReport':
       return {
         title: t('msg.trainingReport.title'),
-        body: t('msg.trainingReport.body', {
-          list: m.items
-            .map((x) => {
-              const moves = (x.attrs ?? []).map((a) => `${attributeText(a.k, tr.lang).name} ${a.d > 0 ? '+' : ''}${a.d}`).join(', ');
-              return `${x.name} (+${x.gain}${moves ? ` — ${moves}` : ''})`;
-            })
-            .join('\n'),
-        }),
+        body: [
+          t('msg.trainingReport.intro', { weeks: m.weeks ?? 6 }),
+          ...m.items.map((x) => {
+            const moves = (x.attrs ?? []).map((a) => `${attributeText(a.k, tr.lang).name} ${a.d > 0 ? '+' : ''}${a.d}`).join(', ');
+            const apt = x.abilityFrom !== undefined && x.abilityTo !== undefined ? t('msg.trainingReport.aptitude', { from: x.abilityFrom, to: x.abilityTo }) : '';
+            return `• ${t('msg.trainingReport.line', { name: x.name, n: x.gain, attrs: moves || '—', aptitude: apt })}`;
+          }),
+          t('msg.trainingReport.outro'),
+        ].join('\n'),
+        tone: 'good',
+      };
+    case 'abilityUnlocked':
+      return {
+        title: t('msg.abilityUnlocked.title', { name: m.name }),
+        body: t('msg.abilityUnlocked.body', { name: m.name, n: m.ability, ability: abilityText(m.abilityId, tr.lang).name }),
         tone: 'good',
       };
     case 'coachHired':
@@ -260,7 +269,10 @@ function BoardCard({ game }: { game: GameState }) {
   return (
     <section className="panel board-card" title={t('board.confidence.title')} data-tip="board">
       <div className="row wrap" style={{ gap: 12 }}>
-        <b>🏛 {t('board.title')}</b>
+        <span className="row" style={{ gap: 8 }}>
+          <BadgeIcon name="board" />
+          <b>{t('board.title')}</b>
+        </span>
         <span>
           {t('league.division', { n: divisionOf(game, game.playerTeamId) + 1 })} — {t('board.objective', { objective: objectiveText(tr, game.board.objective) })}
         </span>
@@ -305,7 +317,7 @@ export function InboxScreen() {
   const tr = useT();
   const { t } = tr;
   const game = useGame((s) => s.game)!;
-  const { viewReport, markAllRead } = useGame.getState();
+  const { reportOf, watchAgain, markAllRead } = useGame.getState();
   const [filter, setFilter] = useState<MessageCategory | null>(null);
   const all = [...game.inbox].reverse();
   const counts = new Map<MessageCategory, number>();
@@ -347,7 +359,8 @@ export function InboxScreen() {
         <ul className="inbox">
           {messages.map((m) => {
             const w = wording(tr, m, game.cup.rounds);
-            const canReport = m.kind === 'matchResult' && game.lastMatch?.fixtureId === m.fixtureId;
+            const recorded = m.kind === 'matchResult' && !!game.matchHistory?.some((x) => x.fixtureId === m.fixtureId);
+            const canReport = m.kind === 'matchResult' && (game.lastMatch?.fixtureId === m.fixtureId || recorded);
             const cat = messageCategory(m);
             return (
               <li
@@ -367,10 +380,19 @@ export function InboxScreen() {
                 </div>
                 {w.body && <div className="muted msg-body">{w.body}</div>}
                 <MessageActions game={game} m={m} />
-                {canReport && (
-                  <button className="btn small" style={{ marginTop: 6 }} onClick={() => viewReport(game.lastMatch!.result)}>
-                    {t('msg.report')}
-                  </button>
+                {m.kind === 'matchResult' && (canReport || recorded) && (
+                  <span className="row" style={{ gap: 6, marginTop: 6 }}>
+                    {canReport && (
+                      <button className="btn small" onClick={() => reportOf(m.fixtureId)}>
+                        {t('msg.report')}
+                      </button>
+                    )}
+                    {recorded && (
+                      <button className="btn small" onClick={() => watchAgain(m.fixtureId)}>
+                        ▶ {t('msg.watchAgain')}
+                      </button>
+                    )}
+                  </span>
                 )}
               </li>
             );

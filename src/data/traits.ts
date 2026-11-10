@@ -122,6 +122,42 @@ const list: TraitDef[] = [
     description: 'Crumbles under pressure.',
     combat: { attrMods: { composure: -3 }, moraleLossMult: 1.25 },
   },
+  // ——— Light flavour traits (small effects) ———
+  {
+    id: 'lucky', name: 'Lucky', polarity: 'positive', excludes: ['clumsy'],
+    description: 'Things just tend to go its way.',
+    combat: { critBonus: 0.03 },
+  },
+  {
+    id: 'clumsy', name: 'Clumsy', polarity: 'negative', excludes: ['lucky'],
+    description: 'All paws. Fumbles the odd blow.',
+    combat: { attrMods: { technique: -1, agility: -1 } },
+  },
+  {
+    id: 'quick-learner', name: 'Quick Learner', polarity: 'positive', excludes: ['lazy'],
+    description: 'Picks things up fast in training.',
+    training: { gainMult: 1.12 },
+  },
+  {
+    id: 'stoic', name: 'Stoic', polarity: 'mixed', excludes: ['showboat', 'frail-nerves'],
+    description: 'Neither elated nor crushed: morale moves less, both ways.',
+    combat: { moraleLossMult: 0.85, moraleGainMult: 0.8 },
+  },
+  {
+    id: 'reckless', name: 'Reckless', polarity: 'mixed', excludes: ['cool-headed'],
+    description: 'Throws itself in without a second thought.',
+    combat: { attrMods: { aggression: 2, defense: -1 } },
+  },
+  {
+    id: 'cheerful', name: 'Cheerful', polarity: 'positive',
+    description: 'Always in a good mood — and it rubs off on the others.',
+    combat: { auraMorale: 0.5 },
+  },
+  {
+    id: 'patient', name: 'Patient', polarity: 'positive', excludes: ['hothead'],
+    description: 'Waits for the right moment and sticks to the plan.',
+    combat: { attrMods: { composure: 1 }, disobeyMult: 0.8 },
+  },
 ];
 
 export const TRAITS: Record<string, TraitDef> = Object.fromEntries(list.map((t) => [t.id, t]));

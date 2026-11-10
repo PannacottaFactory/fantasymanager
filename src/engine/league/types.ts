@@ -4,7 +4,7 @@ import type { AttributeCategory, AttributeKey } from '../../data/attributes.ts';
 import type { IntensityId, ProgramId } from '../../data/config/training.ts';
 import type { FacilityId } from '../../data/config/club.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
-import type { MatchMethod, MatchResult, Side } from '../combat/types.ts';
+import type { MatchMethod, MatchResult, MatchSetup, Side } from '../combat/types.ts';
 import type { Creature, Team } from '../model.ts';
 
 export interface FixtureResult {
@@ -76,7 +76,13 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'youthIntake'; names: string[] }
   | { kind: 'youthReleased'; names: string[] }
   | { kind: 'retired'; names: string[] }
-  | { kind: 'trainingReport'; items: { creatureId: string; name: string; gain: number; attrs?: { k: AttributeKey; d: number }[] }[] }
+  | {
+      kind: 'trainingReport';
+      /** Changes since the previous report (gain = attribute points; abilityFrom/To = aptitude 1–200). */
+      items: { creatureId: string; name: string; gain: number; attrs?: { k: AttributeKey; d: number }[]; abilityFrom?: number; abilityTo?: number }[];
+      weeks?: number;
+    }
+  | { kind: 'abilityUnlocked'; creatureId: string; name: string; abilityId: string; ability: number }
   | { kind: 'coachHired'; name: string; domain: AttributeCategory; quality: number }
   // ——— Phase 5: divisions, cup, club ———
   | { kind: 'cupDraw'; round: number; opponent: string; home: boolean }
@@ -160,6 +166,18 @@ export interface StoredMatch {
   fixtureId: string;
   /** Player's team is always side 0 in the stored result. */
   result: MatchResult;
+}
+
+/**
+ * What it takes to replay one of the player's matches exactly: the teams as they entered the arena and the
+ * decisions taken at the breaks (the fight is deterministic). Player's team is side 0.
+ */
+export interface MatchRecord {
+  fixtureId: string;
+  season: number;
+  matchday: number;
+  setup: MatchSetup;
+  decisions: MatchResult['decisions'];
 }
 
 export interface TrainingPlan {
@@ -263,4 +281,6 @@ export interface GameState {
   news: NewsItem[];
   // ——— Identities & difficulty ———
   difficulty: DifficultyId;
+  /** The player's last matches, replayable (most recent last). */
+  matchHistory?: MatchRecord[];
 }

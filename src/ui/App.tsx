@@ -21,6 +21,7 @@ import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
 import { useGame } from './store/gameStore.ts';
 import { NavBar } from './components/NavBar.tsx';
 import { HelpScreen } from './screens/HelpScreen.tsx';
+import { LiveMatch } from './screens/arena/LiveMatch.tsx';
 import { EncyclopediaScreen } from './screens/EncyclopediaScreen.tsx';
 import { TutorialOverlay } from './tutorial/TutorialOverlay.tsx';
 
@@ -61,7 +62,7 @@ function ContinueButton() {
 export function App() {
   const { t } = useT();
   const { lang, theme, textSize, setLang, setTheme, setTextSize } = useSettings();
-  const { ready, game, screen, viewing, saveError } = useGame();
+  const { ready, game, screen, viewing, saveError, replaying } = useGame();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
   const unread = game?.inbox.filter((m) => !m.read).length ?? 0;
@@ -82,6 +83,20 @@ export function App() {
 
   let content;
   if (!ready) content = <div className="muted">{t('start.loading')}</div>;
+  else if (replaying)
+    content = (
+      <div className="stack">
+        <section className="panel row wrap" style={{ gap: 10 }}>
+          <b>{t('replay.title', { home: replaying.setup.teams[0].name, away: replaying.setup.teams[1].name })}</b>
+          <span className="muted">{t('replay.when', { s: replaying.season, d: replaying.matchday })}</span>
+          <span className="spacer" />
+          <button className="btn" onClick={() => useGame.getState().stopReplay()}>
+            {t('match.back')}
+          </button>
+        </section>
+        <LiveMatch key={replaying.fixtureId} setup={replaying.setup} playerControls={false} replay={replaying.decisions} onFinish={(r) => useGame.setState({ replaying: null, viewing: r })} />
+      </div>
+    );
   else if (viewing)
     content = (
       <ReportView

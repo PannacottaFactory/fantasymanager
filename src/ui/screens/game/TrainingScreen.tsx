@@ -6,7 +6,8 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { coachFactor, dismissYouth, keepYouth, lifeStage, planOf, setPlan, youthWage } from '../../../engine/progression/training.ts';
-import { attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
+import { abilityText, attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
+import { SPECIES } from '../../../data/species.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { Bar, Crest, ElementDots, Stars } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
@@ -139,6 +140,36 @@ export function TrainingScreen() {
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
     { key: 'pot', label: t('col.potential'), title: t('col.potential.title'), sort: (c) => c.potential, render: (c) => <Stars value={potentialStars(c, 100)} /> },
     {
+      key: 'aptitude',
+      label: t('col.aptitude'),
+      title: t('col.aptitude.title'),
+      sort: (c) => c.ability,
+      render: (c) => (
+        <span className="apt-cell" title={t('train.aptitudeTip', { a: c.ability, p: c.potential })}>
+          <span className="apt-bar">
+            <i className="apt-pot" style={{ width: `${(c.potential / 200) * 100}%` }} />
+            <i className="apt-now" style={{ width: `${(c.ability / 200) * 100}%` }} />
+          </span>
+          <span className="mono">{c.ability}</span>
+        </span>
+      ),
+    },
+    {
+      key: 'next',
+      label: t('col.nextAbility'),
+      title: t('col.nextAbility.title'),
+      sort: (c) => nextUnlock(c)?.min ?? 999,
+      render: (c) => {
+        const n = nextUnlock(c);
+        if (!n) return <span className="faint">{t('train.allUnlocked')}</span>;
+        return (
+          <span title={t('train.nextTip', { ability: abilityText(n.id, lang).name, n: n.min })}>
+            {abilityText(n.id, lang).name} <span className="faint">({t('train.nextIn', { n: n.min - c.ability })})</span>
+          </span>
+        );
+      },
+    },
+    {
       key: 'progress',
       label: t('col.progress'),
       title: t('col.progress.title'),
@@ -151,11 +182,8 @@ export function TrainingScreen() {
           .map((r) => `${attributeText(r.k, lang).name} ${r.d > 0 ? '+' : ''}${r.d}`)
           .join(', ');
         return (
-          <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }} title={moves || undefined}>
-            <TrendSpark values={(c.growth?.history ?? []).slice(-18).map((h) => h[2])} />
-            <span className={n > 0 ? 'good-text' : n < 0 ? 'bad-text' : 'faint'}>
-              {n > 0 ? `▲ +${n}` : n < 0 ? `▼ ${n}` : '·'}
-            </span>
+          <span className={n > 0 ? 'good-text' : n < 0 ? 'bad-text' : 'faint'} title={moves || undefined}>
+            {n > 0 ? t('train.points', { n: `+${n}` }) : n < 0 ? t('train.points', { n }) : '—'}
           </span>
         );
       },
@@ -201,9 +229,15 @@ export function TrainingScreen() {
             ))}
           </span>
         </div>
-        <p className="muted" style={{ marginTop: 0 }}>
-          {t('train.intro')}
-        </p>
+        <div className="how-it-works">
+          <b>{t('train.how')}</b>
+          <ol>
+            <li>{t('train.how1')}</li>
+            <li>{t('train.how2')}</li>
+            <li>{t('train.how3')}</li>
+            <li>{t('train.how4')}</li>
+          </ol>
+        </div>
         <div className="row wrap" style={{ gap: 8, marginBottom: 10 }}>
           <ProgramSelect value={allProgram} onChange={setAllProgram} />
           <IntensitySelect value={allIntensity} onChange={setAllIntensity} />
@@ -230,20 +264,8 @@ export function TrainingScreen() {
   );
 }
 
-/** Tiny ability trend over the last weeks (own creatures). */
-function TrendSpark({ values }: { values: number[] }) {
-  if (values.length < 2) return null;
-  const w = 48;
-  const h = 14;
-  const lo = Math.min(...values);
-  const hi = Math.max(...values);
-  const x = (i: number) => 1 + (i / (values.length - 1)) * (w - 2);
-  const y = (v: number) => 1 + (1 - (v - lo) / Math.max(1, hi - lo)) * (h - 2);
-  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const up = values[values.length - 1]! >= values[0]!;
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
-      <path d={d} fill="none" stroke={up ? 'var(--good)' : 'var(--bad)'} strokeWidth={1.5} strokeLinejoin="round" />
-    </svg>
-  );
+/** The next ability this creature will unlock, and at which aptitude. */
+function nextUnlock(c: Creature): { id: string; min: number } | null {
+  const next = SPECIES[c.speciesId]?.abilities.filter((a) => (a.minAbility ?? 0) > c.ability).sort((a, b) => (a.minAbility ?? 0) - (b.minAbility ?? 0))[0];
+  return next ? { id: next.id, min: next.minAbility ?? 0 } : null;
 }

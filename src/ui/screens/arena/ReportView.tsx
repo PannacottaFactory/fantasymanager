@@ -215,6 +215,8 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
         </div>
       </div>
 
+      <Lineups result={result} creatures={report.creatures} mvp={report.mvp} />
+
       <AnalysisPanel result={result} />
 
       <section className="panel">
@@ -235,5 +237,58 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
         )}
       </section>
     </div>
+  );
+}
+
+/** Both line-ups as they fought, with the abilities each creature was seen using (nothing hidden is revealed). */
+function Lineups({ result, creatures, mvp }: { result: MatchResult; creatures: CreatureMatchStats[]; mvp: string | null }) {
+  const tr = useT();
+  const { t, lang } = tr;
+  return (
+    <section className="panel">
+      <h3 style={{ marginBottom: 4 }}>{t('report.lineups')}</h3>
+      <p className="muted" style={{ marginTop: 0, fontSize: '0.857rem' }}>
+        {t('report.lineups.hint')}
+      </p>
+      <div className="two-cols">
+        {([0, 1] as const).map((side) => (
+          <div key={side}>
+            <h4 className={side === 0 ? 'home-text' : 'away-text'} style={{ margin: '0 0 6px' }}>
+              {result.teams[side].name}
+            </h4>
+            {creatures
+              .filter((c) => c.side === side && c.played)
+              .map((c) => {
+                const r = result.roster[c.id]!;
+                const used = Object.entries(c.abilitiesUsed).sort((a, b) => b[1] - a[1]);
+                return (
+                  <div key={c.id} className="lineup-row">
+                    <Crest speciesId={r.speciesId} name={r.name} size={22} />
+                    <div className="grow">
+                      <div className="row wrap" style={{ gap: 6 }}>
+                        <b>{r.name}</b>
+                        <span className="faint">{speciesName(r.speciesId, lang)}</span>
+                        <RoleLabel role={r.role} short />
+                        <span className="faint">{t(r.line === 'front' ? 'line.front' : 'line.back')}</span>
+                        {!r.starter && <span className="tag">{t('report.sub')}</span>}
+                        {mvp === c.id && <span className="tag" style={{ color: 'var(--accent)' }}>{t('report.mvp')}</span>}
+                        <span className={`rating ${ratingClass(c.rating)}`}>{tr.dec(c.rating)}</span>
+                      </div>
+                      <div className="lineup-abilities">
+                        {used.length === 0 && <span className="faint">{t('report.noAbility')}</span>}
+                        {used.map(([id, n]) => (
+                          <span key={id} className="tag">
+                            {abilityText(id, lang).name} ×{n}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

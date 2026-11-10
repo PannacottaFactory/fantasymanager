@@ -139,3 +139,62 @@ describe('season', () => {
     expect(validateTactic(fixed, DEFAULT_CONFIG, true)).toEqual([]);
   });
 });
+
+describe('tactics selection', () => {
+  it('sets starter / bench / reserve, refuses a full group, and swaps places', async () => {
+    const { generateTeam } = await import('../src/engine/team/team.ts');
+    const { selectionOf, setSelection, swapCreatures } = await import('../src/engine/team/edit.ts');
+    const { Rng } = await import('../src/core/rng.ts');
+    const team = generateTeam(new Rng(5), { quality: 'professional', size: 12 });
+    const reserve = team.creatures.find((c) => selectionOf(team, c.id) === 'reserve')!;
+    const starter = team.tactic.lineup[0]!.creatureId;
+    // Full lineup: no change.
+    expect(setSelection(team, reserve.id, 'starter')).toBe(team);
+    const swapped = swapCreatures(team, reserve.id, starter);
+    expect(selectionOf(swapped, reserve.id)).toBe('starter');
+    expect(selectionOf(swapped, starter)).toBe('reserve');
+    expect(swapped.tactic.lineup).toHaveLength(team.tactic.lineup.length);
+    expect(swapped.tactic.lineup.find((s) => s.creatureId === reserve.id)!.line).toBe(team.tactic.lineup[0]!.line);
+    const freed = setSelection(team, starter, 'reserve');
+    expect(freed.tactic.lineup).toHaveLength(team.tactic.lineup.length - 1);
+    expect(selectionOf(setSelection(freed, reserve.id, 'starter'), reserve.id)).toBe('starter');
+  });
+});
+
+describe('match replay', () => {
+  it('the player’s recorded matches replay exactly', async () => {
+    const { newGame, playMatchday } = await import('../src/engine/league/season.ts');
+    const { replayMatch } = await import('../src/engine/combat/simulate.ts');
+    let g = newGame({ seed: 'replay', teamName: 'Me', lang: 'en' });
+    for (let i = 0; i < 3; i++) g = playMatchday(g);
+    expect(g.matchHistory?.length).toBe(3);
+    const rec = g.matchHistory!.find((m) => m.fixtureId === g.lastMatch!.fixtureId)!;
+    const again = replayMatch(rec.setup, rec.decisions);
+    expect(again.outcome).toEqual(g.lastMatch!.result.outcome);
+    expect(again.events.length).toBe(g.lastMatch!.result.events.length);
+  });
+
+  it('a match with the player’s own break decisions replays exactly', async () => {
+    const { Combat } = await import('../src/engine/combat/combat.ts');
+    const { replayMatch } = await import('../src/engine/combat/simulate.ts');
+    const { generateTeam } = await import('../src/engine/team/team.ts');
+    const { Rng } = await import('../src/core/rng.ts');
+    const rng = new Rng(77);
+    const setup = { seed: 9, teams: [generateTeam(rng, { quality: 'professional' }), generateTeam(rng, { quality: 'professional' })] as [ReturnType<typeof generateTeam>, ReturnType<typeof generateTeam>] };
+    const c = new Combat(structuredClone(setup));
+    while (c.phase !== 'ended') {
+      c.advance();
+      if (c.phase === 'break') {
+        const bench = c.bench(0)[0];
+        const out = c.active(0)[0];
+        c.applyBreakDecision(0, { orders: { ...c.sides[0].orders, aggression: 'cautious' }, substitutions: bench && out ? [{ outId: out.id, inId: bench.id }] : [] });
+        c.applyBreakDecision(1, {});
+        c.resume();
+      }
+    }
+    const live = c.result();
+    const again = replayMatch(structuredClone(setup), live.decisions);
+    expect(again.outcome).toEqual(live.outcome);
+    expect(JSON.stringify(again.events)).toBe(JSON.stringify(live.events));
+  });
+});

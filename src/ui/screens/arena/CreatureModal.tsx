@@ -92,6 +92,8 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                 id={a.id}
                 elements={sp.elements}
                 locked={(a.minAbility ?? 0) > creature.ability}
+                unlockAt={a.minAbility}
+                current={knowledge >= 100 ? creature.ability : undefined}
                 favorite={favorites.includes(a.id)}
                 onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(a.id) : undefined}
               />

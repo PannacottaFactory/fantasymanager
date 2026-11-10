@@ -19,13 +19,16 @@ interface Props {
   id: string;
   elements: readonly ElementId[];
   locked?: boolean;
+  /** Aptitude at which a locked ability unlocks, and the creature's current aptitude (own creatures only). */
+  unlockAt?: number;
+  current?: number;
   favorite?: boolean;
   /** When set, a star button toggles the favourite. */
   onToggleFavorite?: () => void;
 }
 
 /** Full description of an ability (creature sheet). */
-export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite }: Props) {
+export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, unlockAt, current }: Props) {
   const { t, lang } = useT();
   const def = ABILITIES[id]!;
   const txt = abilityText(id, lang);
@@ -40,7 +43,7 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite }
         <b className="grow">{txt.name}</b>
         {locked ? (
           <span className="faint" style={{ fontSize: '0.786rem' }}>
-            {t('cr.locked')}
+            {unlockAt ? (current !== undefined ? t('cr.lockedAtNow', { n: unlockAt, c: current }) : t('cr.lockedAt', { n: unlockAt })) : t('cr.locked')}
           </span>
         ) : (
           onToggleFavorite && (
@@ -57,7 +60,7 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite }
         {!onToggleFavorite && favorite && <span className="star on">★</span>}
       </div>
       <div className="ability-stats">
-        <span>{abilityKindName(def.kind, lang)}</span>
+        <b>{abilityKindName(def.kind, lang)}</b>
         {el && el !== 'physical' && <span style={{ color }}>{elementName(el as ElementId, lang)}</span>}
         {def.power > 0 && (
           <span title={t('ab.power.title')}>

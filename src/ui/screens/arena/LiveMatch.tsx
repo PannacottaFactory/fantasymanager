@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Combat } from '../../../engine/combat/combat.ts';
 import { aiBreakDecision } from '../../../engine/combat/decisions.ts';
+import { replayDeciders } from '../../../engine/combat/simulate.ts';
 import type { BreakDecision, MatchEvent, MatchResult, MatchSetup, RosterEntry } from '../../../engine/combat/types.ts';
 import { applyEvent, initialView, type MatchView } from '../../../engine/combat/view.ts';
 import { Commentator, type CommentaryLine } from '../../../engine/commentary/commentator.ts';
@@ -77,9 +78,11 @@ interface Props {
   setup: MatchSetup;
   playerControls: boolean;
   onFinish: (r: MatchResult) => void;
+  /** Replay mode: the recorded break decisions are applied (no break panel). */
+  replay?: MatchResult['decisions'];
 }
 
-export function LiveMatch({ setup, playerControls, onFinish }: Props) {
+export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   const tr = useT();
   const { t, lang } = tr;
   const session = useMemo<Session>(() => {
@@ -149,6 +152,17 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
   /** Handles a break when the queue is drained. Returns true if play can continue immediately. */
   const handleBreak = (forceAi: boolean): boolean => {
     const { combat } = session;
+    if (replay) {
+      const [r0, r1] = replayDeciders(replay);
+      const d0 = r0(combat, 0);
+      const d1 = r1(combat, 1);
+      combat.applyBreakDecision(0, d0);
+      combat.applyBreakDecision(1, d1);
+      combat.resume();
+      combat.advance();
+      pull();
+      return true;
+    }
     if (playerControls && !forceAi) {
       session.aiDecision = aiBreakDecision(combat, 1);
       setAtBreak(true);

@@ -227,7 +227,16 @@ export function weeklyTraining(state: GameState, played: Set<string>, cfg: GameC
         for (const k of ATTRIBUTE_KEYS) weights[k] *= coachFactor(state, team.id, CATEGORY_OF[k], cfg);
         const avgCoach = (['physical', 'combat', 'mental'] as AttributeCategory[]).reduce((s, d) => s + coachFactor(state, team.id, d, cfg), 0) / 3;
         const log = isPlayer ? progressLogger(c, state.season, state.matchday, cfg) : undefined;
+        const before = c.ability;
         shiftAbility(c, Math.min(gap, gain * avgCoach * trainingFactor(state, team.id, cfg)), weights, rng, cfg, log);
+        // New abilities unlock when the aptitude reaches their threshold.
+        if (isPlayer && c.ability > before) {
+          for (const a of getSpecies(c).abilities) {
+            if (a.minAbility && a.minAbility > before && a.minAbility <= c.ability) {
+              pushMessage(state, { kind: 'abilityUnlocked', creatureId: c.id, name: c.name, abilityId: a.id, ability: a.minAbility });
+            }
+          }
+        }
       }
       if (isPlayer) recordAbility(c, state.season, state.matchday, cfg);
       // Hard training can hurt.
@@ -247,16 +256,19 @@ export function trainingReport(state: GameState, cfg: GameConfig = DEFAULT_CONFI
   const since = state.matchday - cfg.training.reportEvery;
   const items = team.creatures
     .map((c) => {
-      // Attributes that moved since the last report.
+      // What moved since the last report: attribute points and aptitude.
       const moved: Partial<Record<AttributeKey, number>> = {};
       for (const r of c.growth?.recent ?? []) if (r.s === state.season && r.w > since) moved[r.k] = (moved[r.k] ?? 0) + r.d;
       const attrs = (Object.entries(moved) as [AttributeKey, number][]).filter(([, d]) => d !== 0).map(([k, d]) => ({ k, d }));
-      return { creatureId: c.id, name: c.name, gain: c.growth?.season ?? 0, attrs };
+      const gain = attrs.reduce((s, a) => s + a.d, 0);
+      const hist = c.growth?.history ?? [];
+      const start = [...hist].reverse().find((h) => h[0] < state.season || (h[0] === state.season && h[1] <= since));
+      return { creatureId: c.id, name: c.name, gain, attrs, abilityFrom: start?.[2] ?? c.ability, abilityTo: c.ability };
     })
     .filter((x) => x.gain > 0)
     .sort((a, b) => b.gain - a.gain)
     .slice(0, 5);
-  if (items.length) pushMessage(state, { kind: 'trainingReport', items });
+  if (items.length) pushMessage(state, { kind: 'trainingReport', items, weeks: cfg.training.reportEvery });
 }
 
 // ——— Season change: ageing, retirement, youth ———

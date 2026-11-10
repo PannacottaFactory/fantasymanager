@@ -37,7 +37,7 @@ function Breakdown({ title, entries }: { title: string; entries: LedgerEntry[] }
     v ? (
       <tr key={label}>
         <td>{label}</td>
-        <td className="num mono">{sign < 0 ? `−${money(v).replace('−', '')}` : money(v)}</td>
+        <td className={`num mono ${sign < 0 ? 'bad-text' : 'good-text'}`}>{sign < 0 ? `−${money(v).replace('−', '')}` : `+${money(v)}`}</td>
       </tr>
     ) : null;
   return (
@@ -49,13 +49,13 @@ function Breakdown({ title, entries }: { title: string; entries: LedgerEntry[] }
         <table className="data ledger">
           <tbody>
             <tr className="ledger-head">
-              <td>{t('fin.income')}</td>
-              <td className="num mono">{money(inc)}</td>
+              <td className="good-text">{t('fin.income')}</td>
+              <td className="num mono good-text">+{money(inc)}</td>
             </tr>
             {INCOME.map((k) => line(t(`inc.${k}` as StringKey), income[k] ?? 0, 1))}
             <tr className="ledger-head">
-              <td>{t('fin.expense')}</td>
-              <td className="num mono">−{money(exp)}</td>
+              <td className="bad-text">{t('fin.expense')}</td>
+              <td className="num mono bad-text">−{money(exp)}</td>
             </tr>
             {EXPENSE.map((k) => line(t(`exp.${k}` as StringKey), expense[k] ?? 0, -1))}
             <tr className="ledger-total">
@@ -93,6 +93,8 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
   const step = niceStep((hi - lo) / 4);
   const ticks: number[] = [];
   for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) ticks.push(v);
+  // Room on the left for the longest money label, so it never spills out of the frame.
+  pad.l = Math.max(64, 16 + 8 * Math.max(...ticks.map((v) => money(v, true).length)));
   const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(p.matchday).toFixed(1)},${y(p.balance).toFixed(1)}`).join(' ');
   const h = hover !== null ? points[hover] : null;
 

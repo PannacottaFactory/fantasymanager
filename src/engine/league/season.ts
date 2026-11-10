@@ -284,7 +284,15 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
   const played: (Played & { swapped: boolean })[] = [];
   for (const f of fixtures) {
     const { setup, swapped } = fixtureSetup(next, f, cfg);
-    const result = involves(f, next.playerTeamId) && playerMatch ? playerMatch : simulateMatch(setup, { cfg });
+    const mine = involves(f, next.playerTeamId);
+    // Snapshot the teams before the match changes them (fatigue, morale…), to replay it later.
+    const snapshot = mine ? structuredClone(setup) : null;
+    const result = mine && playerMatch ? playerMatch : simulateMatch(setup, { cfg });
+    if (snapshot) {
+      const history = (next.matchHistory ??= []);
+      history.push({ fixtureId: f.id, season: next.season, matchday: f.matchday, setup: snapshot, decisions: result.decisions });
+      if (history.length > cfg.league.replayHistory) history.splice(0, history.length - cfg.league.replayHistory);
+    }
     played.push({ fixture: f, result, swapped });
   }
   const starters = new Map<string, string[]>();
