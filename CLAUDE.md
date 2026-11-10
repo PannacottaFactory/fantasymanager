@@ -203,7 +203,11 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   (exact numbers, cross-links, search); reachable without a game (nav + Help). Never names play styles. Adding a
   mechanic ⇒ describe it there (ability `spec.*`, effect `mod.*` / `fx.*`, or a rule). Test renders every page in
   both languages. 103 tests.
-  Next: post-match analysis; more situational value for orders.
+- [x] **Post-match analysis** (`engine/report/analysis.ts` → `ui/screens/arena/AnalysisPanel.tsx`, texts in
+  `ui/i18n/analysis.ts`): conclusions (data + key, worded by the UI), damage sources (validated categorical palette
+  `--viz-1..5`), team & creature health per round, periods between breaks with the changes made, duels, lost turns.
+  French texts use "vous" everywhere (the player is a coach).
+  Next: visual progression of creatures; more situational value for orders.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

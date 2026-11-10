@@ -10,6 +10,7 @@ import { ratingClass } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
+import { AnalysisPanel } from './AnalysisPanel.tsx';
 
 function MomentumChart({ momentum, breaks }: { momentum: number[]; breaks: readonly number[] }) {
   const { t } = useT();
@@ -213,6 +214,8 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
           </section>
         </div>
       </div>
+
+      <AnalysisPanel result={result} />
 
       <section className="panel">
         <button className="btn small" onClick={() => setShowLog((v) => !v)}>

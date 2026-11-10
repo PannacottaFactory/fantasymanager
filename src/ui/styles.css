@@ -704,3 +704,27 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .enc-range i { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 3px; min-width: 3px; }
 .enc-inline { display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .enc-elements td, .enc-elements th { text-align: center; }
+
+/* ——— Post-match analysis ———
+   Categorical slots for damage sources: validated reference palette (dark steps on the dark themes,
+   light steps on parchment; light-mode contrast is relieved by the written values next to the bars). */
+:root { --viz-1: #3987e5; --viz-2: #d95926; --viz-3: #199e70; --viz-4: #c98500; --viz-5: #d55181; }
+:root[data-theme='parchment'] { --viz-1: #2a78d6; --viz-2: #eb6834; --viz-3: #1baf7a; --viz-4: #eda100; --viz-5: #e87ba4; }
+.ana-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.857rem; margin-bottom: 6px; }
+.ana-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.ana-row { margin: 8px 0; }
+.ana-stack { display: flex; gap: 2px; height: 14px; margin: 3px 0; min-width: 4px; }
+.ana-stack span { min-width: 2px; }
+.ana-stack span:first-child { border-radius: 4px 0 0 4px; }
+.ana-stack span:last-child { border-radius: 0 4px 4px 0; }
+.ana-stack span:only-child { border-radius: 4px; }
+.ana-values { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 0.786rem; }
+.ana-chart { width: 100%; height: auto; display: block; }
+.ana-axis { fill: var(--muted); font-size: 11px; }
+.ana-spark-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.ana-spark-name { width: 8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.857rem; }
+.ana-spark { flex: none; }
+.ana-duel { display: grid; grid-template-columns: 1rem minmax(10rem, 16rem) 1fr 3rem; gap: 6px; align-items: center; font-size: 0.857rem; margin: 3px 0; }
+.ana-duel-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ana-bar { height: 8px; background: var(--panel-2); border-radius: 4px; overflow: hidden; }
+.ana-bar i { display: block; height: 100%; border-radius: 4px; }
