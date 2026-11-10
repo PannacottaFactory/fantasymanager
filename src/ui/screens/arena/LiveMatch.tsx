@@ -232,7 +232,8 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
 
   useEffect(() => {
     const el = feedRef.current;
-    if (el && !focus) el.scrollTop = el.scrollHeight;
+    // Newest lines are on top: stay at the top to follow them.
+    if (el && !focus) el.scrollTop = 0;
     // Only follow new lines, not hover changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lines]);
@@ -269,7 +270,6 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
   };
   const m = DEFAULT_CONFIG.match;
 
-  let lastRound = -1;
   return (
     <>
       <Projectiles shots={fx.shots} flight={FLIGHT[speed]} />
@@ -328,22 +328,24 @@ export function LiveMatch({ setup, playerControls, onFinish }: Props) {
             )}
           </div>
           <div className="feed" data-tip="live-feed" ref={feedRef} aria-live="polite" onMouseLeave={() => setFocus(null)}>
-            {lines.map((l, i) => {
-              const sep = l.round !== lastRound && l.round > 0;
-              lastRound = l.round;
-              const hoverable = !!(l.actor || l.target);
-              return (
-                <div key={i}>
-                  {sep && <div className="round-sep">{t('live.round', { n: l.round })}</div>}
-                  <div
-                    className={`line i${l.importance} ${l.side === null ? '' : `s${l.side}`} ${hoverable ? 'hoverable' : ''} ${l.tone ? `t-${l.tone}` : ''}`}
-                    onMouseEnter={hoverable ? () => setFocus({ actor: l.actor, target: l.target }) : undefined}
-                  >
-                    {highlight(l.text)}
-                  </div>
-                </div>
-              );
-            })}
+            {/* Newest first: the latest round on top, its newest line first, the round title above it. */}
+            {roundsNewestFirst(lines).map((group) => (
+              <div key={group.key}>
+                {group.round > 0 && <div className="round-sep">{t('live.round', { n: group.round })}</div>}
+                {group.items.map(({ l, i }) => {
+                  const hoverable = !!(l.actor || l.target);
+                  return (
+                    <div
+                      key={i}
+                      className={`line i${l.importance} ${l.side === null ? '' : `s${l.side}`} ${hoverable ? 'hoverable' : ''} ${l.tone ? `t-${l.tone}` : ''}`}
+                      onMouseEnter={hoverable ? () => setFocus({ actor: l.actor, target: l.target }) : undefined}
+                    >
+                      {highlight(l.text)}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
           <div className="feed-legend" aria-hidden="true">
             {(['heal', 'buff', 'debuff', 'dot', 'ko'] as const).map((k) => (
@@ -399,4 +401,16 @@ function LiveSheet({
       }
     />
   );
+}
+
+/** Commentary grouped by round, newest round first and newest line first inside each round. */
+function roundsNewestFirst<T extends { round: number }>(lines: T[]): { key: string; round: number; items: { l: T; i: number }[] }[] {
+  const groups: { key: string; round: number; items: { l: T; i: number }[] }[] = [];
+  lines.forEach((l, i) => {
+    const last = groups[groups.length - 1];
+    if (last && last.round === l.round) last.items.push({ l, i });
+    else groups.push({ key: `r${l.round}-${i}`, round: l.round, items: [{ l, i }] });
+  });
+  for (const g of groups) g.items.reverse();
+  return groups.reverse();
 }
