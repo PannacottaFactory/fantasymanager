@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import type { MatchResult, RosterEntry } from '../../../engine/combat/types.ts';
+import type { MatchResult, MatchSetup, RosterEntry } from '../../../engine/combat/types.ts';
 import { Commentator } from '../../../engine/commentary/commentator.ts';
 import { buildReport, type CreatureMatchStats, type TeamMatchStats } from '../../../engine/report/report.ts';
 import { abilityText, speciesName } from '../../../engine/text/localize.ts';
@@ -11,6 +11,7 @@ import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { AnalysisPanel } from './AnalysisPanel.tsx';
+import { VerdictPanel } from './VerdictPanel.tsx';
 
 function MomentumChart({ momentum, breaks }: { momentum: number[]; breaks: readonly number[] }) {
   const { t } = useT();
@@ -86,7 +87,7 @@ function TeamCompare({ teams, names }: { teams: [TeamMatchStats, TeamMatchStats]
 }
 
 /** Post-match report seen from side 0. `actions` = buttons shown in the header. */
-export function ReportView({ result, actions }: { result: MatchResult; actions?: ReactNode }) {
+export function ReportView({ result, actions, setup }: { result: MatchResult; actions?: ReactNode; setup?: MatchSetup }) {
   const tr = useT();
   const { t, lang } = tr;
   const report = useMemo(() => buildReport(result, 0, DEFAULT_CONFIG, lang), [result, lang]);
@@ -174,6 +175,8 @@ export function ReportView({ result, actions }: { result: MatchResult; actions?:
           {actions}
         </div>
       </section>
+
+      <VerdictPanel result={result} setup={setup} />
 
       <div className="report-grid">
         <div className="stack">

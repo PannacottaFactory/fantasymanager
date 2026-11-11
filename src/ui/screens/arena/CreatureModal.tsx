@@ -91,7 +91,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               {t('sheet.age', { age: creature.age })} · <span className="faint">{stage}</span>
             </span>
           </div>
-          <div className="stat-strip">
+          <div className="stat-strip" data-tip="sheet-tiles">
             <StatTile label={t('cr.overall')} value={known ? overallRating(creature) : `${ovr.low}–${ovr.high}`} big />
             {known && <StatTile label={t('sheet.level')} value={<LevelBadge c={creature} />} />}
             {known && <StatTile label={t('sheet.hp')} value={maxHp(creature, DEFAULT_CONFIG)} />}
@@ -109,7 +109,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         {extra}
 
         {freePoints > 0 && <div className="remark good free-points">{t('lvl.freePoints', { n: freePoints })}</div>}
-        <div className="attr-grid">
+        <div className="attr-grid" data-tip="sheet-attrs">
           {(Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).map((cat) => (
             <div key={cat}>
               <h4 style={{ marginBottom: 6 }}>{categoryName(cat, lang)}</h4>
@@ -154,7 +154,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             ))}
           </div>
           {known && (
-            <div style={{ gridColumn: 'span 2' }}>
+            <div style={{ gridColumn: 'span 2' }} data-tip="sheet-roles">
               <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
               {ROLE_IDS.map((r) => (
                 <div key={r} className="row" style={{ fontSize: '0.857rem', marginBottom: 3 }} title={roleText(r, lang).description}>
@@ -182,7 +182,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               </span>
             )}
           </div>
-          <div className="ability-grid">
+          <div className="ability-grid" data-tip="sheet-abilities">
             {sp.abilities.map((a) => (
               <AbilityCard
                 key={a.id}

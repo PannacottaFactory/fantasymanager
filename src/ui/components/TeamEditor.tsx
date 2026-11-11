@@ -8,13 +8,14 @@ import { isStarter, selectionOf, setOrders, setSelection, swapCreatures, toggleF
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
-import { KIND_GLYPH, abilityColor } from './AbilityCard.tsx';
+import { AbilityCard, KIND_GLYPH, abilityColor } from './AbilityCard.tsx';
+import { isUnlocked, levelOf, unlockLevel } from '../../engine/progression/levels.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Risk, Stance, Team } from '../../engine/model.ts';
 import { fatigueColor } from '../format.ts';
 import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
-import { Attr, Bar, Crest, ElementDots, TraitChip } from './common.tsx';
+import { Attr, Bar, Crest, ElementDots, Modal, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
 import { RoleIcon } from '../icons/Icon.tsx';
 import { SpeciesIcon } from '../icons/Icon.tsx';
@@ -93,6 +94,8 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const openId = onOpenCreature ? null : openLocal;
   const setOpenId = (id: string | null) => (onOpenCreature && id ? onOpenCreature(id) : setOpenLocal(id));
   const open = openId ? (team.creatures.find((c) => c.id === openId) ?? null) : null;
+  const [favFor, setFavFor] = useState<string | null>(null);
+  const favCreature = favFor ? (team.creatures.find((c) => c.id === favFor) ?? null) : null;
   const favs = (id: string) => team.tactic.favorites?.[id] ?? [];
   const issues = validateTactic(team, DEFAULT_CONFIG, !!league);
   const slot = (id: string) => team.tactic.lineup.find((s) => s.creatureId === id);
@@ -262,7 +265,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         const f = favs(c.id);
         const els = getSpecies(c).elements;
         return (
-          <button className="build-cell" onClick={() => setOpenId(c.id)} title={t('col.build.title')}>
+          <button className="build-cell" onClick={() => setFavFor(c.id)} title={t('col.build.title')}>
             {f.length ? (
               f.map((a) => (
                 <span key={a} className="build-chip" style={{ ['--c' as string]: abilityColor(a, els) }}>
@@ -322,6 +325,39 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         }}
       />
       </div>
+      {favCreature && (
+        <Modal
+          title={
+            <span className="row">
+              <Crest speciesId={favCreature.speciesId} name={favCreature.name} size={28} /> {t('fav.pickTitle', { name: favCreature.name })}
+            </span>
+          }
+          onClose={() => setFavFor(null)}
+          actions={
+            <button className="btn primary small" onClick={() => setFavFor(null)}>
+              {t('fav.done')}
+            </button>
+          }
+        >
+          <p className="muted" style={{ marginTop: 0 }}>
+            {t('fav.pickHint', { n: DEFAULT_CONFIG.combat.favorites.max })}
+          </p>
+          <div className="ability-grid">
+            {getSpecies(favCreature).abilities.map((a) => (
+              <AbilityCard
+                key={a.id}
+                id={a.id}
+                elements={getSpecies(favCreature).elements}
+                locked={!isUnlocked(favCreature, a.minAbility)}
+                unlockAt={unlockLevel(a.minAbility)}
+                current={levelOf(favCreature)}
+                favorite={favs(favCreature.id).includes(a.id)}
+                onToggleFavorite={() => onChange(toggleFavorite(team, favCreature.id, a.id))}
+              />
+            ))}
+          </div>
+        </Modal>
+      )}
       {open && (
         <CreatureModal
           creature={open}

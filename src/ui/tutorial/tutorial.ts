@@ -17,6 +17,10 @@ export interface TutorialStep {
 export const STEPS: TutorialStep[] = [
   { id: 'continue', anchor: 'continue' },
   { id: 'squad', anchor: 'squad' },
+  { id: 'sheetTiles', anchor: 'sheet-tiles' },
+  { id: 'sheetRoles', anchor: 'sheet-roles', placement: 'above' },
+  { id: 'sheetAbilities', anchor: 'sheet-abilities', placement: 'above' },
+  { id: 'sheetAttrs', anchor: 'sheet-attrs' },
   { id: 'lineup', anchor: 'lineup', placement: 'above' },
   { id: 'prematch', anchor: 'prematch' },
   { id: 'liveCards', anchor: 'live-cards', placement: 'right' },

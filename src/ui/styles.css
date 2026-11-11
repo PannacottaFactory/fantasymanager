@@ -1061,3 +1061,16 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 :root[data-effects='reduced'] .recruit-card:hover { transform: none; }
 .rc-money > span { white-space: nowrap; }
 .rc-money { font-size: 0.786rem; gap: 6px; }
+
+/* ——— Match verdict ——— */
+.verdict { border-left: 4px solid var(--good); background-image: linear-gradient(90deg, color-mix(in srgb, var(--good) 8%, transparent), transparent 50%); }
+.verdict.lost { border-left-color: var(--bad); background-image: linear-gradient(90deg, color-mix(in srgb, var(--bad) 8%, transparent), transparent 50%); }
+.verdict-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+.verdict h3 { margin: 0 0 8px; }
+.verdict-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.verdict-list li { display: flex; gap: 8px; align-items: baseline; line-height: 1.45; }
+.verdict-list .ico { flex: none; width: 14px; font-size: 0.786rem; }
+.verdict-list li.good .ico { color: var(--good); }
+.verdict-list li.bad .ico { color: var(--bad); }
+.verdict-list.tips li { align-items: center; padding: 6px 8px; border-radius: var(--radius); background: var(--panel-2); }
+.verdict-list.tips .btn { flex: none; }

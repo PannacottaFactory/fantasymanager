@@ -53,3 +53,23 @@ describe('post-match analysis', () => {
   });
 });
 
+
+describe('match verdict', () => {
+  it('gives at most three reasons and one to three tips, all worded in both languages', async () => {
+    const { explainMatch } = await import('../src/engine/report/verdict.ts');
+    const { en, fr } = await import('../src/ui/i18n/strings.ts');
+    const dicts = [en, fr] as Record<string, string>[];
+    for (let i = 0; i < 12; i++) {
+      const r = match(i);
+      const v = explainMatch(r, 0);
+      expect(v.factors.length).toBeLessThanOrEqual(3);
+      expect(v.tips.length).toBeGreaterThanOrEqual(1);
+      expect(v.tips.length).toBeLessThanOrEqual(3);
+      expect(v.won).toBe(r.outcome.winner === 0);
+      for (const d of dicts) {
+        for (const f of v.factors) expect(d[`verdict.f.${f.key}`], f.key).toBeTruthy();
+        for (const tip of v.tips) expect(d[`verdict.t.${tip.key}`], tip.key).toBeTruthy();
+      }
+    }
+  });
+});

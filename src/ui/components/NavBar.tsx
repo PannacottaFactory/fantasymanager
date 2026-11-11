@@ -70,8 +70,13 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         { id: 'facilities', label: 'nav.facilities', needsGame: true },
       ],
     },
-    { id: 'encyclopedia', label: 'nav.encyclopedia' },
-    { id: 'arena', label: 'nav.arena' },
+    {
+      label: 'nav.group.tools',
+      items: [
+        { id: 'encyclopedia', label: 'nav.encyclopedia' },
+        { id: 'arena', label: 'nav.arena' },
+      ],
+    },
   ];
 
   const badge = (n?: number) => (n ? <span className="badge">{n}</span> : null);
@@ -99,7 +104,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
           <div key={e.label} className="nav-group">
             <button
               className={active ? 'on' : ''}
-              disabled={!hasGame}
+              disabled={!hasGame && e.items.every((i) => i.needsGame)}
               aria-haspopup="menu"
               aria-expanded={open === e.label}
               onClick={() => setOpen(open === e.label ? null : e.label)}
@@ -109,7 +114,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
             {open === e.label && (
               <div className="nav-menu" role="menu">
                 {e.items.map((i) => (
-                  <button key={i.id} role="menuitem" className={i.id === screen ? 'on' : ''} onClick={() => pick(i.id)}>
+                  <button key={i.id} role="menuitem" className={i.id === screen ? 'on' : ''} disabled={i.needsGame && !hasGame} onClick={() => pick(i.id)}>
                     {t(i.label)}
                     {badge(badges[i.id])}
                   </button>

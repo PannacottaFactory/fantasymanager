@@ -16,6 +16,7 @@ export function ArenaScreen() {
     return (
       <ReportView
         result={result}
+        setup={{ seed, teams }}
         actions={
           <>
             <button className="btn" onClick={() => rematch(false)} title={t('report.replay.title')}>

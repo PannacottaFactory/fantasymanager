@@ -7,9 +7,15 @@ const BUBBLE_W = 340;
 const GAP = 12;
 
 function anchorRect(step: TutorialStep): DOMRect | null {
-  const el = document.querySelector<HTMLElement>(`[data-tip="${step.anchor}"]`);
+  const scope: ParentNode = document.querySelector('.overlay') ?? document;
+  const el = scope.querySelector<HTMLElement>(`[data-tip="${step.anchor}"]`);
   if (!el) return null;
-  const r = el.getBoundingClientRect();
+  let r = el.getBoundingClientRect();
+  // Inside a scrolling window, bring the element into view first.
+  if (scope !== document && r.height > 0 && (r.top < 0 || r.bottom > window.innerHeight)) {
+    el.scrollIntoView({ block: 'center' });
+    r = el.getBoundingClientRect();
+  }
   return r.width > 0 && r.height > 0 ? r : null;
 }
 
