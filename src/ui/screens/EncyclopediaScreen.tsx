@@ -711,7 +711,10 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       allyKo: c.morale.allyKo, enemyKo: c.morale.enemyKo, heavy: c.morale.heavyHitTaken, crit: c.morale.critDealt, lead: c.morale.minLeadership,
       swing: p(c.morale.performanceSwing), hes: c.morale.hesitateBelow, flee: c.morale.fleeBelow, fleeHp: p(c.morale.fleeHpBelow),
     },
-    injury: { ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false) },
+    injury: {
+      ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false),
+      moderate: p(cfg.league.death.chance.moderate!), severe: p(cfg.league.death.chance.severe!), career: p(cfg.league.death.chance.career!),
+    },
     levels: {
       max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: cfg.training.xp.played, starter: cfg.training.xp.starter,
       rating: cfg.training.xp.perRatingPoint, win: cfg.training.xp.win,

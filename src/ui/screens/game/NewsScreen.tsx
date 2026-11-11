@@ -14,6 +14,7 @@ const ICON: Record<NewsItem['kind'], string> = {
   promotion: '⬆',
   relegation: '⬇',
   retirement: '🌅',
+  death: '🕯',
 };
 
 export function newsText(tr: Translator, n: NewsItem): string {
@@ -41,6 +42,8 @@ export function newsText(tr: Translator, n: NewsItem): string {
       return t('news.relegation', { n: n.division + 1, teams: n.teams.join(', ') });
     case 'retirement':
       return t('news.retirement', { name: n.name, team: n.team });
+    case 'death':
+      return t('news.death', { name: n.name, team: n.team });
   }
 }
 

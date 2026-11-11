@@ -97,6 +97,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'boardWarning'; confidence: number }
   | { kind: 'facilityDone'; facility: FacilityId; level: number }
   | { kind: 'friendLeft'; name: string; friends: string[] }
+  | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
   | { kind: 'relation'; a: string; b: string; bond: 'friends' | 'rivals' }
 );
 
@@ -235,7 +236,21 @@ export type NewsItem = { id: string; season: number; matchday: number } & (
   | { kind: 'promotion'; teams: string[]; division: number }
   | { kind: 'relegation'; teams: string[]; division: number }
   | { kind: 'retirement'; name: string; team: string }
+  | { kind: 'death'; name: string; team: string }
 );
+
+/** A creature of the player's stable who died after a match (kept for the memorial). */
+export interface FallenCreature {
+  id: string;
+  name: string;
+  speciesId: string;
+  age: number;
+  level: number;
+  season: number;
+  matchday: number;
+  opponent: string;
+  injuryId: string;
+}
 
 export interface GameState {
   version: 5;
@@ -285,4 +300,6 @@ export interface GameState {
   difficulty: DifficultyId;
   /** The player's last matches, replayable (most recent last). */
   matchHistory?: MatchRecord[];
+  /** The player's creatures who died (memorial), oldest first. */
+  fallen?: FallenCreature[];
 }

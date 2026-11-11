@@ -128,6 +128,21 @@ export function SquadScreen() {
         </p>
         <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />
       </section>
+      {(game.fallen?.length ?? 0) > 0 && (
+        <section className="panel memorial">
+          <h3>🕯 {t('memorial.title')}</h3>
+          <ul>
+            {[...game.fallen!].reverse().map((f) => (
+              <li key={f.id}>
+                <SpeciesIcon id={f.speciesId} size="1.2em" /> <b>{f.name}</b>{' '}
+                <span className="muted">
+                  {t('memorial.line', { species: speciesName(f.speciesId, lang), age: f.age, level: f.level, s: f.season, w: f.matchday, opponent: f.opponent, injury: injuryText(f.injuryId, lang).short })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

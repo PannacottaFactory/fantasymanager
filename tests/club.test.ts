@@ -111,3 +111,21 @@ describe('migration', () => {
     expect(() => playMatchday(m)).not.toThrow();
   });
 });
+
+describe('deaths', () => {
+  it('are rare, remove the creature for good and are announced', () => {
+    // Every severe or career injury of a knocked-out creature is fatal in this config.
+    const cfg = structuredClone(DEFAULT_CONFIG);
+    cfg.league.death.chance = { minor: 0, moderate: 0, severe: 1, career: 1 };
+    let g = game('deaths');
+    for (let i = 0; i < 12; i++) g = playMatchday(g, null, cfg);
+    const dead = g.news.filter((n) => n.kind === 'death');
+    expect(dead.length).toBeGreaterThan(0);
+    for (const f of g.fallen ?? []) expect(g.teams.some((t) => t.creatures.some((c) => c.id === f.id))).toBe(false);
+    expect(dead.every((d) => d.kind === 'death' && d.name.length > 0)).toBe(true);
+    // Same seed, same world: deaths are deterministic.
+    let h = game('deaths');
+    for (let i = 0; i < 12; i++) h = playMatchday(h, null, cfg);
+    expect(h.news.filter((n) => n.kind === 'death')).toEqual(dead);
+  });
+});

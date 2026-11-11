@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LANGS } from '../core/i18n.ts';
-import { cupDue, lastMatchday, seasonOver } from '../engine/league/season.ts';
+import { cupDue, lastMatchday, playerTeam, seasonOver } from '../engine/league/season.ts';
 import { TEXT_SCALE, TEXT_SIZES, THEMES, useSettings, useT } from './i18n/index.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
 import { ReportView } from './screens/arena/ReportView.tsx';
@@ -135,7 +135,7 @@ export function App() {
           </svg>
           <div>
             <h1>{t('app.title')}</h1>
-            <small>{t('app.subtitle')}</small>
+            <small>{game ? playerTeam(game).name : t('app.subtitle')}</small>
           </div>
         </button>
         <NavBar

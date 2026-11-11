@@ -14,13 +14,14 @@ import type { Team } from '../model.ts';
 import { buildReport } from '../report/report.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
 import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
-import { matchXp } from '../progression/levels.ts';
+import { levelOf, matchXp } from '../progression/levels.ts';
+import { INJURIES } from '../../data/injuries.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
 import { injuryWeeksFactor, startingFacilities, weeklyFacilities } from '../club/facilities.ts';
 import { seedRelations, weeklyRelations } from '../club/relations.ts';
 import { earn, seasonPrizes, ticketRevenue, trimLedgers, weeklyFinances } from '../economy/finance.ts';
-import { contractsTurnover, contractWarning, ensureSquads, fillFreeAgents, weeklyMarket, weeklyScouting } from '../economy/market.ts';
+import { bury, contractsTurnover, contractWarning, ensureSquads, fillFreeAgents, weeklyMarket, weeklyScouting } from '../economy/market.ts';
 import { initEconomy } from '../economy/setup.ts';
 import { ageing, initTraining, refreshCoachMarket, releaseYouth, snapshotSeasonStart, trainingReport, weeklyTraining, youthIntake } from '../progression/training.ts';
 import { divisionFixtures, divisionOf } from './divisions.ts';
@@ -255,6 +256,32 @@ function applyMatchEffects(team: Team, result: MatchResult, side: Side, injuryFa
   return effects;
 }
 
+/**
+ * Rare deaths: a creature knocked out in the match that picked up an injury may die of it (mutates).
+ * Own RNG stream per creature, so it never changes match results. Returns the dead with their injury.
+ */
+function fatalities(state: GameState, team: Team, result: MatchResult, fx: MatchEffects, injuryFactor: number, cfg: GameConfig) {
+  const d = cfg.league.death;
+  const kod = new Set(result.events.flatMap((e) => (e.type === 'ko' ? [e.target] : [])));
+  const dead: { id: string; name: string; speciesId: string; age: number; level: number; injuryId: string; friends: string[] }[] = [];
+  for (const inj of fx.injuries) {
+    if (!kod.has(inj.creatureId) || dead.some((x) => x.id === inj.creatureId)) continue;
+    const chance = (d.chance[INJURIES[inj.injuryId]?.severity ?? 'minor'] ?? 0) * injuryFactor;
+    if (chance <= 0) continue;
+    const rng = new Rng(deriveSeed(state.worldSeed, 'death', state.season, state.matchday, inj.creatureId, inj.injuryId));
+    if (!rng.chance(chance)) continue;
+    const c = team.creatures.find((x) => x.id === inj.creatureId);
+    if (!c) continue;
+    dead.push({ id: c.id, name: c.name, speciesId: c.speciesId, age: c.age, level: levelOf(c, cfg), injuryId: inj.injuryId, friends: [] });
+  }
+  for (const x of dead) {
+    x.friends = bury(state, team, x.id, cfg);
+    for (const c of team.creatures) c.condition.morale = clamp(c.condition.morale + d.teamMorale, 0, 100);
+    addNews(state, { kind: 'death', name: x.name, team: team.name }, cfg);
+  }
+  return dead;
+}
+
 /** One week passes for a team: injuries heal (mutates). Returns the healed creatures' ids. */
 function weeklyRecovery(team: Team): string[] {
   const healed: string[] = [];
@@ -307,11 +334,14 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
       const team = next.teams.find((t) => t.id === teamId)!;
       const side = sideOf(teamId);
       starters.set(teamId, Object.values(result.roster).filter((r) => r.side === side && r.starter).map((r) => r.id));
-      const fx = applyMatchEffects(team, result, side, injuryWeeksFactor(next, teamId, cfg), cfg);
+      const injuryFactor = injuryWeeksFactor(next, teamId, cfg);
+      const fx = applyMatchEffects(team, result, side, injuryFactor, cfg);
       for (const inj of fx.injuries) {
         const c = team.creatures.find((x) => x.id === inj.creatureId)!;
         if (inj.weeks >= cfg.club.news.starInjuryWeeks && isStar(next, c.id)) addNews(next, { kind: 'starInjury', name: c.name, team: team.name, weeks: inj.weeks }, cfg);
       }
+      const dead = fatalities(next, team, result, fx, injuryFactor, cfg);
+      fx.injuries = fx.injuries.filter((i) => !dead.some((x) => x.id === i.creatureId));
       if (teamId !== next.playerTeamId) {
         team.tactic = aiPrepare(team, cfg, next.difficulty ?? 'normal').tactic;
         continue;
@@ -327,6 +357,10 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
         rounds: o.rounds,
         fixtureId: fixture.id,
       });
+      for (const x of dead) {
+        pushMessage(next, { kind: 'death', creatureId: x.id, name: x.name, speciesId: x.speciesId, injuryId: x.injuryId, opponent: opp.name, friends: x.friends });
+        (next.fallen ??= []).push({ id: x.id, name: x.name, speciesId: x.speciesId, age: x.age, level: x.level, season: next.season, matchday: next.matchday, opponent: opp.name, injuryId: x.injuryId });
+      }
       for (const inj of fx.injuries) {
         pushMessage(next, { kind: 'injury', creatureId: inj.creatureId, name: team.creatures.find((c) => c.id === inj.creatureId)!.name, injuryId: inj.injuryId, weeks: inj.weeks });
       }

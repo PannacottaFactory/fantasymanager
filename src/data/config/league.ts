@@ -50,6 +50,15 @@ export const LEAGUE_CONFIG = {
     /** Extra morale for the match MVP. */
     mvpMorale: 6,
   },
+  /**
+   * Death (rare): a creature knocked out that picked up an injury may die of it after the match.
+   * Chance by injury severity, × the infirmary factor (shorter injuries ⇒ fewer deaths).
+   */
+  death: {
+    chance: { minor: 0, moderate: 0.02, severe: 0.2, career: 0.5 } as Record<string, number>,
+    /** Morale lost by the rest of the stable (friends also lose `club.relations.friendLeft`). */
+    teamMorale: -6,
+  },
   ai: {
     /** AI managers rest creatures whose fatigue is above this. */
     restFatigue: 55,

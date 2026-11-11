@@ -62,11 +62,12 @@ export function remainingWeeks(state: GameState, c: Creature): number {
 // ——— Moving creatures ———
 
 /** Removes a creature from a team and keeps its tactic valid. */
-function detach(state: GameState, team: Team, creatureId: string, cfg: GameConfig) {
+function detach(state: GameState, team: Team, creatureId: string, cfg: GameConfig, quiet = false): string[] {
   const leaving = team.creatures.find((c) => c.id === creatureId);
+  let friends: string[] = [];
   if (leaving) {
-    const friends = friendsMourn(team, leaving, cfg);
-    if (team.id === state.playerTeamId && friends.length) pushMessage(state, { kind: 'friendLeft', name: leaving.name, friends });
+    friends = friendsMourn(team, leaving, cfg);
+    if (!quiet && team.id === state.playerTeamId && friends.length) pushMessage(state, { kind: 'friendLeft', name: leaving.name, friends });
   }
   team.creatures = team.creatures.filter((c) => c.id !== creatureId);
   const t = team.tactic;
@@ -76,6 +77,15 @@ function detach(state: GameState, team: Team, creatureId: string, cfg: GameConfi
   team.tactic = team.id === state.playerTeamId ? repairTactic(team, cfg).tactic : autoTactic(team.creatures, cfg, t.orders);
   state.forSale = state.forSale.filter((id) => id !== creatureId);
   state.offers = state.offers.filter((o) => o.creatureId !== creatureId);
+  return friends;
+}
+
+/** A creature dies: it leaves its stable for good (mutates). Returns the names of the friends who mourn it. */
+export function bury(state: GameState, team: Team, creatureId: string, cfg: GameConfig = DEFAULT_CONFIG): string[] {
+  const friends = detach(state, team, creatureId, cfg, true);
+  state.scouting.missions = state.scouting.missions.filter((m) => m.targetId !== creatureId);
+  delete state.training[creatureId];
+  return friends;
 }
 
 /**

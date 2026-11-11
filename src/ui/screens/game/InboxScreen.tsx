@@ -34,6 +34,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'matchResult':
       return 'match';
     case 'injury':
+    case 'death':
     case 'recovered':
     case 'tired':
       return 'medical';
@@ -205,6 +206,15 @@ function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: s
       return { title: t('msg.boardWarning.title'), body: t('msg.boardWarning.body', { c: m.confidence }), tone: 'bad' };
     case 'facilityDone':
       return { title: t('msg.facilityDone.title', { facility: t(`fac.${m.facility}` as StringKey), n: m.level }), body: t('msg.facilityDone.body'), tone: 'good' };
+    case 'death':
+      return {
+        title: t('msg.death.title', { name: m.name }),
+        body: [
+          t('msg.death.body', { name: m.name, species: speciesName(m.speciesId, tr.lang), opponent: m.opponent, injury: injuryText(m.injuryId, tr.lang).name }),
+          m.friends.length ? t('msg.death.friends', { friends: m.friends.join(', ') }) : '',
+        ].filter(Boolean).join('\n'),
+        tone: 'bad',
+      };
     case 'friendLeft':
       return { title: t('msg.friendLeft.title', { name: m.name }), body: t('msg.friendLeft.body', { friends: m.friends.join(', ') }), tone: 'bad' };
     case 'relation':

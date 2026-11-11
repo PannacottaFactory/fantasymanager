@@ -349,8 +349,16 @@ function Sheet({ id }: { id: string }) {
         </div>
       )}
       {!own && k < 100 && <div className="faint" style={{ fontSize: '0.857rem' }}>{t('cr.estimate')}</div>}
-      {own && <TrainingRow game={game} creature={creature} />}
-      {own && <ProgressPanel creature={creature} />}
+    </div>
+  );
+  const footer = (
+    <div className="stack sheet-footer" style={{ gap: 10 }}>
+      {own && (
+        <div className="market-panel">
+          <TrainingRow game={game} creature={creature} />
+          <ProgressPanel creature={creature} />
+        </div>
+      )}
       {own && <RelationsRow team={team!} creature={creature} />}
       {own && <ContractPanel game={game} creature={creature} />}
       {!own && team && <BidPanel key={id} game={game} creature={creature} team={team} />}
@@ -368,7 +376,8 @@ function Sheet({ id }: { id: string }) {
       onSpendPoint={own ? (k) => update((g) => spendFreePoint(g, id, k)) : undefined}
       favorites={favorites}
       onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
-      extra={extra}
+      extra={own ? undefined : extra}
+      footer={footer}
     />
   );
 }

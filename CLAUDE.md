@@ -1,4 +1,4 @@
-# Shadow Arenas (Arènes de l'Ombre) — project guide
+# Fantasy Manager (formerly Shadow Arenas) — project guide
 
 Deep fantasy arena-league management game in the spirit of Football Manager. The player runs a stable of
 creatures (dragons, trolls, goblins, elves…), never controls fights directly: a deterministic simulation
@@ -6,7 +6,9 @@ resolves them. 100 % front-end, deployable on GitHub Pages.
 
 - Talk to the user in **French**. The game is **bilingual: French (default) and English**, switchable in the top bar.
   Code identifiers, data ids and English source texts stay in English; French lives beside them (see i18n below).
-- Repo: https://github.com/PannacottaFactory/fantasymanager (Pages deploy via `.github/workflows/deploy.yml`).
+- Repo: https://github.com/PannacottaFactory/fantasymanager (Pages deploy via `.github/workflows/deploy.yml`;
+  `index.html` has `<meta name="robots" content="noindex, nofollow">` so search engines skip the site).
+- Top bar: title « Fantasy Manager », subtitle = the player's stable name during a game.
 
 ## Stack
 TypeScript (strict) · Vite · React 19 + Zustand · Vitest · tsx (headless CLI) · ESLint (flat config).
@@ -156,7 +158,12 @@ tests/       Vitest
 ## Arena rules (current)
 5 starters + 3 bench, 2 abstract lines (front/back). Max 20 rounds; breaks after rounds 5/10/15 with up to
 3 substitutions. A team with nobody standing loses by KO; otherwise judges' score = % of opposing health removed.
-League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No death (severe injuries instead).
+League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0.
+**Deaths (rare)**: after a league/cup match, a creature knocked out that picked up an injury dies of it with
+`cfg.league.death.chance[severity]` (moderate 2 %, severe 20 %, career 50 %) × the infirmary factor — own RNG stream
+(`deriveSeed(world, 'death', …)`), so match results never change. `bury()` removes it (friends mourn, whole stable
+−6 morale), `death` inbox message + news, `GameState.fallen` = memorial shown under the Squad. ≈ 3–4 deaths per season
+in the 20 stables (one every ~5 seasons per stable). Not shown during the live match.
 
 ## Status
 - [x] **Phase 1** — creatures (13 species, 23 traits, 43 abilities, 17 effects, injuries), combat engine,
@@ -240,6 +247,10 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0. No de
   both line-ups with the abilities seen used, **replays**: `GameState.matchHistory` keeps the last 10 player
   matches (setup snapshot + break decisions; `replayMatch` / `replayDeciders` reproduce them exactly), "Watch
   again" and "Report" in the inbox, `LiveMatch` `replay` mode. 113 tests.
+- **Creature sheet** (`CreatureModal`): one identity line (species — description as tooltip —, elements, size, age),
+  a strip of stat tiles (overall, level, HP, stamina, form, morale, fatigue), then attributes, traits / role fit,
+  abilities; `extra` sits under the header (live state, market estimate), `footer` holds management (training +
+  progression, relations, contract / bid / signing).
 - UI errors are caught by `ui/components/ErrorBoundary.tsx` (main content and the creature sheet): a message instead of a blank screen.
 - [x] **Levels & XP rework** (10 levels, match + training XP, max level from potential, a free point per level,
   unlocks by level, encyclopedia "Levels and experience" rule, Level column / badge / chart in levels). 115 tests.

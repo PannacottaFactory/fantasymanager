@@ -43,7 +43,8 @@ function print(g: GameState, start: Record<string, number>, injuries: number) {
   const avg = (f: (c: (typeof all)[number]) => number) => (all.reduce((s, c) => s + f(c), 0) / all.length).toFixed(1);
   console.log(`Creatures: avg ability ${avg((c) => c.ability)} · avg potential ${avg((c) => c.potential)} · avg age ${avg((c) => c.age)} · avg attr points gained ${avg((c) => c.growth?.season ?? 0)}`);
   console.log(
-    `Injured creature-weeks: ${injuries} · AI transfers: ${moves} · offers to player: ${offers} · free agents: ${g.freeAgents.length}` +
+    `Deaths: ${g.news.filter((n) => n.kind === 'death' && n.season === g.season).length} (player ${(g.fallen ?? []).filter((f) => f.season === g.season).length})` +
+      ` · Injured creature-weeks: ${injuries} · AI transfers: ${moves} · offers to player: ${offers} · free agents: ${g.freeAgents.length}` +
       ` · creature value avg ${k(values.reduce((a, b) => a + b, 0) / values.length)} (max ${k(Math.max(...values))})`,
   );
 }

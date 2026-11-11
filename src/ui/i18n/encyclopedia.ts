@@ -227,7 +227,7 @@ const en = {
     'Creatures have a level from 1 to {max}; {xp} XP make a level. Their maximum level is set by their potential. Abilities unlock at given levels.\nXP per match: taking part {played}, starter +{starter}, +{rating} per rating point above 5, +{win} for a win. Training adds a little every week (none while resting or injured). XP is multiplied by the life stage: young ×{young}, at the peak ×{prime}, past the prime ×{old}.\nXP becomes attribute points as it comes, spread by the training program; each level gained also gives one point placed by hand (AI stables place theirs by their program).',
   'ru.injury.title': 'Injuries',
   'ru.injury.body':
-    'A creature knocked out has a {ko} % chance of injury, a heavy hit (over {heavyHit} % of its health) {heavy} % — modified by its hidden injury proneness, its traits and its fatigue. Injuries keep a creature out for weeks; the infirmary shortens them.',
+    'A creature knocked out has a {ko} % chance of injury, a heavy hit (over {heavyHit} % of its health) {heavy} % — modified by its hidden injury proneness, its traits and its fatigue. Injuries keep a creature out for weeks; the infirmary shortens them.\nRarely, a creature knocked out dies of the injury it picked up: {severe} % for a severe injury, {career} % for a career-ending one, {moderate} % for a moderate one (less with the infirmary). The whole stable loses morale, its friends even more.',
 };
 
 export type EncKey = keyof typeof en;
@@ -446,7 +446,7 @@ const fr: Record<EncKey, string> = {
     'Les créatures ont un niveau de 1 à {max} ; {xp} XP font un niveau. Leur niveau maximum dépend de leur potentiel. Les capacités se débloquent à certains niveaux.\nXP par match : participer {played}, titulaire +{starter}, +{rating} par point de note au-dessus de 5, +{win} pour une victoire. L’entraînement en ajoute un peu chaque semaine (rien en repos ou blessé). L’XP est multipliée selon l’âge : jeune ×{young}, à l’apogée ×{prime}, après l’apogée ×{old}.\nL’XP se transforme au fur et à mesure en points d’attributs, répartis selon le programme d’entraînement ; chaque niveau gagné donne aussi un point placé à la main (les écuries IA placent les leurs selon leur programme).',
   'ru.injury.title': 'Blessures',
   'ru.injury.body':
-    'Une créature mise KO a {ko} % de risque de blessure, un gros coup (plus de {heavyHit} % de sa vie) {heavy} % — modifiés par sa fragilité cachée, ses traits et sa fatigue. Les blessures écartent une créature pendant des semaines ; l’infirmerie les raccourcit.',
+    'Une créature mise KO a {ko} % de risque de blessure, un gros coup (plus de {heavyHit} % de sa vie) {heavy} % — modifiés par sa fragilité cachée, ses traits et sa fatigue. Les blessures écartent une créature pendant des semaines ; l’infirmerie les raccourcit.\nRarement, une créature mise KO meurt de la blessure reçue : {severe} % pour une blessure grave, {career} % pour une blessure de fin de carrière, {moderate} % pour une blessure modérée (moins avec l’infirmerie). Toute l’écurie perd du moral, ses amis davantage.',
 };
 
 export const ENC_DICTS: Record<Lang, Record<EncKey, string>> = { en, fr };

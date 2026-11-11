@@ -18,7 +18,7 @@ import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
 import { AbilityCard } from '../../components/AbilityCard.tsx';
 import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip, LevelBadge } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
-import { moraleKey } from '../../format.ts';
+import { fatigueColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
@@ -32,8 +32,10 @@ interface Props {
   /** Favourite abilities (light build); editable when `onToggleFavorite` is given. */
   favorites?: readonly string[];
   onToggleFavorite?: (abilityId: string) => void;
-  /** Extra content under the header (e.g. live match state). */
+  /** Extra content right under the header (e.g. live match state, market estimate). */
   extra?: ReactNode;
+  /** Content at the bottom of the sheet (management: training, contract…). */
+  footer?: ReactNode;
   /** Attribute changes to show next to the values (own creatures: since the season started). */
   deltas?: Partial<Record<AttributeKey, number>>;
   /** Own creatures with free points: places one on an attribute (undefined = not allowed). */
@@ -42,7 +44,17 @@ interface Props {
   knowledge?: number;
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, knowledge = 100, deltas, onSpendPoint }: Props) {
+/** A small labelled value in the sheet header. */
+function StatTile({ label, value, title, big }: { label: string; value: ReactNode; title?: string; big?: boolean }) {
+  return (
+    <div className={`stat-tile ${big ? 'big' : ''}`} title={title}>
+      <span className="lbl">{label}</span>
+      <span className="val">{value}</span>
+    </div>
+  );
+}
+
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, knowledge = 100, deltas, onSpendPoint }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
@@ -63,57 +75,38 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
       onClose={onClose}
     >
       <div className="stack">
-        <div className="row wrap" style={{ gap: 16 }}>
-          <span>
-            <SpeciesIcon id={sp.id} size="1.5em" /> {spText.name} · <ElementDots speciesId={sp.id} /> {sp.elements.map((e) => elementName(e, lang)).join(' / ')} · {sizeName(sp.size, lang)}
-            {sp.flying ? ` · ${t('cr.flying')}` : ''}
-          </span>
-          <span className="muted">{t('cr.age', { age: creature.age, stage, a: lc.peakStart, b: lc.peakEnd })}</span>
-          <span>
-            {t('cr.overall')} <b>{known ? overallRating(creature) : `${ovr.low}–${ovr.high}`}</b>
-          </span>
-          {known && <LevelBadge c={creature} />}
-          {known && (
-            <span className="muted">{t('cr.hpStamina', { hp: maxHp(creature, DEFAULT_CONFIG), st: maxStamina(creature, DEFAULT_CONFIG) })}</span>
+        <div className="sheet-head">
+          <div className="sheet-sub">
+            <span title={spText.description}>
+              <SpeciesIcon id={sp.id} size="1.3em" /> <b>{spText.name}</b>
+            </span>
+            <span>
+              <ElementDots speciesId={sp.id} /> {sp.elements.map((e) => elementName(e, lang)).join(' / ')}
+            </span>
+            <span>
+              {sizeName(sp.size, lang)}
+              {sp.flying ? ` · ${t('cr.flying')}` : ''}
+            </span>
+            <span title={t('cr.age', { age: creature.age, stage, a: lc.peakStart, b: lc.peakEnd })}>
+              {t('sheet.age', { age: creature.age })} · <span className="faint">{stage}</span>
+            </span>
+          </div>
+          <div className="stat-strip">
+            <StatTile label={t('cr.overall')} value={known ? overallRating(creature) : `${ovr.low}–${ovr.high}`} big />
+            {known && <StatTile label={t('sheet.level')} value={<LevelBadge c={creature} />} />}
+            {known && <StatTile label={t('sheet.hp')} value={maxHp(creature, DEFAULT_CONFIG)} />}
+            {known && <StatTile label={t('sheet.stamina')} value={maxStamina(creature, DEFAULT_CONFIG)} />}
+            {known && <StatTile label={t('col.form')} value={`${creature.condition.form}/20`} />}
+            {known && <StatTile label={t('col.morale')} value={t(moraleKey(creature.condition.morale))} title={String(creature.condition.morale)} />}
+            {known && <StatTile label={t('col.fatigue')} value={<span style={{ color: fatigueColor(creature.condition.fatigue) }}>{creature.condition.fatigue} %</span>} />}
+          </div>
+          {known && injuries.length > 0 && (
+            <div className="bad-text" style={{ fontSize: '0.929rem' }}>
+              🩹 {injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}
+            </div>
           )}
         </div>
-        <p className="muted" style={{ margin: 0 }}>
-          {spText.description}
-        </p>
         {extra}
-
-        <div>
-          <div className="row" style={{ marginBottom: 6, gap: 10 }}>
-            <h4 style={{ margin: 0 }}>{t('cr.abilities')}</h4>
-            {onToggleFavorite && (
-              <span className="muted" style={{ fontSize: '0.857rem' }}>
-                {t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}
-              </span>
-            )}
-          </div>
-          <div className="ability-grid">
-            {sp.abilities.map((a) => (
-              <AbilityCard
-                key={a.id}
-                id={a.id}
-                elements={sp.elements}
-                locked={!isUnlocked(creature, a.minAbility)}
-                unlockAt={unlockLevel(a.minAbility)}
-                current={knowledge >= 100 ? levelOf(creature) : undefined}
-                favorite={favorites.includes(a.id)}
-                onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(a.id) : undefined}
-              />
-            ))}
-          </div>
-          {sp.passives?.map((p) => (
-            <div key={p} style={{ marginTop: 6 }}>
-              <b>{effectText(p, lang).name}</b>{' '}
-              <span className="muted" style={{ fontSize: '0.857rem' }}>
-                {t('cr.passive')} {effectText(p, lang).description}
-              </span>
-            </div>
-          ))}
-        </div>
 
         {freePoints > 0 && <div className="remark good free-points">{t('lvl.freePoints', { n: freePoints })}</div>}
         <div className="attr-grid">
@@ -161,7 +154,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             ))}
           </div>
           {known && (
-            <div>
+            <div style={{ gridColumn: 'span 2' }}>
               <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
               {ROLE_IDS.map((r) => (
                 <div key={r} className="row" style={{ fontSize: '0.857rem', marginBottom: 3 }} title={roleText(r, lang).description}>
@@ -176,26 +169,43 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                   </span>
                 </div>
               ))}
-              <h4 style={{ margin: '10px 0 6px' }}>{t('cr.condition')}</h4>
-              <dl className="kv">
-                <dt>{t('col.form')}</dt>
-                <dd>{creature.condition.form}/20</dd>
-                <dt>{t('col.morale')}</dt>
-                <dd>
-                  {t(moraleKey(creature.condition.morale))} ({creature.condition.morale})
-                </dd>
-                <dt>{t('col.fatigue')}</dt>
-                <dd>{creature.condition.fatigue} %</dd>
-                {injuries.length > 0 && (
-                  <>
-                    <dt>{t('cr.injuries')}</dt>
-                    <dd className="bad-text">{injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}</dd>
-                  </>
-                )}
-              </dl>
             </div>
           )}
         </div>
+
+        <div>
+          <div className="row" style={{ marginBottom: 6, gap: 10 }}>
+            <h4 style={{ margin: 0 }}>{t('cr.abilities')}</h4>
+            {onToggleFavorite && (
+              <span className="muted" style={{ fontSize: '0.857rem' }}>
+                {t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}
+              </span>
+            )}
+          </div>
+          <div className="ability-grid">
+            {sp.abilities.map((a) => (
+              <AbilityCard
+                key={a.id}
+                id={a.id}
+                elements={sp.elements}
+                locked={!isUnlocked(creature, a.minAbility)}
+                unlockAt={unlockLevel(a.minAbility)}
+                current={knowledge >= 100 ? levelOf(creature) : undefined}
+                favorite={favorites.includes(a.id)}
+                onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(a.id) : undefined}
+              />
+            ))}
+          </div>
+          {sp.passives?.map((p) => (
+            <div key={p} style={{ marginTop: 6 }}>
+              <b>{effectText(p, lang).name}</b>{' '}
+              <span className="muted" style={{ fontSize: '0.857rem' }}>
+                {t('cr.passive')} {effectText(p, lang).description}
+              </span>
+            </div>
+          ))}
+        </div>
+        {footer}
 
         {showHidden && (
           <details>
