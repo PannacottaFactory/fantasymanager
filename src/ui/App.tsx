@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LANGS } from '../core/i18n.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
 import { cupDue, lastMatchday, playerTeam, seasonOver } from '../engine/league/season.ts';
@@ -13,6 +13,7 @@ import { StartScreen } from './screens/game/StartScreen.tsx';
 import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
 import { GameSheet } from './screens/game/CreatureSheet.tsx';
 import { IntroModal } from './screens/game/IntroModal.tsx';
+import { FxLayer } from './fx/FxLayer.tsx';
 import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
 import { FacilitiesScreen } from './screens/game/FacilitiesScreen.tsx';
@@ -27,7 +28,37 @@ import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { LiveMatch } from './screens/arena/LiveMatch.tsx';
 import { EncyclopediaScreen } from './screens/EncyclopediaScreen.tsx';
 import { TutorialOverlay } from './tutorial/TutorialOverlay.tsx';
-import { Money } from './components/common.tsx';
+import { RollingMoney } from './components/common.tsx';
+import { centreOf, fxLayer } from './fx/FxLayer.tsx';
+import { Celebrations } from './fx/Celebrations.tsx';
+
+/** The treasury in the top bar: rolls to its new value; coins fly in when money comes, a red tick when it goes. */
+function BalanceChip({ balance, worldSeed }: { balance: number; worldSeed: string }) {
+  const { t, money } = useT();
+  const ref = useRef<HTMLButtonElement>(null);
+  const prev = useRef<{ seed: string; v: number } | null>(null);
+  const [delta, setDelta] = useState<{ v: number; n: number } | null>(null);
+  useEffect(() => {
+    const p = prev.current;
+    prev.current = { seed: worldSeed, v: balance };
+    if (!p || p.seed !== worldSeed || p.v === balance) return;
+    const d = balance - p.v;
+    setDelta({ v: d, n: Date.now() });
+    const to = centreOf(ref.current);
+    if (d > 0 && to) fxLayer()?.coins({ x: window.innerWidth / 2, y: window.innerHeight * 0.45 }, to, Math.min(14, 4 + Math.round(Math.log10(d + 1) * 2.5)));
+  }, [balance, worldSeed]);
+  return (
+    <button ref={ref} className={`balance ${balance < 0 ? 'neg' : ''}`} title={t('topbar.balance')} onClick={() => useGame.getState().setScreen('finances')}>
+      <RollingMoney v={balance} compact />
+      {delta && (
+        <span key={delta.n} className={`balance-delta ${delta.v > 0 ? 'up' : 'down'}`} aria-hidden="true">
+          {delta.v > 0 ? '+' : '−'}
+          {money(Math.abs(delta.v), true)}
+        </span>
+      )}
+    </button>
+  );
+}
 
 function ContinueButton() {
   const { t } = useT();
@@ -45,9 +76,7 @@ function ContinueButton() {
   return (
     <div className="continue" data-tip="continue">
       {club && (
-        <button className={`balance ${club.balance < 0 ? 'neg' : ''}`} title={t('topbar.balance')} onClick={() => useGame.getState().setScreen('finances')}>
-          <Money v={club.balance} compact />
-        </button>
+        <BalanceChip balance={club.balance} worldSeed={game.worldSeed} />
       )}
       <span className="muted status">
         {over
@@ -65,7 +94,7 @@ function ContinueButton() {
 
 export function App() {
   const { t } = useT();
-  const { lang, theme, textSize, setLang, setTheme, setTextSize } = useSettings();
+  const { lang, theme, textSize, effects, setLang, setTheme, setTextSize, setEffects } = useSettings();
   const { ready, game, screen, viewing, saveError, replaying, intro } = useGame();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
@@ -74,6 +103,9 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.effects = effects;
+  }, [effects]);
   useEffect(() => {
     document.documentElement.style.setProperty('--text-scale', String(TEXT_SCALE[textSize]));
   }, [textSize]);
@@ -165,6 +197,15 @@ export function App() {
           <span style={{ fontSize: '1.15em' }}>A</span>
           <i className={`size-dots s-${textSize}`} aria-hidden="true" />
         </button>
+        <button
+          className={`btn small ghost fx-btn ${effects === 'full' ? 'on' : ''}`}
+          title={t(effects === 'full' ? 'effects.on' : 'effects.off')}
+          aria-label={t('effects.title')}
+          aria-pressed={effects === 'full'}
+          onClick={() => setEffects(effects === 'full' ? 'reduced' : 'full')}
+        >
+          ✨
+        </button>
         <button className={`btn small ghost help-btn ${screen === 'help' ? 'active' : ''}`} data-tip="help-btn" title={t('help.btn')} aria-label={t('help.btn')} onClick={() => setScreen('help')}>
           ?
         </button>
@@ -178,7 +219,9 @@ export function App() {
       </header>
       {saveError && <div className="save-error">{t('save.failed')}</div>}
       <main className="main">
-        <ErrorBoundary key={`${screen}-${viewing ? 'report' : ''}-${replaying ? 'replay' : ''}`}>{content}</ErrorBoundary>
+        <ErrorBoundary key={`${screen}-${viewing ? 'report' : ''}-${replaying ? 'replay' : ''}`}>
+          <div className="screen-enter">{content}</div>
+        </ErrorBoundary>
       </main>
       {game && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && (
         <ErrorBoundary onReset={() => useGame.getState().openSheet(null)}>
@@ -186,6 +229,8 @@ export function App() {
         </ErrorBoundary>
       )}
       {game && !newGameOpen && <IntroModal />}
+      <FxLayer />
+      <Celebrations />
       <TutorialOverlay active={!!game && !newGameOpen && ready && !viewing && !intro} />
     </div>
   );

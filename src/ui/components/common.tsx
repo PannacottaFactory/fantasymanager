@@ -1,11 +1,11 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ELEMENTS } from '../../data/elements.ts';
 import { SPECIES } from '../../data/species.ts';
 import { TRAITS } from '../../data/traits.ts';
 import type { ElementId } from '../../data/schema.ts';
 import { elementName, speciesName, traitText } from '../../engine/text/localize.ts';
 import { attrClass, initials } from '../format.ts';
-import { useT } from '../i18n/index.ts';
+import { effectsOn, useT } from '../i18n/index.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
 import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.ts';
 import type { Creature } from '../../engine/model.ts';
@@ -188,4 +188,37 @@ export function Gold({ children }: { children: ReactNode }) {
 export function Money({ v, compact }: { v: number; compact?: boolean }) {
   const { money } = useT();
   return <span className="gold">{money(v, compact)}</span>;
+}
+
+/** A number that rolls towards its new value (instantly when effects are off). */
+export function useCountUp(value: number, ms = 700): number {
+  const [shown, setShown] = useState(value);
+  const current = useRef(value);
+  useEffect(() => {
+    const from = current.current;
+    if (from === value || !effectsOn()) {
+      current.current = value;
+      setShown(value);
+      return;
+    }
+    const start = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const k = Math.min(1, (now - start) / ms);
+      const v = Math.round(from + (value - from) * (1 - Math.pow(1 - k, 3)));
+      current.current = v;
+      setShown(v);
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value, ms]);
+  return shown;
+}
+
+/** An amount of gold that rolls when it changes. */
+export function RollingMoney({ v, compact }: { v: number; compact?: boolean }) {
+  const { money } = useT();
+  const shown = useCountUp(v, 900);
+  return <span className="gold">{money(shown, compact)}</span>;
 }

@@ -7,7 +7,7 @@ import type { ExpenseKind, IncomeKind, LedgerEntry } from '../../../engine/leagu
 import type { Creature } from '../../../engine/model.ts';
 import { getSpecies } from '../../../engine/creature/derived.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
-import { Crest, Gold, Money } from '../../components/common.tsx';
+import { Crest, Gold, Money, RollingMoney, useCountUp } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
@@ -121,7 +121,7 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
           <g key={v}>
             <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} className={v === 0 ? 'zero' : 'grid'} />
             <text x={pad.l - 8} y={y(v) + 4} textAnchor="end" className="tick">
-              <Money v={v} compact />
+              {money(v, true)}
             </text>
           </g>
         ))}
@@ -130,7 +130,14 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
             {md === 0 ? '—' : t('fin.mdShort', { d: md })}
           </text>
         ))}
-        <path d={path} className="line" />
+        <defs>
+          <linearGradient id="fin-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {points.length > 1 && <path d={`${path} L${x(points[points.length - 1]!.matchday).toFixed(1)},${y(Math.max(lo, 0)).toFixed(1)} L${x(points[0]!.matchday).toFixed(1)},${y(Math.max(lo, 0)).toFixed(1)} Z`} fill="url(#fin-area)" className="area" />}
+        <path d={path} className="line draw" pathLength={1} />
         {h && (
           <>
             <line x1={x(h.matchday)} x2={x(h.matchday)} y1={pad.t} y2={H - pad.b} className="crosshair" />
@@ -203,17 +210,18 @@ export function FinancesScreen() {
     },
   ];
 
+  const reputation = useCountUp(club.reputation, 900);
   return (
     <div className="stack">
       <section className="panel">
         <div className="fin-tiles" data-tip="finances">
           <div className="tile">
             <span className="muted">{t('fin.balance')}</span>
-            <b className={club.balance < 0 ? 'bad-text' : ''}><Money v={club.balance} /></b>
+            <b className={club.balance < 0 ? 'bad-text' : ''}><RollingMoney v={club.balance} /></b>
           </div>
           <div className="tile" title={t('fin.reputation.title')}>
             <span className="muted">{t('fin.reputation')}</span>
-            <b>{club.reputation}/100</b>
+            <b>{reputation}/100</b>
           </div>
           <div className="tile">
             <span className="muted">{t('fin.weekly')}</span>

@@ -76,7 +76,7 @@ export function objectiveText(tr: Translator, o: ObjectiveId): string {
   return tr.t(`obj.${o}` as StringKey, { n: DEFAULT_CONFIG.league.promoted });
 }
 
-function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: string; body: string; tone: 'good' | 'bad' | 'info' } {
+export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: string; body: string; tone: 'good' | 'bad' | 'info' } {
   const { t } = tr;
   const cupRound = (r: number) => t(cupRoundKey(r, cupRounds));
   switch (m.kind) {
@@ -134,7 +134,7 @@ function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: s
       return { title: t('msg.financeWarning.title'), body: t('msg.financeWarning.body', { v: tr.money(m.balance) }), tone: 'bad' };
     case 'marketNews': {
       const free = t('msg.marketNews.free');
-      const lines = m.moves.map((x) => `${x.name} (${speciesName(x.speciesId, tr.lang)}) : ${x.from ?? free} → ${x.to ?? free}${x.fee ? ` · $<Money v={x.fee} compact />` : ''}`);
+      const lines = m.moves.map((x) => `${x.name} (${speciesName(x.speciesId, tr.lang)}) : ${x.from ?? free} → ${x.to ?? free}${x.fee ? ` · ${tr.money(x.fee, true)}` : ''}`);
       return { title: t('msg.marketNews.title'), body: lines.join('\n'), tone: 'info' };
     }
     case 'youthIntake':

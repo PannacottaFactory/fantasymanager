@@ -33,10 +33,23 @@ function write(key: string, value: string) {
   }
 }
 
+export type EffectsLevel = 'full' | 'reduced';
+const EFFECTS_KEY = 'fm.effects';
+const systemReduced = () => {
+  try {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch {
+    return false;
+  }
+};
+
 interface SettingsState {
   lang: Lang;
   theme: Theme;
   textSize: TextSize;
+  /** Particles, shakes and celebrations (reduced: none). Defaults to the system's reduced-motion setting. */
+  effects: EffectsLevel;
+  setEffects: (e: EffectsLevel) => void;
   setLang: (l: Lang) => void;
   setTheme: (t: Theme) => void;
   setTextSize: (t: TextSize) => void;
@@ -67,7 +80,18 @@ export const useSettings = create<SettingsState>()((set) => ({
     write(TEXT_KEY, textSize);
     set({ textSize });
   },
+  effects: (() => {
+    const v = read(EFFECTS_KEY);
+    return v === 'full' || v === 'reduced' ? v : systemReduced() ? 'reduced' : 'full';
+  })(),
+  setEffects: (effects) => {
+    write(EFFECTS_KEY, effects);
+    set({ effects });
+  },
 }));
+
+/** Are particles, shakes and celebrations wanted? (read outside React too) */
+export const effectsOn = () => useSettings.getState().effects === 'full';
 
 const DICTS: Record<Lang, Record<StringKey, string>> = { en, fr };
 

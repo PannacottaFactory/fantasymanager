@@ -7,13 +7,14 @@ import { applyEvent, initialView, type MatchView } from '../../../engine/combat/
 import { Commentator, type CommentaryLine } from '../../../engine/commentary/commentator.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { SPECIES } from '../../../data/species.ts';
-import { Bar, Seg } from '../../components/common.tsx';
+import { Bar, Seg, useCountUp } from '../../components/common.tsx';
 import { hpColor } from '../../format.ts';
 import { CreatureModal } from './CreatureModal.tsx';
 import { useT } from '../../i18n/index.ts';
 import { BreakPanel } from './BreakPanel.tsx';
 import { addEventFx, emptyFx, lineTone, reducedMotion, type FxBatch, type LineTone } from './matchFx.ts';
 import { Projectiles } from './Projectiles.tsx';
+import { fxLayer } from '../../fx/FxLayer.tsx';
 import { Scoreboard, type Focus } from './Scoreboard.tsx';
 
 type Speed = 'slow' | 'normal' | 'fast' | 'instant';
@@ -272,6 +273,13 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   };
 
   const outcome = session.combat.outcome;
+  // The judges' score rolls up at the end; a win rains confetti.
+  const scoreA = useCountUp(ended && outcome ? outcome.score[0] : 0, 1200);
+  const scoreB = useCountUp(ended && outcome ? outcome.score[1] : 0, 1200);
+  const won = !!(ended && outcome && outcome.winner === 0);
+  useEffect(() => {
+    if (won) fxLayer()?.confetti();
+  }, [won]);
   const health = (side: 0 | 1) => {
     const mine = Object.values(view.creatures).filter((c) => c.side === side && c.state !== 'bench' && c.state !== 'withdrawn');
     return (
@@ -286,12 +294,12 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
 
   return (
     <>
-      <Projectiles shots={fx.shots} flight={FLIGHT[speed]} />
+      <Projectiles shots={fx.shots} bursts={fx.bursts} flight={FLIGHT[speed]} />
       <div className="live">
         <Scoreboard side={0} name={setup.teams[0].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} />
         <section className="panel">
           <div className="round-banner">
-            <div className="big">
+            <div className={`big ${ended && outcome ? (outcome.winner === 0 ? 'win' : 'loss') : ''}`}>
               {ended && outcome
                 ? outcome.winner === 0
                   ? t('live.victory')
@@ -305,8 +313,8 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
                 ? outcome.method === 'ko'
                   ? t('live.byKo', { n: outcome.rounds })
                   : t('live.onPoints', {
-                      a: outcome.score[0],
-                      b: outcome.score[1],
+                      a: scoreA,
+                      b: scoreB,
                     })
                 : t('live.of', {
                     max: m.maxRounds,

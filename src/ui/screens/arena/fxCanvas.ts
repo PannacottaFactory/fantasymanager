@@ -5,6 +5,7 @@
  */
 import type { ElementId } from '../../../data/schema.ts';
 import type { Shot } from './matchFx.ts';
+import { effectsOn } from '../../i18n/index.ts';
 
 type Vec = { x: number; y: number };
 type Shape = 'glow' | 'spark' | 'chunk' | 'leaf' | 'smoke' | 'star' | 'bubble';
@@ -286,6 +287,135 @@ export class FxCanvas {
   add(e: Effect) {
     this.effects.push(e);
     this.start();
+  }
+
+  /** Keeps spawning particles for a while (confetti, coin rain…). */
+  stream(durationMs: number, perSecond: number, spawn: () => void) {
+    const t0 = performance.now();
+    let acc = 0;
+    this.add({
+      update: (now, dt) => {
+        acc += dt * perSecond;
+        while (acc >= 1) {
+          spawn();
+          acc -= 1;
+        }
+        return now - t0 < durationMs;
+      },
+      draw: () => {},
+    });
+  }
+
+  /** A creature goes down: dust, debris and a red shockwave on its card. */
+  knockout(id: string) {
+    const r = cardRect(id);
+    if (!r) return;
+    const at = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    const dust = ['#d8cbb3', '#a8977b', '#6f6252', '#3e3429'];
+    for (let i = 0; i < 26; i++) {
+      const a = rand(0, Math.PI * 2);
+      const v = rand(20, 110);
+      this.emit({ x: at.x + rand(-r.width / 3, r.width / 3), y: r.bottom - 6, vx: Math.cos(a) * v, vy: -Math.abs(Math.sin(a) * v) * 0.6, palette: dust, life: rand(0.8, 1.3), size: rand(8, 14), shape: 'smoke', grow: 2.4, drag: 0.94 });
+    }
+    for (let i = 0; i < 14; i++) {
+      const a = rand(-Math.PI, 0);
+      const v = rand(120, 260);
+      this.emit({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, palette: dust, life: 0.9, size: rand(3, 6), shape: 'chunk', gravity: 900, vr: rand(-10, 10), drag: 0.98, grow: 1 });
+    }
+    this.add(new Ring(at, '#ff3b26', Math.max(60, r.width / 2), 600, 4));
+  }
+
+  /** A creature gets back up: light and bone-white sparks rising from its card. */
+  revive(id: string) {
+    const r = cardRect(id);
+    if (!r) return;
+    const at = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    const pal = ['#ffffff', '#fff6d8', '#f2dfa6', '#c9a24a'];
+    for (let i = 0; i < 30; i++) this.emit({ x: at.x + rand(-r.width / 2, r.width / 2), y: r.bottom - rand(0, 8), vx: rand(-15, 15), vy: rand(-160, -60), palette: pal, life: rand(0.8, 1.3), size: rand(3, 5), shape: i % 3 ? 'glow' : 'star', drag: 0.97 });
+    this.add(new Ring(at, '#fff3c4', Math.max(70, r.width / 2), 700, 3));
+    this.add(new Flash(at, '#fff3c4', 120, true));
+  }
+
+  /** Golden burst around a point (level up, reward). */
+  sparkle(x: number, y: number, big = false) {
+    const pal = ['#ffffff', '#fff3b0', '#f0cb4c', '#c9a24a'];
+    for (let i = 0; i < (big ? 46 : 26); i++) {
+      const a = rand(0, Math.PI * 2);
+      const v = rand(60, big ? 260 : 180);
+      this.emit({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, palette: pal, life: rand(0.5, 1), size: rand(2.5, 5), shape: i % 4 ? 'spark' : 'star', drag: 0.92, gravity: 60 });
+    }
+    this.add(new Ring({ x, y }, '#f0cb4c', big ? 90 : 60, 600, 3));
+  }
+
+  /** Gold coins flying from one point to another (money earned). */
+  coins(from: { x: number; y: number }, to: { x: number; y: number }, n = 10) {
+    const pal = ['#fff6c4', '#f0cb4c', '#d19a1e', '#8a5a12'];
+    for (let i = 0; i < n; i++) {
+      const t0 = performance.now() + i * 45;
+      const dur = rand(650, 900);
+      const arc = rand(-120, -40);
+      let done = false;
+      this.add({
+        update: (now) => {
+          if (now - t0 >= dur && !done) {
+            done = true;
+            for (let k = 0; k < 4; k++) this.emit({ x: to.x, y: to.y, vx: rand(-80, 80), vy: rand(-90, 10), palette: pal, life: 0.4, size: 2.5, shape: 'spark', drag: 0.9 });
+          }
+          return now - t0 < dur;
+        },
+        draw: (ctx, now) => {
+          const k = Math.min(1, Math.max(0, now - t0) / dur);
+          if (k <= 0) return;
+          const e = easeIn(k);
+          const x = lerp(from.x, to.x, e);
+          const y = lerp(from.y, to.y, e) + arc * Math.sin(Math.PI * k);
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = pal[1]!;
+          ctx.beginPath();
+          ctx.ellipse(x, y, 5, 5 * Math.abs(Math.cos(now / 90 + i)), 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = pal[3]!;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        },
+      });
+    }
+  }
+
+  /** Confetti and gold raining over the whole screen (victory, promotion, trophy). */
+  confetti(durationMs = 2200) {
+    const colours = [['#fff6c4', '#f0cb4c'], ['#ffd1c4', '#e5574b'], ['#d9f5ff', '#3987e5'], ['#e2ffd6', '#3fd68e'], ['#f3d9ff', '#b583f0']];
+    this.stream(durationMs, 90, () => {
+      const pal = colours[Math.floor(rand(0, colours.length))]!;
+      this.emit({ x: rand(0, window.innerWidth), y: -10, vx: rand(-40, 40), vy: rand(60, 160), palette: pal, life: rand(2.2, 3.4), size: rand(4, 7), shape: 'chunk', gravity: 90, drag: 0.985, vr: rand(-12, 12), grow: 1 });
+    });
+  }
+
+  /** Fireworks bursting in the sky (promotion, cup, title). */
+  fireworks(count = 7) {
+    const pals = [PALETTES.fire, PALETTES.light, PALETTES.water, PALETTES.nature, PALETTES.shadow, PALETTES.buff];
+    for (let i = 0; i < count; i++) {
+      const t0 = performance.now() + i * rand(250, 420);
+      const x = rand(window.innerWidth * 0.15, window.innerWidth * 0.85);
+      const y = rand(window.innerHeight * 0.15, window.innerHeight * 0.45);
+      const pal = pals[i % pals.length]!;
+      let fired = false;
+      this.add({
+        update: (now) => {
+          if (!fired && now >= t0) {
+            fired = true;
+            for (let k = 0; k < 60; k++) {
+              const a = (k / 60) * Math.PI * 2;
+              const v = rand(140, 230);
+              this.emit({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, palette: pal, life: rand(0.9, 1.4), size: rand(2, 3.5), shape: 'spark', gravity: 120, drag: 0.95 });
+            }
+            this.add(new Flash({ x, y }, pal[1]!, 90, false));
+          }
+          return !fired;
+        },
+        draw: () => {},
+      });
+    }
   }
 
   launch(shot: Shot, flight: number) {
@@ -711,6 +841,7 @@ class Flash implements Effect {
 }
 
 function shake(strength: number, dur: number) {
+  if (!effectsOn()) return;
   const arena = document.querySelector<HTMLElement>('.live');
   if (!arena?.animate) return;
   const a = strength;

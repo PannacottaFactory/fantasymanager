@@ -6,8 +6,9 @@ import { EFFECTS } from '../../../data/effects.ts';
 import { ELEMENTS } from '../../../data/elements.ts';
 import type { ElementId } from '../../../data/schema.ts';
 import type { MatchEvent } from '../../../engine/combat/types.ts';
+import { effectsOn } from '../../i18n/index.ts';
 
-export type FxKind = 'hit' | 'crit' | 'miss' | 'heal' | 'ko' | 'dot' | 'buff' | 'debuff';
+export type FxKind = 'hit' | 'crit' | 'miss' | 'heal' | 'ko' | 'dot' | 'buff' | 'debuff' | 'revive';
 
 export interface CardFx {
   kind: FxKind;
@@ -53,19 +54,16 @@ export interface FxBatch {
   shots: Shot[];
   /** Ability just paid for (its chip pulses on the actor's card). */
   cast: { actor: string; ability: string; nonce: number } | null;
+  /** Big moments drawn on the card by the particle engine. */
+  bursts: { id: string; kind: 'ko' | 'revive' }[];
 }
 
-const PRIORITY: Record<FxKind, number> = { ko: 6, crit: 5, hit: 4, heal: 3, debuff: 2, dot: 2, buff: 1, miss: 0 };
+const PRIORITY: Record<FxKind, number> = { revive: 7, ko: 6, crit: 5, hit: 4, heal: 3, debuff: 2, dot: 2, buff: 1, miss: 0 };
 
 let counter = 0;
 
-export const reducedMotion = () => {
-  try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  } catch {
-    return false;
-  }
-};
+/** Animations off: the viewer chose reduced effects (defaults to the system setting). */
+export const reducedMotion = () => !effectsOn();
 
 /** Colour family of a commentary line. */
 export type LineTone = 'heal' | 'buff' | 'debuff' | 'dot' | 'ko' | 'miss' | 'crit' | 'info';
@@ -112,7 +110,7 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
   }
 }
 
-export const emptyFx = (): FxBatch => ({ actor: null, targets: {}, shots: [], cast: null });
+export const emptyFx = (): FxBatch => ({ actor: null, targets: {}, shots: [], cast: null, bursts: [] });
 
 /** Adds an event's reactions to a batch (later, more important reactions win). */
 export function addEventFx(
@@ -172,7 +170,8 @@ export function addEventFx(
       put(e.actor, 'dot', `-${e.amount}`);
       break;
     case 'revive':
-      put(e.target, 'heal', `+${e.hp}`);
+      put(e.target, 'revive', `+${e.hp}`);
+      batch.bursts.push({ id: e.target, kind: 'revive' });
       break;
     case 'drain':
       put(e.target, 'debuff', `-${e.amount}⚡`);
@@ -189,6 +188,7 @@ export function addEventFx(
       break;
     case 'ko': {
       put(e.target, 'ko', koLabel);
+      batch.bursts.push({ id: e.target, kind: 'ko' });
       const shot = [...batch.shots].reverse().find((x) => x.to === e.target);
       if (shot) shot.ko = true;
       break;

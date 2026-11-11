@@ -96,6 +96,12 @@ tests/       Vitest
   (`cfg.combat.favorites`, scaled by discipline). Chosen with ★ in the creature sheet (Tactics « Build » column).
 - **Stamina gauges**: abilities cost stamina (no mana). A `spend` event (cost, stamina left, cooldown) precedes each
   ability/guard so the live view drains gauges and refills cooldown chips; the commentator ignores it.
+- **Visual effects** (display only): setting `effects` (full / reduced, ✨ button, default = system reduced-motion,
+  `effectsOn()`, `:root[data-effects]` turns CSS animations off). `ui/fx/FxLayer.tsx` = app-wide particle canvas
+  (`fxLayer()?.confetti() / fireworks() / sparkle() / coins()`), `ui/fx/Celebrations.tsx` = toasts for new inbox
+  messages that matter (level-up, ability, signing, trophies, death), worded by `wording()` from the inbox. Live match:
+  status auras on cards (`AURA` in Scoreboard), KO dust + grey fall, revive light, crit label, victory confetti,
+  score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
 - **Projectiles**: `ui/screens/arena/Projectiles.tsx` draws shots, element particles and impacts between cards
   (`data-cid`); target reactions & health drop land when the projectile arrives (`FLIGHT` per speed).
 - **Weeks**: `playMatchday` plays the due cup round first when `cupDue(state)` (cup weeks sit between league

@@ -82,6 +82,19 @@ function SkillRow({ c, r, cast }: { c: CombatantView; r: RosterEntry; cast: Card
   );
 }
 
+/** Status effects drawn on the card itself (passives that last the whole match are left out). */
+const AURA: Record<string, string> = {
+  burning: 'burn', poisoned: 'poison', bleeding: 'bleed', chilled: 'chill', frozen: 'frozen', stunned: 'stun',
+  shielded: 'shield', fortified: 'stone', enraged: 'rage', frenzied: 'rage', terrified: 'fear', evasive: 'evasive',
+  regenerating: 'regen', rallied: 'rally', hexed: 'curse', frailty: 'curse', blighted: 'curse', jinxed: 'curse', sapped: 'sapped',
+};
+function auras(c: CombatantView): string[] {
+  if (c.state !== 'active') return [];
+  const out = new Set<string>();
+  for (const e of c.effects) if (AURA[e] && (EFFECTS[e]?.defaultDuration ?? 0) < 999) out.add(AURA[e]!);
+  return [...out];
+}
+
 function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProps) {
   const { t, lang } = useT();
   const ref = useRef<HTMLDivElement>(null);
@@ -112,6 +125,15 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
           { transform: 'translateX(0)' },
         ],
         { duration: fx.kind === 'hit' ? 280 : 420, easing: 'ease-in-out' },
+      );
+    } else if (fx.kind === 'revive') {
+      el.animate(
+        [
+          { transform: 'translateY(6px) scale(0.96)', filter: 'grayscale(1) brightness(0.6)' },
+          { transform: 'translateY(-4px) scale(1.04)', filter: 'grayscale(0) brightness(1.6)', offset: 0.55 },
+          { transform: 'none', filter: 'none' },
+        ],
+        { duration: 900, easing: 'ease-out' },
       );
     } else if (fx.kind === 'miss') {
       el.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${-8 * dir}px)`, offset: 0.4 }, { transform: 'translateX(0)' }], {
@@ -147,6 +169,14 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
           {fx.text}
         </span>
       )}
+      {fx?.kind === 'crit' && (
+        <span key={`crit${fx.nonce}`} className="float crit-label" aria-hidden="true">
+          {t('fx.crit')}
+        </span>
+      )}
+      {auras(c).map((a) => (
+        <span key={a} className={`aura aura-${a}`} aria-hidden="true" />
+      ))}
       <Crest speciesId={r.speciesId} name={r.name} />
       <div style={{ minWidth: 0 }}>
         <div className="top">

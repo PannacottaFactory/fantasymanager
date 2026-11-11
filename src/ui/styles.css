@@ -422,7 +422,7 @@ table.data tr.warn-row td { background: color-mix(in srgb, var(--bad) 12%, trans
 
 /* ——— Projectiles & particles (canvas over the live match) ——— */
 .fx-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 5; }
-@media (prefers-reduced-motion: reduce) { .fx-canvas { display: none; } }
+.fx-layer { z-index: 80; }
 
 /* ——— Abilities (creature sheet, team editor, fighter cards) ——— */
 .ability-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
@@ -808,3 +808,136 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .guide-steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; margin-right: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 0.857rem; }
 .guide-lines { margin: 0; padding-left: 18px; color: var(--muted); }
 .guide-lines li { margin: 2px 0; }
+
+/* ——— Live match juice ——— */
+.flash.revive { background: color-mix(in srgb, #fff3c4 45%, transparent); animation-duration: 1s; }
+.float.revive { color: #f6dc84; font-size: 1.286rem; }
+.float.crit { animation: float-crit 1.1s ease-out forwards; }
+.float.crit-label {
+  right: auto; left: 34px; top: -6px; color: #ffd27a; font: 800 0.786rem var(--font-title); letter-spacing: 0.08em;
+  text-transform: uppercase; animation: crit-pop 1s ease-out forwards;
+}
+@keyframes float-crit {
+  0% { opacity: 0; transform: translateY(6px) scale(0.5); }
+  12% { opacity: 1; transform: translateY(-2px) scale(1.5) rotate(-4deg); }
+  28% { transform: translateY(-2px) scale(1.05); }
+  100% { opacity: 0; transform: translateY(-24px); }
+}
+@keyframes crit-pop { 0% { opacity: 0; transform: scale(0.4); } 15% { opacity: 1; transform: scale(1.25); } 30% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
+.fighter.down { filter: grayscale(0.9); animation: ko-fall 0.7s ease-in both; }
+@keyframes ko-fall {
+  0% { transform: none; filter: grayscale(0); opacity: 1; }
+  30% { transform: translateY(-3px) rotate(-1.5deg); }
+  100% { transform: translateY(2px) rotate(0.6deg); filter: grayscale(0.9); opacity: 0.45; }
+}
+/* Status auras on the cards */
+.aura { position: absolute; inset: 0; border-radius: 4px; pointer-events: none; z-index: 1; }
+.aura-burn { box-shadow: inset 0 0 14px 1px rgb(255 120 30 / 0.55); animation: aura-flicker 0.5s steps(3) infinite alternate; }
+.aura-poison { box-shadow: inset 0 0 12px 1px rgb(110 210 80 / 0.5); animation: aura-pulse 1.6s ease-in-out infinite; }
+.aura-bleed { box-shadow: inset 0 -10px 12px -6px rgb(220 40 40 / 0.6); animation: aura-pulse 1.2s ease-in-out infinite; }
+.aura-chill { box-shadow: inset 0 0 10px 1px rgb(140 210 255 / 0.45); }
+.aura-frozen { background: linear-gradient(135deg, rgb(200 240 255 / 0.28), rgb(120 190 240 / 0.12) 40%, rgb(220 248 255 / 0.3)); box-shadow: inset 0 0 0 2px rgb(190 235 255 / 0.7), inset 0 0 18px rgb(150 220 255 / 0.6); }
+.aura-stun::after { content: '✦ ✧ ✦'; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); color: #ffe48a; font-size: 0.714rem; letter-spacing: 2px; animation: aura-spin 1.2s linear infinite; }
+.aura-shield { box-shadow: 0 0 0 2px rgb(150 200 255 / 0.55), 0 0 12px rgb(150 200 255 / 0.45), inset 0 0 12px rgb(150 200 255 / 0.25); border-radius: 8px; }
+.aura-stone { box-shadow: inset 0 0 0 2px rgb(170 150 120 / 0.6); }
+.aura-rage { box-shadow: 0 0 10px 1px rgb(255 60 40 / 0.55); animation: aura-pulse 0.8s ease-in-out infinite; }
+.aura-fear { animation: aura-tremble 0.25s linear infinite; box-shadow: inset 0 0 10px rgb(140 90 200 / 0.4); }
+.aura-evasive { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.25); animation: aura-pulse 1s ease-in-out infinite; }
+.aura-regen { box-shadow: inset 0 0 10px rgb(90 210 110 / 0.35); }
+.aura-rally { box-shadow: 0 0 8px rgb(230 190 80 / 0.5); }
+.aura-curse { box-shadow: inset 0 0 14px 2px rgb(130 50 200 / 0.5); animation: aura-pulse 2s ease-in-out infinite; }
+.aura-sapped { box-shadow: inset 0 0 10px rgb(80 140 160 / 0.45); }
+@keyframes aura-flicker { from { opacity: 0.6; } to { opacity: 1; } }
+@keyframes aura-pulse { 50% { opacity: 0.45; } }
+@keyframes aura-spin { from { transform: translateX(-50%) rotate(0); } to { transform: translateX(-50%) rotate(360deg); } }
+@keyframes aura-tremble { 25% { transform: translateX(-1px); } 75% { transform: translateX(1px); } }
+/* Result banner */
+.round-banner .big.win { animation: banner-pop 0.7s cubic-bezier(.2, 1.6, .4, 1) both; color: var(--gold); text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 50%, transparent); }
+.round-banner .big.loss { animation: banner-pop 0.7s ease-out both; color: var(--bad); }
+@keyframes banner-pop { from { transform: scale(0.5); opacity: 0; } to { transform: none; opacity: 1; } }
+/* Effects off: no looping or decorative animation. */
+:root[data-effects='reduced'] .aura, :root[data-effects='reduced'] .aura::after,
+:root[data-effects='reduced'] .fighter.down, :root[data-effects='reduced'] .float,
+:root[data-effects='reduced'] .round-banner .big { animation: none !important; }
+
+/* ——— General polish ——— */
+.fx-btn { filter: grayscale(1); opacity: 0.55; }
+.fx-btn.on { filter: none; opacity: 1; }
+.screen-enter { animation: screen-in 0.28s ease-out both; }
+@keyframes screen-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.btn { transition: transform 0.08s ease, background 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.btn:active:not(:disabled) { transform: scale(0.96); }
+.btn.primary:hover:not(:disabled) { box-shadow: 0 0 0 1px var(--accent), 0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent); }
+.ability-card, .youth-card, .guide-steps li, .stat-tile { transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s; }
+.ability-card:hover, .youth-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgb(0 0 0 / 0.25); }
+.xp-bar > i { transition: width 0.8s cubic-bezier(.2, .8, .2, 1); }
+:root[data-effects='reduced'] .screen-enter, :root[data-effects='reduced'] .btn { animation: none; transition: none; }
+:root[data-effects='reduced'] .ability-card:hover, :root[data-effects='reduced'] .youth-card:hover { transform: none; }
+
+/* ——— Treasury & celebrations ——— */
+.balance { position: relative; }
+.balance-delta {
+  position: absolute; left: 50%; top: 100%; transform: translateX(-50%); white-space: nowrap; pointer-events: none;
+  font: 700 0.786rem var(--font-mono); animation: delta-drop 2.2s ease-out forwards; z-index: 30;
+}
+.balance-delta.up { color: var(--good); }
+.balance-delta.down { color: var(--bad); }
+@keyframes delta-drop { 0% { opacity: 0; transform: translate(-50%, -6px); } 12% { opacity: 1; transform: translate(-50%, 2px); } 75% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 10px); } }
+.toasts { position: fixed; right: 16px; bottom: 16px; z-index: 70; display: flex; flex-direction: column-reverse; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
+.toast {
+  display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: var(--radius); cursor: pointer;
+  background: var(--panel); border: 1px solid var(--border-strong); box-shadow: var(--shadow);
+  animation: toast-in 0.45s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+.toast-text { display: flex; flex-direction: column; gap: 2px; font-size: 0.929rem; min-width: 0; }
+.toast-text .muted { font-size: 0.857rem; }
+.toast-icon { font-size: 1.571rem; flex: none; display: grid; place-items: center; width: 34px; }
+.toast-small { border-left: 3px solid var(--accent); }
+.toast-big { border-left: 3px solid var(--gold); box-shadow: var(--shadow), 0 0 16px color-mix(in srgb, var(--gold) 25%, transparent); }
+.toast-huge { border: 1px solid var(--gold); box-shadow: var(--shadow), 0 0 24px color-mix(in srgb, var(--gold) 45%, transparent); }
+.toast-huge b { color: var(--gold); font-size: 1.071rem; }
+.toast-sad { border-left: 3px solid var(--faint); filter: saturate(0.3); }
+.toast-sad .toast-icon { animation: candle 1.6s ease-in-out infinite; }
+.toast.flip { animation: toast-flip 0.8s ease-out both; transform-origin: center; }
+@keyframes toast-in { from { opacity: 0; transform: translateX(40px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes toast-flip { 0% { opacity: 0; transform: perspective(600px) rotateY(90deg); } 60% { opacity: 1; transform: perspective(600px) rotateY(-12deg); } 100% { transform: none; } }
+@keyframes candle { 50% { opacity: 0.6; transform: scale(0.94); } }
+:root[data-effects='reduced'] .toast, :root[data-effects='reduced'] .toast-icon, :root[data-effects='reduced'] .balance-delta { animation: none; }
+:root[data-effects='reduced'] .balance-delta { display: none; }
+
+/* ——— Management screens polish ——— */
+/* Panels: a faint sheen at the top and an ornamented title rule. */
+.panel { background-image: linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 120px); }
+.panel > h2:first-child, .panel > h3:first-child, .panel-head > h2, .panel-head > h3 { position: relative; }
+.panel-head > h2::after {
+  content: ''; display: block; height: 1px; margin-top: 4px; width: min(220px, 100%);
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+/* Bars and XP fill in when they appear. */
+.bar > i.fill, .xp-bar > i { transform-origin: left center; animation: bar-grow 0.8s cubic-bezier(.2, .8, .2, 1) both; }
+.mirror .bar > i.fill { transform-origin: right center; }
+@keyframes bar-grow { from { transform: scaleX(0); } to { transform: none; } }
+/* Tables: a clearer hover and a gold edge on the row under the pointer. */
+table.data tbody tr { transition: background 0.12s; }
+table.data tbody tr:hover td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+/* Messages arrive; unread ones breathe. */
+.msg { animation: fadein 0.35s ease-out both; }
+.msg.unread { animation: fadein 0.35s ease-out both, unread-glow 2.4s ease-in-out 0.4s 2; }
+@keyframes unread-glow { 50% { box-shadow: inset 0 0 0 1px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 30%, transparent); } }
+/* Finance tiles and chart. */
+.tile { transition: transform 0.15s, box-shadow 0.15s; border: 1px solid transparent; }
+.tile:hover { transform: translateY(-1px); border-color: var(--border); box-shadow: 0 4px 12px rgb(0 0 0 / 0.18); }
+.chart .line.draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw-line 1.4s ease-out 0.1s forwards; }
+.chart .line { stroke: var(--gold); }
+.chart .area { animation: fadein 1s ease-out 0.6s both; }
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+/* Nav: underline slides in. */
+.nav button { position: relative; transition: color 0.15s; }
+/* Standings: the player's row glows softly. */
+table.data tr.mine td { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--home) 40%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--home) 40%, transparent); }
+/* Effects off: everything static. */
+:root[data-effects='reduced'] .bar > i.fill, :root[data-effects='reduced'] .xp-bar > i, :root[data-effects='reduced'] .msg,
+:root[data-effects='reduced'] .chart .area, :root[data-effects='reduced'] .tile { animation: none; transition: none; }
+:root[data-effects='reduced'] .chart .line.draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
+/* Gold amounts on gold buttons keep the button colour. */
+.btn.primary .gold, .btn.active .gold { color: inherit; }
