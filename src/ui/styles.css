@@ -800,12 +800,11 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .good-text .gold, .bad-text .gold { color: inherit; }
 .intro { gap: 10px; max-width: 760px; }
 .intro p { margin: 0; line-height: 1.5; }
-/* Training guide: four cards in a foldable box. */
-.training-guide { background: var(--panel-2); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 12px; }
+/* Training guide: a 3-step strip of the week and three short lines, foldable. */
+.training-guide { background: var(--panel-2); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 12px; font-size: 0.929rem; }
 .training-guide > summary { cursor: pointer; }
-.training-guide > summary .faint { font-size: 0.857rem; }
-.guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
-.guide-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 0.929rem; }
-.guide-card h4 { margin: 0 0 6px; color: var(--accent); }
-.guide-card ul { margin: 0; padding-left: 18px; }
-.guide-card li { margin: 4px 0; line-height: 1.45; }
+.guide-steps { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 6px; padding: 0; list-style: none; counter-reset: step; }
+.guide-steps li { counter-increment: step; flex: 1 1 200px; padding: 6px 10px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); }
+.guide-steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; margin-right: 6px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: 0.857rem; }
+.guide-lines { margin: 0; padding-left: 18px; color: var(--muted); }
+.guide-lines li { margin: 2px 0; }
