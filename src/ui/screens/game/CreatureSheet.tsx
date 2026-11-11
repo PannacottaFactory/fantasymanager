@@ -8,12 +8,12 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { isPlayerTeam, locate, renewalDemand, signingBonus } from '../../../engine/economy/market.ts';
-import { estimatedValue, knowledgeOf, potentialLevel } from '../../../engine/economy/scouting.ts';
+import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature, Team } from '../../../engine/model.ts';
 import { toggleFavorite } from '../../../engine/team/edit.ts';
-import { Knowledge, Stars, Gold, Money } from '../../components/common.tsx';
+import { Knowledge, PotentialStars, Gold, Money } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
@@ -275,7 +275,7 @@ function Sheet({ id }: { id: string }) {
           </span>
           <span><Gold>{t('cr.valueEst', { v: money(estimatedValue(creature, k)) })}</Gold></span>
           <span className="row" style={{ gap: 4 }}>
-            {t('cr.potentialEst')} <Stars n={potentialLevel(creature, k)} title={t('stars.potential', { n: potentialLevel(creature, k) })} />
+            {t('cr.potentialEst')} <PotentialStars c={creature} k={k} />
           </span>
           <ScoutButton game={game} creature={creature} />
         </div>

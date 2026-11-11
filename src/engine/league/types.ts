@@ -296,6 +296,8 @@ export interface GameState {
   coachMarket: Coach[];
   /** This off-season's young creatures awaiting the player's decision. */
   youth: Creature[];
+  /** Free agents before the last weekly market (display: « new » badge). */
+  freeAgentsBefore?: string[];
   // ——— Phase 5 ———
   /** Team ids per division (index 0 = D1). */
   divisions: string[][];

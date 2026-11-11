@@ -5,6 +5,7 @@ import { generateTeamName } from '../../../engine/creature/names.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
 import { lastMatchday, playerTeam, standings } from '../../../engine/league/season.ts';
 import { Crest } from '../../components/common.tsx';
+import { UiIcon } from '../../icons/Icon.tsx';
 import { randomSeed } from '../../format.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../../icons/gameIcons.ts';
 import { divName } from '../../competitions.ts';
@@ -12,7 +13,6 @@ import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { useTutorial } from '../../tutorial/tutorial.ts';
 
-const DIFF_ICON: Record<DifficultyId, string> = { easy: '🌿', normal: '⚔', hard: '💀' };
 
 /** Shown when no game is loaded, or from the "new game" button: continue the save, or start a new game. */
 export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; onCreated?: () => void }) {
@@ -72,7 +72,9 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
 
         <section className="panel start-card new-card">
           <div className="start-card-tag new">{t('start.newTag')}</div>
-          <h2>✦ {t('start.new')}</h2>
+          <h2 className="row" style={{ gap: 8 }}>
+            <UiIcon name="new-game" size="1.1em" /> {t('start.new')}
+          </h2>
           {game && <p className="answer bad" style={{ margin: 0 }}>{t('start.replaceWarning')}</p>}
           <label className="field">
             {t('start.teamName')}
@@ -83,7 +85,9 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
             <div className="diff-cards" role="radiogroup" aria-label={t('start.difficulty')}>
               {DIFFICULTY_IDS.map((d) => (
                 <button key={d} role="radio" aria-checked={d === difficulty} className={`diff-card ${d} ${d === difficulty ? 'on' : ''}`} onClick={() => setDifficulty(d)}>
-                  <span className="diff-icon">{DIFF_ICON[d]}</span>
+                  <span className="diff-icon">
+                    <UiIcon name={`diff-${d}`} size="1.5em" />
+                  </span>
                   <b>{t(`diff.${d}`)}</b>
                   <span className="muted">{t(`diff.${d}.desc`)}</span>
                 </button>

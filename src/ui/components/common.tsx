@@ -8,6 +8,7 @@ import { attrClass, initials } from '../format.ts';
 import { effectsOn, useT } from '../i18n/index.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
 import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.ts';
+import { potentialLevelRange } from '../../engine/economy/scouting.ts';
 import type { Creature } from '../../engine/model.ts';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 
@@ -22,16 +23,31 @@ export function AttrRange({ r }: { r: { low: number; high: number } }) {
 }
 
 /** A rating out of 10 written « 8★ » (potential = the highest level reachable, coach quality…), coloured by tier. */
-export function Stars({ n, title }: { n: number; title?: string }) {
+export function Stars({ n, max, title }: { n: number; max?: number; title?: string }) {
   const { t } = useT();
   const v = Math.max(1, Math.min(10, Math.round(n)));
-  const tier = v >= 9 ? 'legend' : v >= 7 ? 'high' : v >= 4 ? 'mid' : 'low';
+  const hi = max === undefined ? v : Math.max(v, Math.min(10, Math.round(max)));
+  // A range is coloured by its middle.
+  const mid = (v + hi) / 2;
+  const tier = mid >= 9 ? 'legend' : mid >= 7 ? 'high' : mid >= 4 ? 'mid' : 'low';
+  const label = hi > v ? `${v}–${hi}` : `${v}`;
   return (
-    <span className={`stars-n ${tier}`} title={title ?? t('stars.title', { n: v })} aria-label={t('stars.title', { n: v })}>
-      {v}
+    <span className={`stars-n ${tier} ${hi > v ? 'range' : ''}`} title={title ?? t('stars.title', { n: label })} aria-label={t('stars.title', { n: label })}>
+      {label}
       <i>★</i>
     </span>
   );
+}
+
+/** Potential of a creature as the player knows it: exact for its own, a range for the others. */
+export function PotentialStars({ c, k }: { c: Creature; k: number }) {
+  const { t } = useT();
+  if (k >= 100) {
+    const n = maxLevelOf(c);
+    return <Stars n={n} title={t('stars.potential', { n })} />;
+  }
+  const r = potentialLevelRange(c, k);
+  return <Stars n={r.low} max={r.high} title={t(r.high > r.low ? 'stars.potentialRange' : 'stars.potential', { n: r.low, m: r.high })} />;
 }
 
 /** Knowledge gauge (0–100). */

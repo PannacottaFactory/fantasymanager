@@ -44,22 +44,31 @@ export function importance(team: Team, creatureId: string): number {
 }
 
 /**
- * A shortlist of creatures the other stables would let go (outside their best five), from divisions around the
- * player's, within reach of its treasury (relaxed when too few), most valuable first.
+ * A shortlist of offers from the other stables: creatures they would let go (outside their best five) from divisions
+ * around the player's, within reach of its treasury (relaxed when too few), plus a few « dream » creatures — the most
+ * valuable of the divisions above, starters included, whatever their price. Most valuable first.
  */
 export function transferOffers(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): { creature: Creature; team: Team }[] {
   const f = cfg.economy.freeAgents;
   const me = divisionOf(state, state.playerTeamId);
-  const balance = clubOf(state, state.playerTeamId).balance;
-  const all = state.teams
-    .filter((t) => t.id !== state.playerTeamId && Math.abs(divisionOf(state, t.id) - me) <= f.offerDivisions && canLose(t, cfg))
-    .flatMap((team) => team.creatures.filter((c) => importance(team, c.id) < 1).map((creature) => ({ creature, team, price: askingPrice(team, creature, cfg) })));
-  const byValue = (a: { creature: Creature }, b: { creature: Creature }) => creatureValue(b.creature, cfg) - creatureValue(a.creature, cfg) || a.creature.id.localeCompare(b.creature.id);
+  const balance = Math.max(0, clubOf(state, state.playerTeamId).balance);
+  const value = (c: Creature) => creatureValue(c, cfg);
+  const byValue = (a: { creature: Creature }, b: { creature: Creature }) => value(b.creature) - value(a.creature) || a.creature.id.localeCompare(b.creature.id);
+  const others = state.teams.filter((t) => t.id !== state.playerTeamId);
+  // Dreams: the best of the stronger divisions (or of the player's own when it is already at the top).
+  const above = others.filter((t) => divisionOf(state, t.id) < me || (me === 0 && divisionOf(state, t.id) === 0));
+  const dreams = above.flatMap((team) => team.creatures.map((creature) => ({ creature, team }))).sort(byValue).slice(0, f.dreamOffers);
+  const taken = new Set(dreams.map((d) => d.creature.id));
+  const near = others
+    .filter((t) => Math.abs(divisionOf(state, t.id) - me) <= f.offerDivisions && canLose(t, cfg))
+    .flatMap((team) => team.creatures.filter((c) => importance(team, c.id) < 1 && !taken.has(c.id)).map((creature) => ({ creature, team, price: askingPrice(team, creature, cfg) })));
+  const want = f.offers - dreams.length;
+  let picks: typeof near = [];
   for (const reach of [1.2, 2.5, Infinity]) {
-    const picks = all.filter((x) => x.price <= Math.max(balance, 0) * reach).sort(byValue);
-    if (picks.length >= f.offers || reach === Infinity) return picks.slice(0, f.offers).map(({ creature, team }) => ({ creature, team }));
+    picks = near.filter((x) => x.price <= balance * reach).sort(byValue);
+    if (picks.length >= want) break;
   }
-  return [];
+  return [...picks.slice(0, want), ...dreams].sort(byValue).map(({ creature, team }) => ({ creature, team }));
 }
 
 /** What an AI stable wants for one of its creatures. */
@@ -254,6 +263,8 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   const moves: TransferMove[] = [];
   const target = cfg.league.squadSize;
 
+  // Who was on the market before this week's moves (the UI marks the newcomers).
+  state.freeAgentsBefore = state.freeAgents.map((c) => c.id);
   // Free agents drift away; newcomers arrive. A crowded market keeps only its most valuable creatures.
   state.freeAgents = state.freeAgents.filter(() => !rng.chance(cfg.economy.freeAgents.leaveChance));
   if (state.freeAgents.length > cfg.economy.freeAgents.max)

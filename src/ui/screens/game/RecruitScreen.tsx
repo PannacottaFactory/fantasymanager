@@ -9,7 +9,7 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
-import { Crest, ElementDots, Knowledge, Seg, Stars, Gold, Money } from '../../components/common.tsx';
+import { Crest, ElementDots, Knowledge, PotentialStars, Seg, Gold, Money } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -34,6 +34,14 @@ interface Row {
   k: number;
 }
 
+/** A free agent that arrived with this week's market. */
+const isNew = (game: GameState, r: Row) => !r.team && !!game.freeAgentsBefore && !game.freeAgentsBefore.includes(r.c.id);
+
+function NewBadge() {
+  const { t } = useT();
+  return <span className="new-badge">{t('recruit.new')}</span>;
+}
+
 function useColumns(game: GameState, free: boolean): Column<Row>[] {
   const tr = useT();
   const { t, lang } = tr;
@@ -51,6 +59,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
             {r.c.name}
           </button>
           {game.scouting.missions.some((m) => m.targetId === r.c.id) && <span title={t('scout.onIt')}>🔍</span>}
+          {isNew(game, r) && <NewBadge />}
         </span>
       ),
     },
@@ -87,7 +96,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
       label: t('col.potential'),
       title: t('col.potential.title'),
       sort: (r) => potentialLevel(r.c, r.k),
-      render: (r) => <Stars n={potentialLevel(r.c, r.k)} title={t('stars.potential', { n: potentialLevel(r.c, r.k) })} />,
+      render: (r) => <PotentialStars c={r.c} k={r.k} />,
     },
     { key: 'value', label: t('col.value'), title: t('col.value.title'), num: true, sort: (r) => estimatedValue(r.c, r.k), render: (r) => <Money v={estimatedValue(r.c, r.k)} compact /> },
   );
@@ -160,6 +169,7 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
           const scouting = game.scouting.missions.some((m) => m.targetId === r.c.id);
           return (
             <div key={r.c.id} className="recruit-card" onClick={() => openSheet(r.c.id)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && openSheet(r.c.id)}>
+              {isNew(game, r) && <NewBadge />}
               <div className="rc-head">
                 <Crest speciesId={r.c.speciesId} name={r.c.name} size={30} />
                 <div className="rc-who">
@@ -174,7 +184,7 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
               </div>
               {!free && r.team && <div className="faint rc-team">{r.team}</div>}
               <div className="rc-row">
-                <Stars n={potentialLevel(r.c, r.k)} title={t('stars.potential', { n: potentialLevel(r.c, r.k) })} />
+                <PotentialStars c={r.c} k={r.k} />
                 <span title={t('col.known.title')} className="row" style={{ gap: 4 }}>
                   {scouting && '🔍'}
                   <Knowledge k={r.k} />

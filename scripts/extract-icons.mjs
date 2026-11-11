@@ -87,6 +87,10 @@ const UI = {
   board: 'scroll-unfurled',
   competitions: 'trophy',
   honours: 'laurels',
+  'diff-easy': 'sprout',
+  'diff-normal': 'crossed-swords',
+  'diff-hard': 'death-skull',
+  'new-game': 'scroll-quill',
 };
 
 /** Competition definition → icon name. */

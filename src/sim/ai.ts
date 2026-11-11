@@ -14,6 +14,7 @@ import { aiPrepare, newGame, playMatchday, playerTeam, seasonOver, standings } f
 import type { Team } from '../engine/model.ts';
 import { cloneTeam, generateTeam } from '../engine/team/team.ts';
 import { parseArgs } from './args.ts';
+import { registerTournament, registrationState } from '../engine/league/tournaments.ts';
 
 const args = parseArgs(process.argv.slice(2));
 const N = Math.max(20, Number(args.matches ?? 300));
@@ -70,11 +71,15 @@ for (const d of DIFFICULTY_IDS) {
   let pos = 0;
   let pts = 0;
   let money = 0;
+  const won: Record<string, number> = {};
+  const entered: Record<string, number> = {};
   for (let s = 0; s < SEASONS; s++) {
     let g = newGame({ seed: `ai-${s}`, teamName: 'Test', lang: 'en', difficulty: d });
     while (!seasonOver(g)) {
       const me = playerTeam(g);
       g = { ...g, teams: g.teams.map((t) => (t.id === me.id ? aiPrepare(t) : t)) };
+      // Like a player would: enter the invitationals it can.
+      for (const tour of g.tournaments) if (registrationState(g, tour) === 'ok') g = registerTournament(g, tour.id).state;
       g = playMatchday(g);
     }
     const table = standings(g);
@@ -82,7 +87,19 @@ for (const d of DIFFICULTY_IDS) {
     pos += i + 1;
     pts += table[i]!.points;
     money += g.clubs[g.playerTeamId]!.balance;
+    const me = g.playerTeamId;
+    for (const tour of g.tournaments) {
+      const def = tour.def;
+      if (tour.entrants.includes(me)) entered[def] = (entered[def] ?? 0) + 1;
+      if (tour.winner === me) won[def] = (won[def] ?? 0) + 1;
+    }
+    entered.shadow = (entered.shadow ?? 0) + 1;
+    if (g.cup.winner === me) won.shadow = (won.shadow ?? 0) + 1;
   }
-  console.log(`   ${d.padEnd(7)} position ${(pos / SEASONS).toFixed(1)} / 10 · points ${(pts / SEASONS).toFixed(0)} · treasury ${Math.round(money / SEASONS / 1000)}k`);
+  const trophies = Object.keys(entered)
+    .map((k) => `${k} ${won[k] ?? 0}/${entered[k]}`)
+    .join(' · ');
+  const total = Object.values(won).reduce((a, b) => a + b, 0);
+  console.log(`   ${d.padEnd(7)} position ${(pos / SEASONS).toFixed(1)} / 10 · points ${(pts / SEASONS).toFixed(0)} · treasury ${Math.round(money / SEASONS / 1000)}k · trophies ${(total / SEASONS).toFixed(2)}/season (${trophies})`);
 }
 console.log(`\n${((performance.now() - t0) / 1000).toFixed(1)} s`);

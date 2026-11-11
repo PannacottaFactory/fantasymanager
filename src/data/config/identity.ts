@@ -109,18 +109,18 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional'],
       ['professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'regional'],
       ['regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice'],
-      ['regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
+      ['regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
-    styleShare: 0.5, identities: true, reading: 'tacticians', favorites: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
+    playerQuality: 'regional', styleShare: 0.5, identities: true, reading: 'tacticians', favorites: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
   },
   hard: {
     divisions: [
       ['elite', 'elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional'],
       ['professional', 'professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional'],
       ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
-      ['regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
+      ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
     ],
-    styleShare: 0.55, identities: true, reading: 'all', favorites: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
+    playerQuality: 'regional', styleShare: 0.55, identities: true, reading: 'all', favorites: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
   },
 };
 

@@ -166,9 +166,12 @@ tests/       Vitest
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
-- **Market size**: at most `freeAgents.max` (16) free agents (the least valuable leave each week; refill to `pool` 12).
+- **Market size**: at most `freeAgents.max` (10) free agents (20 % leave each week, the least valuable go when crowded;
+  refill to `pool` 8); `GameState.freeAgentsBefore` = ids before the last weekly market → « Nouveau » badge. Home ambitions:
+  one line with the current one, the list on demand.
   Recruitment › Other stables opens on « Sélection pour vous » = `transferOffers` (15 creatures outside their stable's
-  best five, divisions ±1, within reach of the treasury — relaxed when too few); a stable or « all » shows full squads.
+  best five, divisions ±1, within reach of the treasury — relaxed when too few — plus `dreamOffers` 5 stars of the
+  divisions above, any price); a stable or « all » shows full squads. The home dashboard always shows every card.
 - **Imperfect information**: the player sees other creatures through `knowledgeOf` (own = 100, league 25,
   free agents 10; matches +20 up to 60; scouts 70/90). Ranges come from a fixed per-creature offset
   (`noise(id, key)`), always contain the truth and narrow monotonically — never show raw attributes,
@@ -231,8 +234,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   quarrels, match-start morale, friends mourn departures), grouped navigation, save migration v3→v4. 77 tests.
 - [x] **Tutorial** (reworked for new players): `ui/tutorial/FirstSteps.tsx` = « Premiers pas » checklist on the home
   screen (6 quests ticked automatically by `useFirstStepsTracker`: open a sheet, tactics, first match, report, training,
-  market; stored with the tutorial in localStorage); while learning, the dashboard shows only the essentials
-  (`useLearning`, « show all » link). 13 short tips (one or two sentences, no step counter). Originally: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
+  market; stored with the tutorial in localStorage); the dashboard always shows everything. 13 short tips (one or two sentences, no step counter). Originally: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
   unseen one whose anchor is visible is shown; progress in localStorage; only during a game), Help page (`?` button)
   with the manual and tutorial controls, opt-out checkbox on the start screen. Adding a screen ⇒ add a `data-tip`
   anchor + a step + `tut.<id>.title/body` strings if it needs explaining.
@@ -313,6 +315,12 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   filling — wrapping with « Niveau N ! » on a level-up —, attribute chips popping one by one, new abilities, point to
   place; sparkles; still when effects are off), position ▲▼, treasury delta, infirmary, next week.
   The ribbon is a rail filled up to the current week, a medallion per week (league result), diamonds for cup matches.
+- **Difficulty** (re-tuned): the player starts with a regional squad in every difficulty; the Marches League holds
+  0 / 3 / 6 regional stables (easy / normal / hard) and AI identities, reading, money and board differ. `sim:ai
+  --season-only` (autopilot, enters the invitationals it can) ≈ 4th · 1.4 trophies/season (easy), 5th · 0.8 (normal),
+  7th · 0.5 (hard) — a skilled player does better.
+- **Potential** of other stables' creatures is a range « 4–8★ » (`potentialLevelRange`, `<PotentialStars c k>`, contains
+  the truth, narrows with knowledge); young creatures are priced on their ceiling (`value.potentialWeight` 1.3).
 - **Potential** is written « n★ » (`<Stars n>`, 1–10 = highest level reachable: `maxLevelOf` for own creatures,
   `potentialLevel(c, knowledge)` estimate for others; coach quality /2). Squad has a one-line hint on how creatures
   grow with a link to Training; Training shows species icon + element dots.

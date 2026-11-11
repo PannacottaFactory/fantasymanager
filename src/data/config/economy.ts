@@ -6,7 +6,7 @@ export const ECONOMY_CONFIG = {
     /** value ∝ (ability / 100) ^ exponent. */
     exponent: 2.5,
     /** Young creatures: + (potential − ability) / 100 × this, until the end of their prime. */
-    potentialWeight: 0.8,
+    potentialWeight: 1.3,
     /** Past their prime: × (1 − this × years past peakEnd), floored at minAgeFactor. */
     declinePerYear: 0.18,
     minAgeFactor: 0.25,
@@ -96,14 +96,16 @@ export const ECONOMY_CONFIG = {
   },
   freeAgents: {
     /** Pool size kept by weekly arrivals. */
-    pool: 12,
+    pool: 8,
     /** At most this many free agents: the least valuable leave (e.g. after the off-season's young prospects). */
-    max: 16,
+    max: 10,
     /** « Other stables » shortlist: offers shown, divisions around the player's. */
     offers: 15,
     offerDivisions: 1,
+    /** Of which « dream » offers: the most valuable creatures of the divisions above, whatever their price. */
+    dreamOffers: 5,
     /** Chance per week that a free agent signs elsewhere / leaves. */
-    leaveChance: 0.12,
+    leaveChance: 0.2,
     /** Quality of newcomers (weights). */
     qualityWeights: { novice: 4, regional: 6, professional: 3, elite: 0.5 },
   },

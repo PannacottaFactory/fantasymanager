@@ -94,7 +94,8 @@ describe('ageing & youth', () => {
     const fresh = (c: Creature) => !agents.has(c.id) && !squads.has(c.id) && lifeStage(c) === 'young' && c.age === getSpecies(c).lifeCurve.minAge;
     expect(g.freeAgents.filter(fresh).length).toBeGreaterThan(0);
     expect(g.teams.some((t) => t.id !== g.playerTeamId && t.creatures.some(fresh))).toBe(true);
-    expect(playerTeam(g).creatures.some(fresh)).toBe(false);
+    // The player only gets one through an emergency signing (squad too short).
+    if (!g.inbox.some((m) => m.kind === 'emergencySigning')) expect(playerTeam(g).creatures.some(fresh)).toBe(false);
     expect(g.inbox.some((m) => m.kind === 'youthIntake')).toBe(true);
   }, 60000);
 });

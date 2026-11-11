@@ -71,6 +71,13 @@ export function potentialLevel(c: Creature, knowledge: number, cfg: GameConfig =
   return levelOfAbility(clamp(c.potential + err, 10, 200), cfg);
 }
 
+/** Range of the highest level reachable, as the player can tell it: contains the truth, narrows with knowledge. */
+export function potentialLevelRange(c: Creature, knowledge: number, cfg: GameConfig = DEFAULT_CONFIG): { low: number; high: number } {
+  const spread = cfg.economy.scouting.potentialError * (1 - knowledge / 100);
+  const est = c.potential + noise(c.id, 'pot') * spread;
+  return { low: levelOfAbility(clamp(est - spread, 10, 200), cfg), high: levelOfAbility(clamp(est + spread, 10, 200), cfg) };
+}
+
 /** Estimated value (exact for well-known creatures). */
 export function estimatedValue(c: Creature, knowledge: number, cfg: GameConfig = DEFAULT_CONFIG): number {
   const v = creatureValue(c, cfg);

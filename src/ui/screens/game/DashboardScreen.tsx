@@ -4,7 +4,7 @@
  */
 import { ReputationLine } from '../../components/Reputation.tsx';
 import { useState, type ReactNode } from 'react';
-import { FirstSteps, useLearning } from '../../tutorial/FirstSteps.tsx';
+import { FirstSteps } from '../../tutorial/FirstSteps.tsx';
 import { overallRating } from '../../../engine/creature/derived.ts';
 import { AMBITION_IDS, ambitionProgress } from '../../../engine/club/ambitions.ts';
 import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
@@ -288,6 +288,34 @@ function Ambitions({ game }: { game: GameState }) {
   const count = AMBITION_IDS.filter((id) => done[id] !== undefined).length;
   const next = AMBITION_IDS.filter((id) => done[id] === undefined);
   const shown = open ? AMBITION_IDS : next.slice(0, 3);
+  // Closed: a single line with the current ambition.
+  if (!open) {
+    const cur = next[0];
+    const p = cur ? ambitionProgress(game, cur) : null;
+    return (
+      <section className="panel dash-ambitions compact">
+        <b className="amb-title">{t('amb.title')}</b>
+        <span className="amb-bar" aria-hidden="true">
+          <span style={{ width: `${(count / AMBITION_IDS.length) * 100}%` }} />
+        </span>
+        <span className="faint mono amb-count">{t('amb.count', { n: count, of: AMBITION_IDS.length })}</span>
+        <span className="amb-cur grow">
+          {cur ? (
+            <>
+              <span className="amb-ico">➤</span> <b>{t(`amb.${cur}` as StringKey)}</b>
+              <span className="muted"> — {t(`amb.${cur}.desc` as StringKey)}</span>
+              {p && <span className="faint mono"> ({p.n}/{p.of})</span>}
+            </>
+          ) : (
+            t('amb.all')
+          )}
+        </span>
+        <button className="link amb-more" onClick={() => setOpen(true)}>
+          {t('amb.seeAll')} ▾
+        </button>
+      </section>
+    );
+  }
   return (
     <section className="panel dash-card dash-ambitions">
       <div className="dash-card-head">
@@ -323,12 +351,7 @@ function Ambitions({ game }: { game: GameState }) {
 }
 
 export function DashboardScreen() {
-  const { t } = useT();
   const game = useGame((s) => s.game)!;
-  // While learning, the home screen keeps to the essentials (the rest is one click away).
-  const learning = useLearning();
-  const [all, setAll] = useState(false);
-  const full = !learning || all;
   return (
     <div className="stack dash" data-tip="dashboard">
       <Hero game={game} />
@@ -337,25 +360,16 @@ export function DashboardScreen() {
         <NextMatch game={game} />
       </div>
       <Ambitions game={game} />
-      {full && <BoardCard game={game} />}
+      <BoardCard game={game} />
       <div className="dash-grid">
         <SquadStatus game={game} />
         <MiniTable game={game} />
-        {full && (
-          <>
-            <Money game={game} />
-            <Stars game={game} />
-            <Results game={game} />
-            <Messages game={game} />
-            <News game={game} />
-          </>
-        )}
+        <Money game={game} />
+        <Stars game={game} />
+        <Results game={game} />
+        <Messages game={game} />
+        <News game={game} />
       </div>
-      {learning && (
-        <button className="link" style={{ alignSelf: 'center' }} onClick={() => setAll((x) => !x)}>
-          {all ? t('dash.showLess') : t('dash.showAll')}
-        </button>
-      )}
     </div>
   );
 }
