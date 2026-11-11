@@ -2,7 +2,7 @@
  * League: the pyramid of divisions (where you are, where you are going), the table of a division with zones and
  * movements, its fixtures; every competition of the season (status, prizes, registration, draw); the honours.
  */
-import { useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { divisionFixtures, divisionOf } from '../../../engine/league/divisions.ts';
@@ -10,7 +10,10 @@ import { lastMatchday, playerDivision, seasonOver, standings, teamById } from '.
 import { computeStandings } from '../../../engine/league/standings.ts';
 import { registerTournament, registrationState, tournamentDef, tournamentPrize } from '../../../engine/league/tournaments.ts';
 import type { Fixture, GameState, Tournament } from '../../../engine/league/types.ts';
-import { COMP_ICON, compName, DIV_ICON, divName, roundKey } from '../../competitions.ts';
+import { compName, divName, roundKey } from '../../competitions.ts';
+import { CompIcon, DivIcon, UiIcon } from '../../icons/Icon.tsx';
+import { byWeek, itemLabel, playerSeason } from '../../season.ts';
+import { ReputationLine } from '../../components/Reputation.tsx';
 import { Gold, Money, Seg } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
@@ -52,7 +55,9 @@ function Pyramid({ game, selected, onSelect }: { game: GameState; selected: numb
               style={{ width: `${76 + (24 * d) / Math.max(1, n - 1)}%` }}
               onClick={() => onSelect(d)}
             >
-              <span className="pyr-icon">{DIV_ICON[d]}</span>
+              <span className="pyr-icon">
+                <DivIcon d={d} />
+              </span>
               <span className="pyr-name">
                 <b>{divName(t, d)}</b>
                 <small>
@@ -105,7 +110,9 @@ function DivisionHero({ game, division }: { game: GameState; division: number })
   }
   return (
     <section className={`panel div-hero tier-${division}`}>
-      <div className="div-emblem">{DIV_ICON[division]}</div>
+      <div className="div-emblem">
+        <DivIcon d={division} />
+      </div>
       <div className="grow">
         <h2>{divName(t, division)}</h2>
         <div className="muted">{rules}</div>
@@ -115,6 +122,7 @@ function DivisionHero({ game, division }: { game: GameState; division: number })
         <div className="faint" style={{ fontSize: '0.786rem' }}>
           {t('league.progress', { d: md, n: lastMatchday(game) })}
         </div>
+        {division === mineDiv && <ReputationLine game={game} />}
       </div>
       {division === mineDiv && me && (
         <div className="div-me">
@@ -370,7 +378,18 @@ function useCompInfo(game: GameState, v: CompView) {
     </button>
   ) : null;
   const opp = nextTie ? teamById(game, nextTie.home === me ? nextTie.away : nextTie.home).name : undefined;
-  return { name, status, nextText, desc, registerButton, note, opp, inIt, me };
+  const started = v.fixtures.some((f) => f.result);
+  const favourite = v.winner ? undefined : [...v.alive].sort((a, b) => clubOf(game, b).reputation - clubOf(game, a).reputation)[0];
+  const field = v.winner
+    ? t('comp.status.over', { team: teamById(game, v.winner).name })
+    : started
+      ? t('comp.field', { alive: v.alive.length, n: v.entrants.length })
+      : t('comp.fieldStart', { n: v.entrants.length });
+  const favText = favourite ? t('comp.favourite', { team: teamById(game, favourite).name }) : '';
+  const roundText = v.winner ? '' : t('comp.roundOf', { r: Math.min(v.round + 1, v.rounds), n: v.rounds });
+  const nextRound = nextKey === undefined || v.winner ? '' : roundName(v.round);
+  const nextWhen = nextKey === undefined || v.winner ? '' : nextKey < 1 ? t('cal.before') : t('cal.week', { d: Math.floor(nextKey) });
+  return { name, status, nextText, desc, registerButton, note, opp, inIt, me, field, favText, roundText, nextRound, nextWhen };
 }
 
 function Bracket({ game, v }: { game: GameState; v: CompView }) {
@@ -407,7 +426,9 @@ function CompCard({ game, v }: { game: GameState; v: CompView }) {
   return (
     <section className={`panel comp-card comp-${c.status.tone} def-${v.def}`}>
       <div className="comp-head">
-        <span className="comp-icon">{COMP_ICON[v.def] ?? '🏆'}</span>
+        <span className="comp-icon">
+          <CompIcon def={v.def} />
+        </span>
         <div className="grow">
           <h3>{c.name}</h3>
           <div className="muted" style={{ fontSize: '0.857rem' }}>
@@ -423,6 +444,8 @@ function CompCard({ game, v }: { game: GameState; v: CompView }) {
         {v.winner && v.winner !== c.me && <span className="muted">{t('comp.status.over', { team: teamById(game, v.winner).name })}</span>}
         {c.nextText && <span className="muted">{c.nextText}</span>}
         {c.opp && <span>{t('comp.yourMatch', { opp: c.opp })}</span>}
+        {!v.winner && <span className="muted">{c.field}</span>}
+        {c.favText && <span className="muted" title={t('comp.favourite.title')}>{c.favText}</span>}
         {v.def === 'champions' && !c.inIt && <span className="faint">{t('comp.req.champions')}</span>}
       </div>
       {c.registerButton && (
@@ -449,21 +472,46 @@ function CompRow({ game, v }: { game: GameState; v: CompView }) {
     <>
       <tr className={`comp-row comp-${c.status.tone} def-${v.def}`}>
         <td>
-          <span className="comp-row-name" title={c.desc}>
-            <span className="comp-icon-sm">{COMP_ICON[v.def] ?? '🏆'}</span>
+          <span className="comp-row-name">
+            <span className="comp-icon-sm">
+              <CompIcon def={v.def} />
+            </span>
             <b>{c.name}</b>
+          </span>
+          <span className="comp-row-desc faint">
+            <Gold>{c.desc}</Gold>
           </span>
         </td>
         <td>
           <span className={`comp-chip ${c.status.tone}`}>{c.status.text}</span>
-          {v.winner && v.winner !== c.me && (
-            <div className="faint" style={{ fontSize: '0.786rem' }}>
-              {t('comp.status.over', { team: teamById(game, v.winner).name })}
-            </div>
-          )}
           {v.def === 'champions' && !c.inIt && <span className="faint comp-req">{t('comp.req.champions')}</span>}
         </td>
-        <td className="muted">{c.nextText.replace(/^[^:]*:\s*/, '') || '—'}</td>
+        <td>
+          {v.winner ? (
+            <b className="gold">{c.field}</b>
+          ) : (
+            <>
+              <span>{c.field}</span>
+              {c.favText && (
+                <span className="comp-sub faint" title={t('comp.favourite.title')}>
+                  {c.favText}
+                </span>
+              )}
+            </>
+          )}
+        </td>
+        <td>
+          {c.nextRound ? (
+            <>
+              <span>{c.nextRound}</span>
+              <span className="comp-sub faint">
+                {c.nextWhen} · {c.roundText}
+              </span>
+            </>
+          ) : (
+            <span className="faint">—</span>
+          )}
+        </td>
         <td>{c.opp ?? <span className="faint">—</span>}</td>
         <td className="num">
           <Money v={v.trophy} />
@@ -486,7 +534,7 @@ function CompRow({ game, v }: { game: GameState; v: CompView }) {
       </tr>
       {open && (
         <tr className="comp-row-bracket">
-          <td colSpan={6}>
+          <td colSpan={7}>
             <Bracket game={game} v={v} />
           </td>
         </tr>
@@ -505,6 +553,7 @@ function CompTable({ game, list }: { game: GameState; list: CompView[] }) {
             <tr>
               <th>{t('comp.col.name')}</th>
               <th>{t('comp.col.status')}</th>
+              <th>{t('comp.col.field')}</th>
               <th>{t('comp.col.next')}</th>
               <th>{t('comp.col.match')}</th>
               <th className="num">{t('comp.col.trophy')}</th>
@@ -523,82 +572,65 @@ function CompTable({ game, list }: { game: GameState; list: CompView[] }) {
 }
 
 /** The player's coming matches, league and competitions together, in the order they are played. */
-function Schedule({ game, comps }: { game: GameState; comps: CompView[] }) {
+function Schedule({ game }: { game: GameState }) {
   const { t } = useT();
   const [all, setAll] = useState(false);
-  const me = game.playerTeamId;
-  type Item = { key: number; when: string; comp: string; def: string; opp?: string; tbd?: boolean; maybe?: boolean; midweek: boolean };
-  const items: Item[] = [];
-  for (const f of game.fixtures) {
-    if (f.competition || f.result || (f.home !== me && f.away !== me)) continue;
-    items.push({
-      key: f.matchday,
-      when: t('cal.matchday', { d: f.matchday }),
-      comp: `${t('cal.league')} · ${divName(t, f.division ?? 0)}`,
-      def: 'league',
-      opp: teamById(game, f.home === me ? f.away : f.home).name,
-      midweek: false,
-    });
-  }
-  for (const v of comps) {
-    if (!v.entrants.includes(me) || !v.alive.includes(me) || v.winner) continue;
-    for (let r = v.round; r < v.rounds; r++) {
-      const k = v.keys[r];
-      if (k === undefined) continue;
-      const tie = v.fixtures.find((f) => !f.result && f.round === r && (f.home === me || f.away === me));
-      items.push({
-        // A midweek after matchday d comes after that matchday (and a later midweek, d.5, after it).
-        key: Number.isInteger(k) ? k + 0.01 : k,
-        when: k < 1 ? t('cal.before') : t('cal.midweek', { d: Math.floor(k) }),
-        comp: `${compName(t, v.id)} · ${t(roundKey(r, v.rounds))}`,
-        def: v.def,
-        opp: tie ? teamById(game, tie.home === me ? tie.away : tie.home).name : undefined,
-        tbd: !tie && r === v.round,
-        maybe: r > v.round,
-        midweek: true,
-      });
-    }
-  }
-  items.sort((a, b) => a.key - b.key);
-  // A matchday followed by a midweek before the next matchday = two matches that week.
-  const double = new Set(items.filter((x) => x.midweek && x.key >= 1).map((x) => Math.floor(x.key)));
-  const LIMIT = 8;
-  const shown = all ? items : items.slice(0, LIMIT);
+  const weeks = byWeek(playerSeason(game).filter((x) => !x.played));
+  const LIMIT = 5;
+  const shown = all ? weeks : weeks.slice(0, LIMIT);
+  let order = 0;
   return (
     <section className="panel schedule">
       <h3>{t('cal.title')}</h3>
       <p className="muted" style={{ marginTop: 0, fontSize: '0.857rem' }}>
         {t('cal.intro')}
       </p>
-      {items.length === 0 ? (
+      {weeks.length === 0 ? (
         <p className="faint">{t('cal.empty')}</p>
       ) : (
-        <ol className="cal-list">
-          {shown.map((x, i) => (
-            <li key={i} className={`cal-item ${x.midweek ? 'midweek' : 'league'} ${x.maybe ? 'maybe' : ''}`}>
-              <span className="cal-when">
-                {x.when}
-                {!x.midweek && double.has(x.key) && <small className="cal-double">{t('cal.double')}</small>}
-              </span>
-              <span className={`comp-badge def-${x.def}`}>
-                {x.def === 'league' ? DIV_ICON[playerDivision(game)] : (COMP_ICON[x.def] ?? '🏆')} {x.comp}
-              </span>
-              <span className="cal-opp">
-                {x.opp ? (
-                  <>
-                    <span className="muted">{t('common.vs')}</span> {x.opp}
-                  </>
-                ) : (
-                  <span className="faint">{x.maybe ? t('cal.ifThrough') : x.tbd ? t('cal.tbd') : ''}</span>
-                )}
-              </span>
+        <ol className="cal-weeks">
+          {shown.map((w, wi) => (
+            <li key={w.week} className={`cal-week ${wi === 0 ? 'now' : ''}`}>
+              <div className="cal-week-head">
+                <b>{w.week === 0 ? t('cal.before') : t('cal.week', { d: w.week })}</b>
+                {w.week === 0 && <small className="faint">{t('cal.preseasonHint')}</small>}
+                {wi === 0 && <span className="cal-now">{t('cal.thisWeek')}</span>}
+                {w.items.length > 1 && <small className="cal-double">{t('cal.double')}</small>}
+              </div>
+              <ol className="cal-matches">
+                {w.items.map((x, i) => {
+                  order++;
+                  const next = order === 1;
+                  return (
+                    <li key={i} className={`cal-match ${x.maybe ? 'maybe' : ''} ${next ? 'next' : ''}`}>
+                      <span className="cal-step" title={t('cal.order', { n: i + 1 })}>
+                        {i + 1}
+                      </span>
+                      <span className="cal-moment faint">{x.league ? t('cal.matchday') : i === 0 ? t('cal.comp') : w.week === 0 ? t('cal.then') : t('cal.midweek')}</span>
+                      <span className={`comp-badge def-${x.def}`}>
+                        {x.league ? <DivIcon d={x.division ?? 0} /> : <CompIcon def={x.def} />} {itemLabel(t, x)}
+                      </span>
+                      <span className="cal-opp">
+                        {x.opp ? (
+                          <>
+                            <span className="muted">{t('common.vs')}</span> <b>{x.opp}</b>
+                          </>
+                        ) : (
+                          <span className="faint">{x.maybe ? t('cal.ifThrough') : x.tbd ? t('cal.tbd') : ''}</span>
+                        )}
+                      </span>
+                      {next && <span className="cal-next">{t('cal.next')}</span>}
+                    </li>
+                  );
+                })}
+              </ol>
             </li>
           ))}
         </ol>
       )}
-      {items.length > LIMIT && (
+      {weeks.length > LIMIT && (
         <button className="link" onClick={() => setAll((x) => !x)}>
-          {all ? t('cal.less') : t('cal.more', { n: items.length - LIMIT })}
+          {all ? t('cal.less') : t('cal.more', { n: weeks.length - LIMIT })}
         </button>
       )}
     </section>
@@ -644,7 +676,10 @@ function Competitions({ game }: { game: GameState }) {
     );
   return (
     <div className="stack">
-      <Schedule game={game} comps={all} />
+      <Schedule game={game} />
+      <section className="panel rep-panel">
+        <ReputationLine game={game} />
+      </section>
       <div className="row" style={{ gap: 12, alignItems: 'center' }}>
         <p className="muted grow" style={{ margin: 0 }}>
           {t('comp.intro')}
@@ -679,15 +714,15 @@ function Honours({ game }: { game: GameState }) {
   const n = game.divisions.length;
   const count = (def: string) => career.filter((r) => (def === 'shadow' ? r.cupWon : r.trophies?.includes(def))).length;
   const titles = (d: number) => career.filter((r) => r.division === d && r.position === 1).length;
-  const tiles: { key: string; icon: string; name: string; n: number }[] = [
-    ...Array.from({ length: n }, (_, d) => ({ key: `title-${d}`, icon: DIV_ICON[d] ?? '🏆', name: `${t('honours.league')} — ${divName(t, d)}`, n: titles(d) })),
-    { key: 'shadow', icon: COMP_ICON.shadow!, name: compName(t), n: count('shadow') },
-    { key: 'champions', icon: COMP_ICON.champions!, name: compName(t, 'champions'), n: count('champions') },
-    { key: 'division', icon: COMP_ICON.division!, name: t('honours.divisionCups'), n: count('division') },
-    { key: 'or', icon: COMP_ICON.or!, name: compName(t, 'or'), n: count('or') },
-    { key: 'argent', icon: COMP_ICON.argent!, name: compName(t, 'argent'), n: count('argent') },
-    { key: 'marches', icon: COMP_ICON.marches!, name: compName(t, 'marches'), n: count('marches') },
-    { key: 'preseason', icon: COMP_ICON.preseason!, name: compName(t, 'preseason'), n: count('preseason') },
+  const tiles: { key: string; icon: ReactNode; name: string; n: number }[] = [
+    ...Array.from({ length: n }, (_, d) => ({ key: `title-${d}`, icon: <DivIcon d={d} />, name: `${t('honours.league')} — ${divName(t, d)}`, n: titles(d) })),
+    { key: 'shadow', icon: <CompIcon def="shadow" />, name: compName(t), n: count('shadow') },
+    { key: 'champions', icon: <CompIcon def="champions" />, name: compName(t, 'champions'), n: count('champions') },
+    { key: 'division', icon: <CompIcon def="division" />, name: t('honours.divisionCups'), n: count('division') },
+    { key: 'or', icon: <CompIcon def="or" />, name: compName(t, 'or'), n: count('or') },
+    { key: 'argent', icon: <CompIcon def="argent" />, name: compName(t, 'argent'), n: count('argent') },
+    { key: 'marches', icon: <CompIcon def="marches" />, name: compName(t, 'marches'), n: count('marches') },
+    { key: 'preseason', icon: <CompIcon def="preseason" />, name: compName(t, 'preseason'), n: count('preseason') },
   ];
   const any = tiles.some((x) => x.n > 0);
   return (
@@ -728,14 +763,26 @@ function Honours({ game }: { game: GameState }) {
                   <tr key={r.season}>
                     <td>{r.season}</td>
                     <td>
-                      {DIV_ICON[r.division]} {divName(t, r.division)}
+                      <DivIcon d={r.division} /> {divName(t, r.division)}
                     </td>
                     <td className="num">
                       {ordinal(r.position)} <span className={move === '▲' ? 'good-text' : 'bad-text'}>{move}</span>
                     </td>
                     <td className="num">{r.points}</td>
                     <td>
-                      {[...(r.position === 1 ? [DIV_ICON[r.division] ?? '🏆'] : []), ...(r.cupWon ? [COMP_ICON.shadow!] : []), ...(r.trophies ?? []).filter((x) => x !== 'shadow').map((x) => COMP_ICON[x] ?? '🏆')].join(' ') || <span className="faint">—</span>}
+                      {r.position === 1 || r.cupWon || (r.trophies ?? []).length ? (
+                        <span className="trophy-row">
+                          {r.position === 1 && <DivIcon d={r.division} />}
+                          {r.cupWon && <CompIcon def="shadow" />}
+                          {(r.trophies ?? [])
+                            .filter((x) => x !== 'shadow')
+                            .map((x, k) => (
+                              <CompIcon key={k} def={x.startsWith('division') ? 'division' : x} />
+                            ))}
+                        </span>
+                      ) : (
+                        <span className="faint">—</span>
+                      )}
                     </td>
                   </tr>
                 );
@@ -751,7 +798,13 @@ function Honours({ game }: { game: GameState }) {
 export function LeagueScreen() {
   const { t } = useT();
   const game = useGame((s) => s.game)!;
-  const [tab, setTab] = useState<'table' | 'comps' | 'honours'>('table');
+  const [tab, setTab] = useState<'table' | 'comps' | 'honours'>(() => useGame.getState().leagueTab ?? 'table');
+  const asked = useGame((s) => s.leagueTab);
+  useEffect(() => {
+    if (!asked) return;
+    setTab(asked);
+    useGame.setState({ leagueTab: null });
+  }, [asked]);
   const [division, setDivision] = useState(playerDivision(game));
   return (
     <div className="stack">
@@ -760,9 +813,9 @@ export function LeagueScreen() {
           value={tab}
           onChange={setTab}
           options={[
-            { value: 'table', label: `${DIV_ICON[playerDivision(game)]} ${t('league.tab.table')}` },
-            { value: 'comps', label: `🏆 ${t('league.tab.comps')}` },
-            { value: 'honours', label: `🏛 ${t('league.tab.honours')}` },
+            { value: 'table', label: <span className="tab-label"><DivIcon d={playerDivision(game)} /> {t('league.tab.table')}</span> },
+            { value: 'comps', label: <span className="tab-label"><UiIcon name="competitions" /> {t('league.tab.comps')}</span> },
+            { value: 'honours', label: <span className="tab-label"><UiIcon name="honours" /> {t('league.tab.honours')}</span> },
           ]}
         />
       </div>

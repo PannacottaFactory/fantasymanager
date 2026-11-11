@@ -41,7 +41,7 @@ export function StaffScreen() {
       sort: (c) => c.quality,
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
-          <Stars value={Math.max(0.5, Math.round(c.quality / 2) / 2)} /> <span className="faint mono">{c.quality}</span>
+          <Stars n={c.quality / 2} title={`${c.quality}/20`} />
         </span>
       ),
     },
@@ -100,7 +100,7 @@ export function StaffScreen() {
                   <>
                     <b style={{ fontSize: '1.1rem' }}>{c.name}</b>
                     <span className="row" style={{ gap: 6 }}>
-                      <Stars value={Math.max(0.5, Math.round(c.quality / 2) / 2)} /> <span className="faint">{c.quality}/20</span>
+                      <Stars n={c.quality / 2} title={`${c.quality}/20`} />
                     </span>
                     <span className="faint" style={{ fontSize: '0.857rem' }}>
                       <Gold>{t('staff.effect', { f: tr.dec(coachFactor(game, game.playerTeamId, d), 2) })} · {t('common.perWeek', { v: money(c.wage) })}</Gold>

@@ -3,6 +3,7 @@
  * Attributes are shown as ranges that always contain the true value and narrow as knowledge grows.
  * The error of each estimate is a fixed, per-creature offset (no RNG draw), so the range never jumps around.
  */
+import { levelOfAbility } from '../progression/levels.ts';
 import { clamp } from '../../core/math.ts';
 import { hashString } from '../../core/rng.ts';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '../../data/attributes.ts';
@@ -62,6 +63,12 @@ export function potentialStars(c: Creature, knowledge: number, cfg: GameConfig =
   const err = noise(c.id, 'pot') * cfg.economy.scouting.potentialError * (1 - knowledge / 100);
   const est = clamp(c.potential + err, 10, 200);
   return clamp(Math.round((est / 200) * 10) / 2, 0.5, 5);
+}
+
+/** Estimated potential as the highest level the creature can reach (1–10; exact for own creatures). */
+export function potentialLevel(c: Creature, knowledge: number, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const err = noise(c.id, 'pot') * cfg.economy.scouting.potentialError * (1 - knowledge / 100);
+  return levelOfAbility(clamp(c.potential + err, 10, 200), cfg);
 }
 
 /** Estimated value (exact for well-known creatures). */

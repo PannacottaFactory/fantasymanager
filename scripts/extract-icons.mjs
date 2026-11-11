@@ -85,7 +85,23 @@ const SPECIES = {
 /** Interface icons. */
 const UI = {
   board: 'scroll-unfurled',
+  competitions: 'trophy',
+  honours: 'laurels',
 };
+
+/** Competition definition → icon name. */
+const COMPETITIONS = {
+  shadow: 'trophy-cup',
+  division: 'laurels-trophy',
+  champions: 'diamond-trophy',
+  preseason: 'knight-banner',
+  marches: 'lantern-flame',
+  argent: 'medal',
+  or: 'laurel-crown',
+};
+
+/** Division (0 = top) → icon name. */
+const DIVISIONS = ['crown', 'fleur-de-lys', 'castle', 'watchtower'];
 
 /** Role id → icon name. */
 const ROLES = {
@@ -125,6 +141,16 @@ ${block(ROLES)}
 export const UI_ICONS: Record<string, string> = {
 ${block(UI)}
 };
+
+/** SVG bodies of the competition emblems (fill = currentColor). */
+export const COMP_ICONS: Record<string, string> = {
+${block(COMPETITIONS)}
+};
+
+/** SVG bodies of the division emblems, from the top division down (fill = currentColor). */
+export const DIV_ICONS: string[] = [
+${DIVISIONS.map((n) => `  ${JSON.stringify(body(n))},`).join('\n')}
+];
 `;
 writeFileSync(new URL('../src/ui/icons/gameIcons.ts', import.meta.url), out);
 console.log(`Wrote ${Object.keys(SPECIES).length} species and ${Object.keys(ROLES).length} role icons.`);

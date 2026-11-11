@@ -8,7 +8,7 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { isPlayerTeam, locate, renewalDemand, signingBonus } from '../../../engine/economy/market.ts';
-import { estimatedValue, knowledgeOf, potentialStars } from '../../../engine/economy/scouting.ts';
+import { estimatedValue, knowledgeOf, potentialLevel } from '../../../engine/economy/scouting.ts';
 import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature, Team } from '../../../engine/model.ts';
@@ -277,7 +277,7 @@ function Sheet({ id }: { id: string }) {
           </span>
           <span><Gold>{t('cr.valueEst', { v: money(estimatedValue(creature, k)) })}</Gold></span>
           <span className="row" style={{ gap: 4 }}>
-            {t('cr.potentialEst')} <Stars value={potentialStars(creature, k)} />
+            {t('cr.potentialEst')} <Stars n={potentialLevel(creature, k)} title={t('stars.potential', { n: potentialLevel(creature, k) })} />
           </span>
           <ScoutButton game={game} creature={creature} />
         </div>

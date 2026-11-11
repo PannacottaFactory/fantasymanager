@@ -3,7 +3,7 @@ import { roleText, speciesName } from '../../engine/text/localize.ts';
 import { useT } from '../i18n/index.ts';
 import { ELEMENTS } from '../../data/elements.ts';
 import { SPECIES } from '../../data/species.ts';
-import { ICON_VIEWBOX, ROLE_ICONS, SPECIES_ICONS, UI_ICONS } from './gameIcons.ts';
+import { COMP_ICONS, DIV_ICONS, ICON_VIEWBOX, ROLE_ICONS, SPECIES_ICONS, UI_ICONS } from './gameIcons.ts';
 
 /** A monochrome game icon (inherits the text colour). */
 function GameIcon({ body, size, title, className }: { body: string; size: number | string; title?: string; className?: string }) {
@@ -53,4 +53,30 @@ export function RoleLabel({ role, short }: { role: RoleId; short?: boolean }) {
       {short ? txt.short : txt.name}
     </span>
   );
+}
+
+/** Emblem of a competition (definition id: shadow, division, champions, preseason, marches, argent, or), in its colour. */
+export function CompIcon({ def, size = '1.15em', title }: { def: string; size?: number | string; title?: string }) {
+  const body = COMP_ICONS[def] ?? COMP_ICONS.shadow!;
+  return (
+    <span className={`comp-ico def-${def}`}>
+      <GameIcon body={body} size={size} title={title} />
+    </span>
+  );
+}
+
+/** Emblem of a division (0 = the top one), in its colour. */
+export function DivIcon({ d, size = '1.15em', title }: { d: number; size?: number | string; title?: string }) {
+  const i = Math.max(0, Math.min(DIV_ICONS.length - 1, d));
+  return (
+    <span className={`div-ico tier-${i}`}>
+      <GameIcon body={DIV_ICONS[i]!} size={size} title={title} />
+    </span>
+  );
+}
+
+/** An interface icon inline (inherits the text colour). */
+export function UiIcon({ name, size = '1.1em' }: { name: string; size?: number | string }) {
+  const body = UI_ICONS[name];
+  return body ? <GameIcon body={body} size={size} /> : null;
 }

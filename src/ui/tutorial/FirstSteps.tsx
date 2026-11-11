@@ -2,7 +2,7 @@
  * "First steps": six concrete things to do in a first game, ticked automatically as the player does them
  * (tracked by `useFirstStepsTracker`, mounted once in the app). Shown on the home screen until done or hidden.
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { fxLayer, centreOf } from '../fx/FxLayer.tsx';
 import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
@@ -49,6 +49,7 @@ export function useLearning(): boolean {
 export function FirstSteps() {
   const { t } = useT();
   const { enabled, quests, questsHidden, hideQuests } = useTutorial();
+  const [open, setOpen] = useState(false);
   const done = quests.length >= QUESTS.length;
   useEffect(() => {
     if (!done || questsHidden || !enabled) return;
@@ -80,43 +81,60 @@ export function FirstSteps() {
       </section>
     );
   const next = QUESTS.find((q) => !quests.includes(q));
+  // One line: progress and the next step; the whole list on demand.
   return (
-    <section className="panel first-steps" data-tip="first-steps">
-      <div className="row" style={{ gap: 10, marginBottom: 8 }}>
-        <h3 style={{ margin: 0 }}>🧭 {t('quest.title')}</h3>
+    <section className={`panel first-steps compact ${open ? 'open' : ''}`} data-tip="first-steps">
+      <div className="fs-row">
+        <b className="fs-title">🧭 {t('quest.title')}</b>
         <span className="fs-bar" aria-hidden="true">
           <i style={{ width: `${(100 * quests.length) / QUESTS.length}%` }} />
         </span>
-        <span className="muted" style={{ fontSize: '0.857rem' }}>
-          {t('quest.progress', { n: quests.length, m: QUESTS.length })}
-        </span>
-        <span className="spacer" />
-        <button className="link" style={{ fontSize: '0.857rem' }} onClick={hideQuests}>
+        <span className="muted fs-count">{t('quest.progress', { n: quests.length, m: QUESTS.length })}</span>
+        {next && !open && (
+          <span className="fs-next grow">
+            <span className="fs-arrow">➤</span> <b>{t(`quest.${next}` as StringKey)}</b>
+            <span className="muted"> — {t(`quest.${next}.hint` as StringKey)}</span>
+          </span>
+        )}
+        {open && <span className="grow" />}
+        {next && !open && (
+          <button className="btn small primary" onClick={() => go(next)}>
+            {t('quest.go')}
+          </button>
+        )}
+        <button className="link fs-link" onClick={() => setOpen((x) => !x)}>
+          {open ? t('quest.less') : t('quest.all')}
+        </button>
+        <button className="link fs-link" onClick={hideQuests}>
           {t('quest.hide')}
         </button>
       </div>
-      <ol className="fs-list">
-        {QUESTS.map((q) => {
-          const ok = quests.includes(q);
-          return (
-            <li key={q} className={`${ok ? 'ok' : ''} ${q === next ? 'next' : ''}`}>
-              <span className="fs-check">{ok ? '✓' : ''}</span>
-              <span className="grow">
-                <b>{t(`quest.${q}` as StringKey)}</b>
-                {!ok && <span className="muted"> — {t(`quest.${q}.hint` as StringKey)}</span>}
-              </span>
-              {!ok && (
-                <button className={`btn small ${q === next ? 'primary' : ''}`} onClick={() => go(q)}>
-                  {t('quest.go')}
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-      <div className="faint" style={{ fontSize: '0.857rem', marginTop: 6 }}>
-        {t('quest.lost')}
-      </div>
+      {open && (
+        <>
+          <ol className="fs-list">
+            {QUESTS.map((q) => {
+              const ok = quests.includes(q);
+              return (
+                <li key={q} className={`${ok ? 'ok' : ''} ${q === next ? 'next' : ''}`}>
+                  <span className="fs-check">{ok ? '✓' : ''}</span>
+                  <span className="grow">
+                    <b>{t(`quest.${q}` as StringKey)}</b>
+                    {!ok && <span className="muted"> — {t(`quest.${q}.hint` as StringKey)}</span>}
+                  </span>
+                  {!ok && (
+                    <button className={`btn small ${q === next ? 'primary' : ''}`} onClick={() => go(q)}>
+                      {t('quest.go')}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+          <div className="faint" style={{ fontSize: '0.857rem', marginTop: 6 }}>
+            {t('quest.lost')}
+          </div>
+        </>
+      )}
     </section>
   );
 }

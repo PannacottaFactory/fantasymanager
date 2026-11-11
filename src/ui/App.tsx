@@ -17,6 +17,9 @@ import { StartScreen } from './screens/game/StartScreen.tsx';
 import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
 import { GameSheet } from './screens/game/CreatureSheet.tsx';
 import { IntroModal } from './screens/game/IntroModal.tsx';
+import { WeekRecap } from './screens/game/WeekRecap.tsx';
+import { SeasonRibbon } from './components/SeasonRibbon.tsx';
+import { ReputationChip } from './components/Reputation.tsx';
 import { DashboardScreen } from './screens/game/DashboardScreen.tsx';
 import { useFirstStepsTracker } from './tutorial/FirstSteps.tsx';
 import { FxLayer } from './fx/FxLayer.tsx';
@@ -99,6 +102,7 @@ function ContinueButton() {
       {club && (
         <BalanceChip balance={club.balance} worldSeed={game.worldSeed} />
       )}
+      <ReputationChip game={game} />
       <span className="muted status">
         {over
           ? t('status.seasonOver', { season: game.season })
@@ -240,7 +244,10 @@ export function App() {
           ))}
         </div>
       </header>
-      {saveError && <div className="save-error">{t('save.failed')}</div>}
+      <div className="under-bar">
+        {game && !launch && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && screen !== 'help' && <SeasonRibbon game={game} />}
+        {saveError && <div className="save-error">{t('save.failed')}</div>}
+      </div>
       <main className="main">
         <ErrorBoundary key={`${screen}-${viewing ? 'report' : ''}-${replaying ? 'replay' : ''}`}>
           <div className="screen-enter">{content}</div>
@@ -252,6 +259,7 @@ export function App() {
         </ErrorBoundary>
       )}
       {game && !newGameOpen && <IntroModal />}
+      {game && !newGameOpen && !launch && <WeekRecap />}
       {game && !launch && !newGameOpen && <NewsTicker />}
       <FxLayer />
       <Celebrations />

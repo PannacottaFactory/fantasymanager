@@ -9,8 +9,10 @@ import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import type { Creature } from '../model.ts';
 
 export function levelOfAbility(ability: number, cfg: GameConfig = DEFAULT_CONFIG): number {
-  const l = cfg.training.levels;
-  return clamp(1 + Math.floor((ability - l.base) / l.abilityPerLevel), 1, l.max);
+  const st = cfg.training.levels.steps;
+  let lv = 1;
+  for (let i = 1; i < st.length; i++) if (ability >= st[i]!) lv = i + 1;
+  return clamp(lv, 1, cfg.training.levels.max);
 }
 
 export const levelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => levelOfAbility(c.ability, cfg);
@@ -18,17 +20,27 @@ export const levelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => levelO
 /** Highest level this creature can reach (its potential). */
 export const maxLevelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => levelOfAbility(c.potential, cfg);
 
-/** XP gathered within the current level (0 … xpPerLevel − 1). */
-export function xpInLevel(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): number {
+/** Aptitude span of a level: [start, end). */
+function levelSpan(lv: number, cfg: GameConfig): [number, number] {
   const l = cfg.training.levels;
-  const lv = levelOf(c, cfg);
-  // Level 1 spans two levels' worth of aptitude (from base − abilityPerLevel), so its bar moves at half speed.
-  const start = lv === 1 ? l.base - l.abilityPerLevel : l.base + (lv - 1) * l.abilityPerLevel;
-  const into = c.ability - start + (c.growth?.ability ?? 0);
-  return clamp(Math.floor((into * xpPerAbility(cfg)) / (lv === 1 ? 2 : 1)), 0, l.xpPerLevel - 1);
+  return [l.steps[lv - 1] ?? 0, l.steps[lv] ?? l.top];
 }
 
-export const xpPerAbility = (cfg: GameConfig = DEFAULT_CONFIG) => cfg.training.levels.xpPerLevel / cfg.training.levels.abilityPerLevel;
+/** XP within the level for an aptitude (0 … xpPerLevel − 1). */
+export function xpOfAbility(ability: number, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const l = cfg.training.levels;
+  const [a, b] = levelSpan(levelOfAbility(ability, cfg), cfg);
+  return clamp(Math.floor(((ability - a) / Math.max(1, b - a)) * l.xpPerLevel), 0, l.xpPerLevel - 1);
+}
+
+/** XP gathered within the current level (0 … xpPerLevel − 1). */
+export const xpInLevel = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => xpOfAbility(c.ability + (c.growth?.ability ?? 0), cfg);
+
+/** XP counted from level 1 (to show how much XP an aptitude gain is worth). */
+export const totalXpOfAbility = (ability: number, cfg: GameConfig = DEFAULT_CONFIG) => (levelOfAbility(ability, cfg) - 1) * cfg.training.levels.xpPerLevel + xpOfAbility(ability, cfg);
+
+/** Match XP per aptitude point (conversion used by the weekly training). */
+export const xpPerAbility = (cfg: GameConfig = DEFAULT_CONFIG) => cfg.training.levels.xpPerAbility;
 
 /** Level at which an ability (declared with an aptitude threshold) unlocks. */
 export const unlockLevel = (minAbility: number | undefined, cfg: GameConfig = DEFAULT_CONFIG) => (minAbility ? levelOfAbility(minAbility, cfg) : 1);

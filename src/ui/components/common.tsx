@@ -21,15 +21,15 @@ export function AttrRange({ r }: { r: { low: number; high: number } }) {
   return <span className={`attr range ${attrClass((r.low + r.high) / 2)}`}>{r.low}–{r.high}</span>;
 }
 
-/** Potential on a 0.5–5 star scale. */
-export function Stars({ value, title }: { value: number; title?: string }) {
-  const full = Math.floor(value);
-  const half = value - full >= 0.5;
+/** A rating out of 10 written « 8★ » (potential = the highest level reachable, coach quality…), coloured by tier. */
+export function Stars({ n, title }: { n: number; title?: string }) {
+  const { t } = useT();
+  const v = Math.max(1, Math.min(10, Math.round(n)));
+  const tier = v >= 9 ? 'legend' : v >= 7 ? 'high' : v >= 4 ? 'mid' : 'low';
   return (
-    <span className="stars" title={title} aria-label={`${value}/5`}>
-      {'★'.repeat(full)}
-      {half && <span className="half">★</span>}
-      <span className="empty">{'★'.repeat(5 - full - (half ? 1 : 0))}</span>
+    <span className={`stars-n ${tier}`} title={title ?? t('stars.title', { n: v })} aria-label={t('stars.title', { n: v })}>
+      {v}
+      <i>★</i>
     </span>
   );
 }
@@ -142,7 +142,7 @@ export function Modal({ title, onClose, children, actions }: { title: ReactNode;
   );
 }
 
-export function Seg<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: string }[]; onChange: (v: T) => void }) {
+export function Seg<T extends string>({ value, options, onChange }: { value: T; options: { value: T; label: ReactNode }[]; onChange: (v: T) => void }) {
   return (
     <div className="seg" role="radiogroup">
       {options.map((o) => (

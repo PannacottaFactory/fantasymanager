@@ -14,7 +14,7 @@ const sumCat = (c: Creature, cat: keyof typeof ATTRIBUTE_CATEGORIES) => ATTRIBUT
 /** A young player creature with plenty of room to grow. */
 function youngster(g: GameState): Creature {
   const team = playerTeam(g);
-  const young = team.creatures.filter((c) => lifeStage(c) === 'young').sort((a, b) => b.potential - b.ability - (a.potential - a.ability));
+  const young = team.creatures.filter((c) => lifeStage(c) === 'young').sort((a, b) => b.potential - a.potential);
   const c = young[0] ?? team.creatures[0]!;
   c.age = getSpecies(c).lifeCurve.minAge;
   c.ability = Math.min(c.ability, Math.round(c.potential * 0.6));
@@ -31,7 +31,8 @@ describe('training', () => {
     const c = youngster(g);
     Object.assign(g, setPlan(g, [c.id], { program: 'physical', intensity: 'intense' }));
     const before = structuredClone(playerTeam(g).creatures.find((x) => x.id === c.id)!);
-    train(g, 18);
+    // Two seasons of weeks: enough attribute points to see the program's direction.
+    train(g, 36);
     const after = playerTeam(g).creatures.find((x) => x.id === c.id)!;
     expect(after.ability).toBeGreaterThan(before.ability);
     expect(after.ability).toBeLessThanOrEqual(after.potential);
@@ -158,16 +159,17 @@ describe('levels and experience', () => {
     const { generateCreature } = await import('../src/engine/creature/generate.ts');
     const { Rng } = await import('../src/core/rng.ts');
     expect(levelOfAbility(1)).toBe(1);
-    expect(levelOfAbility(59)).toBe(1);
-    expect(levelOfAbility(60)).toBe(2);
-    expect(levelOfAbility(187)).toBe(9);
-    expect(levelOfAbility(188)).toBe(10);
+    expect(levelOfAbility(39)).toBe(1);
+    expect(levelOfAbility(40)).toBe(2);
+    expect(levelOfAbility(50)).toBe(3);
+    expect(levelOfAbility(167)).toBe(9);
+    expect(levelOfAbility(168)).toBe(10);
     expect(levelOfAbility(200)).toBe(10);
     const c = generateCreature(new Rng(3), { quality: 'professional' });
     const xp = xpInLevel(c);
     expect(xp).toBeGreaterThanOrEqual(0);
     expect(xp).toBeLessThan(100);
-    expect(unlockLevel(90)).toBe(3);
+    expect(unlockLevel(90)).toBe(6);
     expect(getAbilities(c).length).toBe(c.speciesId ? (await import('../src/data/species.ts')).SPECIES[c.speciesId]!.abilities.filter((a) => isUnlocked(c, a.minAbility)).length : 0);
     expect(matchXp({ played: true, starter: true, rating: 8, kos: 0, won: true })).toBeGreaterThan(matchXp({ played: true, starter: false, rating: 5, kos: 0, won: false }));
     expect(matchXp({ played: false, starter: false, rating: 9, kos: 3, won: true })).toBe(0);

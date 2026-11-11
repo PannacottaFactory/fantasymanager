@@ -14,7 +14,7 @@ import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { BadgeIcon } from '../../icons/Icon.tsx';
-import { levelOfAbility, xpPerAbility } from '../../../engine/progression/levels.ts';
+import { levelOfAbility, totalXpOfAbility } from '../../../engine/progression/levels.ts';
 
 /** Message families: each has a colour and a symbol in the inbox. */
 export type MessageCategory = 'match' | 'medical' | 'market' | 'club' | 'squad' | 'competition' | 'scouting';
@@ -156,7 +156,7 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
             const apt =
               x.abilityFrom !== undefined && x.abilityTo !== undefined
                 ? t('msg.trainingReport.xp', {
-                    xp: Math.round((x.abilityTo - x.abilityFrom) * xpPerAbility()),
+                    xp: totalXpOfAbility(x.abilityTo) - totalXpOfAbility(x.abilityFrom),
                     from: levelOfAbility(x.abilityFrom),
                     to: levelOfAbility(x.abilityTo),
                   })
@@ -333,8 +333,8 @@ export function NextMatch({ game }: { game: GameState }) {
   const row = table[pos - 1]!;
   return (
     <section className="panel next-match">
-      <h4>{t('inbox.nextMatch')}</h4>
       <div className="row wrap" style={{ gap: 10 }}>
+        <h4 className="nm-label">{t('inbox.nextMatch')}</h4>
         <span className="tag">{home ? t('common.home') : t('common.away')}</span>
         <b style={{ fontFamily: 'var(--font-title)', fontSize: '1.05rem' }}>{opp.name}</b>
         <span className="muted">{t('match.position', { pos: tr.ordinal(pos), pts: row.points })}</span>

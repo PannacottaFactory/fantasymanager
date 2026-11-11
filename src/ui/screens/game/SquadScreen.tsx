@@ -4,7 +4,8 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import { isStarter } from '../../../engine/team/edit.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, TraitChip } from '../../components/common.tsx';
+import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, Stars, TraitChip } from '../../components/common.tsx';
+import { maxLevelOf } from '../../../engine/progression/levels.ts';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -45,6 +46,7 @@ export function SquadScreen() {
     },
     { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
     { key: 'level', label: t('col.level'), title: t('col.level.title'), sort: (c) => c.ability, render: (c) => <LevelBadge c={c} compact /> },
+    { key: 'pot', label: t('col.potential'), title: t('stars.potentialCol'), sort: (c) => c.potential, render: (c) => <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} /> },
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
     { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => <RoleLabel role={bestRole(c)} /> },
     {
@@ -126,6 +128,13 @@ export function SquadScreen() {
         </div>
         <p className="muted" style={{ marginTop: 0, fontSize: '0.929rem' }}>
           {t('squad.hint')}
+        </p>
+        <p className="grow-hint">
+          <span className="grow-hint-ico">▲</span>
+          <span className="grow">{t('grow.hint')}</span>
+          <button className="link" onClick={() => useGame.getState().setScreen('training')}>
+            {t('grow.link')}
+          </button>
         </p>
         <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />
       </section>

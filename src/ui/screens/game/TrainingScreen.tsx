@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { INTENSITY_IDS, PROGRAM_IDS, type IntensityId, type ProgramId } from '../../../data/config/training.ts';
 import { overallRating } from '../../../engine/creature/derived.ts';
-import { potentialStars } from '../../../engine/economy/scouting.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature } from '../../../engine/model.ts';
@@ -78,7 +77,7 @@ function Youth({ game }: { game: GameState }) {
                 {t('col.ovr')} <b>{overallRating(c)}</b>
               </span>
               <span className="row" style={{ gap: 4 }}>
-                {t('cr.potentialEst')} <Stars value={potentialStars(c, 100)} />
+                {t('cr.potentialEst')} <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} />
               </span>
             </div>
             <div className="row" style={{ gap: 6 }}>
@@ -131,7 +130,16 @@ export function TrainingScreen() {
         </span>
       ),
     },
-    { key: 'species', label: t('col.species'), sort: (c) => speciesName(c.speciesId, lang), render: (c) => speciesName(c.speciesId, lang) },
+    {
+      key: 'species',
+      label: t('col.species'),
+      sort: (c) => speciesName(c.speciesId, lang),
+      render: (c) => (
+        <span className="row" style={{ gap: 4 }}>
+          <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} />
+        </span>
+      ),
+    },
     { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
     {
       key: 'stage',
@@ -140,7 +148,7 @@ export function TrainingScreen() {
       render: (c) => <span className={`stage ${lifeStage(c)}`}>{t(STAGE_KEY[lifeStage(c)])}</span>,
     },
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
-    { key: 'pot', label: t('col.potential'), title: t('col.potential.title'), sort: (c) => c.potential, render: (c) => <Stars value={potentialStars(c, 100)} /> },
+    { key: 'pot', label: t('col.potential'), title: t('col.potential.title'), sort: (c) => c.potential, render: (c) => <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} /> },
     {
       key: 'level',
       label: t('col.level'),

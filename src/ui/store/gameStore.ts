@@ -13,6 +13,7 @@ import { repairTactic } from '../../engine/team/team.ts';
 import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
 import { loadGame, saveGame } from './saves.ts';
+import { completedWeek } from '../season.ts';
 
 export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
@@ -66,6 +67,14 @@ interface GameStore {
   /** Welcome window of a new game (not saved: shown once, right after the game is created). */
   intro: boolean;
   closeIntro: () => void;
+  /** State when the current week started (not saved: a reload starts a new one). */
+  weekStart: GameState | null;
+  /** End-of-week summary to show: the week's first and last states. */
+  recap: { before: GameState; after: GameState } | null;
+  closeRecap: () => void;
+  /** Tab to open on the League screen (consumed by it). */
+  leagueTab: 'table' | 'comps' | 'honours' | null;
+  openLeague: (tab: 'table' | 'comps' | 'honours') => void;
   openSheet: (id: string | null) => void;
 }
 
@@ -77,6 +86,13 @@ export const useGame = create<GameStore>()((set, get) => {
       () => get().saveError && set({ saveError: false }),
       () => set({ saveError: true }),
     );
+  };
+  /** Commits a state that may end the week: then shows its summary and starts a new week. */
+  const advance = (prev: GameState, next: GameState): boolean => {
+    commit(next);
+    if (completedWeek(next) <= completedWeek(prev)) return false;
+    set({ recap: { before: get().weekStart ?? prev, after: next }, weekStart: next });
+    return true;
   };
   const mapPlayerTeam = (f: (t: Team) => Team) => {
     const g = get().game;
@@ -96,12 +112,12 @@ export const useGame = create<GameStore>()((set, get) => {
 
     init: async () => {
       const game = await loadGame();
-      set({ game, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game });
+      set({ game, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game, weekStart: game });
     },
 
     newGame: (teamName, seed, difficulty) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty });
-      set({ match: null, viewing: null, screen: 'dashboard', intro: true, launch: false });
+      set({ match: null, viewing: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null });
       commit(game);
     },
 
@@ -114,9 +130,12 @@ export const useGame = create<GameStore>()((set, get) => {
     continueGame: () => {
       const g = get().game;
       if (!g) return;
+      // The summary of the week that just ended comes first.
+      if (get().recap) return;
       if (seasonOver(g)) {
-        commit(startNextSeason(g));
-        set({ screen: 'inbox', match: null });
+        const next = startNextSeason(g);
+        commit(next);
+        set({ screen: 'inbox', match: null, weekStart: next });
         return;
       }
       let f = playerFixture(g);
@@ -125,7 +144,7 @@ export const useGame = create<GameStore>()((set, get) => {
         // Midweeks the stable does not play in pass on their own, up to the next match.
         cur = playMatchday(cur);
         while (!seasonOver(cur) && cupDue(cur) && !playerFixture(cur)) cur = playMatchday(cur);
-        commit(cur);
+        if (advance(g, cur)) return;
         f = seasonOver(cur) ? undefined : playerFixture(cur);
         if (!f) return;
       }
@@ -147,14 +166,14 @@ export const useGame = create<GameStore>()((set, get) => {
       const { game: g, match } = get();
       if (!g || !match) return;
       const next = playMatchday(g);
-      commit(next);
+      advance(g, next);
       set({ match: { ...match, phase: 'report', result: next.lastMatch?.result ?? null } });
     },
 
     finishLive: (result) => {
       const { game: g, match } = get();
       if (!g || !match) return;
-      commit(playMatchday(g, result));
+      advance(g, playMatchday(g, result));
       set({ match: { ...match, phase: 'report', result } });
     },
 
@@ -201,5 +220,10 @@ export const useGame = create<GameStore>()((set, get) => {
     intro: false,
     launch: false,
     closeIntro: () => set({ intro: false }),
+    weekStart: null,
+    recap: null,
+    closeRecap: () => set({ recap: null }),
+    leagueTab: null,
+    openLeague: (tab) => set({ leagueTab: tab, screen: 'league', viewing: null, launch: false }),
   };
 });

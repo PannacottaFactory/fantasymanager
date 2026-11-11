@@ -4,6 +4,8 @@ Deep fantasy arena-league management game in the spirit of Football Manager. The
 creatures (dragons, trolls, goblins, elves…), never controls fights directly: a deterministic simulation
 resolves them. 100 % front-end, deployable on GitHub Pages.
 
+- French time unit: **« semaine »** (one league match per week), never « journée »; cup rounds = « semaine d, après le
+  championnat ». English keeps « matchday ».
 - Talk to the user in **French**. The game is **bilingual: French (default) and English**, switchable in the top bar.
   Code identifiers, data ids and English source texts stay in English; French lives beside them (see i18n below).
 - Repo: https://github.com/PannacottaFactory/fantasymanager (Pages deploy via `.github/workflows/deploy.yml`;
@@ -121,11 +123,12 @@ tests/       Vitest
   Cup messages carry `tournament` / `rounds`; `SeasonRecord.trophies` lists the season's tournament wins.
 - **League screen**: tabs Championship (pyramid of the 4 leagues with the money scale « po ×1,35 » in gold, division
   hero with rules + gap to promotion / drop, table with zones and ▲▼ movement since the previous matchday, fixtures),
-  Competitions (« Votre programme » = the player's coming league matchdays and midweek rounds in play order, flags weeks
-  with two matches; then every competition as a list (default) or cards, choice in localStorage `fm.compView`: status,
-  next round, tie, trophy, registration, draw), Honours (trophy cabinet with greyed trophies still to win, season by season).
+  Competitions (« Votre programme » = the player's coming matches grouped by week — pre-season, then week d = league
+  match ① then the rounds keyed d / d.5 ② —, next match highlighted, « deux matchs » flag; then every competition as a
+  list (default) or cards, choice in localStorage `fm.compView`: description, status, field (still in / favourite =
+  most famous still in / winner), next round + week, tie, trophy, registration, draw), Honours (trophy cabinet with greyed trophies still to win, season by season).
   Competition colours: `.def-<id>` sets `--comp` (league, shadow, champions, division, or, argent, marches, preseason),
-  used by `.comp-badge` (schedule, pre-match title). Division emblems `DIV_ICON`: 👑 ⚜️ 🏰 ⛺.
+  used by `.comp-badge` (schedule, pre-match title). Emblems are game-icons: `<CompIcon def>` / `<DivIcon d>` (`COMP_ICONS`, `DIV_ICONS` in `scripts/extract-icons.mjs`: crown, fleur-de-lys, castle, watchtower), no emojis.
 - **Coaches** cost wage = 40 + quality² × 2.2 per week and a hiring fee of 12 weeks of wages (a top coach ≈ 10k).
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
   new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
@@ -136,7 +139,8 @@ tests/       Vitest
   renewed/released (AI) → brood of 2–4 youngsters (player decides in Training; AI keeps the promising ones) →
   new coach market → `ensureSquads` keeps every squad ≥ 9.
 - **Levels & XP** (`engine/progression/levels.ts`, `cfg.training.levels / xp`): the player sees a level 1–10 and
-  0–100 XP; underneath, one level = 20 points of the hidden aptitude (`ability`, 1–200), which still drives the
+  0–100 XP; underneath, levels are steps of the hidden aptitude (`ability`, 1–200; `levels.steps` = [28, 40, 50, 60,
+  72, 86, 102, 120, 142, 168]: short at the bottom so modest creatures still climb, long at the top), which still drives the
   attributes, AI and prices. Max level = level of the potential. Abilities unlock by level (`unlockLevel(minAbility)`,
   `isUnlocked`, used by `getAbilities`). XP per week = training share of the former gain (none while resting /
   injured) + match XP (`matchXp`: played, starter, rating above 5, win — no KO bonus so healers and tanks are not penalised; stored in `growth.matchXp` by the match
@@ -295,6 +299,19 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   control, thorns, back line, healers, stamina, nerves, discipline…; uses the pre-match line-ups found in `matchHistory`
   by seed), one counterpoint (a weakness despite a win / a strength despite a loss) and 1–3 varied tips (one per kind,
   heaviest first) with a button to the right screen.
+- **Time** (`ui/season.ts`: `playerSeason` = the player's matches past and coming in play order, `byWeek`,
+  `completedWeek` = last week fully played, −1 during pre-season, `itemLabel`): **season ribbon** under the top bar
+  (`ui/components/SeasonRibbon.tsx`: pre-season + weeks 1…n, circle = league, diamond = competition in its colour,
+  results green / red, next match pulsing, cursor on the current week, click = `openLeague('comps')`), and the
+  **end-of-week summary** (`ui/screens/game/WeekRecap.tsx`): the store keeps `weekStart` (not saved) and sets `recap`
+  when `completedWeek` grows (`advance` in simulate / finishLive / continueGame); shown once the match report is
+  closed; `continueGame` waits while it is open. Matches, **week's progress** (`GrowthReel.tsx`: per creature, XP bar
+  filling — wrapping with « Niveau N ! » on a level-up —, attribute chips popping one by one, new abilities, point to
+  place; sparkles; still when effects are off), position ▲▼, treasury delta, infirmary, next week.
+  The ribbon is a rail filled up to the current week, a medallion per week (league result), diamonds for cup matches.
+- **Potential** is written « n★ » (`<Stars n>`, 1–10 = highest level reachable: `maxLevelOf` for own creatures,
+  `potentialLevel(c, knowledge)` estimate for others; coach quality /2). Squad has a one-line hint on how creatures
+  grow with a link to Training; Training shows species icon + element dots.
 - **News ticker** (`ui/components/NewsTicker.tsx`): TV-style band at the bottom (next match, last result, leaders, cup,
   infirmary, latest news), loops, pauses on hover, static when effects are off. Inbox is named « Journal ».
 - **Top-bar button** says what it does: « Prochain match » (opens the pre-match screen), « Retour au match »,

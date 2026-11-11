@@ -3,7 +3,7 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { recallScout, sendScout } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { locate, signingBonus } from '../../../engine/economy/market.ts';
-import { estimatedValue, knowledgeOf, overallRange, potentialStars } from '../../../engine/economy/scouting.ts';
+import { estimatedValue, knowledgeOf, overallRange, potentialLevel } from '../../../engine/economy/scouting.ts';
 import { askingWage } from '../../../engine/economy/value.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -86,8 +86,8 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
       key: 'pot',
       label: t('col.potential'),
       title: t('col.potential.title'),
-      sort: (r) => potentialStars(r.c, r.k),
-      render: (r) => <Stars value={potentialStars(r.c, r.k)} />,
+      sort: (r) => potentialLevel(r.c, r.k),
+      render: (r) => <Stars n={potentialLevel(r.c, r.k)} title={t('stars.potential', { n: potentialLevel(r.c, r.k) })} />,
     },
     { key: 'value', label: t('col.value'), title: t('col.value.title'), num: true, sort: (r) => estimatedValue(r.c, r.k), render: (r) => <Money v={estimatedValue(r.c, r.k)} compact /> },
   );
@@ -174,7 +174,7 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
               </div>
               {!free && r.team && <div className="faint rc-team">{r.team}</div>}
               <div className="rc-row">
-                <Stars value={potentialStars(r.c, r.k)} title={t('col.potential.title')} />
+                <Stars n={potentialLevel(r.c, r.k)} title={t('stars.potential', { n: potentialLevel(r.c, r.k) })} />
                 <span title={t('col.known.title')} className="row" style={{ gap: 4 }}>
                   {scouting && '🔍'}
                   <Knowledge k={r.k} />

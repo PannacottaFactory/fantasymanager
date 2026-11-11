@@ -2,6 +2,7 @@
  * Dashboard: the stable at a glance — next match, board, table position, squad status, best creatures,
  * money, recent results, messages and news. Every card leads to the screen that deals with it.
  */
+import { ReputationLine } from '../../components/Reputation.tsx';
 import { useState, type ReactNode } from 'react';
 import { FirstSteps, useLearning } from '../../tutorial/FirstSteps.tsx';
 import { overallRating } from '../../../engine/creature/derived.ts';
@@ -55,6 +56,7 @@ function Hero({ game }: { game: GameState }) {
           {divName(t, d)} · {t('dash.season', { s: game.season, d: Math.min(game.matchday, lastMatchday(game)), n: lastMatchday(game) })} ·{' '}
           {t(`diff.${game.difficulty ?? 'normal'}` as StringKey)}
         </div>
+        <ReputationLine game={game} />
       </div>
       {row && (
         <div className="dash-rank" title={t('dash.rank.title')}>
