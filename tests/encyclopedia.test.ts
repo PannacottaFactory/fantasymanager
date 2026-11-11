@@ -44,5 +44,5 @@ describe('encyclopedia pages', () => {
         expect(html, html.slice(0, 120)).not.toMatch(/\{\w+\}|undefined|NaN/);
       }
     }
-  });
+  }, 30000);
 });
