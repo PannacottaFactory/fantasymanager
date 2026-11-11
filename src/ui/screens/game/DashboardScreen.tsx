@@ -1,0 +1,295 @@
+/**
+ * Dashboard: the stable at a glance — next match, board, table position, squad status, best creatures,
+ * money, recent results, messages and news. Every card leads to the screen that deals with it.
+ */
+import type { ReactNode } from 'react';
+import { overallRating } from '../../../engine/creature/derived.ts';
+import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
+import { divisionOf } from '../../../engine/league/divisions.ts';
+import { lastMatchday, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
+import type { GameState } from '../../../engine/league/types.ts';
+import { speciesName } from '../../../engine/text/localize.ts';
+import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
+import { Crest, Gold, LevelBadge, Attr, RollingMoney } from '../../components/common.tsx';
+import { useT } from '../../i18n/index.ts';
+import type { StringKey } from '../../i18n/strings.ts';
+import { useGame, type Screen } from '../../store/gameStore.ts';
+import { BoardCard, NextMatch, wording } from './InboxScreen.tsx';
+import { FormDots } from './LeagueScreen.tsx';
+import { newsText } from './NewsScreen.tsx';
+
+function Card({ title, to, link, children, className = '' }: { title: string; to?: Screen; link?: string; children: ReactNode; className?: string }) {
+  return (
+    <section className={`panel dash-card ${className}`}>
+      <div className="dash-card-head">
+        <h3>{title}</h3>
+        {to && (
+          <button className="link" onClick={() => useGame.getState().setScreen(to)}>
+            {link} →
+          </button>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Hero({ game }: { game: GameState }) {
+  const tr = useT();
+  const { t } = tr;
+  const team = playerTeam(game);
+  const d = divisionOf(game, team.id);
+  const table = standings(game, d);
+  const pos = table.findIndex((r) => r.teamId === team.id) + 1;
+  const row = table[pos - 1];
+  const best = [...team.creatures].sort((a, b) => b.ability - a.ability)[0];
+  return (
+    <section className="panel dash-hero">
+      {best && <Crest speciesId={best.speciesId} name={team.name} size={56} />}
+      <div className="grow">
+        <h2>{team.name}</h2>
+        <div className="muted">
+          {t('league.division', { n: d + 1 })} · {t('dash.season', { s: game.season, d: Math.min(game.matchday, lastMatchday(game)), n: lastMatchday(game) })} ·{' '}
+          {t(`diff.${game.difficulty ?? 'normal'}` as StringKey)}
+        </div>
+      </div>
+      {row && (
+        <div className="dash-rank" title={t('dash.rank.title')}>
+          <b>{tr.ordinal(pos)}</b>
+          <span className="muted">{t('dash.points', { n: row.points })}</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function MiniTable({ game }: { game: GameState }) {
+  const { t } = useT();
+  const d = divisionOf(game, game.playerTeamId);
+  const rows = standings(game, d);
+  const me = rows.findIndex((r) => r.teamId === game.playerTeamId);
+  const from = Math.max(0, Math.min(me - 2, rows.length - 5));
+  const promoted = DEFAULT_CONFIG.league.promoted;
+  const last = game.divisions.length - 1;
+  return (
+    <Card title={t('dash.table')} to="league" link={t('dash.seeTable')}>
+      <table className="data standings compact">
+        <tbody>
+          {rows.slice(from, from + 5).map((r, k) => {
+            const i = from + k;
+            const zone = (d > 0 && i < promoted) || (d === 0 && i === 0) ? 'top' : d < last && i >= rows.length - promoted ? 'bottom' : '';
+            return (
+              <tr key={r.teamId} className={`${r.teamId === game.playerTeamId ? 'mine' : ''} ${zone}`}>
+                <td className="num">{i + 1}</td>
+                <td>{teamById(game, r.teamId).name}</td>
+                <td>
+                  <FormDots form={r.form} />
+                </td>
+                <td className="num">
+                  <b>{r.points}</b>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Card>
+  );
+}
+
+function SquadStatus({ game }: { game: GameState }) {
+  const { t } = useT();
+  const team = playerTeam(game);
+  const injured = team.creatures.filter((c) => c.condition.injuries.some((i) => i.weeksLeft > 0)).length;
+  const tired = team.creatures.filter((c) => c.condition.fatigue >= 50).length;
+  const expiring = team.creatures.filter((c) => c.contract && c.contract.untilSeason <= game.season).length;
+  const points = team.creatures.reduce((s, c) => s + (c.growth?.freePoints ?? 0), 0);
+  const tiles: { n: number; label: StringKey; to: Screen; tone: 'good' | 'warn' | 'bad' | 'info' }[] = [
+    { n: team.creatures.length - injured, label: 'dash.available', to: 'squad', tone: 'good' },
+    { n: injured, label: 'dash.injured', to: 'squad', tone: injured ? 'bad' : 'info' },
+    { n: tired, label: 'dash.tired', to: 'tactics', tone: tired ? 'warn' : 'info' },
+    { n: expiring, label: 'dash.expiring', to: 'finances', tone: expiring ? 'warn' : 'info' },
+    { n: points, label: 'dash.freePoints', to: 'squad', tone: points ? 'good' : 'info' },
+    { n: game.youth.length, label: 'dash.youth', to: 'training', tone: game.youth.length ? 'good' : 'info' },
+  ];
+  return (
+    <Card title={t('dash.squad')} to="squad" link={t('nav.squad')}>
+      <div className="dash-tiles">
+        {tiles.map((x) => (
+          <button key={x.label} className={`dash-tile ${x.tone} ${x.n ? '' : 'zero'}`} onClick={() => useGame.getState().setScreen(x.to)}>
+            <b>{x.n}</b>
+            <span>{t(x.label)}</span>
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function Stars({ game }: { game: GameState }) {
+  const { t, lang } = useT();
+  const team = playerTeam(game);
+  const top = [...team.creatures].sort((a, b) => overallRating(b) - overallRating(a)).slice(0, 4);
+  return (
+    <Card title={t('dash.stars')} to="squad" link={t('nav.squad')}>
+      <ul className="dash-list">
+        {top.map((c) => (
+          <li key={c.id}>
+            <Crest speciesId={c.speciesId} name={c.name} size={28} />
+            <span className="grow dash-who">
+              <button className="link" onClick={() => useGame.getState().openSheet(c.id)}>
+                {c.name}
+              </button>
+              <span className="faint">{speciesName(c.speciesId, lang)}</span>
+            </span>
+            <LevelBadge c={c} compact />
+            <b className="mono" title={t('cr.overall')}>
+              {overallRating(c)}
+            </b>
+            <span title={t('col.form')}>
+              <Attr v={c.condition.form} />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+function Money({ game }: { game: GameState }) {
+  const tr = useT();
+  const { t, money } = tr;
+  const club = clubOf(game, game.playerTeamId);
+  const season = club.ledger.filter((e) => e.season === game.season);
+  const last = season[season.length - 1];
+  const net = last ? Object.values(last.income).reduce((s, v) => s + (v ?? 0), 0) - Object.values(last.expense).reduce((s, v) => s + (v ?? 0), 0) : 0;
+  const values = season.map((e) => e.balance);
+  const W = 220;
+  const H = 46;
+  const lo = Math.min(...values, club.balance);
+  const hi = Math.max(...values, club.balance);
+  const path =
+    values.length > 1
+      ? values.map((v, i) => `${i ? 'L' : 'M'}${((i / (values.length - 1)) * W).toFixed(1)},${(H - 4 - ((v - lo) / (hi - lo || 1)) * (H - 8)).toFixed(1)}`).join(' ')
+      : '';
+  return (
+    <Card title={t('dash.money')} to="finances" link={t('nav.finances')}>
+      <div className="dash-money">
+        <b className={club.balance < 0 ? 'bad-text' : ''}>
+          <RollingMoney v={club.balance} />
+        </b>
+        {path && (
+          <svg viewBox={`0 0 ${W} ${H}`} className="chart dash-spark" aria-hidden="true">
+            <path d={path} className="line draw" pathLength={1} />
+          </svg>
+        )}
+      </div>
+      <div className="muted" style={{ fontSize: '0.857rem' }}>
+        <Gold>{t('dash.moneyLine', { bill: money(weeklyBill(game, game.playerTeamId)), rep: club.reputation })}</Gold>
+        {last && (
+          <>
+            {' · '}
+            <span className={net >= 0 ? 'good-text' : 'bad-text'}>{t('dash.lastWeek', { v: `${net >= 0 ? '+' : '−'}${money(Math.abs(net))}` })}</span>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function Results({ game }: { game: GameState }) {
+  const { t } = useT();
+  const me = game.playerTeamId;
+  const played = game.fixtures.filter((f) => f.result && (f.home === me || f.away === me)).slice(-5).reverse();
+  return (
+    <Card title={t('dash.results')} to="league" link={t('nav.league')}>
+      {played.length === 0 && <div className="faint">{t('dash.noResults')}</div>}
+      <ul className="dash-list">
+        {played.map((f) => {
+          const side = f.home === me ? 0 : 1;
+          const r = f.result!;
+          const won = r.winner === side;
+          const opp = teamById(game, side === 0 ? f.away : f.home).name;
+          return (
+            <li key={f.id}>
+              <span className={`result-chip ${won ? 'win' : 'loss'}`}>{won ? t('dash.w') : t('dash.l')}</span>
+              <span className="grow">
+                {opp} {f.competition === 'cup' && <span className="tag">{t('dash.cup')}</span>}
+              </span>
+              <span className="mono">
+                {r.score[side]}–{r.score[side === 0 ? 1 : 0]}
+              </span>
+              <span className="faint" style={{ fontSize: '0.857rem', minWidth: 54, textAlign: 'right' }}>
+                {r.method === 'ko' ? t('league.koRound', { n: r.rounds }) : t('league.pts')}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
+function Messages({ game }: { game: GameState }) {
+  const tr = useT();
+  const { t } = tr;
+  const unread = game.inbox.filter((m) => !m.read);
+  const list = [...(unread.length ? unread : game.inbox)].reverse().slice(0, 4);
+  return (
+    <Card title={unread.length ? t('dash.unread', { n: unread.length }) : t('dash.messages')} to="inbox" link={t('nav.inbox')}>
+      <ul className="dash-list">
+        {list.map((m) => {
+          const w = wording(tr, m, game.cup.rounds);
+          return (
+            <li key={m.id} className={`tone-${w.tone}`}>
+              <span className="dash-dot" />
+              <span className="grow">
+                <Gold>{w.title}</Gold>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
+function News({ game }: { game: GameState }) {
+  const tr = useT();
+  const { t } = tr;
+  const list = [...game.news].slice(-4).reverse();
+  if (!list.length) return null;
+  return (
+    <Card title={t('dash.news')} to="news" link={t('nav.news')}>
+      <ul className="dash-list">
+        {list.map((n) => (
+          <li key={n.id}>
+            <span className="grow">
+              <Gold>{newsText(tr, n)}</Gold>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export function DashboardScreen() {
+  const game = useGame((s) => s.game)!;
+  return (
+    <div className="stack dash" data-tip="dashboard">
+      <Hero game={game} />
+      <NextMatch game={game} />
+      <BoardCard game={game} />
+      <div className="dash-grid">
+        <SquadStatus game={game} />
+        <MiniTable game={game} />
+        <Money game={game} />
+        <Stars game={game} />
+        <Results game={game} />
+        <Messages game={game} />
+        <News game={game} />
+      </div>
+    </div>
+  );
+}

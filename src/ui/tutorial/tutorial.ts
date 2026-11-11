@@ -15,11 +15,12 @@ export interface TutorialStep {
 
 /** In order: a tip shows when it is the first unseen one whose anchor is on screen. */
 export const STEPS: TutorialStep[] = [
-  { id: 'welcome', anchor: 'inbox', placement: 'center' },
+  { id: 'welcome', anchor: 'dashboard', placement: 'center' },
   { id: 'board', anchor: 'board' },
   { id: 'continue', anchor: 'continue' },
   { id: 'nav', anchor: 'nav' },
   { id: 'help', anchor: 'help-btn' },
+  { id: 'inbox', anchor: 'inbox' },
   { id: 'squad', anchor: 'squad' },
   { id: 'lineup', anchor: 'lineup', placement: 'above' },
   { id: 'orders', anchor: 'orders' },

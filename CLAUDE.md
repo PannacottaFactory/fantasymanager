@@ -262,6 +262,10 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   both line-ups with the abilities seen used, **replays**: `GameState.matchHistory` keeps the last 10 player
   matches (setup snapshot + break decisions; `replayMatch` / `replayDeciders` reproduce them exactly), "Watch
   again" and "Report" in the inbox, `LiveMatch` `replay` mode. 113 tests.
+- **Start & dashboard**: opening the app with a save shows the start screen (store `launch`) with two cards, « continue »
+  and « new game » (difficulty as cards, seed under « more options »). In a game the landing screen is the dashboard
+  (`DashboardScreen`, nav « Accueil »): hero (rank), next match, board, squad status tiles, mini table, treasury,
+  best creatures, latest results, unread messages, news — each card links to its screen.
 - **Creature sheet** (`CreatureModal`): one identity line (species — description as tooltip —, elements, size, age),
   a strip of stat tiles (overall, level, HP, stamina, form, morale, fatigue), then attributes, traits / role fit,
   abilities; `extra` sits under the header (live state, market estimate), `footer` holds management (training +

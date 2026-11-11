@@ -44,6 +44,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
   }, [open]);
 
   const entries: Entry[] = [
+    { id: 'dashboard', label: 'nav.dashboard', needsGame: true },
     { id: 'inbox', label: 'nav.inbox', needsGame: true },
     {
       label: 'nav.group.stable',

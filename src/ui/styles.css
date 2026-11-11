@@ -941,3 +941,89 @@ table.data tr.mine td { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--home)
 :root[data-effects='reduced'] .chart .line.draw { animation: none; stroke-dasharray: none; stroke-dashoffset: 0; }
 /* Gold amounts on gold buttons keep the button colour. */
 .btn.primary .gold, .btn.active .gold { color: inherit; }
+
+/* ——— Dashboard ——— */
+.dash-hero { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-top: 3px solid var(--home);
+  background-image: radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%); }
+.dash-hero h2 { font-size: 1.571rem; color: var(--accent); margin: 0 0 2px; }
+.dash-rank { display: flex; flex-direction: column; align-items: center; padding: 6px 16px; border-left: 1px solid var(--border); }
+.dash-rank b { font: 700 2rem var(--font-mono); color: var(--gold); line-height: 1; }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; align-items: start; }
+.dash-card { display: flex; flex-direction: column; gap: 8px; animation: fadein 0.4s ease-out both; }
+.dash-grid > :nth-child(2) { animation-delay: 0.05s; } .dash-grid > :nth-child(3) { animation-delay: 0.1s; }
+.dash-grid > :nth-child(4) { animation-delay: 0.15s; } .dash-grid > :nth-child(5) { animation-delay: 0.2s; }
+.dash-grid > :nth-child(6) { animation-delay: 0.25s; } .dash-grid > :nth-child(7) { animation-delay: 0.3s; }
+.dash-card-head { display: flex; align-items: baseline; gap: 8px; }
+.dash-card-head h3 { margin: 0; flex: 1; }
+.dash-card-head .link { font-size: 0.857rem; }
+.dash-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.dash-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 0; padding: 6px 10px; border-radius: var(--radius);
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text); cursor: pointer; text-align: left; transition: transform 0.12s, border-color 0.12s; }
+.dash-tile:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+.dash-tile b { font: 700 1.429rem var(--font-mono); }
+.dash-tile span { font-size: 0.786rem; color: var(--muted); }
+.dash-tile.good b { color: var(--good); } .dash-tile.warn b { color: var(--warn); } .dash-tile.bad b { color: var(--bad); }
+.dash-tile.zero b { color: var(--faint); }
+.dash-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.dash-list li { display: flex; align-items: center; gap: 8px; padding: 3px 4px; border-radius: 4px; font-size: 0.929rem; }
+.dash-list li:hover { background: var(--panel-2); }
+.dash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--info); flex: none; }
+.tone-good .dash-dot { background: var(--good); } .tone-bad .dash-dot { background: var(--bad); }
+.result-chip { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; font: 700 0.786rem var(--font-mono); flex: none; }
+.result-chip.win { background: color-mix(in srgb, var(--good) 25%, transparent); color: var(--good); }
+.result-chip.loss { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
+.dash-money { display: flex; align-items: center; gap: 12px; }
+.dash-money > b { font: 700 1.571rem var(--font-mono); }
+.dash-spark { width: 160px; height: 40px; flex: none; }
+table.standings.compact td { padding: 3px 6px; }
+:root[data-effects='reduced'] .dash-card { animation: none; }
+@media (max-width: 640px) { .dash-tiles { grid-template-columns: repeat(2, 1fr); } .dash-hero { flex-wrap: wrap; } }
+
+/* ——— Start screen ——— */
+.start { display: flex; flex-direction: column; align-items: center; gap: 18px; padding-top: 3vh; }
+.start-hero { text-align: center; max-width: 720px; animation: fadein 0.6s ease-out both; }
+.start-hero h1 { font: 700 2.571rem var(--font-title); color: var(--accent); margin: 4px 0; text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 35%, transparent); }
+.start-logo { width: 76px; height: 76px; color: var(--accent); filter: drop-shadow(0 0 14px color-mix(in srgb, var(--accent) 45%, transparent)); animation: logo-float 5s ease-in-out infinite; }
+@keyframes logo-float { 50% { transform: translateY(-5px); } }
+.start-cards { display: grid; grid-template-columns: minmax(0, 560px); gap: 16px; width: min(1100px, 100%); justify-content: center; }
+.start-cards.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+.start-card { position: relative; width: auto; display: flex; flex-direction: column; gap: 12px; padding: 22px; padding-top: 28px; animation: fadein 0.5s ease-out 0.1s both; }
+.start-card h2 { font-size: 1.429rem; color: var(--accent); margin: 0; }
+.start-card .field input[type='text'] { width: 100%; max-width: 360px; }
+.start-card-tag { position: absolute; top: -11px; left: 16px; padding: 2px 10px; border-radius: 999px; font-size: 0.786rem; font-weight: 700;
+  background: var(--panel-3); border: 1px solid var(--border-strong); color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+.start-card-tag.new { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.continue-card { border-top: 3px solid var(--home); justify-content: space-between; }
+.new-card { border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 15%, transparent), 0 10px 30px rgb(0 0 0 / 0.25);
+  background-image: radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 55%); }
+.big-btn { padding: 10px 24px; font-size: 1.071rem; align-self: flex-start; }
+.diff-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px; }
+.diff-card { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 10px; border-radius: var(--radius); text-align: left; cursor: pointer;
+  background: var(--panel-2); border: 1px solid var(--border); color: var(--text); transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s; }
+.diff-card .muted { font-size: 0.786rem; line-height: 1.35; }
+.diff-card:hover { transform: translateY(-1px); border-color: var(--border-strong); }
+.diff-card.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 4px 14px color-mix(in srgb, var(--accent) 20%, transparent); }
+.diff-card.easy.on { border-color: var(--good); box-shadow: 0 0 0 1px var(--good); }
+.diff-card.hard.on { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+.diff-icon { font-size: 1.286rem; }
+.start-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+:root[data-effects='reduced'] .start-logo, :root[data-effects='reduced'] .start-hero, :root[data-effects='reduced'] .start-card { animation: none; }
+@media (max-width: 820px) { .start-cards.two { grid-template-columns: minmax(0, 1fr); } .diff-cards { grid-template-columns: 1fr; } }
+
+/* ——— League & recruitment polish ——— */
+table.standings tr.top td { background: color-mix(in srgb, var(--good) 7%, transparent); }
+table.standings tr.top td:first-child { box-shadow: inset 4px 0 0 var(--good); color: var(--good); font-weight: 700; }
+table.standings tr.bottom td { background: color-mix(in srgb, var(--bad) 7%, transparent); }
+table.standings tr.bottom td:first-child { box-shadow: inset 4px 0 0 var(--bad); color: var(--bad); font-weight: 700; }
+table.standings tr.mine td { background: color-mix(in srgb, var(--home) 18%, transparent); }
+table.standings tr.mine td:nth-child(2) { color: var(--home); }
+.form-dots i { transition: transform 0.12s; }
+.form-dots i:hover { transform: scale(1.4); }
+.stars { color: var(--gold); }
+.stars .empty { text-shadow: none; }
+.stars .half { background: linear-gradient(90deg, var(--gold) 50%, var(--border-strong) 50%); -webkit-background-clip: text; background-clip: text; }
+.dash-who { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.dash-who .link { text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-who .faint { font-size: 0.786rem; }
+.start-cards { align-items: start; }
+.continue-card { justify-content: flex-start; }

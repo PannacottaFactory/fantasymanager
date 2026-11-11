@@ -13,6 +13,7 @@ import { StartScreen } from './screens/game/StartScreen.tsx';
 import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
 import { GameSheet } from './screens/game/CreatureSheet.tsx';
 import { IntroModal } from './screens/game/IntroModal.tsx';
+import { DashboardScreen } from './screens/game/DashboardScreen.tsx';
 import { FxLayer } from './fx/FxLayer.tsx';
 import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
@@ -95,7 +96,7 @@ function ContinueButton() {
 export function App() {
   const { t } = useT();
   const { lang, theme, textSize, effects, setLang, setTheme, setTextSize, setEffects } = useSettings();
-  const { ready, game, screen, viewing, saveError, replaying, intro } = useGame();
+  const { ready, game, screen, viewing, saveError, replaying, intro, launch } = useGame();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
   const unread = game?.inbox.filter((m) => !m.read).length ?? 0;
@@ -147,7 +148,7 @@ export function App() {
   else if (screen === 'help') content = <HelpScreen />;
   else if (screen === 'encyclopedia') content = <EncyclopediaScreen />;
   else if (screen === 'arena') content = <ArenaScreen />;
-  else if (!game || newGameOpen) content = <StartScreen onCancel={game ? () => setNewGameOpen(false) : undefined} />;
+  else if (!game || newGameOpen || launch) content = <StartScreen onCancel={game && newGameOpen ? () => setNewGameOpen(false) : undefined} />;
   else if (screen === 'squad') content = <SquadScreen />;
   else if (screen === 'tactics') content = <TacticsScreen />;
   else if (screen === 'league') content = <LeagueScreen />;
@@ -158,12 +159,13 @@ export function App() {
   else if (screen === 'facilities') content = <FacilitiesScreen />;
   else if (screen === 'news') content = <NewsScreen />;
   else if (screen === 'match') content = <MatchScreen />;
-  else content = <InboxScreen />;
+  else if (screen === 'inbox') content = <InboxScreen />;
+  else content = <DashboardScreen />;
 
   return (
     <div className="app">
       <header className="topbar">
-        <button className="brand" onClick={() => (game ? setNewGameOpen(true) : setScreen('inbox'))} title={t('start.new')}>
+        <button className="brand" onClick={() => (game ? setNewGameOpen(true) : setScreen('dashboard'))} title={t('start.new')}>
           <svg className="brand-icon" width="30" height="30" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
           <div>
             <h1>{t('app.title')}</h1>
@@ -171,7 +173,7 @@ export function App() {
           </div>
         </button>
         <NavBar
-          screen={newGameOpen ? null : screen}
+          screen={newGameOpen || launch ? null : screen}
           hasGame={!!game}
           badges={{ inbox: unread, training: game?.youth.length ?? 0 }}
           onSelect={(id) => {
@@ -179,7 +181,7 @@ export function App() {
             setScreen(id);
           }}
         />
-        <ContinueButton />
+        {!launch && <ContinueButton />}
         <div className="seg" role="radiogroup" aria-label={t('lang.title')} title={t('lang.title')}>
           {LANGS.map((l) => (
             <button key={l} className={l === lang ? 'on' : ''} onClick={() => setLang(l)} role="radio" aria-checked={l === lang}>
@@ -231,7 +233,7 @@ export function App() {
       {game && !newGameOpen && <IntroModal />}
       <FxLayer />
       <Celebrations />
-      <TutorialOverlay active={!!game && !newGameOpen && ready && !viewing && !intro} />
+      <TutorialOverlay active={!!game && !newGameOpen && !launch && ready && !viewing && !intro} />
     </div>
   );
 }

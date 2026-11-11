@@ -15,7 +15,7 @@ export function cupRoundKey(round: number, rounds: number): StringKey {
   return (['cup.final', 'cup.semi', 'cup.quarter', 'cup.r16'] as const)[fromFinal] ?? 'cup.prelim';
 }
 
-function FormDots({ form }: { form: string[] }) {
+export function FormDots({ form }: { form: string[] }) {
   const { t } = useT();
   return (
     <span className="form-dots">

@@ -14,7 +14,7 @@ import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
 import { loadGame, saveGame } from './saves.ts';
 
-export type Screen = 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
+export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
 export interface MatchFlow {
   fixtureId: string;
@@ -61,6 +61,8 @@ interface GameStore {
   update: (f: (g: GameState) => GameState) => void;
   /** Creature sheet opened from anywhere (inbox, recruitment…). */
   sheet: string | null;
+  /** Just opened with a saved game: the start screen offers to continue it or start a new one. */
+  launch: boolean;
   /** Welcome window of a new game (not saved: shown once, right after the game is created). */
   intro: boolean;
   closeIntro: () => void;
@@ -85,7 +87,7 @@ export const useGame = create<GameStore>()((set, get) => {
   return {
     ready: false,
     game: null,
-    screen: 'inbox',
+    screen: 'dashboard',
     match: null,
     viewing: null,
     replaying: null,
@@ -94,16 +96,16 @@ export const useGame = create<GameStore>()((set, get) => {
 
     init: async () => {
       const game = await loadGame();
-      set({ game, ready: true, screen: game ? 'inbox' : get().screen });
+      set({ game, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game });
     },
 
     newGame: (teamName, seed, difficulty) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty });
-      set({ match: null, viewing: null, screen: 'inbox', intro: true });
+      set({ match: null, viewing: null, screen: 'dashboard', intro: true, launch: false });
       commit(game);
     },
 
-    setScreen: (screen) => set({ screen, viewing: null }),
+    setScreen: (screen) => set({ screen, viewing: null, launch: false }),
 
     setPlayerTeam: (team) => mapPlayerTeam(() => team),
     autoPick: () => mapPlayerTeam((t) => aiPrepare(t)),
@@ -192,6 +194,7 @@ export const useGame = create<GameStore>()((set, get) => {
     sheet: null,
     openSheet: (sheet) => set({ sheet }),
     intro: false,
+    launch: false,
     closeIntro: () => set({ intro: false }),
   };
 });

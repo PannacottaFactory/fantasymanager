@@ -287,7 +287,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
   return null;
 }
 
-function BoardCard({ game }: { game: GameState }) {
+export function BoardCard({ game }: { game: GameState }) {
   const tr = useT();
   const { t } = tr;
   const c = game.board.confidence;
@@ -312,7 +312,7 @@ function BoardCard({ game }: { game: GameState }) {
   );
 }
 
-function NextMatch({ game }: { game: GameState }) {
+export function NextMatch({ game }: { game: GameState }) {
   const tr = useT();
   const { t } = tr;
   const f = playerFixture(game);
