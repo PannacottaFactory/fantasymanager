@@ -7,6 +7,7 @@ import { playerFixture, playerTeam, teamById } from '../../../engine/league/seas
 import { speciesName } from '../../../engine/text/localize.ts';
 import { Crest, Gold, Modal } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
+import { divName } from '../../competitions.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { objectiveText } from './InboxScreen.tsx';
 
@@ -36,7 +37,7 @@ export function IntroModal() {
       }
     >
       <div className="stack intro">
-        <p>{t('intro.p1', { team: team.name, n: team.creatures.length, d: divisionOf(game, team.id) + 1 })}</p>
+        <p>{t('intro.p1', { team: team.name, n: team.creatures.length, div: divName(t, divisionOf(game, team.id)) })}</p>
         <p>
           <Gold>{t('intro.p2', { objective: objectiveText(tr, game.board.objective), money: money(game.clubs[team.id]!.balance) })}</Gold>
         </p>

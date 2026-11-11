@@ -13,13 +13,18 @@ import { levelOf } from '../progression/levels.ts';
 export const AMBITION_IDS = [
   'firstWin',
   'topHalf',
-  'cupRun',
+  'firstTrophy',
   'promotion',
+  'cupRun',
   'star',
+  'royal',
+  'crown',
+  'topFlight',
   'survive',
   'builder',
   'cupWin',
   'champion',
+  'championsCup',
   'double',
   'dynasty',
 ] as const;
@@ -37,7 +42,19 @@ function met(s: GameState, id: AmbitionId, cfg: GameConfig): boolean {
   const me = s.playerTeamId;
   const size = (d: number) => s.divisions[d]?.length ?? 10;
   const d1Titles = career(s).filter((r) => r.division === 0 && r.position === 1);
+  const won = (def: string) => career(s).some((r) => r.trophies?.includes(def)) || (s.tournaments ?? []).some((t) => t.def === def && t.winner === me);
+  const div = divisionOf(s, me);
   switch (id) {
+    case 'firstTrophy':
+      return s.cup.winner === me || career(s).some((r) => r.cupWon || (r.trophies ?? []).some((x) => x !== 'preseason')) || (s.tournaments ?? []).some((t) => t.kind !== 'preseason' && t.winner === me);
+    case 'royal':
+      return div <= 1;
+    case 'topFlight':
+      return div === 0;
+    case 'crown':
+      return won('or');
+    case 'championsCup':
+      return won('champions');
     case 'firstWin':
       return s.fixtures.some((f) => f.result && ((f.home === me && f.result.winner === 0) || (f.away === me && f.result.winner === 1)));
     case 'topHalf':
@@ -46,7 +63,7 @@ function met(s: GameState, id: AmbitionId, cfg: GameConfig): boolean {
       // Into the semi-finals (or beyond).
       return s.cup.winner === me || (s.cup.alive.includes(me) && s.cup.alive.length <= 4);
     case 'promotion':
-      return divisionOf(s, me) === 0;
+      return div < cfg.league.playerDivision;
     case 'star':
       return s.teams.find((t) => t.id === me)!.creatures.some((c) => levelOf(c, cfg) >= STAR_LEVEL);
     case 'survive':
@@ -83,8 +100,8 @@ export function checkAmbitions(s: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
 }
 
 /** Logs the season that just ended for the player (league position, cup). Mutates. */
-export function recordSeason(s: GameState, division: number, position: number, points: number) {
+export function recordSeason(s: GameState, division: number, position: number, points: number, trophies: string[] = []) {
   s.career ??= [];
   if (s.career.some((r) => r.season === s.season)) return;
-  s.career.push({ season: s.season, division, position, points, cupWon: s.cup.winner === s.playerTeamId });
+  s.career.push({ season: s.season, division, position, points, cupWon: s.cup.winner === s.playerTeamId, trophies });
 }

@@ -1,6 +1,6 @@
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
-import { cupRoundKey } from './LeagueScreen.tsx';
+import { compName, divName, roundKey } from '../../competitions.ts';
 import { isInjured } from '../../../engine/creature/derived.ts';
 import { aiPrepare, lastMatchday, playerPrepare, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -71,9 +71,9 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
   const oppTable = standings(game, divisionOf(game, opp.id));
   const posOf = (id: string) => oppTable.findIndex((r) => r.teamId === id) + 1;
   const title =
-    f.competition === 'cup'
-      ? t('match.cup', { round: t(cupRoundKey(f.round ?? 0, game.cup.rounds)) })
-      : `${t('league.division', { n: (f.division ?? 0) + 1 })} · ${t('match.matchday', { d: match.matchday, n: lastMatchday(game) })}`;
+    f.competition
+      ? t('match.cup', { comp: compName(t, f.tournamentId), round: t(roundKey(f.round ?? 0, f.tournamentId ? (game.tournaments.find((x) => x.id === f.tournamentId)?.rounds ?? 1) : game.cup.rounds)) })
+      : `${divName(t, f.division ?? 0)} · ${t('match.matchday', { d: match.matchday, n: lastMatchday(game) })}`;
   const issues = validateTactic(mine, DEFAULT_CONFIG, true);
 
   return (
@@ -86,7 +86,7 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
               <span className="home-text">{mine.name}</span> <span className="muted">{t('common.vs')}</span> <span className="away-text">{opp.name}</span>
             </h2>
             <div className="muted" style={{ fontSize: '0.857rem' }}>
-              {home ? t('common.home') : t('common.away')} · {t('league.division', { n: divisionOf(game, opp.id) + 1 })} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
+              {home ? t('common.home') : t('common.away')} · {divName(t, divisionOf(game, opp.id))} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
               {opp.identity && DEFAULT_CONFIG.identity.difficulties[game.difficulty ?? 'normal'].identities && (
                 <span title={t(`manager.${opp.identity.manager}.desc`)}> · {t('match.manager', { name: managerName(opp), m: t(`manager.${opp.identity.manager}`) })}</span>
               )}

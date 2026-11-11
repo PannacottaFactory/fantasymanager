@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import type { MatchResult, MatchSetup } from '../../engine/combat/types.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { replayMatch } from '../../engine/combat/simulate.ts';
-import { aiPrepare, fixtureSetup, newGame, playMatchday, playerFixture, seasonOver, startNextSeason } from '../../engine/league/season.ts';
+import { aiPrepare, fixtureSetup, newGame, playMatchday, playerFixture, seasonOver, startNextSeason, cupDue } from '../../engine/league/season.ts';
 import type { GameState, MatchRecord } from '../../engine/league/types.ts';
 import type { Team } from '../../engine/model.ts';
 import { repairTactic } from '../../engine/team/team.ts';
@@ -119,12 +119,17 @@ export const useGame = create<GameStore>()((set, get) => {
         set({ screen: 'inbox', match: null });
         return;
       }
-      const f = playerFixture(g);
+      let f = playerFixture(g);
+      let cur = g;
       if (!f) {
-        commit(playMatchday(g));
-        return;
+        // Midweeks the stable does not play in pass on their own, up to the next match.
+        cur = playMatchday(cur);
+        while (!seasonOver(cur) && cupDue(cur) && !playerFixture(cur)) cur = playMatchday(cur);
+        commit(cur);
+        f = seasonOver(cur) ? undefined : playerFixture(cur);
+        if (!f) return;
       }
-      set({ screen: 'match', viewing: null, match: { fixtureId: f.id, matchday: g.matchday, phase: 'pre', setup: null, result: null, liveKey: 0 } });
+      set({ screen: 'match', viewing: null, match: { fixtureId: f.id, matchday: cur.matchday, phase: 'pre', setup: null, result: null, liveKey: 0 } });
     },
 
     setPlayerControls: (v) => set({ playerControls: v }),

@@ -40,14 +40,14 @@ export function newsFromResults(
     if (!r) continue;
     const winner = r.winner === 0 ? f.home : f.away;
     const loser = r.winner === 0 ? f.away : f.home;
-    const cup = f.competition === 'cup';
+    const cup = !!f.competition;
     const gap = rank(winner) - rank(loser);
     const upset = cup ? Math.floor(rank(winner) / 100) > Math.floor(rank(loser) / 100) : gap >= n.upsetPlaces && state.matchday > 3;
     if (upset) addNews(state, { kind: 'upset', winner: nameOf(state, winner), loser: nameOf(state, loser), cup }, cfg);
     else if (r.method === 'ko' && r.rounds <= n.quickKoRounds) addNews(state, { kind: 'quickKo', winner: nameOf(state, winner), loser: nameOf(state, loser), rounds: r.rounds }, cfg);
   }
   // Streaks and new leaders (league weeks only).
-  if (played.some((p) => p.fixture.competition === 'cup')) return;
+  if (played.some((p) => p.fixture.competition)) return;
   const after = divisionTables(state, cfg);
   after.forEach((table, d) => {
     const leader = table[0];

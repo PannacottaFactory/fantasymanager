@@ -94,5 +94,6 @@ export function migrateGame(raw: unknown, cfg: GameConfig = DEFAULT_CONFIG): Gam
     });
     s.version = 5;
   }
-  return s.version === 5 ? state : null;
+  // Version 6 (4 divisions and tournaments) needs a new game.
+  return s.version === 6 ? state : null;
 }

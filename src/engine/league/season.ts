@@ -31,6 +31,7 @@ import { addNews, divisionTables, isStar, newsFromResults } from './news.ts';
 import { matchdayCount, roundRobin } from './schedule.ts';
 import { computeStandings } from './standings.ts';
 import type { Fixture, FixtureResult, GameState } from './types.ts';
+import { championsFrom, cupKey, finishTournamentRound, midweekKey, startTournaments, tournamentFixture, tournamentsAt } from './tournaments.ts';
 
 export interface NewGameOptions {
   seed: string;
@@ -58,7 +59,7 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
     const ids: string[] = [];
     list.forEach((q, i) => {
       const isPlayer = d === lc.playerDivision && i === list.length - 1;
-      const quality = (isPlayer ? lc.playerQuality : q) as QualityId;
+      const quality = (isPlayer ? (diff.playerQuality ?? lc.playerQuality) : q) as QualityId;
       const rng = world.fork(isPlayer ? 'player' : `ai${d}-${i}`);
       const identity = isPlayer ? undefined : identities[nextIdentity++];
       const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: styleShare(identity, difficulty, cfg) } : undefined;
@@ -96,7 +97,7 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
   const difficulty = opts.difficulty ?? 'normal';
   const { teams, divisions, qualities, playerId } = generateWorld(opts.seed, opts.teamName, opts.lang, cfg, difficulty);
   const state: GameState = {
-    version: 5,
+    version: 6,
     worldSeed: opts.seed,
     lang: opts.lang,
     season: 1,
@@ -120,6 +121,7 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
     youth: [],
     divisions,
     cup: { round: 0, rounds: 0, alive: [] },
+    tournaments: [],
     board: { objective: 'midTable', confidence: cfg.club.board.start },
     facilities: Object.fromEntries(teams.map((t) => [t.id, startingFacilities(qualities[t.id] ?? 'professional', cfg)])),
     news: [],
@@ -132,6 +134,7 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
   pushMessage(state, { kind: 'welcome', teamName: teamById(state, playerId).name, teams: divisions[divisionOf(state, playerId)]!.length, matchdays: matchdayCount(state.fixtures) });
   newSeasonObjective(state, cfg);
   startCup(state, cfg);
+  startTournaments(state, championsFrom(state), cfg);
   snapshotSeasonStart(state, cfg);
   return state;
 }
@@ -142,10 +145,9 @@ export const lastMatchday = (state: GameState) => matchdayCount(state.fixtures);
 export const playerTeam = (state: GameState) => teamById(state, state.playerTeamId);
 export const playerDivision = (state: GameState) => divisionOf(state, state.playerTeamId);
 
-/** A cup round is due before the next league matchday. */
+/** A midweek (cup or tournament round) is due before the next league matchday. */
 export function cupDue(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): boolean {
-  const c = state.cup;
-  return c.round < c.rounds && state.matchday > (cfg.league.cup.after[c.round] ?? Infinity);
+  return midweekKey(state, cfg) !== null;
 }
 
 export const seasonOver = (state: GameState, cfg: GameConfig = DEFAULT_CONFIG) => state.matchday > lastMatchday(state) && !cupDue(state, cfg);
@@ -158,10 +160,21 @@ export function teamById(state: GameState, id: string): Team {
 
 const involves = (f: Fixture, id: string) => f.home === id || f.away === id;
 
-/** The player's next fixture: the cup tie when a cup round is due, else the league match. */
+/** The player's next fixture: in a midweek, its cup or tournament tie (none if it does not play), else the league match. */
 export function playerFixture(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): Fixture | undefined {
-  if (cupDue(state, cfg)) return state.fixtures.find((f) => f.competition === 'cup' && f.round === state.cup.round && !f.result && involves(f, state.playerTeamId));
-  return state.fixtures.find((f) => f.competition !== 'cup' && f.matchday === state.matchday && involves(f, state.playerTeamId));
+  const key = midweekKey(state, cfg);
+  if (key !== null) {
+    if (cupKey(state, cfg) === key) {
+      const f = state.fixtures.find((x) => x.competition === 'cup' && x.round === state.cup.round && !x.result && involves(x, state.playerTeamId));
+      if (f) return f;
+    }
+    for (const t of tournamentsAt(state, key)) {
+      const f = tournamentFixture(state, t);
+      if (f) return f;
+    }
+    return undefined;
+  }
+  return state.fixtures.find((f) => !f.competition && f.matchday === state.matchday && involves(f, state.playerTeamId));
 }
 
 /** Table of a division (default: the player's). */
@@ -399,7 +412,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   // Youngsters not kept before the first match leave.
   releaseYouth(next);
   const before = divisionTables(next, cfg);
-  const fixtures = next.fixtures.filter((f) => f.competition !== 'cup' && f.matchday === next.matchday && !f.result);
+  const fixtures = next.fixtures.filter((f) => !f.competition && f.matchday === next.matchday && !f.result);
 
   // 1. Existing injuries heal.
   for (const team of next.teams) {
@@ -451,7 +464,9 @@ function endOfLeague(next: GameState, cfg: GameConfig) {
   const table = tables[div]!;
   const pos = table.findIndex((r) => r.teamId === next.playerTeamId) + 1;
   pushMessage(next, { kind: 'seasonEnd', position: pos, champion: teamById(next, table[0]!.teamId).name, points: table[pos - 1]!.points });
-  recordSeason(next, div, pos, table[pos - 1]!.points);
+  const me = next.playerTeamId;
+  const trophies = [...(next.cup.winner === me ? ['shadow'] : []), ...next.tournaments.filter((t) => t.winner === me).map((t) => t.def)];
+  recordSeason(next, div, pos, table[pos - 1]!.points, trophies);
   boardVerdict(next, cfg);
 }
 
@@ -492,37 +507,47 @@ function drawCupRound(state: GameState, cfg: GameConfig) {
   }
 }
 
-/** Plays the cup round that is due (midweek: half a week of rest, no wages or training). */
+/** Plays the midweek that is due: the cup round and/or tournament rounds (half a week of rest, no wages or training). */
 export function playCupRound(state: GameState, playerMatch: MatchResult | null = null, cfg: GameConfig = DEFAULT_CONFIG): GameState {
-  if (!cupDue(state, cfg)) return state;
+  const key = midweekKey(state, cfg);
+  if (key === null) return state;
   const next: GameState = structuredClone(state);
   releaseYouth(next);
+  const cupNow = cupKey(next, cfg) === key;
   const round = next.cup.round;
+  const tours = tournamentsAt(next, key);
   const before = divisionTables(next, cfg);
-  const fixtures = next.fixtures.filter((f) => f.competition === 'cup' && f.round === round && !f.result);
+  const fixtures = [
+    ...(cupNow ? next.fixtures.filter((f) => f.competition === 'cup' && f.round === round && !f.result) : []),
+    ...tours.flatMap((t) => next.fixtures.filter((f) => f.tournamentId === t.id && f.round === t.round && !f.result)),
+  ];
   const played = playFixtures(next, fixtures, playerMatch, cfg);
   newsFromResults(next, played, before, cfg);
   for (const team of next.teams) rest(team, 0.5, cfg);
 
-  const prize = cfg.league.cup.prize[round] ?? 0;
-  for (const { fixture: f } of played) {
-    const r = f.result!;
-    const winner = r.winner === 0 ? f.home : f.away;
-    const loser = r.winner === 0 ? f.away : f.home;
-    earn(next, f.home, 'tickets', ticketRevenue(next, f.home, f.away, cfg));
-    earn(next, winner, 'prizes', prize);
-    next.cup.alive = next.cup.alive.filter((id) => id !== loser);
-    if (loser === next.playerTeamId) pushMessage(next, { kind: 'cupOut', round, by: teamById(next, winner).name });
-  }
-  next.cup.round++;
-  if (next.cup.round >= next.cup.rounds) {
-    const winner = next.cup.alive[0];
-    if (winner) {
-      next.cup.winner = winner;
-      addNews(next, { kind: 'cupWinner', team: teamById(next, winner).name }, cfg);
-      if (winner === next.playerTeamId) pushMessage(next, { kind: 'cupWon', prize });
+  if (cupNow) {
+    const prize = cfg.league.cup.prize[round] ?? 0;
+    for (const { fixture: f } of played) {
+      if (f.competition !== 'cup') continue;
+      const r = f.result!;
+      const winner = r.winner === 0 ? f.home : f.away;
+      const loser = r.winner === 0 ? f.away : f.home;
+      earn(next, f.home, 'tickets', ticketRevenue(next, f.home, f.away, cfg));
+      earn(next, winner, 'prizes', prize);
+      next.cup.alive = next.cup.alive.filter((id) => id !== loser);
+      if (loser === next.playerTeamId) pushMessage(next, { kind: 'cupOut', round, by: teamById(next, winner).name });
     }
-  } else drawCupRound(next, cfg);
+    next.cup.round++;
+    if (next.cup.round >= next.cup.rounds) {
+      const winner = next.cup.alive[0];
+      if (winner) {
+        next.cup.winner = winner;
+        addNews(next, { kind: 'cupWinner', team: teamById(next, winner).name }, cfg);
+        if (winner === next.playerTeamId) pushMessage(next, { kind: 'cupWon', prize });
+      }
+    } else drawCupRound(next, cfg);
+  }
+  for (const t of tours) finishTournamentRound(next, t, played.filter((p) => p.fixture.tournamentId === t.id).map((p) => p.fixture), cfg);
   checkAmbitions(next, cfg);
   return next;
 }
@@ -548,6 +573,8 @@ function promoteAndRelegate(next: GameState, cfg: GameConfig) {
 /** New season: promotions, ageing, contracts, youth, a new calendar and cup, a new board objective. */
 export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const next: GameState = structuredClone(state);
+  // The Champions Cup takes the best four of the top division, before promotions.
+  const champions = championsFrom(next, divisionTables(next, cfg)[0]);
   promoteAndRelegate(next, cfg);
   next.season++;
   next.matchday = 1;
@@ -568,6 +595,7 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
     if (team.id !== next.playerTeamId) team.tactic = aiPrepare(team, cfg, next.difficulty ?? 'normal').tactic;
   }
   startCup(next, cfg);
+  startTournaments(next, champions, cfg);
   snapshotSeasonStart(next, cfg);
   pushMessage(next, { kind: 'newSeason' });
   newSeasonObjective(next, cfg);

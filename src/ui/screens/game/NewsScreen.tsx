@@ -1,3 +1,4 @@
+import { compName, divName } from '../../competitions.ts';
 import type { NewsItem } from '../../../engine/league/types.ts';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -28,19 +29,19 @@ export function newsText(tr: Translator, n: NewsItem): string {
     case 'streak':
       return t('news.streak', { team: n.team, wins: n.wins });
     case 'leader':
-      return t('news.leader', { team: n.team, n: n.division + 1 });
+      return t('news.leader', { team: n.team, n: n.division + 1, div: divName(t, n.division) });
     case 'bigTransfer':
       return n.from ? t('news.bigTransfer', { name: n.name, from: n.from, to: n.to, fee: money(n.fee) }) : t('news.bigTransferFree', { name: n.name, to: n.to, fee: money(n.fee) });
     case 'starInjury':
       return t('news.starInjury', { team: n.team, name: n.name, weeks: tr.weeks(n.weeks) });
     case 'cupWinner':
-      return t('news.cupWinner', { team: n.team });
+      return t('news.cupWinner', { team: n.team, comp: compName(t, n.tournament) });
     case 'champion':
-      return t('news.champion', { team: n.team, n: n.division + 1 });
+      return t('news.champion', { team: n.team, div: divName(t, n.division) });
     case 'promotion':
-      return t('news.promotion', { n: n.division + 1, teams: n.teams.join(', ') });
+      return t('news.promotion', { div: divName(t, n.division), teams: n.teams.join(', ') });
     case 'relegation':
-      return t('news.relegation', { n: n.division + 1, teams: n.teams.join(', ') });
+      return t('news.relegation', { div: divName(t, n.division), teams: n.teams.join(', ') });
     case 'retirement':
       return t('news.retirement', { name: n.name, team: n.team });
     case 'death':

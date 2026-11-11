@@ -29,9 +29,11 @@ export interface Fixture {
   result?: FixtureResult;
   /** League fixtures: division index (0 = D1). */
   division?: number;
-  /** Cup ties only. */
-  competition?: 'cup';
-  /** Cup round (0-based). */
+  /** Cup and tournament ties only (league fixtures have none). */
+  competition?: 'cup' | 'tournament';
+  /** Tournament ties: which tournament. */
+  tournamentId?: string;
+  /** Cup / tournament round (0-based). */
   round?: number;
 }
 
@@ -88,9 +90,12 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'levelUp'; creatureId: string; name: string; level: number; points: number }
   | { kind: 'coachHired'; name: string; domain: AttributeCategory; quality: number }
   // ——— Phase 5: divisions, cup, club ———
-  | { kind: 'cupDraw'; round: number; opponent: string; home: boolean }
-  | { kind: 'cupOut'; round: number; by: string }
-  | { kind: 'cupWon'; prize: number }
+  /** Cup messages; with `tournament` (a tournament id), they are about that tournament. */
+  | { kind: 'cupDraw'; round: number; opponent: string; home: boolean; tournament?: string; rounds?: number }
+  | { kind: 'cupOut'; round: number; by: string; tournament?: string; rounds?: number }
+  | { kind: 'cupWon'; prize: number; tournament?: string }
+  | { kind: 'tournamentInvite'; tournament: string; fee: number }
+  | { kind: 'championsQualified' }
   | { kind: 'promoted'; division: number }
   | { kind: 'relegated'; division: number }
   | { kind: 'boardObjective'; objective: ObjectiveId; division: number }
@@ -113,7 +118,7 @@ export interface TransferMove {
 }
 
 export type IncomeKind = 'tickets' | 'sponsor' | 'prizes' | 'sales';
-export type ExpenseKind = 'wages' | 'staff' | 'upkeep' | 'medical' | 'scouting' | 'facilities' | 'purchases' | 'compensation';
+export type ExpenseKind = 'wages' | 'staff' | 'upkeep' | 'medical' | 'scouting' | 'facilities' | 'purchases' | 'compensation' | 'fees';
 
 /** Money in and out during one matchday week. */
 export interface LedgerEntry {
@@ -233,7 +238,7 @@ export type NewsItem = { id: string; season: number; matchday: number } & (
   | { kind: 'leader'; team: string; division: number }
   | { kind: 'bigTransfer'; name: string; from: string | null; to: string; fee: number }
   | { kind: 'starInjury'; name: string; team: string; weeks: number }
-  | { kind: 'cupWinner'; team: string }
+  | { kind: 'cupWinner'; team: string; tournament?: string }
   | { kind: 'champion'; team: string; division: number }
   | { kind: 'promotion'; teams: string[]; division: number }
   | { kind: 'relegation'; teams: string[]; division: number }
@@ -255,7 +260,7 @@ export interface FallenCreature {
 }
 
 export interface GameState {
-  version: 5;
+  version: 6;
   worldSeed: string;
   /** Language of names generated during the game (free agents). */
   lang: Lang;
@@ -295,6 +300,8 @@ export interface GameState {
   /** Team ids per division (index 0 = D1). */
   divisions: string[][];
   cup: CupState;
+  /** This season's other knockout competitions (pre-season, division cups, Champions Cup, invitationals). */
+  tournaments: Tournament[];
   board: BoardState;
   facilities: Record<string, Facilities>;
   news: NewsItem[];
@@ -317,4 +324,29 @@ export interface SeasonRecord {
   position: number;
   points: number;
   cupWon: boolean;
+  /** Tournaments won that season (tournament definition ids: preseason, division, champions, marches…). */
+  trophies?: string[];
+}
+
+export type TournamentKind = 'preseason' | 'division' | 'champions' | 'open';
+
+/** A knockout competition of the season other than the Shadow Cup. */
+export interface Tournament {
+  /** Unique this season: preseason, division-0…, champions, marches, argent, or. */
+  id: string;
+  kind: TournamentKind;
+  /** Definition id (the config key, and the name in the UI): preseason, division, champions, marches, argent, or. */
+  def: string;
+  /** Division cups: which division. Scaled prizes use this division's money. */
+  division?: number;
+  /** When each round is played (see `cfg.league.tournaments`). */
+  keys: number[];
+  /** Next round to play (= rounds when over). */
+  round: number;
+  rounds: number;
+  entrants: string[];
+  alive: string[];
+  winner?: string;
+  /** Invitationals: the player paid the fee and plays. */
+  registered?: boolean;
 }

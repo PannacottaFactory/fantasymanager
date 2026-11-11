@@ -5,28 +5,49 @@ export const LEAGUE_CONFIG = {
   /** Creatures per stable (5 starters + 3 bench + reserves to rotate). */
   squadSize: 12,
   /** Quality tier of the player's stable. */
-  playerQuality: 'regional' as const,
+  playerQuality: 'novice' as const,
   /** Division the player starts in (0 = top division). */
-  playerDivision: 1,
+  playerDivision: 3,
   /**
    * Quality tier of each stable, per division (index 0 = D1). The player's stable takes the last slot
    * of its division.
    */
   divisions: [
-    ['elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional', 'regional'],
-    ['professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'regional'],
+    ['elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional'],
+    ['professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'regional'],
+    ['regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice'],
+    ['regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
   ] as const,
   /** Teams going up / down between two divisions each season. */
   promoted: 2,
   /** Money scale by division (tickets, sponsor, prizes). */
-  divisionMoney: [1.35, 1],
+  divisionMoney: [1.35, 1, 0.75, 0.55],
   cup: {
     /** Round r is played in the week after league matchday after[r]. */
-    after: [3, 7, 11, 14, 17],
+    after: [2, 5, 8, 11, 14, 17],
     /** Teams entering in round 2 directly (the strongest), the others play a preliminary round. */
-    byes: 12,
+    byes: 24,
     /** Prize for winning each round (the last one = the trophy). */
-    prize: [1500, 3000, 6000, 12000, 25000],
+    prize: [800, 1500, 3000, 6000, 12000, 25000],
+  },
+  /**
+   * Other knockout competitions. `keys`: when each round is played — after that league matchday (decimals = a later
+   * midweek after the same matchday). Rounds with the same key are played the same week, so the player's competitions
+   * never share a key. `scaled`: prizes × the division's money scale.
+   */
+  tournaments: {
+    /** Friendly tournament before matchday 1: the player and three stables of its division. */
+    preseason: { size: 4, keys: [0.1, 0.2], prize: [500, 2000], scaled: true },
+    /** One cup per division (every stable of the division). */
+    division: { keys: [3, 7, 12, 16], prize: [500, 1200, 3000, 8000], scaled: true },
+    /** The best four of the top division last season. */
+    champions: { size: 4, keys: [10, 15], prize: [15000, 50000] },
+    /** Invitational tournaments: a minimum reputation and an entry fee. */
+    open: {
+      marches: { size: 4, keys: [4, 6], fee: 400, minRep: 0, prize: [1000, 4000] },
+      argent: { size: 4, keys: [9, 13], fee: 2500, minRep: 35, prize: [5000, 16000] },
+      or: { size: 4, keys: [9.5, 13.5], fee: 8000, minRep: 55, prize: [15000, 45000] },
+    },
   },
   /** Player's matches kept for replay. */
   replayHistory: 10,

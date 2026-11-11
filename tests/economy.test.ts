@@ -4,7 +4,6 @@ import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 import { answerOffer, bid, release, releaseCost, renew, sendScout, signFreeAgent } from '../src/engine/economy/actions.ts';
 import { askingPrice, locate } from '../src/engine/economy/market.ts';
 import { attributeRange, knowledgeOf, overallRange } from '../src/engine/economy/scouting.ts';
-import { migrateGame } from '../src/engine/league/migrate.ts';
 import { askingWage, creatureValue } from '../src/engine/economy/value.ts';
 import { newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
 import type { GameState } from '../src/engine/league/types.ts';
@@ -36,18 +35,6 @@ describe('economy setup', () => {
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
   });
 
-  it('upgrades a phase-2 save', () => {
-    const g = game('old') as unknown as Record<string, unknown>;
-    const old = structuredClone(g);
-    for (const k of ['clubs', 'freeAgents', 'scouting', 'offers', 'bids', 'forSale', 'nextId', 'lang']) delete old[k];
-    old.version = 1;
-    for (const t of old.teams as GameState['teams']) for (const c of t.creatures) delete c.contract;
-    const m = migrateGame(old)!;
-    expect(m.version).toBe(5);
-    expect(Object.keys(m.clubs).length).toBe(m.teams.length);
-    expect(m.teams.every((t) => t.creatures.every((c) => c.contract))).toBe(true);
-    expect(() => playMatchday(m)).not.toThrow();
-  });
 });
 
 describe('value & wages', () => {
@@ -93,7 +80,9 @@ describe('imperfect information', () => {
     const { c } = aiCreature(g);
     expect(knowledgeOf(g, c.id)).toBe(DEFAULT_CONFIG.economy.scouting.leagueBaseline);
     g = sendScout(g, 'creature', c.id).state;
-    for (let i = 0; i < DEFAULT_CONFIG.economy.scouting.creatureWeeks; i++) g = playMatchday(g);
+    // Scouts work during league weeks.
+    const md = g.matchday;
+    while (g.matchday < md + DEFAULT_CONFIG.economy.scouting.creatureWeeks) g = playMatchday(g);
     expect(knowledgeOf(g, c.id)).toBeGreaterThanOrEqual(DEFAULT_CONFIG.economy.scouting.creatureKnowledge);
     expect(g.inbox.some((m) => m.kind === 'scoutReport')).toBe(true);
   });

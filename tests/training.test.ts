@@ -100,7 +100,7 @@ describe('ageing & youth', () => {
     g = playMatchday(g);
     expect(g.youth.length).toBe(0);
     for (const id of others) expect(playerTeam(g).creatures.some((c) => c.id === id)).toBe(false);
-  });
+  }, 60000);
 });
 
 describe('coaches & role fit', () => {

@@ -7,6 +7,7 @@ import { divisionOf } from '../../engine/league/divisions.ts';
 import { lastMatchday, playerFixture, playerTeam, seasonOver, standings, teamById } from '../../engine/league/season.ts';
 import type { GameState } from '../../engine/league/types.ts';
 import { useT, type Translator } from '../i18n/index.ts';
+import { divName } from '../competitions.ts';
 import { useGame } from '../store/gameStore.ts';
 import { newsText } from '../screens/game/NewsScreen.tsx';
 import { Gold } from './common.tsx';
@@ -29,7 +30,7 @@ function items(tr: Translator, game: GameState): string[] {
   }
   game.divisions.forEach((_, d) => {
     const top = standings(game, d)[0];
-    if (top && top.played > 0) out.push(t('ticker.leader', { d: d + 1, team: teamById(game, top.teamId).name, pts: top.points }));
+    if (top && top.played > 0) out.push(t('ticker.leader', { div: divName(t, d), team: teamById(game, top.teamId).name, pts: top.points }));
   });
   const mine = standings(game, divisionOf(game, me.id));
   const pos = mine.findIndex((r) => r.teamId === me.id) + 1;

@@ -7,4 +7,4 @@ export function divisionOf(state: GameState, teamId: string): number {
 }
 
 /** League fixtures of a division. */
-export const divisionFixtures = (state: GameState, division: number) => state.fixtures.filter((f) => f.competition !== 'cup' && (f.division ?? 0) === division);
+export const divisionFixtures = (state: GameState, division: number) => state.fixtures.filter((f) => !f.competition && (f.division ?? 0) === division);

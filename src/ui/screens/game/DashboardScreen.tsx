@@ -14,6 +14,7 @@ import { speciesName } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { Crest, Gold, LevelBadge, Attr, RollingMoney } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
+import { divName } from '../../competitions.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame, type Screen } from '../../store/gameStore.ts';
 import { BoardCard, NextMatch, wording } from './InboxScreen.tsx';
@@ -51,7 +52,7 @@ function Hero({ game }: { game: GameState }) {
       <div className="grow">
         <h2>{team.name}</h2>
         <div className="muted">
-          {t('league.division', { n: d + 1 })} · {t('dash.season', { s: game.season, d: Math.min(game.matchday, lastMatchday(game)), n: lastMatchday(game) })} ·{' '}
+          {divName(t, d)} · {t('dash.season', { s: game.season, d: Math.min(game.matchday, lastMatchday(game)), n: lastMatchday(game) })} ·{' '}
           {t(`diff.${game.difficulty ?? 'normal'}` as StringKey)}
         </div>
       </div>

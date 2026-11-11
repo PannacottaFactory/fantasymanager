@@ -14,7 +14,7 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 
 const INCOME: IncomeKind[] = ['tickets', 'sponsor', 'prizes', 'sales'];
-const EXPENSE: ExpenseKind[] = ['wages', 'staff', 'upkeep', 'medical', 'scouting', 'facilities', 'purchases', 'compensation'];
+const EXPENSE: ExpenseKind[] = ['wages', 'staff', 'upkeep', 'medical', 'scouting', 'facilities', 'purchases', 'compensation', 'fees'];
 
 function totals(entries: LedgerEntry[]) {
   const income: Partial<Record<IncomeKind, number>> = {};

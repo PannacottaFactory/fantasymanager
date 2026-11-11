@@ -7,6 +7,7 @@ import { lastMatchday, playerTeam, standings } from '../../../engine/league/seas
 import { Crest } from '../../components/common.tsx';
 import { randomSeed } from '../../format.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../../icons/gameIcons.ts';
+import { divName } from '../../competitions.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { useTutorial } from '../../tutorial/tutorial.ts';
@@ -59,7 +60,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
                 <h2>{saved.name}</h2>
                 <div className="muted">{t('dash.season', { s: game.season, d: Math.min(game.matchday, lastMatchday(game)), n: lastMatchday(game) })}</div>
                 <div className="muted">
-                  {t('league.division', { n: divisionOf(game, saved.id) + 1 })} · {tr.ordinal(pos)} · {t(`diff.${game.difficulty ?? 'normal'}`)}
+                  {divName(t, divisionOf(game, saved.id))} · {tr.ordinal(pos)} · {t(`diff.${game.difficulty ?? 'normal'}`)}
                 </div>
               </div>
             </div>

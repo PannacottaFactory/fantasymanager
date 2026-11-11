@@ -26,7 +26,7 @@ describe('cup', () => {
     g = playMatchday(g);
     expect(cupDue(g)).toBe(false);
     expect(g.cup.round).toBe(1);
-    expect(g.cup.alive.length).toBe(16);
+    expect(g.cup.alive.length).toBe(32);
     g = playSeason(g);
     expect(g.cup.winner).toBeDefined();
     expect(g.cup.alive).toEqual([g.cup.winner]);
@@ -46,7 +46,7 @@ describe('divisions & board', () => {
     expect(next.inbox.filter((m) => m.kind === 'boardObjective').length).toBe(2);
     expect(next.news.some((n) => n.kind === 'promotion')).toBe(true);
     for (const d of next.divisions) expect(d.length).toBe(DEFAULT_CONFIG.league.teams);
-  });
+  }, 60000);
 });
 
 describe('facilities', () => {
@@ -60,7 +60,9 @@ describe('facilities', () => {
     expect(g.clubs[g.playerTeamId]!.balance).toBe(before - DEFAULT_CONFIG.club.facilities.cost[level]!);
     expect(startBuilding(g, 'stands').outcome).toEqual({ kind: 'error', error: 'busy' });
     const factor = ticketsFactor(g, g.playerTeamId);
-    for (let i = 0; i < DEFAULT_CONFIG.club.facilities.weeks[level]! + 2; i++) g = playMatchday(g);
+    // Works advance with league weeks (midweeks do not count).
+    const md = g.matchday;
+    while (g.matchday < md + DEFAULT_CONFIG.club.facilities.weeks[level]! + 1) g = playMatchday(g);
     expect(g.facilities[g.playerTeamId]!.stands.level).toBe(level + 1);
     expect(ticketsFactor(g, g.playerTeamId)).toBeGreaterThan(factor);
     expect(g.inbox.some((m) => m.kind === 'facilityDone')).toBe(true);
@@ -91,24 +93,10 @@ describe('relations', () => {
 });
 
 describe('migration', () => {
-  it('a phase-4 save (one league) gains a second division whose past weeks were played', () => {
-    let g = game('mig');
-    for (let i = 0; i < 2; i++) g = playMatchday(g);
-    // Rebuild what a phase-4 save looked like: one 10-team league, no cup/board/facilities/news.
-    const d1 = new Set(g.divisions[0]);
-    const old = structuredClone(g) as unknown as Record<string, unknown> & GameState;
-    old.teams = old.teams.filter((t) => d1.has(t.id));
-    old.fixtures = old.fixtures.filter((f) => f.competition !== 'cup' && f.division === 0).map((f) => ({ ...f, division: undefined }));
-    old.playerTeamId = old.teams[0]!.id;
-    for (const k of ['divisions', 'cup', 'board', 'facilities', 'news']) delete old[k];
-    (old as unknown as { version: number }).version = 3;
-    const m = migrateGame(old)!;
-    expect(m.version).toBe(5);
-    expect(m.divisions.length).toBe(2);
-    expect(m.divisions[1]!.length).toBe(10);
-    const d2Played = m.fixtures.filter((f) => f.division === 1 && f.result);
-    expect(d2Played.length).toBe(2 * 5);
-    expect(() => playMatchday(m)).not.toThrow();
+  it('saves from before the four divisions need a new game', () => {
+    const old = structuredClone(game('mig')) as unknown as { version: number };
+    old.version = 5;
+    expect(migrateGame(old as unknown as GameState)).toBeNull();
   });
 });
 

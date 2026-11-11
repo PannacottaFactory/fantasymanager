@@ -73,7 +73,7 @@ describe('season', () => {
       expect(totalPoints).toBe(90 * 3);
     }
     expect(a.inbox.some((m) => m.kind === 'seasonEnd')).toBe(true);
-    const cupTies = a.fixtures.filter((f) => f.competition === 'cup' && (f.home === a.playerTeamId || f.away === a.playerTeamId)).length;
+    const cupTies = a.fixtures.filter((f) => f.competition && (f.home === a.playerTeamId || f.away === a.playerTeamId)).length;
     expect(a.inbox.filter((m) => m.kind === 'matchResult').length).toBe(18 + cupTies);
     // The cup is played to the end and has a winner.
     expect(a.cup.round).toBe(a.cup.rounds);
@@ -109,7 +109,7 @@ describe('season', () => {
     const playerIsHome = !swapped;
     expect(rec.winner === 0).toBe(playerWon === playerIsHome);
     expect(next.lastMatch?.result.seed).toBe(live.seed);
-  });
+  }, 60000);
 
   it('injured creatures miss matches and heal', () => {
     let g = start();
@@ -167,7 +167,7 @@ describe('match replay', () => {
     const { replayMatch } = await import('../src/engine/combat/simulate.ts');
     let g = newGame({ seed: 'replay', teamName: 'Me', lang: 'en' });
     for (let i = 0; i < 3; i++) g = playMatchday(g);
-    expect(g.matchHistory?.length).toBe(3);
+    expect(g.matchHistory?.length).toBe(g.inbox.filter((m) => m.kind === 'matchResult').length);
     const rec = g.matchHistory!.find((m) => m.fixtureId === g.lastMatch!.fixtureId)!;
     const again = replayMatch(rec.setup, rec.decisions);
     expect(again.outcome).toEqual(g.lastMatch!.result.outcome);

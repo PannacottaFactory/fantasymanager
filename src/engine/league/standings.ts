@@ -15,7 +15,7 @@ function emptyRow(teamId: string): StandingRow {
 export function computeStandings(teamIds: readonly string[], fixtures: readonly Fixture[], cfg: GameConfig = DEFAULT_CONFIG): StandingRow[] {
   const rows = new Map(teamIds.map((id) => [id, emptyRow(id)]));
   const pts = cfg.match.points;
-  const played = fixtures.filter((f) => f.result && f.competition !== 'cup').sort((a, b) => a.matchday - b.matchday);
+  const played = fixtures.filter((f) => f.result && !f.competition).sort((a, b) => a.matchday - b.matchday);
   for (const f of played) {
     const r = f.result!;
     const sides = [rows.get(f.home), rows.get(f.away)] as const;

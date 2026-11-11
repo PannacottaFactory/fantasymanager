@@ -86,6 +86,8 @@ export interface DifficultyDef {
   restFatigue: number;
   /** Player's starting treasury multiplier. */
   startMoney: number;
+  /** Quality tier of the player's starting squad. */
+  playerQuality?: 'novice' | 'regional';
   /** Multiplier on the board's confidence losses. */
   boardLoss: number;
   /** Weight of the style when AI stables sign or buy (ability points). */
@@ -96,14 +98,18 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
   easy: {
     divisions: [
       ['elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional', 'regional'],
-      ['professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'regional'],
+      ['professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'regional'],
+      ['regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
+      ['novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
-    styleShare: 0.35, identities: false, reading: 'none', favorites: false, restFatigue: 60, startMoney: 1.3, boardLoss: 0.5, styleBias: 6,
+    playerQuality: 'regional', styleShare: 0.35, identities: false, reading: 'none', favorites: false, restFatigue: 60, startMoney: 1.3, boardLoss: 0.5, styleBias: 6,
   },
   normal: {
     divisions: [
       ['elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'regional'],
-      ['professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'novice', 'regional'],
+      ['professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional', 'regional'],
+      ['regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice'],
+      ['regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
     styleShare: 0.5, identities: true, reading: 'tacticians', favorites: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
   },
@@ -111,6 +117,8 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
     divisions: [
       ['elite', 'elite', 'elite', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional', 'professional'],
       ['professional', 'professional', 'professional', 'professional', 'professional', 'regional', 'regional', 'regional', 'regional', 'regional'],
+      ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
+      ['regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
     styleShare: 0.55, identities: true, reading: 'all', favorites: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
   },

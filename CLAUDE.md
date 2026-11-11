@@ -104,8 +104,24 @@ tests/       Vitest
   score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
 - **Projectiles**: `ui/screens/arena/Projectiles.tsx` draws shots, element particles and impacts between cards
   (`data-cid`); target reactions & health drop land when the projectile arrives (`FLIGHT` per speed).
-- **Weeks**: `playMatchday` plays the due cup round first when `cupDue(state)` (cup weeks sit between league
-  matchdays; `seasonOver` waits for the final). `playerFixture` returns the cup tie during a cup week.
+- **Pyramid** (save v6 — older saves need a new game): 4 divisions of 10 — 0 Grand Arena, 1 Royal League, 2 Barony
+  League, 3 Marches League (names in `ui/competitions.ts` `divName`, emblems `DIV_ICON`). The player starts in D4
+  (`cfg.league.playerDivision` 3, quality novice; easy: regional via `DifficultyDef.playerQuality`). Money ×1.35/1/0.75/0.55,
+  reputation baselines 64/46/30/18. 2 up / 2 down between each pair.
+- **Competitions**: the Shadow Cup (`state.cup`, 40 stables: 24 byes, 6 rounds after matchdays 2/5/8/11/14/17) and
+  `state.tournaments` (`engine/league/tournaments.ts`, generic knockouts with a preliminary round when needed):
+  pre-season (player + 3 of its division, before matchday 1), a cup per division, the Champions Cup (best four of the
+  Grand Arena last season), three invitationals (marches « Joute des Lanternes » rep 0, argent rep 35, or rep 55; entry fee,
+  `registerTournament` replaces the least famous entrant before round 0, expense `fees`). Each round has a key in
+  `cfg.league.tournaments` (after that matchday; decimals = a later midweek); the player's competitions never share a key.
+  Fixtures: `competition: 'cup' | 'tournament'` + `tournamentId`; league fixtures have none (`!f.competition`).
+- **Weeks**: `midweekKey` = earliest due key among cup and tournament rounds; `cupDue` = a midweek is due;
+  `playMatchday` plays it first (`playCupRound` plays every round of that key). `playerFixture` returns the player's tie
+  in a midweek (or nothing). In the UI, « Next match » plays midweeks without the player on their own up to its next match.
+  Cup messages carry `tournament` / `rounds`; `SeasonRecord.trophies` lists the season's tournament wins.
+- **League screen**: tabs Championship (pyramid of the 4 leagues, division hero with rules + gap to promotion / drop,
+  table with zones and ▲▼ movement since the previous matchday, fixtures), Competitions (a card per competition: status,
+  trophy, next round, registration, draw), Honours (trophy cabinet with greyed trophies still to win, season by season).
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
   new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
   scouts, staff) → scouting → market (free agents, AI signings/buys, AI offers to the player) → contract
@@ -294,8 +310,9 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   pre-match fatigue, element advantage / vulnerability against the opponents still standing, abilities, « comes on for »).
 - **KO**: `fxCanvas.knockout` (dust, chunks, red flash, two shockwaves, embers) + `koStamp` in Projectiles (« K.O. » stamp
   on the card, short shake of `.live`). Health lost trails in white (`.bar > i.ghost`).
-- **Ambitions** (`engine/club/ambitions.ts`): 11 career goals (first win → top half → cup semi-final → promotion → level-8
-  creature → survive in D1 → all facilities max → cup → D1 title → double → 3 titles). `GameState.career` logs each
+- **Ambitions** (`engine/club/ambitions.ts`): 16 career goals (first win → top half → first trophy → first promotion →
+  cup semi-final → level-8 creature → Royal League → Golden Crown → Grand Arena → survive there → all facilities max →
+  Shadow Cup → Grand Arena title → Champions Cup → double → 3 titles). `GameState.career` logs each
   finished season (`recordSeason` in `endOfLeague`), `GameState.ambitions` = season reached; `checkAmbitions` runs at
   the end of every league / cup week and at the season change, with an `ambition` inbox message (toast). Dashboard card.
 - **Favourite moves**: the Tactics column « Coups favoris » opens a small picker with only the abilities (☆).

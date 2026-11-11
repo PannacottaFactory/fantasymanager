@@ -3,8 +3,7 @@ import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 import { PLAY_STYLES } from '../src/data/config/identity.ts';
 import { Combat } from '../src/engine/combat/combat.ts';
 import { aiBreakDecision } from '../src/engine/combat/decisions.ts';
-import { aiPrepare, newGame, playMatchday } from '../src/engine/league/season.ts';
-import { migrateGame } from '../src/engine/league/migrate.ts';
+import { aiPrepare, newGame } from '../src/engine/league/season.ts';
 import { counterTarget } from '../src/engine/team/identity.ts';
 import { SPECIES } from '../src/data/species.ts';
 import { ABILITIES } from '../src/data/abilities.ts';
@@ -62,19 +61,6 @@ describe('AI stable identities', () => {
     if (c.phase === 'break') expect(aiBreakDecision(c, 0).orders?.target).toBeDefined();
   });
 
-  it('a phase-5 save (version 4) gains identities and the normal difficulty', () => {
-    let g = newGame({ seed: 'old', teamName: 'Me', lang: 'en' });
-    g = playMatchday(g);
-    const raw = structuredClone(g) as unknown as Record<string, unknown>;
-    raw.version = 4;
-    delete raw.difficulty;
-    for (const t of raw.teams as { identity?: unknown }[]) delete t.identity;
-    const m = migrateGame(raw)!;
-    expect(m.version).toBe(5);
-    expect(m.difficulty).toBe('normal');
-    expect(m.teams.filter((t) => t.id !== m.playerTeamId).every((t) => t.identity)).toBe(true);
-    expect(playMatchday(m).matchday).toBe(m.matchday + 1);
-  });
 });
 
 describe('levers', () => {

@@ -5,6 +5,7 @@ import { cupDue, lastMatchday, playerFixture, playerTeam, seasonOver } from '../
 import type { GameState } from '../engine/league/types.ts';
 import type { StringKey } from './i18n/strings.ts';
 import { NewsTicker } from './components/NewsTicker.tsx';
+import { compName, roundKey } from './competitions.ts';
 import { TEXT_SCALE, TEXT_SIZES, THEMES, useSettings, useT } from './i18n/index.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
 import { ReportView } from './screens/arena/ReportView.tsx';
@@ -23,7 +24,6 @@ import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
 import { FacilitiesScreen } from './screens/game/FacilitiesScreen.tsx';
 import { NewsScreen } from './screens/game/NewsScreen.tsx';
-import { cupRoundKey } from './screens/game/LeagueScreen.tsx';
 import { StaffScreen } from './screens/game/StaffScreen.tsx';
 import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
 import { useGame } from './store/gameStore.ts';
@@ -38,6 +38,14 @@ import { centreOf, fxLayer } from './fx/FxLayer.tsx';
 import { Celebrations } from './fx/Celebrations.tsx';
 
 /** The treasury in the top bar: rolls to its new value; coins fly in when money comes, a red tick when it goes. */
+/** Top-bar status in a midweek: the player's competition and round, or just "midweek". */
+function midweekLabel(t: ReturnType<typeof useT>['t'], game: GameState): string {
+  const f = playerFixture(game);
+  if (!f?.competition) return t('status.midweek');
+  const rounds = f.tournamentId ? (game.tournaments.find((x) => x.id === f.tournamentId)?.rounds ?? 1) : game.cup.rounds;
+  return `${compName(t, f.tournamentId)} · ${t(roundKey(f.round ?? 0, rounds))}`;
+}
+
 function BalanceChip({ balance, worldSeed }: { balance: number; worldSeed: string }) {
   const { t, money } = useT();
   const ref = useRef<HTMLButtonElement>(null);
@@ -69,7 +77,8 @@ function BalanceChip({ balance, worldSeed }: { balance: number; worldSeed: strin
 function continueLabel(t: (k: StringKey) => string, game: GameState, match: { phase: string } | null): string {
   if (seasonOver(game)) return t('continue.nextSeason');
   if (match && match.phase !== 'report') return t('continue.back');
-  return playerFixture(game) ? t('continue.next') : t('continue.week');
+  // A midweek without our match passes on its own up to the next match.
+  return playerFixture(game) || cupDue(game) ? t('continue.next') : t('continue.week');
 }
 
 function ContinueButton() {
@@ -94,7 +103,7 @@ function ContinueButton() {
         {over
           ? t('status.seasonOver', { season: game.season })
           : cupDue(game)
-            ? t('status.cup', { season: game.season, round: t(cupRoundKey(game.cup.round, game.cup.rounds)) })
+            ? t('status.cup', { season: game.season, round: midweekLabel(t, game) })
             : t('status.season', { season: game.season, d: game.matchday, n: lastMatchday(game) })}
       </span>
       <button className="btn primary" onClick={onClick} title={over ? t('continue.title') : t('continue.nextTitle')}>

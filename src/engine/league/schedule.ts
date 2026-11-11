@@ -43,5 +43,5 @@ export function roundRobin(rng: Rng, teamIds: readonly string[], legs = 2, seaso
 }
 
 export function matchdayCount(fixtures: readonly Fixture[]): number {
-  return fixtures.reduce((m, f) => (f.competition === 'cup' ? m : Math.max(m, f.matchday)), 0);
+  return fixtures.reduce((m, f) => (f.competition ? m : Math.max(m, f.matchday)), 0);
 }

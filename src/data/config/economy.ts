@@ -53,8 +53,8 @@ export const ECONOMY_CONFIG = {
     startBalance: { novice: 15000, regional: 25000, professional: 40000, elite: 70000, legendary: 110000 },
     /** End of season: reputation += (middle position − position) × this. */
     reputationPerPlace: 2,
-    /** …then moves this share of the way back to its division's usual level (D1, D2). */
-    reputationBaseline: [62, 38],
+    /** …then moves this share of the way back to its division's usual level (D1 … D4). */
+    reputationBaseline: [64, 46, 30, 18],
     reputationReversion: 0.2,
     minSquad: 9,
     maxSquad: 16,
