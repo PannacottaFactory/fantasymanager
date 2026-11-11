@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import type { Screen } from '../store/gameStore.ts';
+import { UiIcon } from '../icons/Icon.tsx';
 
 interface Item {
   id: Screen;
@@ -12,8 +13,16 @@ interface Item {
 
 interface Group {
   label: StringKey;
+  icon: string;
   items: Item[];
 }
+
+/** Icon of a screen in the navigation. */
+const ICON: Partial<Record<Screen, string>> = {
+  dashboard: 'nav-dashboard', inbox: 'nav-inbox', squad: 'nav-squad', tactics: 'nav-tactics', training: 'nav-training',
+  league: 'nav-league', news: 'nav-news', recruit: 'nav-recruit', finances: 'nav-finances', staff: 'nav-staff',
+  facilities: 'nav-facilities', encyclopedia: 'nav-encyclopedia', arena: 'nav-arena',
+};
 
 type Entry = Item | Group;
 const isGroup = (e: Entry): e is Group => 'items' in e;
@@ -48,6 +57,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
     { id: 'inbox', label: 'nav.inbox', needsGame: true },
     {
       label: 'nav.group.stable',
+      icon: 'nav-stable',
       items: [
         { id: 'squad', label: 'nav.squad', needsGame: true },
         { id: 'tactics', label: 'nav.tactics', needsGame: true },
@@ -56,6 +66,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
     },
     {
       label: 'nav.group.competitions',
+      icon: 'nav-competitions',
       items: [
         { id: 'league', label: 'nav.league', needsGame: true },
         { id: 'news', label: 'nav.news', needsGame: true },
@@ -64,6 +75,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
     { id: 'recruit', label: 'nav.scouting', needsGame: true },
     {
       label: 'nav.group.club',
+      icon: 'nav-club',
       items: [
         { id: 'finances', label: 'nav.finances', needsGame: true },
         { id: 'staff', label: 'nav.staff', needsGame: true },
@@ -72,6 +84,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
     },
     {
       label: 'nav.group.tools',
+      icon: 'nav-tools',
       items: [
         { id: 'encyclopedia', label: 'nav.encyclopedia' },
         { id: 'arena', label: 'nav.arena' },
@@ -91,8 +104,9 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         if (!isGroup(e)) {
           const disabled = e.needsGame && !hasGame;
           return (
-            <button key={e.id} className={e.id === screen ? 'on' : ''} disabled={disabled} title={disabled ? t('nav.needsGame') : undefined} onClick={() => pick(e.id)}>
-              {t(e.label)}
+            <button key={e.id} className={`nav-tab ${e.id === screen ? 'on' : ''}`} disabled={disabled} title={disabled ? t('nav.needsGame') : t(e.label)} onClick={() => pick(e.id)}>
+              <UiIcon name={ICON[e.id] ?? ''} size="1.05em" />
+              <span className="nav-label">{t(e.label)}</span>
               {badge(badges[e.id])}
             </button>
           );
@@ -103,19 +117,38 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         return (
           <div key={e.label} className="nav-group">
             <button
-              className={active ? 'on' : ''}
+              className={`nav-tab ${active ? 'on' : ''} ${open === e.label ? 'open' : ''}`}
               disabled={!hasGame && e.items.every((i) => i.needsGame)}
               aria-haspopup="menu"
               aria-expanded={open === e.label}
+              title={current ? t(current.label) : t(e.label)}
               onClick={() => setOpen(open === e.label ? null : e.label)}
             >
-              {current ? t(current.label) : t(e.label)} ▾{badge(total)}
+              <UiIcon name={current ? (ICON[current.id] ?? e.icon) : e.icon} size="1.05em" />
+              <span className="nav-label">{current ? t(current.label) : t(e.label)}</span>
+              <i className="nav-chevron" aria-hidden="true">
+                ▾
+              </i>
+              {badge(total)}
             </button>
             {open === e.label && (
               <div className="nav-menu" role="menu">
-                {e.items.map((i) => (
-                  <button key={i.id} role="menuitem" className={i.id === screen ? 'on' : ''} disabled={i.needsGame && !hasGame} onClick={() => pick(i.id)}>
-                    {t(i.label)}
+                {e.items.map((i, k) => (
+                  <button
+                    key={i.id}
+                    role="menuitem"
+                    className={i.id === screen ? 'on' : ''}
+                    disabled={i.needsGame && !hasGame}
+                    onClick={() => pick(i.id)}
+                    style={{ animationDelay: `${40 + k * 35}ms` }}
+                  >
+                    <span className="nm-icon">
+                      <UiIcon name={ICON[i.id] ?? ''} size="1.2em" />
+                    </span>
+                    <span className="nm-text">
+                      <b>{t(i.label)}</b>
+                      <small>{t(`nav.hint.${i.id}` as StringKey)}</small>
+                    </span>
                     {badge(badges[i.id])}
                   </button>
                 ))}

@@ -5,7 +5,7 @@ import { aiBreakDecision, DEFAULT_AI_STYLE, readTarget } from '../../../engine/c
 import { elementMultiplier, hpFraction, staminaFraction } from '../../../engine/combat/formulas.ts';
 import { levelOfAbility } from '../../../engine/progression/levels.ts';
 import { ABILITIES } from '../../../data/abilities.ts';
-import { KIND_GLYPH } from '../../components/AbilityCard.tsx';
+import { KindIcon } from '../../components/AbilityCard.tsx';
 import type { BreakDecision, Combatant, SubstitutionDecision } from '../../../engine/combat/types.ts';
 import type { Aggression, Risk, Stance, TeamOrders } from '../../../engine/model.ts';
 import { abilityText, roleText, speciesName } from '../../../engine/text/localize.ts';
@@ -64,10 +64,16 @@ export function BreakPanel({ combat, onResume }: Props) {
     <Modal
       title={t('break.title', { n: combat.round })}
       onClose={resume}
+      wide
       actions={
-        <button className="btn small" onClick={suggest} title={t('break.advice.title')}>
-          {t('break.advice')}
-        </button>
+        <>
+          <button className="btn small" onClick={suggest} title={t('break.advice.title')}>
+            {t('break.advice')}
+          </button>
+          <button className="btn primary" onClick={resume} data-tip="break">
+            {t('break.resume')} ▶
+          </button>
+        </>
       }
     >
       <div className="stack">
@@ -75,6 +81,35 @@ export function BreakPanel({ combat, onResume }: Props) {
           {t('break.teamHealth')} <b className="home-text">{Math.round(ours * 100)} %</b> {t('common.vs')} <b className="away-text">{Math.round(theirs * 100)} %</b>
           <span className="spacer" />
           {t('break.subsLeft')} <b>{subsLeft - subs.length}</b>
+        </div>
+        <div className="row wrap break-orders" style={{ gap: 14 }}>
+          <label className="field">
+            <span title={t('orders.approach.title')}>{t('orders.approach')} ⓘ</span>
+            <select value={orders.aggression} onChange={(e) => setOrders({ ...orders, aggression: e.target.value as Aggression })}>
+              <option value="cautious">{t('orders.cautious')}</option>
+              <option value="balanced">{t('orders.balanced')}</option>
+              <option value="aggressive">{t('orders.aggressive')}</option>
+            </select>
+          </label>
+          <AscendancyHint />
+          <label className="field">
+            {t('orders.target')}
+            <select value={orders.target} onChange={(e) => setOrders({ ...orders, target: e.target.value as TargetPriority })}>
+              {TARGETS.map((x) => (
+                <option key={x} value={x}>
+                  {t(`target.${x}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="field">
+            {t('orders.risk')}
+            <select value={orders.risk} onChange={(e) => setOrders({ ...orders, risk: e.target.value as Risk })}>
+              <option value="low">{t('risk.low')}</option>
+              <option value="normal">{t('risk.normal')}</option>
+              <option value="high">{t('risk.high')}</option>
+            </select>
+          </label>
         </div>
         <div className="table-wrap">
           <table className="data">
@@ -170,39 +205,6 @@ export function BreakPanel({ combat, onResume }: Props) {
             </div>
           </div>
         )}
-        <div className="row wrap" style={{ gap: 14 }}>
-          <label className="field">
-            <span title={t('orders.approach.title')}>{t('orders.approach')} ⓘ</span>
-            <select value={orders.aggression} onChange={(e) => setOrders({ ...orders, aggression: e.target.value as Aggression })}>
-              <option value="cautious">{t('orders.cautious')}</option>
-              <option value="balanced">{t('orders.balanced')}</option>
-              <option value="aggressive">{t('orders.aggressive')}</option>
-            </select>
-          </label>
-          <AscendancyHint />
-          <label className="field">
-            {t('orders.target')}
-            <select value={orders.target} onChange={(e) => setOrders({ ...orders, target: e.target.value as TargetPriority })}>
-              {TARGETS.map((x) => (
-                <option key={x} value={x}>
-                  {t(`target.${x}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            {t('orders.risk')}
-            <select value={orders.risk} onChange={(e) => setOrders({ ...orders, risk: e.target.value as Risk })}>
-              <option value="low">{t('risk.low')}</option>
-              <option value="normal">{t('risk.normal')}</option>
-              <option value="high">{t('risk.high')}</option>
-            </select>
-          </label>
-          <span className="spacer" />
-          <button className="btn primary" onClick={resume} data-tip="break">
-            {t('break.resume')}
-          </button>
-        </div>
       </div>
     </Modal>
   );
@@ -212,8 +214,8 @@ export function BreakPanel({ combat, onResume }: Props) {
 function AscendancyHint() {
   const { t } = useT();
   return (
-    <span className="muted" style={{ fontSize: '0.857rem', maxWidth: 280, alignSelf: 'center' }} title={t('orders.ascendancy.title')}>
-      {t('break.hiddenApproach')}
+    <span className="muted break-hint" title={`${t('break.hiddenApproach')}\n${t('orders.ascendancy.title')}`}>
+      {t('break.hiddenApproachShort')} ⓘ
     </span>
   );
 }
@@ -269,7 +271,7 @@ function BenchCard({
       <div className="bc-abilities">
         {c.abilities.slice(0, 5).map((a) => (
           <span key={a} title={abilityText(a, lang).description}>
-            {ABILITIES[a] ? KIND_GLYPH[ABILITIES[a]!.kind] : ''} {abilityText(a, lang).name}
+            {ABILITIES[a] && <KindIcon kind={ABILITIES[a]!.kind} />} {abilityText(a, lang).name}
             {c.favorites.includes(a) ? ' ★' : ''}
           </span>
         ))}

@@ -324,6 +324,13 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Start screen** fits without scrolling: compact hero, the saved game as a banner, new game in two columns (name +
   crest | difficulty + start). News items use game-icons (`<NewsIcon kind>`, `UI_ICONS['news-<kind>']`).
 - `npm run ui:check` closes the end-of-week summaries (screenshot `00-recap`).
+- **Navigation tabs** (`NavBar.tsx`): a game-icon per screen (`UI_ICONS['nav-*']`), animated underline on the active
+  tab, chevron that turns, menus that unfold (icon tile + name + one-line hint `nav.hint.*`); below 1600 px inactive
+  tabs show only their icon (name in the tooltip). The creature sheet shows the potential as a stat tile.
+- **Renaming**: own creatures are renamed from their sheet (✎ next to the name, `engine/team/rename.ts`, 30 chars max;
+  the id stays). Sheets show the species' description in italics. Ability kinds and staff domains use game-icons
+  (`<KindIcon>`, `UI_ICONS['kind-*' | 'dom-*']`). The break panel is a wide dialog with « Reprendre le combat » in its
+  sticky header and the team orders above the table.
 - **Season calendar** (League › Competitions, « Votre saison »): a tile per week (pre-season … 18), each match a chip in
   its competition's colour (opponent crest, V/D + score once played, « prochain match »), current week highlighted.
 - **Difficulty** (re-tuned): the player starts with a regional squad in every difficulty but a small club (money,

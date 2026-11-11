@@ -6,7 +6,7 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import type { RosterEntry, Side } from '../../../engine/combat/types.ts';
 import type { CombatantView, MatchView } from '../../../engine/combat/view.ts';
 import { abilityText, effectText, speciesName } from '../../../engine/text/localize.ts';
-import { AbilityCard, AbilityTip, KIND_GLYPH, abilityColor } from '../../components/AbilityCard.tsx';
+import { AbilityCard, AbilityTip, KindIcon, abilityColor } from '../../components/AbilityCard.tsx';
 import { Bar, Crest } from '../../components/common.tsx';
 import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -72,7 +72,9 @@ function SkillRow({ c, r, cast }: { c: CombatantView; r: RosterEntry; cast: Card
             aria-label={title}
             onMouseEnter={(e) => setTip({ id, rect: e.currentTarget.getBoundingClientRect() })}
           >
-            <i className="glyph">{KIND_GLYPH[def.kind]}</i>
+            <i className="glyph">
+              <KindIcon kind={def.kind} />
+            </i>
             <span className="label">{name}</span>
             {cd > 0 && <b className="cdn">{cd}</b>}
           </span>

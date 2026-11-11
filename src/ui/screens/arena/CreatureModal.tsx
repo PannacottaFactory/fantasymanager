@@ -1,5 +1,5 @@
 import { ATTRIBUTE_CATEGORIES, type AttributeCategory, type AttributeKey } from '../../../data/attributes.ts';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ROLE_IDS } from '../../../data/roles.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { getSpecies, maxHp, maxStamina, overallRating, roleFit } from '../../../engine/creature/derived.ts';
@@ -16,7 +16,7 @@ import {
 } from '../../../engine/text/localize.ts';
 import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
 import { AbilityCard } from '../../components/AbilityCard.tsx';
-import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip, LevelBadge } from '../../components/common.tsx';
+import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, PotentialStars, TraitChip, LevelBadge } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { fatigueColor, moraleColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -24,6 +24,7 @@ import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
 import { isUnlocked, levelOf, unlockLevel } from '../../../engine/progression/levels.ts';
 import { attributeCeiling } from '../../../engine/progression/training.ts';
+import { MAX_NAME_LENGTH } from '../../../engine/team/rename.ts';
 
 interface Props {
   creature: Creature;
@@ -42,6 +43,8 @@ interface Props {
   onSpendPoint?: (k: AttributeKey) => void;
   /** 0–100: below 100, attributes are shown as estimated ranges and private details are hidden. */
   knowledge?: number;
+  /** Own creatures: gives it a new name. */
+  onRename?: (name: string) => void;
 }
 
 /** A small labelled value in the sheet header. */
@@ -54,7 +57,7 @@ function StatTile({ label, value, title, big }: { label: string; value: ReactNod
   );
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, knowledge = 100, deltas, onSpendPoint }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, knowledge = 100, deltas, onSpendPoint, onRename }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
@@ -69,7 +72,8 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
     <Modal
       title={
         <span className="row">
-          <Crest speciesId={sp.id} name={creature.name} size={30} /> {creature.name}
+          <Crest speciesId={sp.id} name={creature.name} size={30} />
+          {onRename ? <RenameTitle name={creature.name} onRename={onRename} /> : creature.name}
         </span>
       }
       onClose={onClose}
@@ -91,9 +95,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               {t('sheet.age', { age: creature.age })} · <span className="faint">{stage}</span>
             </span>
           </div>
+          {spText.description && <p className="species-desc">{spText.description}</p>}
           <div className="stat-strip" data-tip="sheet-tiles">
             <StatTile label={t('cr.overall')} value={known ? overallRating(creature) : `${ovr.low}–${ovr.high}`} big />
             {known && <StatTile label={t('sheet.level')} value={<LevelBadge c={creature} />} />}
+            <StatTile label={t('col.potentialFull')} value={<PotentialStars c={creature} k={knowledge} />} title={t('stars.potentialCol')} />
             {known && <StatTile label={t('sheet.hp')} value={maxHp(creature, DEFAULT_CONFIG)} />}
             {known && <StatTile label={t('sheet.stamina')} value={maxStamina(creature, DEFAULT_CONFIG)} />}
             {known && <StatTile label={t('col.form')} value={<><Attr v={creature.condition.form} /><span className="faint">/20</span></>} title={t('sheet.formTip')} />}
@@ -228,5 +234,54 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         )}
       </div>
     </Modal>
+  );
+}
+
+/** The creature's name, with a ✎ button to rename it (Enter saves, Escape cancels). */
+function RenameTitle({ name, onRename }: { name: string; onRename: (name: string) => void }) {
+  const { t } = useT();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(name);
+  if (!editing)
+    return (
+      <span className="rename-title">
+        {name}
+        <button
+          type="button"
+          className="btn small ghost rename-btn"
+          title={t('rename.title')}
+          aria-label={t('rename.title')}
+          onClick={() => {
+            setValue(name);
+            setEditing(true);
+          }}
+        >
+          ✎
+        </button>
+      </span>
+    );
+  const save = () => {
+    if (value.trim()) onRename(value);
+    setEditing(false);
+  };
+  return (
+    <span className="rename-title">
+      <input
+        className="rename-input"
+        value={value}
+        maxLength={MAX_NAME_LENGTH}
+        autoFocus
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === 'Enter') save();
+          if (e.key === 'Escape') setEditing(false);
+        }}
+        aria-label={t('rename.title')}
+      />
+      <button type="button" className="btn small primary" onClick={save}>
+        {t('rename.ok')}
+      </button>
+    </span>
   );
 }

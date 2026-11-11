@@ -42,6 +42,7 @@ export function IntroModal() {
           <Gold>{t('intro.p2', { objective: objectiveText(tr, game.board.objective), money: money(game.clubs[team.id]!.balance) })}</Gold>
         </p>
         <p>{t('intro.p3', { names: stars.map((c) => `${c.name} (${speciesName(c.speciesId, lang)})`).join(', ') })}</p>
+        <p className="muted">✎ {t('intro.rename')}</p>
         {opponent && <p>{t('intro.p4', { opponent })}</p>}
         <p className="muted">{t('intro.p5')}</p>
       </div>

@@ -1,3 +1,4 @@
+import { UiIcon } from '../icons/Icon.tsx';
 import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ABILITIES } from '../../data/abilities.ts';
@@ -6,7 +7,14 @@ import type { AbilityKind, ElementId } from '../../data/schema.ts';
 import { abilityKindName, abilityText, effectText, elementName } from '../../engine/text/localize.ts';
 import { useT } from '../i18n/index.ts';
 
-export const KIND_GLYPH: Record<AbilityKind, string> = { melee: '⚔', ranged: '➶', spell: '✦', heal: '✚', buff: '▲', debuff: '▼' };
+/** Icon of an ability kind (melee, ranged, spell, heal, buff, curse). */
+export function KindIcon({ kind }: { kind: AbilityKind }) {
+  return (
+    <span className={`kind-icon k-${kind}`}>
+      <UiIcon name={`kind-${kind}`} size="1em" />
+    </span>
+  );
+}
 
 /** Colour of an ability: its element, the creature's first element for innate ones, neutral for physical. */
 export function abilityColor(abilityId: string, elements: readonly ElementId[]): string {
@@ -38,7 +46,7 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, 
     <div className={`ability-card ${locked ? 'locked' : ''} ${favorite ? 'fav' : ''}`} style={{ ['--c' as string]: color }}>
       <div className="ability-head">
         <span className="glyph" title={abilityKindName(def.kind, lang)}>
-          {KIND_GLYPH[def.kind]}
+          <KindIcon kind={def.kind} />
         </span>
         <b className="grow">{txt.name}</b>
         {locked ? (

@@ -21,7 +21,7 @@ import {
 import { RoleIcon, SpeciesIcon } from '../icons/Icon.tsx';
 import { encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
-import { KIND_GLYPH } from '../components/AbilityCard.tsx';
+import { KindIcon } from '../components/AbilityCard.tsx';
 import { unlockLevel } from '../../engine/progression/levels.ts';
 
 const cfg = DEFAULT_CONFIG;
@@ -57,7 +57,7 @@ export function EncyclopediaScreen() {
       case 'species':
         return SPECIES_IDS.map((id) => ({ id, label: speciesText(id, lang).name, icon: <SpeciesIcon id={id} /> }));
       case 'abilities':
-        return Object.values(ABILITIES).map((a) => ({ id: a.id, label: abilityText(a.id, lang).name, icon: <span style={{ color: elColor(a.element) }}>{KIND_GLYPH[a.kind]}</span> }));
+        return Object.values(ABILITIES).map((a) => ({ id: a.id, label: abilityText(a.id, lang).name, icon: <span style={{ color: elColor(a.element) }}><KindIcon kind={a.kind} /></span> }));
       case 'effects':
         return Object.values(EFFECTS).map((x) => ({ id: x.id, label: effectText(x.id, lang).name, icon: <span className={x.beneficial ? 'good-text' : 'bad-text'}>{x.beneficial ? '▲' : '▼'}</span> }));
       case 'traits':
@@ -275,7 +275,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
           const def = ABILITIES[a.id]!;
           return (
             <li key={a.id}>
-              <span style={{ color: elColor(def.element) }}>{KIND_GLYPH[def.kind]}</span>{' '}
+              <span style={{ color: elColor(def.element) }}><KindIcon kind={def.kind} /></span>{' '}
               <A to={{ tab: 'abilities', id: a.id }} go={go}>
                 {abilityText(a.id, lang).name}
               </A>{' '}
@@ -373,7 +373,7 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
   return (
     <div>
       <h3 className="enc-title">
-        <span style={{ color: elColor(a.element) }}>{KIND_GLYPH[a.kind]}</span> {txt.name}
+        <span style={{ color: elColor(a.element) }}><KindIcon kind={a.kind} /></span> {txt.name}
       </h3>
       <p>{txt.description}</p>
       <Facts

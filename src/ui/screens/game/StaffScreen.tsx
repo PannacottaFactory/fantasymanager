@@ -1,3 +1,4 @@
+import { UiIcon } from '../../icons/Icon.tsx';
 import { useState } from 'react';
 import type { AttributeCategory } from '../../../data/attributes.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -12,7 +13,11 @@ import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
 
 const DOMAINS: AttributeCategory[] = ['physical', 'combat', 'mental'];
-const DOMAIN_ICON: Record<AttributeCategory, string> = { physical: '💪', combat: '⚔', mental: '✦' };
+const DomainIcon = ({ d }: { d: AttributeCategory }) => (
+  <span className={`dom-icon d-${d}`}>
+    <UiIcon name={`dom-${d}`} size="1.05em" />
+  </span>
+);
 
 export function StaffScreen() {
   const tr = useT();
@@ -31,7 +36,7 @@ export function StaffScreen() {
       sort: (c) => DOMAINS.indexOf(c.domain),
       render: (c) => (
         <span>
-          {DOMAIN_ICON[c.domain]} {categoryName(c.domain, lang)}
+          <DomainIcon d={c.domain} /> {categoryName(c.domain, lang)}
         </span>
       ),
     },
@@ -94,7 +99,7 @@ export function StaffScreen() {
             return (
               <div key={d} className="tile coach-tile">
                 <span className="muted">
-                  {DOMAIN_ICON[d]} {categoryName(d, lang)}
+                  <DomainIcon d={d} /> {categoryName(d, lang)}
                 </span>
                 {c ? (
                   <>

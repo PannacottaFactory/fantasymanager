@@ -839,7 +839,8 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .aura-bleed { box-shadow: inset 0 -10px 12px -6px rgb(220 40 40 / 0.6); animation: aura-pulse 1.2s ease-in-out infinite; }
 .aura-chill { box-shadow: inset 0 0 10px 1px rgb(140 210 255 / 0.45); }
 .aura-frozen { background: linear-gradient(135deg, rgb(200 240 255 / 0.28), rgb(120 190 240 / 0.12) 40%, rgb(220 248 255 / 0.3)); box-shadow: inset 0 0 0 2px rgb(190 235 255 / 0.7), inset 0 0 18px rgb(150 220 255 / 0.6); }
-.aura-stun::after { content: '✦ ✧ ✦'; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); color: #ffe48a; font-size: 0.714rem; letter-spacing: 2px; animation: aura-spin 1.2s linear infinite; }
+.aura-stun::after { content: '✦ ✧ ✦'; position: absolute; top: 3px; left: 50%; transform: translateX(-50%); color: #ffe48a; font-size: 0.714rem; letter-spacing: 2px; white-space: nowrap; animation: aura-twinkle 0.9s ease-in-out infinite; }
+@keyframes aura-twinkle { 50% { opacity: 0.35; text-shadow: 0 0 6px #ffe48a; } }
 .aura-shield { box-shadow: 0 0 0 2px rgb(150 200 255 / 0.55), 0 0 12px rgb(150 200 255 / 0.45), inset 0 0 12px rgb(150 200 255 / 0.25); border-radius: 8px; }
 .aura-stone { box-shadow: inset 0 0 0 2px rgb(170 150 120 / 0.6); }
 .aura-rage { box-shadow: 0 0 10px 1px rgb(255 60 40 / 0.55); animation: aura-pulse 0.8s ease-in-out infinite; }
@@ -1624,3 +1625,62 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
   .topbar > .nav { order: 10; flex: 1 1 100%; }
 }
 .continue-card + .new-card { margin-top: 10px; }
+
+/* Dialogs: the header stays in view; the break panel is wide so it fits the screen. */
+.dialog { max-height: calc(100vh - 32px); }
+.dialog-head { position: sticky; top: -16px; z-index: 3; background: var(--panel); margin: -16px -16px 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.dialog.wide { width: min(1240px, 100%); }
+.break-orders { align-items: flex-end; padding: 6px 0; }
+.break-hint { font-size: 0.786rem; align-self: center; cursor: help; }
+
+.kind-icon { display: inline-flex; vertical-align: -0.12em; }
+.dom-icon { display: inline-flex; vertical-align: -0.15em; }
+.dom-icon.d-physical { color: #e2703a; }
+.dom-icon.d-combat { color: #d0594a; }
+.dom-icon.d-mental { color: #7fb3e0; }
+.species-desc { margin: 2px 0 0; font-size: 0.857rem; font-style: italic; color: var(--muted); }
+
+.rename-title { display: inline-flex; align-items: center; gap: 6px; }
+.rename-btn { padding: 0 6px; font-size: 0.857rem; opacity: 0.7; }
+.rename-btn:hover { opacity: 1; }
+.rename-input { font: inherit; font-size: 1rem; padding: 2px 6px; width: 16rem; max-width: 50vw; }
+.dialog.wide > .stack { align-items: stretch; width: 100%; }
+.dialog.wide > .stack > * { width: 100%; }
+.dialog.wide .bench-cards { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+
+/* ——— Navigation tabs ——— */
+.nav .nav-tab { display: inline-flex; align-items: center; gap: 6px; border-radius: 8px 8px 0 0; padding-inline: 10px; }
+.nav .nav-tab .gicon { opacity: 0.65; transition: opacity 0.2s, transform 0.25s; }
+.nav .nav-tab:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 7%, transparent); color: var(--text); }
+.nav .nav-tab:hover:not(:disabled) .gicon { opacity: 1; transform: translateY(-1px); }
+.nav .nav-tab.on { color: var(--accent); border-bottom-color: transparent; }
+.nav .nav-tab.on .gicon { opacity: 1; }
+/* The active tab is underlined by a bar that grows from the centre. */
+.nav .nav-tab::after { content: ''; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--accent);
+  transform: scaleX(0); transition: transform 0.25s ease; }
+.nav .nav-tab.on::after { transform: scaleX(1); }
+.nav-chevron { font-style: normal; font-size: 0.714rem; opacity: 0.7; transition: transform 0.2s ease; }
+.nav-tab.open .nav-chevron { transform: rotate(180deg); }
+/* Menus unfold from the tab. */
+.nav-menu { min-width: 250px; padding: 6px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--panel);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.35), 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  transform-origin: top left; animation: menu-unfold 0.18s cubic-bezier(.2, .9, .3, 1.15) both; }
+@keyframes menu-unfold { from { opacity: 0; transform: translateY(-6px) scaleY(0.85); } to { opacity: 1; transform: none; } }
+.nav .nav-menu button { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-left: 0; border-radius: 8px;
+  animation: menu-item 0.22s ease both; }
+@keyframes menu-item { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+.nav .nav-menu button.on { background: color-mix(in srgb, var(--accent) 12%, var(--panel-2)); box-shadow: inset 3px 0 0 var(--accent); }
+.nav .nav-menu button:hover:not(:disabled) { background: var(--panel-2); }
+.nm-icon { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 8px; color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.nm-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.nm-text b { font-weight: 600; color: var(--text); }
+.nm-text small { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+:root[data-effects='reduced'] .nav-menu, :root[data-effects='reduced'] .nav .nav-menu button { animation: none; }
+
+/* Not enough room: inactive tabs keep only their icon (their name is in the tooltip). */
+@media (max-width: 1600px) {
+  .nav .nav-tab:not(.on):not(.open) > .nav-label { display: none; }
+  .nav .nav-tab:not(.on):not(.open) .gicon { opacity: 0.85; }
+  .nav .nav-tab { padding-inline: 9px; }
+}

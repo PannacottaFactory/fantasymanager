@@ -2,6 +2,7 @@
  * Creature sheet inside a league game: the creature modal plus what the manager can do with it
  * (contract, sale, release for their own; offer or signing and scouting for the others).
  */
+import { renameCreature } from '../../../engine/team/rename.ts';
 import { useState } from 'react';
 import type { AttributeKey } from '../../../data/attributes.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -13,7 +14,7 @@ import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature, Team } from '../../../engine/model.ts';
 import { toggleFavorite } from '../../../engine/team/edit.ts';
-import { Knowledge, PotentialStars, Gold, Money } from '../../components/common.tsx';
+import { Knowledge, Gold, Money } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
@@ -274,9 +275,6 @@ function Sheet({ id }: { id: string }) {
             <Knowledge k={k} /> <span className="muted">{t('cr.knowledge', { k })}</span>
           </span>
           <span><Gold>{t('cr.valueEst', { v: money(estimatedValue(creature, k)) })}</Gold></span>
-          <span className="row" style={{ gap: 4 }}>
-            {t('cr.potentialEst')} <PotentialStars c={creature} k={k} />
-          </span>
           <ScoutButton game={game} creature={creature} />
         </div>
       )}
@@ -307,6 +305,7 @@ function Sheet({ id }: { id: string }) {
       onSpendPoint={own ? (k) => update((g) => spendFreePoint(g, id, k)) : undefined}
       favorites={favorites}
       onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
+      onRename={own ? (name) => update((g) => renameCreature(g, id, name)) : undefined}
       extra={own ? undefined : extra}
       footer={footer}
     />

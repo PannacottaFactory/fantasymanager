@@ -8,7 +8,7 @@ import { dropOnto, insertInGroup, isStarter, selectionOf, setOrders, setSelectio
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
-import { AbilityCard, KIND_GLYPH, abilityColor } from './AbilityCard.tsx';
+import { AbilityCard, KindIcon, abilityColor } from './AbilityCard.tsx';
 import { isUnlocked, levelOf, unlockLevel } from '../../engine/progression/levels.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Risk, Stance, Team } from '../../engine/model.ts';
@@ -296,7 +296,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
             {f.length ? (
               f.map((a) => (
                 <span key={a} className="build-chip" style={{ ['--c' as string]: abilityColor(a, els) }}>
-                  {KIND_GLYPH[ABILITIES[a]!.kind]} {abilityText(a, lang).name}
+                  <KindIcon kind={ABILITIES[a]!.kind} /> {abilityText(a, lang).name}
                 </span>
               ))
             ) : (
