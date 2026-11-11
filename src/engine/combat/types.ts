@@ -175,6 +175,8 @@ export type MatchEvent =
   | { type: 'exhausted'; round: number; actor: string }
   | { type: 'moraleShift'; round: number; side: Side; reason: 'leader'; actor: string }
   | { type: 'ko'; round: number; target: string; by?: string }
+  /** A creature knocked out gets back up (one-time passive such as the skeleton's). */
+  | { type: 'revive'; round: number; target: string; effect: string; hp: number }
   | { type: 'injury'; round: number; target: string; injuryId: string; weeks: number }
   | { type: 'roundEnd'; round: number; snapshot: CombatantSnapshot[] }
   | { type: 'break'; round: number; index: number }

@@ -130,4 +130,14 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'rekindling', name: 'Rekindling', kind: 'hot', beneficial: true, defaultDuration: 999, magnitude: 0.02,
     description: 'Its flame keeps rekindling.',
   },
+  /** Hydra passive: heads grow back. */
+  regrowth: {
+    id: 'regrowth', name: 'Regrowth', kind: 'hot', beneficial: true, defaultDuration: 999, magnitude: 0.03,
+    description: 'Severed heads grow back: heals 3 % of its health every round.',
+  },
+  /** Skeleton passive: gets back up once. */
+  reassembling: {
+    id: 'reassembling', name: 'Reassembling', kind: 'mods', beneficial: true, defaultDuration: 999, revive: 0.3,
+    description: 'The first time it is knocked out, its bones pull back together: it gets up with 30 % of its health.',
+  },
 };

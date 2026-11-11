@@ -188,11 +188,40 @@ describe('wave 3 mechanics', () => {
     const t = c.active(1)[0]!;
     a.stamina = a.maxStamina;
     a.hp = 2;
+    t.effects = []; // no thorns: only the price itself is tested
     c['execute'](a, { type: 'ability', ability: ABILITIES['blood-price']!, target: t, flank: false, score: 1 });
     expect(a.hp).toBeGreaterThanOrEqual(1);
     a.hp = a.maxHp;
     c['execute'](a, { type: 'ability', ability: ABILITIES['blood-price']!, target: t, flank: false, score: 1 });
     const ev = c.events.filter((e) => e.type === 'sacrifice' && e.actor === a.id).at(-1);
     expect(ev).toMatchObject({ amount: Math.round(a.maxHp * 0.1) });
+  });
+});
+
+describe('new bestiary mechanics', () => {
+  it('a multi-strike ability attacks several times in one action', () => {
+    const c = new Combat(setup('hits', ['hydra']));
+    const a = c.active(0)[0]!;
+    const t = c.active(1)[0]!;
+    t.hp = t.maxHp = 10000;
+    a.stamina = a.maxStamina;
+    const before = c.events.length;
+    c['execute'](a, { type: 'ability', ability: ABILITIES['hydra-bites']!, target: t, flank: false, score: 1 });
+    const attacks = c.events.slice(before).filter((e) => e.type === 'attack' && e.actor === a.id);
+    expect(attacks.length).toBe(3);
+  });
+
+  it('the skeleton gets back up once, then stays down', () => {
+    const c = new Combat(setup('revive', ['skeleton']));
+    const s = c.active(0)[0]!;
+    expect(s.effects.some((e) => e.id === 'reassembling')).toBe(true);
+    s.hp = 0;
+    c['knockOut'](s);
+    expect(s.state).toBe('active');
+    expect(s.hp).toBe(Math.round(s.maxHp * EFFECTS.reassembling!.revive!));
+    expect(c.events.some((e) => e.type === 'revive' && e.target === s.id)).toBe(true);
+    s.hp = 0;
+    c['knockOut'](s);
+    expect(s.state).toBe('ko');
   });
 });

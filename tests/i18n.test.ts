@@ -19,7 +19,7 @@ import { generateTeam } from '../src/engine/team/team.ts';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 
 /** French contractions/elisions that a template + creature name must never produce. */
-const BAD_FRENCH = [/(?<!\p{L})(de|à) (le|les)(?!\p{L})/iu, /(?<!\p{L})(de|que|le|la|ne|se|je) [aeiouyéèêâîô]/iu, /\s[,.]/];
+const BAD_FRENCH = [/(?<!\p{L})(de|à) (le|les)(?!\p{L})/iu, /(?<!\p{L})(de|que|le|la|ne|se|je) (?:[aeiouéèêâîô]|y(?![aeiouéèêâîô]))/iu, /\s[,.]/];
 
 function match(i: number) {
   const rng = new Rng(deriveSeed('i18n', i));

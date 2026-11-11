@@ -359,6 +359,7 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
   if (a.cleanse) special.push(e('spec.cleanse'));
   if (a.execute) special.push(e('spec.execute', { v: mult(1 + a.execute), t: Math.round(cfg.combat.damage.executeBelow * 100) }));
   if (a.staminaDrain) special.push(e('spec.staminaDrain', { v: a.staminaDrain }));
+  if (a.hits && a.hits > 1) special.push(e('spec.hits', { n: a.hits }));
   if (a.pack) special.push(e('spec.pack', { v: pct(a.pack, false), max: cfg.combat.damage.packMax }));
   if (a.hpCost) special.push(e('spec.hpCost', { v: pct(a.hpCost, false) }));
   if (a.fear) special.push(e('spec.fear', { v: a.fear }));
@@ -452,6 +453,7 @@ export function EffectEntry({ id, go }: { id: string; go: (l: Link) => void }) {
   if (fx.kind === 'hot') lines.push(e('fx.hot', { v: pct(fx.magnitude ?? 0, false) }));
   if (fx.kind === 'shield') lines.push(e('fx.shield', { v: pct(fx.magnitude ?? 0, false) }));
   if (fx.kind === 'stun') lines.push(e('fx.stun'));
+  if (fx.revive) lines.push(e('fx.revive', { v: pct(fx.revive, false) }));
   lines.push(...modLines(fx.mods));
   if (fx.moralePerRound) lines.push(e('fx.morale', { v: `${fx.moralePerRound > 0 ? '+' : ''}${fx.moralePerRound}` }));
   if (fx.maxStacks) lines.push(e('fx.stacks', { n: fx.maxStacks }));

@@ -98,6 +98,8 @@ export interface AbilityDef {
   pack?: number;
   /** Sacrifice: fraction of the user's max health paid to use it (never below 1 HP). */
   hpCost?: number;
+  /** Several strikes in one action (single target): each one rolls to hit and deals `power`. */
+  hits?: number;
   /** Morale damage inflicted on targets. */
   fear?: number;
   effects?: AbilityEffectRef[];
@@ -141,6 +143,8 @@ export interface EffectDef {
   curse?: boolean;
   /** Removed by any healing ability (bleeding). */
   endsOnHeal?: boolean;
+  /** Passive used up when knocked out: the creature gets back up once with this fraction of its max health. */
+  revive?: number;
 }
 
 export interface TraitCombatEffects {

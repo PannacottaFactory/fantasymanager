@@ -104,6 +104,14 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
       if (a) a.hp = e.hp;
       break;
     }
+    case 'revive': {
+      const t = touch(e.target);
+      if (t) {
+        t.hp = e.hp;
+        t.effects = t.effects.filter((x) => x !== e.effect);
+      }
+      break;
+    }
     case 'thorns': {
       const t = touch(e.target);
       if (t) t.hp = e.hp;

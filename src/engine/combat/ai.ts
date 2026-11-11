@@ -124,7 +124,7 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders }, cfg);
   const pack = packMult(ability, ctx.alliesOn(actor, target), cfg);
   const cover = coverMult(attackKind(ability), target, ctx.frontStanding(target.side), cfg);
-  return raw * perceivedMult * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * p;
+  return raw * perceivedMult * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * p * (ability.hits ?? 1);
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */

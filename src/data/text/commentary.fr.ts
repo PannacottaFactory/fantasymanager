@@ -168,6 +168,11 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['', 'Une statue de glace : {a} perd son tour.'],
     ['', '{a} lutte contre la glace, en vain.'],
   ],
+  revive: [
+    ['', 'Non ! {a} se rassemble et se relève !'],
+    ['', 'Les os s’entrechoquent, se remettent en place : {a} est de nouveau debout !'],
+    ['', '{a} refuse de rester à terre !'],
+  ],
   sacrifice: [
     ['', '{a} paie {ab} de son propre sang (-{n}).'],
     ['', '{a} se déchire la chair pour déchaîner {ab} !'],

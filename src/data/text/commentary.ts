@@ -165,6 +165,11 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['', 'A statue of ice — {a} loses its turn.'],
     ['', '{a} strains against the ice, in vain.'],
   ],
+  revive: [
+    ['', 'No! {a} pulls itself back together and stands up again!'],
+    ['', 'The bones rattle, click into place — {a} is back on its feet!'],
+    ['', '{a} refuses to stay down!'],
+  ],
   sacrifice: [
     ['', '{a} pays in blood for {ab} (-{n}).'],
     ['', '{a} tears its own flesh to unleash {ab}!'],

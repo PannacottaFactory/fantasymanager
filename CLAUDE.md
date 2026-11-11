@@ -207,6 +207,11 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   (banshee, nightmare, giant hyena, raptor, cyclops, storm elemental, ogre, blood demon, seraph) → 49 species.
   17 styles in `sim:archetypes`: averages 33–70 % (frost strongest vs other pure styles, pack weakest). League KO
   rate now ~48–59 %. 91 tests.
+- [x] **Bestiary wave 4** (+18 → 67 species): hydra, gargoyle, manticore, chimera, yeti, roc; skeleton warrior,
+  ghoul, mummy, death knight; pegasus, sphinx, will-o'-wisp, light elemental; kobold, gnoll, lizardfolk, satyr.
+  New mechanics: **multi-strike** (`AbilityDef.hits`: several attacks in one action, each rolls to hit; AI × hits)
+  and **revive** (`EffectDef.revive`: one-time passive, `revive` event — handled by commentator, view, matchFx;
+  skeleton `reassembling` 30 %). Hydra passive `regrowth` (hot 3 %). Prices from `sim:species` (30–61 % win).
 - [x] **AI identities & difficulty**: styles + temperaments per AI stable, difficulty at start, save v5, `sim:ai`.
   Autopilot player finishes ~4.8th (easy), ~6.8th (normal), ~8.8th (hard) of 10 in D2. 97 tests.
 - [x] **Levers pass**: role trade-offs + off-role penalty, cover, aggression costs stamina, harsher fatigue (faster

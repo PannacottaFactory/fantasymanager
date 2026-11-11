@@ -65,6 +65,7 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, 
         {def.power > 0 && (
           <span title={t('ab.power.title')}>
             <span style={{ color: 'var(--bad)' }}>✸</span> {def.power}
+            {def.hits && def.hits > 1 ? ` ×${def.hits}` : ''}
           </span>
         )}
         <span className="cost" title={t('ab.cost.title')}>

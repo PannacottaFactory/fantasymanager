@@ -58,6 +58,8 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
       return { target: e.target };
     case 'substitution':
       return { actor: e.inId, target: e.outId };
+    case 'revive':
+      return { target: e.target };
     case 'sacrifice':
     case 'guard':
     case 'rest':
@@ -295,6 +297,8 @@ export class Commentator {
       case 'stunned':
         if (e.effect === 'frozen') return this.line(e, 'frozen', [], this.actorVars(e.actor), 1, this.sideOf(e.actor));
         return this.line(e, 'stunned', [], this.actorVars(e.actor), 0, this.sideOf(e.actor));
+      case 'revive':
+        return [...this.line(e, 'revive', [], this.actorVars(e.target), 2, this.sideOf(e.target)), ...this.crowd(e, 0.6)];
       case 'sacrifice':
         return this.line(e, 'sacrifice', [], { ...this.actorVars(e.actor), n: e.amount, ab: abilityText(e.ability, lang).name }, 1, this.sideOf(e.actor));
       case 'thorns': {

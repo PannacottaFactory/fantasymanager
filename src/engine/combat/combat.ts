@@ -584,8 +584,13 @@ export class Combat {
     switch (ability.target) {
       case 'enemy': {
         if (!action.target || action.target.state !== 'active') return;
-        if (ability.power > 0) this.attack(actor, action.target, ability, false, action.flank);
-        else this.debuff(actor, ability, [action.target]);
+        if (ability.power > 0) {
+          // Multi-strike abilities hit again while both are still standing.
+          for (let i = 0; i < (ability.hits ?? 1); i++) {
+            if (action.target.state !== 'active' || actor.state !== 'active') break;
+            this.attack(actor, action.target, ability, false, action.flank);
+          }
+        } else this.debuff(actor, ability, [action.target]);
         return;
       }
       case 'enemyFront':
@@ -864,6 +869,14 @@ export class Combat {
 
   private knockOut(target: Combatant, by?: Combatant) {
     const cfg = this.cfg;
+    // A one-time passive (skeleton) puts it back on its feet instead.
+    const revive = target.effects.find((e) => EFFECTS[e.id]?.revive);
+    if (revive) {
+      target.effects = target.effects.filter((e) => e !== revive);
+      target.hp = Math.max(1, Math.round(target.maxHp * EFFECTS[revive.id]!.revive!));
+      this.emit({ type: 'revive', round: this.round, target: target.id, effect: revive.id, hp: target.hp });
+      return;
+    }
     target.hp = 0;
     target.state = 'ko';
     target.leftRound = this.round;
