@@ -271,6 +271,11 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   control, thorns, back line, healers, stamina, nerves, discipline…; uses the pre-match line-ups found in `matchHistory`
   by seed), one counterpoint (a weakness despite a win / a strength despite a loss) and 1–3 varied tips (one per kind,
   heaviest first) with a button to the right screen.
+- **News ticker** (`ui/components/NewsTicker.tsx`): TV-style band at the bottom (next match, last result, leaders, cup,
+  infirmary, latest news), loops, pauses on hover, static when effects are off. Inbox is named « Journal ».
+- **Top-bar button** says what it does: « Prochain match » (opens the pre-match screen), « Retour au match »,
+  « Semaine suivante », « Saison suivante ». Pre-match screen: big « Jouer le match en direct » card + « Simuler ».
+- Approach ascendancy is a cycle (cautious > aggressive > balanced > cautious): the verdict says so, never « best ».
 - **Favourite moves**: the Tactics column « Coups favoris » opens a small picker with only the abilities (☆).
 - **Sheet tour**: tips anchored inside the creature sheet (`sheet-tiles`, `sheet-roles`, `sheet-abilities`,
   `sheet-attrs` « the rest can wait »); while a window is open, only tips inside it show (scrolled into view).

@@ -331,7 +331,7 @@ export function NextMatch({ game }: { game: GameState }) {
         <span className="muted">{t('match.position', { pos: tr.ordinal(pos), pts: row.points })}</span>
         <span className="spacer" />
         <button className="btn primary" onClick={() => useGame.getState().continueGame()}>
-          {t('continue')} ▶
+          {t('continue.next')} ▶
         </button>
       </div>
     </section>

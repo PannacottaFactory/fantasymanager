@@ -99,12 +99,6 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           <button className="btn" onClick={() => setScreen('tactics')}>
             {t('match.editTactics')}
           </button>
-          <button data-tip="prematch" className="btn" disabled={issues.length > 0} onClick={simulate}>
-            {t('match.simulate')}
-          </button>
-          <button className="btn primary" disabled={issues.length > 0} onClick={playLive} style={{ padding: '8px 22px' }}>
-            {t('match.playLive')}
-          </button>
         </div>
         {issues.length > 0 && (
           <div className="remark bad" style={{ marginTop: 10 }}>
@@ -117,6 +111,19 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
             </button>
           </div>
         )}
+      </section>
+      <section className="match-cta" data-tip="prematch">
+        <button className="cta-live" disabled={issues.length > 0} onClick={playLive}>
+          <span className="cta-icon">⚔</span>
+          <span className="cta-text">
+            <b>{t('match.playLive').replace(' ⚔', '')}</b>
+            <small>{t('match.liveSub')}</small>
+          </span>
+        </button>
+        <button className="cta-sim" disabled={issues.length > 0} onClick={simulate}>
+          <b>⏩ {t('match.simulate')}</b>
+          <small>{t('match.simulateSub')}</small>
+        </button>
       </section>
       <div className="two-cols">
         <LineupCard team={mine} title={t('match.lineup')} side={0} />

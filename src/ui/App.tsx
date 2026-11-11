@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { LANGS } from '../core/i18n.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
-import { cupDue, lastMatchday, playerTeam, seasonOver } from '../engine/league/season.ts';
+import { cupDue, lastMatchday, playerFixture, playerTeam, seasonOver } from '../engine/league/season.ts';
+import type { GameState } from '../engine/league/types.ts';
+import type { StringKey } from './i18n/strings.ts';
+import { NewsTicker } from './components/NewsTicker.tsx';
 import { TEXT_SCALE, TEXT_SIZES, THEMES, useSettings, useT } from './i18n/index.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
 import { ReportView } from './screens/arena/ReportView.tsx';
@@ -62,6 +65,13 @@ function BalanceChip({ balance, worldSeed }: { balance: number; worldSeed: strin
   );
 }
 
+/** What the top-bar button will do, in words. */
+function continueLabel(t: (k: StringKey) => string, game: GameState, match: { phase: string } | null): string {
+  if (seasonOver(game)) return t('continue.nextSeason');
+  if (match && match.phase !== 'report') return t('continue.back');
+  return playerFixture(game) ? t('continue.next') : t('continue.week');
+}
+
 function ContinueButton() {
   const { t } = useT();
   const game = useGame((s) => s.game);
@@ -87,8 +97,8 @@ function ContinueButton() {
             ? t('status.cup', { season: game.season, round: t(cupRoundKey(game.cup.round, game.cup.rounds)) })
             : t('status.season', { season: game.season, d: game.matchday, n: lastMatchday(game) })}
       </span>
-      <button className="btn primary" onClick={onClick} title={t('continue.title')}>
-        {over ? t('continue.nextSeason') : t('continue')} ▶
+      <button className="btn primary" onClick={onClick} title={over ? t('continue.title') : t('continue.nextTitle')}>
+        {continueLabel(t, game, match)} ▶
       </button>
     </div>
   );
@@ -233,6 +243,7 @@ export function App() {
         </ErrorBoundary>
       )}
       {game && !newGameOpen && <IntroModal />}
+      {game && !launch && !newGameOpen && <NewsTicker />}
       <FxLayer />
       <Celebrations />
       <TutorialOverlay active={!!game && !newGameOpen && !launch && ready && !viewing && !intro} />

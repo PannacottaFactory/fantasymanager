@@ -145,9 +145,9 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
     const b = foe.tactic.orders.aggression;
     const beats = cfg.combat.orders.ascendancy.beats;
     const bonus = Math.round(cfg.combat.orders.ascendancy.bonus * 100);
-    if (beats[a] === b) add('approachWon', 'good', 3, { ours: a, theirs: b, pct: bonus });
+    if (beats[a] === b) add('approachWon', 'good', 1.5, { ours: a, theirs: b, pct: bonus });
     else if (beats[b] === a) {
-      add('approachLost', 'bad', 3, { ours: a, theirs: b, pct: bonus });
+      add('approachLost', 'bad', 2, { ours: a, theirs: b, pct: bonus });
       tip('counterApproach', 4, 'tactics', { theirs: b, counter: counterTo(b, cfg) });
     }
     if (!Object.keys(team.tactic.favorites ?? {}).length && won === false) tip('favourites', 1, 'tactics');

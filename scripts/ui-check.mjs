@@ -57,7 +57,7 @@ await closeModal();
 for (let w = 0; w < weeks; w++) {
   await page.locator('.topbar .btn.primary').first().click();
   await wait(600);
-  const sim = page.locator('button[data-tip=prematch]');
+  const sim = page.locator('button.cta-sim');
   const fix = page.locator('.remark.bad .btn.small');
   if (await fix.count()) {
     await fix.first().click();
