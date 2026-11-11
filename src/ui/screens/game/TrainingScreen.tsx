@@ -17,6 +17,7 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
+import { TrainingGuide } from './TrainingGuide.tsx';
 import { levelOf, maxLevelOf, unlockLevel } from '../../../engine/progression/levels.ts';
 
 const STAGE_KEY = { young: 'cr.developing', prime: 'cr.prime', declining: 'cr.declining' } as const;
@@ -223,15 +224,7 @@ export function TrainingScreen() {
             ))}
           </span>
         </div>
-        <div className="how-it-works">
-          <b>{t('train.how')}</b>
-          <ol>
-            <li>{t('train.how1')}</li>
-            <li>{t('train.how2')}</li>
-            <li>{t('train.how3')}</li>
-            <li>{t('train.how4')}</li>
-          </ol>
-        </div>
+        <TrainingGuide />
         <div className="row wrap" style={{ gap: 8, marginBottom: 10 }}>
           <ProgramSelect value={allProgram} onChange={setAllProgram} />
           <IntensitySelect value={allIntensity} onChange={setAllIntensity} />

@@ -760,9 +760,6 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 }
 
 /* ——— Training ——— */
-.how-it-works { background: var(--panel-2); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 10px; font-size: 0.929rem; }
-.how-it-works ol { margin: 6px 0 0; padding-left: 20px; }
-.how-it-works li { margin: 3px 0; }
 .apt-cell { display: inline-flex; align-items: center; gap: 6px; }
 .apt-bar { position: relative; width: 64px; height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
 .apt-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
@@ -803,3 +800,12 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .good-text .gold, .bad-text .gold { color: inherit; }
 .intro { gap: 10px; max-width: 760px; }
 .intro p { margin: 0; line-height: 1.5; }
+/* Training guide: four cards in a foldable box. */
+.training-guide { background: var(--panel-2); border-radius: var(--radius); padding: 8px 12px; margin-bottom: 12px; }
+.training-guide > summary { cursor: pointer; }
+.training-guide > summary .faint { font-size: 0.857rem; }
+.guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
+.guide-card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 0.929rem; }
+.guide-card h4 { margin: 0 0 6px; color: var(--accent); }
+.guide-card ul { margin: 0; padding-left: 18px; }
+.guide-card li { margin: 4px 0; line-height: 1.45; }
