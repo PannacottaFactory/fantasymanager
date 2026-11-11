@@ -1,10 +1,10 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type DragEvent, type ReactNode } from 'react';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 import { ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES_IDS } from '../../data/species.ts';
 import type { Line, RoleId, TargetPriority } from '../../data/schema.ts';
 import { isInjured, maxHp, overallRating } from '../../engine/creature/derived.ts';
-import { isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
+import { dropOnto, isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
@@ -17,7 +17,6 @@ import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
 import { Attr, Bar, Crest, ElementDots, Modal, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
-import { SelectionBoard } from './SelectionBoard.tsx';
 import { RoleIcon } from '../icons/Icon.tsx';
 import { SpeciesIcon } from '../icons/Icon.tsx';
 
@@ -102,6 +101,35 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const slot = (id: string) => team.tactic.lineup.find((s) => s.creatureId === id);
   const status = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
   const m = DEFAULT_CONFIG.match;
+  // Drag and drop between rows: onto a creature of another group = take a free place there, or swap.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const rowProps = (c: Creature) => ({
+    draggable: true,
+    title: t('sel.drag.title'),
+    onDragStart: (e: DragEvent) => {
+      e.dataTransfer.setData('text/plain', c.id);
+      e.dataTransfer.effectAllowed = 'move';
+      setDragId(c.id);
+    },
+    onDragEnd: () => {
+      setDragId(null);
+      setOverId(null);
+    },
+    onDragOver: (e: DragEvent) => {
+      if (!dragId || dragId === c.id) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (overId !== c.id) setOverId(c.id);
+    },
+    onDrop: (e: DragEvent) => {
+      e.preventDefault();
+      const id = dragId ?? e.dataTransfer.getData('text/plain');
+      setDragId(null);
+      setOverId(null);
+      if (id && id !== c.id) onChange(dropOnto(team, id, c.id));
+    },
+  });
 
   const columns: Column<Creature>[] = [
     {
@@ -113,6 +141,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         const full = { starter: team.tactic.lineup.length >= m.starters, bench: team.tactic.bench.length >= m.benchSize, reserve: false };
         return (
           <span className="row" style={{ gap: 4 }}>
+            <span className="drag-grip" aria-hidden="true">⠿</span>
             <span className="sel-seg" role="radiogroup" aria-label={t('col.selection')}>
               {(['starter', 'bench', 'reserve'] as const).map((to) => (
                 <button
@@ -301,18 +330,19 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
           </span>
         )}
       </div>
-      <SelectionBoard team={team} onChange={onChange} league={league} onOpen={(id) => setOpenId(id)} />
-      <div>
+      <div data-tip={league ? 'lineup' : undefined}>
+      <div className="faint drag-hint">{t('sel.drag.hint')}</div>
       <SortableTable
         rows={team.creatures}
         columns={columns}
         rowKey={(c) => c.id}
         initialSort={{ key: 'status', dir: 1 }}
+        rowProps={rowProps}
         rowClass={(c, i, sorted) => {
           const st = status(c);
           const prev = i > 0 ? status(sorted[i - 1]!) : st;
           const injured = league && isInjured(c) && st !== 2;
-          return `${st === 2 ? 'dim' : ''} ${st !== prev ? 'sep' : ''} ${injured ? 'warn-row' : ''}`;
+          return `drag-row ${st === 2 ? 'dim' : ''} ${st !== prev ? 'sep' : ''} ${injured ? 'warn-row' : ''} ${dragId === c.id ? 'dragging' : ''} ${overId === c.id ? 'drop-over' : ''}`;
         }}
       />
       </div>

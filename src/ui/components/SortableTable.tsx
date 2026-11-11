@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useState, type HTMLAttributes, type ReactNode } from 'react';
 
 export interface Column<T> {
   key: string;
@@ -15,10 +15,12 @@ interface Props<T> {
   rowKey: (row: T) => string;
   rowClass?: (row: T, index: number, sorted: T[]) => string;
   initialSort?: { key: string; dir: 1 | -1 };
+  /** Extra attributes / handlers of a row (e.g. drag and drop). */
+  rowProps?: (row: T) => HTMLAttributes<HTMLTableRowElement> & { draggable?: boolean };
 }
 
 /** Dense spreadsheet-like table. Click a header to sort, click again to reverse. */
-export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort }: Props<T>) {
+export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort, rowProps }: Props<T>) {
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(initialSort ?? null);
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -52,7 +54,7 @@ export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort 
         </thead>
         <tbody>
           {sorted.map((r, i) => (
-            <tr key={rowKey(r)} className={rowClass?.(r, i, sorted)}>
+            <tr key={rowKey(r)} {...rowProps?.(r)} className={rowClass?.(r, i, sorted)}>
               {columns.map((c) => (
                 <td key={c.key} className={c.num ? 'num' : ''}>
                   {c.render(r)}

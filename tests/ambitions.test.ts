@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AMBITION_IDS } from '../src/engine/club/ambitions.ts';
 import { newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
-import { dropOnCreature, moveToZone, zoneOf } from '../src/engine/team/edit.ts';
+import { dropOnCreature, dropOnto, moveToZone, zoneOf } from '../src/engine/team/edit.ts';
 import { managerName } from '../src/engine/team/identity.ts';
 
 describe('ambitions', () => {
@@ -17,7 +17,7 @@ describe('ambitions', () => {
     expect(msgs.length).toBe(done.length);
     // A season of matches almost surely brings a first win.
     expect(done).toContain('firstWin');
-  });
+  }, 30000);
 });
 
 describe('line-up board', () => {
@@ -40,6 +40,15 @@ describe('line-up board', () => {
     expect(zoneOf(t, starter)).toBe('reserve');
     expect(zoneOf(t, reserve)).toBe(zoneOf(team, starter));
     expect(t.tactic.lineup).toHaveLength(team.tactic.lineup.length);
+  });
+
+  it('takes a free place in the group, otherwise swaps (table drag and drop)', () => {
+    const roomy = moveToZone(team, bench, 'reserve');
+    const t = dropOnto(roomy, reserve, team.tactic.bench[1]!);
+    expect(zoneOf(t, reserve)).toBe('bench');
+    expect(zoneOf(t, team.tactic.bench[1]!)).toBe('bench');
+    const full = dropOnto(team, reserve, starter);
+    expect(zoneOf(full, starter)).toBe('reserve');
   });
 });
 

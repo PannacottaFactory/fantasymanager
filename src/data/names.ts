@@ -24,8 +24,16 @@ export const TEAM_NAME_PARTS = {
 
 /** Names of the managers of AI stables (the same in every language). */
 export const MANAGER_NAMES = {
-  first: ['Aldric', 'Brunhild', 'Cassian', 'Dagna', 'Edric', 'Fenna', 'Gaspard', 'Hilde', 'Ivo', 'Jorunn', 'Kaspar', 'Liesel', 'Magnus', 'Nerys', 'Osric', 'Perrine', 'Quentin', 'Rowena', 'Sigurd', 'Tamsin', 'Ulric', 'Vesna', 'Wendel', 'Ysolde', 'Zoran', 'Albane', 'Bertrand', 'Corentine', 'Doran', 'Elske'],
-  last: ['Corbeval', 'Ashgrove', 'Malvoisin', 'Thornquist', 'Brisefer', 'Duskwell', 'Hautecombe', 'Ironside', 'Lautrec', 'Morrow', 'Valdane', 'Grimaud', 'Stonebridge', 'Roquelaure', 'Harrowgate', 'Vexley', 'Montfaucon', 'Blackwood', 'Kessler', 'Dunmore', 'Ravenhill', 'Sorrel', 'Tarnwick', 'Varga'],
+  first: [
+    'Aldric', 'Brunhild', 'Morwenna', 'Thrain', 'Zeltha', 'Xanbar', 'Ulgrim', 'Sylvaris', 'Krag', 'Nimue', 'Balthor', 'Elowen',
+    'Draxis', 'Ysmira', 'Gorvak', 'Azura', 'Grimbold', 'Isolde', 'Varnak', 'Lirael', 'Snikkit', 'Orsolya', 'Thessaly', 'Bramwyn',
+    'Kezzara', 'Moloch', 'Fennick', 'Seraphine', 'Ragnor', 'Velka', 'Zubrak', 'Eldrin', 'Hagatha', 'Corvin', 'Ilsabet', 'Torvald',
+  ],
+  last: [
+    'Vossarak', 'Corbeval', 'Malvoisin', 'Duskmantle', 'Brisefer', 'Ashgrove', 'Thornquist', 'Grimaud', 'Kaelthas', 'Morgrath',
+    'Valdane', 'Ironhand', 'Sombrelune', 'Roquelaure', 'Vexley', 'Drakkenhof', 'Nightbloom', 'Blackwood', 'Ravenhill', 'Ur-Gazrak',
+    'Montfaucon', 'Silverbrook', 'Zarethi', 'Fendragon', 'Gloomweaver', 'Ombrecoeur', 'Tarnwick', 'Skarnhelm', 'Varga', 'Ystrandir',
+  ],
 };
 
 export const NAME_CULTURES: Record<string, NameCulture> = {

@@ -158,3 +158,17 @@ export function dropOnCreature(team: Team, id: string, on: string): Team {
   if (starter(a) && starter(b)) return updateSlot(updateSlot(team, id, { line: b as Line }), on, { line: a as Line });
   return swapCreatures(team, id, on);
 }
+
+/**
+ * Drag and drop in the Tactics table: dropping `id` onto creature `on` moves it into `on`'s group (and line) when
+ * that group has room; otherwise (or between two starters) the two swap places.
+ */
+export function dropOnto(team: Team, id: string, on: string, cfg: GameConfig = DEFAULT_CONFIG): Team {
+  if (id === on) return team;
+  const a = zoneOf(team, id);
+  const b = zoneOf(team, on);
+  const starter = (z: Zone) => z === 'front' || z === 'back';
+  if (a === b || (starter(a) && starter(b))) return dropOnCreature(team, id, on);
+  const moved = moveToZone(team, id, b, cfg);
+  return moved !== team ? moved : dropOnCreature(team, id, on);
+}

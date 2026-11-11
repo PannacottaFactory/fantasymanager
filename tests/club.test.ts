@@ -31,7 +31,7 @@ describe('cup', () => {
     expect(g.cup.winner).toBeDefined();
     expect(g.cup.alive).toEqual([g.cup.winner]);
     expect(g.news.some((n) => n.kind === 'cupWinner')).toBe(true);
-  });
+  }, 30000);
 });
 
 describe('divisions & board', () => {

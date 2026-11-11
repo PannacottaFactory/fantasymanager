@@ -279,12 +279,12 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Hidden approach**: the player never sees the opponent's approach before or during a match (break panel shows only the
   cycle; the break assistant reads the line-up for the target but not the approach). The post-match verdict may name it.
 - Live-match speed: only « slow » is remembered; fast / instant reset to normal at the next match.
-- **Managers' names**: `managerName(team)` (`engine/team/identity.ts`, from `MANAGER_NAMES` in `data/names.ts`, drawn from the
+- **Managers' names**: `managerName(team)` (`engine/team/identity.ts`, fantasy names from `MANAGER_NAMES` in `data/names.ts`, drawn from the
   team id, no RNG of the world) shown with the temperament on the pre-match screen (French gambler = « flambeur »).
 - Pre-match: line-ups first, then a centred row « Modifier la tactique » (`.cta-tactics`) · « Jouer en direct » · « Simuler ».
-- **Line-up board** (`ui/components/SelectionBoard.tsx`, above the Tactics table): zones front line / back line / bench /
-  reserve; drag a creature to a zone, or onto another creature to swap (between two starters: swap lines); click then
-  click works on touch. Pure logic in `engine/team/edit.ts` (`zoneOf`, `moveToZone`, `dropOnCreature`).
+- **Drag and drop in Tactics**: every row of the Tactics table is draggable (`SortableTable.rowProps`); dropping a creature
+  onto another one takes a free place in that group (starters / bench / reserve), otherwise they swap (between two
+  starters: their lines swap). Pure logic in `engine/team/edit.ts` (`dropOnto`, `zoneOf`, `moveToZone`, `dropOnCreature`).
 - **Ambitions** (`engine/club/ambitions.ts`): 11 career goals (first win → top half → cup semi-final → promotion → level-8
   creature → survive in D1 → all facilities max → cup → D1 title → double → 3 titles). `GameState.career` logs each
   finished season (`recordSeason` in `endOfLeague`), `GameState.ambitions` = season reached; `checkAmbitions` runs at
