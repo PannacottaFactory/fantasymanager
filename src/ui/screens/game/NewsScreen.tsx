@@ -1,6 +1,7 @@
 import type { NewsItem } from '../../../engine/league/types.ts';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
+import { Gold } from '../../components/common.tsx';
 
 const ICON: Record<NewsItem['kind'], string> = {
   upset: '⚡',
@@ -61,7 +62,7 @@ export function NewsScreen() {
           {items.map((n) => (
             <li key={n.id}>
               <span className="news-icon">{ICON[n.kind]}</span>
-              <span className="grow">{newsText(tr, n)}</span>
+              <span className="grow"><Gold>{newsText(tr, n)}</Gold></span>
               <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                 {t('inbox.matchday', { season: n.season, d: n.matchday })}
               </span>

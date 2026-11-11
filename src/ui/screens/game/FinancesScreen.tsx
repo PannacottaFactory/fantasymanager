@@ -7,7 +7,7 @@ import type { ExpenseKind, IncomeKind, LedgerEntry } from '../../../engine/leagu
 import type { Creature } from '../../../engine/model.ts';
 import { getSpecies } from '../../../engine/creature/derived.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
-import { Crest } from '../../components/common.tsx';
+import { Crest, Gold, Money } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
@@ -29,7 +29,7 @@ function totals(entries: LedgerEntry[]) {
 /** Income / expense table for a set of weeks. */
 function Breakdown({ title, entries }: { title: string; entries: LedgerEntry[] }) {
   const tr = useT();
-  const { t, money } = tr;
+  const { t } = tr;
   const { income, expense } = totals(entries);
   const inc = INCOME.reduce((s, k) => s + (income[k] ?? 0), 0);
   const exp = EXPENSE.reduce((s, k) => s + (expense[k] ?? 0), 0);
@@ -37,7 +37,8 @@ function Breakdown({ title, entries }: { title: string; entries: LedgerEntry[] }
     v ? (
       <tr key={label}>
         <td>{label}</td>
-        <td className={`num mono ${sign < 0 ? 'bad-text' : 'good-text'}`}>{sign < 0 ? `−${money(v).replace('−', '')}` : `+${money(v)}`}</td>
+        <td className={`num mono ${sign < 0 ? 'bad-text' : 'good-text'}`}>{sign < 0 ? '−' : '+'}
+          <Money v={Math.abs(v)} /></td>
       </tr>
     ) : null;
   return (
@@ -50,19 +51,19 @@ function Breakdown({ title, entries }: { title: string; entries: LedgerEntry[] }
           <tbody>
             <tr className="ledger-head">
               <td className="good-text">{t('fin.income')}</td>
-              <td className="num mono good-text">+{money(inc)}</td>
+              <td className="num mono good-text">+<Money v={inc} /></td>
             </tr>
             {INCOME.map((k) => line(t(`inc.${k}` as StringKey), income[k] ?? 0, 1))}
             <tr className="ledger-head">
               <td className="bad-text">{t('fin.expense')}</td>
-              <td className="num mono bad-text">−{money(exp)}</td>
+              <td className="num mono bad-text">−<Money v={exp} /></td>
             </tr>
             {EXPENSE.map((k) => line(t(`exp.${k}` as StringKey), expense[k] ?? 0, -1))}
             <tr className="ledger-total">
               <td>{t('fin.net')}</td>
               <td className={`num mono ${inc - exp >= 0 ? 'good-text' : 'bad-text'}`}>
                 {inc - exp >= 0 ? '+' : ''}
-                {money(inc - exp)}
+                <Money v={inc - exp} />
               </td>
             </tr>
           </tbody>
@@ -120,7 +121,7 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
           <g key={v}>
             <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} className={v === 0 ? 'zero' : 'grid'} />
             <text x={pad.l - 8} y={y(v) + 4} textAnchor="end" className="tick">
-              {money(v, true)}
+              <Money v={v} compact />
             </text>
           </g>
         ))}
@@ -141,7 +142,7 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
       {h && (
         <div className="chart-tip" style={{ left: `${(x(h.matchday) / W) * 100}%` }}>
           <div className="faint">{h.matchday === 0 ? t('fin.start') : t('fin.matchday', { d: h.matchday })}</div>
-          <b className="mono">{money(h.balance)}</b>
+          <b className="mono"><Money v={h.balance} /></b>
         </div>
       )}
     </div>
@@ -186,9 +187,9 @@ export function FinancesScreen() {
       ),
     },
     { key: 'species', label: t('col.species'), sort: (c) => speciesName(c.speciesId, lang), render: (c) => speciesName(c.speciesId, lang) },
-    { key: 'value', label: t('col.value'), num: true, sort: (c) => creatureValue(c), render: (c) => money(creatureValue(c), true) },
-    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => money(c.contract?.wage ?? 0) },
-    { key: 'upkeep', label: t('exp.upkeep'), num: true, sort: (c) => getSpecies(c).upkeep, render: (c) => money(getSpecies(c).upkeep) },
+    { key: 'value', label: t('col.value'), num: true, sort: (c) => creatureValue(c), render: (c) => <Money v={creatureValue(c)} compact /> },
+    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => <Money v={c.contract?.wage ?? 0} /> },
+    { key: 'upkeep', label: t('exp.upkeep'), num: true, sort: (c) => getSpecies(c).upkeep, render: (c) => <Money v={getSpecies(c).upkeep} /> },
     {
       key: 'contract',
       label: t('col.contract'),
@@ -208,7 +209,7 @@ export function FinancesScreen() {
         <div className="fin-tiles" data-tip="finances">
           <div className="tile">
             <span className="muted">{t('fin.balance')}</span>
-            <b className={club.balance < 0 ? 'bad-text' : ''}>{money(club.balance)}</b>
+            <b className={club.balance < 0 ? 'bad-text' : ''}><Money v={club.balance} /></b>
           </div>
           <div className="tile" title={t('fin.reputation.title')}>
             <span className="muted">{t('fin.reputation')}</span>
@@ -216,9 +217,9 @@ export function FinancesScreen() {
           </div>
           <div className="tile">
             <span className="muted">{t('fin.weekly')}</span>
-            <b>{money(bill)}</b>
+            <b><Money v={bill} /></b>
             <span className="faint" style={{ fontSize: '0.857rem' }}>
-              {t('fin.weekly.detail', { w: money(wages), u: money(bill - wages) })}
+              <Gold>{t('fin.weekly.detail', { w: money(wages), u: money(bill - wages) })}</Gold>
             </span>
           </div>
         </div>
@@ -229,7 +230,7 @@ export function FinancesScreen() {
           <h3 style={{ marginBottom: 8 }}>{t('fin.chart')}</h3>
           <BalanceChart entries={season} start={start} />
           <p className="faint" style={{ fontSize: '0.857rem', marginBottom: 0 }}>
-            {t('fin.prizes', { first: money(prizes[0]!), last: money(prizes[prizes.length - 1]!) })}
+            <Gold>{t('fin.prizes', { first: money(prizes[0]!), last: money(prizes[prizes.length - 1]!) })}</Gold>
           </p>
         </section>
         <section className="panel fin-breakdowns">

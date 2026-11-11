@@ -8,7 +8,11 @@ resolves them. 100 % front-end, deployable on GitHub Pages.
   Code identifiers, data ids and English source texts stay in English; French lives beside them (see i18n below).
 - Repo: https://github.com/PannacottaFactory/fantasymanager (Pages deploy via `.github/workflows/deploy.yml`;
   `index.html` has `<meta name="robots" content="noindex, nofollow">` so search engines skip the site).
-- Top bar: title « Fantasy Manager », subtitle = the player's stable name during a game.
+- Top bar: dragon icon (game-icons) + title « Fantasy Manager », subtitle = the player's stable name during a game.
+  A new game opens a welcome window (`IntroModal`, store flag `intro`, not saved).
+- **Gold**: amounts are written in gold colour (`--gold`): `<Money v>` for a standalone amount, `<Gold>{text}</Gold>`
+  colours every amount inside a worded string (regex on what `money()` writes). Inside `.good-text`/`.bad-text` they
+  keep the gain/loss colour. Morale words use `moraleColor` (red → green).
 
 ## Stack
 TypeScript (strict) · Vite · React 19 + Zustand · Vitest · tsx (headless CLI) · ESLint (flat config).

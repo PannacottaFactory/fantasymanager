@@ -9,7 +9,7 @@ import { coachFactor, dismissYouth, keepYouth, lifeStage, planOf, setPlan, youth
 import { abilityText, attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
 import { SPECIES } from '../../../data/species.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
-import { Bar, Crest, ElementDots, LevelBadge, Stars } from '../../components/common.tsx';
+import { Bar, Crest, ElementDots, LevelBadge, Stars, Gold } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -88,7 +88,7 @@ function Youth({ game }: { game: GameState }) {
                   if (o?.kind === 'error') setError(errorText(tr, o.error === 'taken' ? 'notFound' : o.error));
                 }}
               >
-                {t('youth.keep', { wage: money(youthWage(c, rep)) })}
+                <Gold>{t('youth.keep', { wage: money(youthWage(c, rep)) })}</Gold>
               </button>
               <button className="btn small" onClick={() => update((g) => dismissYouth(g, c.id))}>
                 {t('youth.release')}

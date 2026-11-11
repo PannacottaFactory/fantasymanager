@@ -67,6 +67,13 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
         team.tactic = applyIdentity(team, team.tactic, difficulty, undefined, cfg);
       }
       for (let k = 0; !isPlayer && names.has(team.name) && k < 50; k++) team.name = generateTeamName(rng, lang);
+      // The player keeps their name: an AI stable already called that way (higher division) is renamed.
+      const twin = isPlayer ? teams.find((x) => x.name === team.name) : undefined;
+      if (twin) {
+        const r = world.fork('rename');
+        for (let k = 0; (twin.name === team.name || names.has(twin.name)) && k < 50; k++) twin.name = generateTeamName(r, lang);
+        names.add(twin.name);
+      }
       names.add(team.name);
       seedRelations(team, rng, cfg);
       qualities[team.id] = quality;

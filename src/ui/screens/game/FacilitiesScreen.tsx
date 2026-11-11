@@ -6,6 +6,7 @@ import { clubOf } from '../../../engine/economy/finance.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
+import { Gold } from '../../components/common.tsx';
 
 const ICON: Record<FacilityId, string> = { training: '🏟', infirmary: '✚', stands: '🎟', nursery: '🥚' };
 
@@ -30,7 +31,7 @@ export function FacilitiesScreen() {
       <section className="panel">
         <h2 style={{ marginBottom: 6 }}>{t('fac.title')}</h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          {t('fac.intro', { upkeep: money(DEFAULT_CONFIG.club.facilities.upkeepPerLevel) })}
+          <Gold>{t('fac.intro', { upkeep: money(DEFAULT_CONFIG.club.facilities.upkeepPerLevel) })}</Gold>
         </p>
         <div className="facility-grid">
           {FACILITY_IDS.map((id) => {
@@ -68,7 +69,7 @@ export function FacilitiesScreen() {
                       else setNote({ text: t(o.error === 'noMoney' ? 'err.noMoney' : 'fac.max'), tone: 'bad' });
                     }}
                   >
-                    {t('fac.upgrade', { n: nextLevel, cost: money(cost), weeks: tr.weeks(upgradeWeeks(nextLevel)) })}
+                    <Gold>{t('fac.upgrade', { n: nextLevel, cost: money(cost), weeks: tr.weeks(upgradeWeeks(nextLevel)) })}</Gold>
                   </button>
                 )}
               </div>

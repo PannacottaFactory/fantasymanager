@@ -687,6 +687,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
   const c = cfg.combat;
   const m = cfg.match;
   const p = (v: number) => pct(v, false);
+  const num = (v: number) => (lang === 'fr' ? String(v).replace('.', ',') : String(v));
   const vars: Record<(typeof RULES)[number], Record<string, string | number>> = {
     match: {
       starters: m.starters, bench: m.benchSize, rounds: m.maxRounds, breaks: m.breakRounds.join(', '), subs: m.maxSubstitutions,
@@ -716,8 +717,8 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       moderate: p(cfg.league.death.chance.moderate!), severe: p(cfg.league.death.chance.severe!), career: p(cfg.league.death.chance.career!),
     },
     levels: {
-      max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: cfg.training.xp.played, starter: cfg.training.xp.starter,
-      rating: cfg.training.xp.perRatingPoint, win: cfg.training.xp.win,
+      max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: num(cfg.training.xp.played), starter: num(cfg.training.xp.starter),
+      rating: num(cfg.training.xp.perRatingPoint), win: num(cfg.training.xp.win),
       young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining),
     },
   };

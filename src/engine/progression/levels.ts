@@ -1,7 +1,7 @@
 /**
  * Levels & experience: the visible face of a creature's progression.
  * Level 1–10 and 0–100 XP within the level map onto the hidden aptitude (1–200), which still drives the
- * attributes: one level = `abilityPerLevel` aptitude points, one aptitude point = xpPerLevel / abilityPerLevel XP.
+ * attributes: level 1 below `base + abilityPerLevel`, then one level = `abilityPerLevel` aptitude points, one aptitude point = xpPerLevel / abilityPerLevel XP.
  * The potential sets each creature's maximum level. Abilities unlock at a level.
  */
 import { clamp } from '../../core/math.ts';
@@ -10,7 +10,7 @@ import type { Creature } from '../model.ts';
 
 export function levelOfAbility(ability: number, cfg: GameConfig = DEFAULT_CONFIG): number {
   const l = cfg.training.levels;
-  return clamp(1 + Math.floor((Math.max(1, ability) - 1) / l.abilityPerLevel), 1, l.max);
+  return clamp(1 + Math.floor((ability - l.base) / l.abilityPerLevel), 1, l.max);
 }
 
 export const levelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => levelOfAbility(c.ability, cfg);
@@ -21,9 +21,11 @@ export const maxLevelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => lev
 /** XP gathered within the current level (0 … xpPerLevel − 1). */
 export function xpInLevel(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): number {
   const l = cfg.training.levels;
-  const start = (levelOf(c, cfg) - 1) * l.abilityPerLevel + 1;
+  const lv = levelOf(c, cfg);
+  // Level 1 spans two levels' worth of aptitude (from base − abilityPerLevel), so its bar moves at half speed.
+  const start = lv === 1 ? l.base - l.abilityPerLevel : l.base + (lv - 1) * l.abilityPerLevel;
   const into = c.ability - start + (c.growth?.ability ?? 0);
-  return clamp(Math.floor(into * xpPerAbility(cfg)), 0, l.xpPerLevel - 1);
+  return clamp(Math.floor((into * xpPerAbility(cfg)) / (lv === 1 ? 2 : 1)), 0, l.xpPerLevel - 1);
 }
 
 export const xpPerAbility = (cfg: GameConfig = DEFAULT_CONFIG) => cfg.training.levels.xpPerLevel / cfg.training.levels.abilityPerLevel;

@@ -43,6 +43,15 @@ export function moraleKey(m: number): StringKey {
   return 'morale.panicking';
 }
 
+/** Colour of a morale level (same bands as moraleKey): fired up = bright green … panicking = red. */
+export function moraleColor(m: number): string {
+  if (m >= 80) return 'var(--a5)';
+  if (m >= 60) return 'var(--a4)';
+  if (m >= 40) return 'var(--a3)';
+  if (m >= 25) return 'var(--a2)';
+  return 'var(--a1)';
+}
+
 /** Two-letter monogram of a creature: initials of the first two words, or its first two letters. */
 export function initials(name: string): string {
   const words = name.split(/[\s-]+/).filter(Boolean);

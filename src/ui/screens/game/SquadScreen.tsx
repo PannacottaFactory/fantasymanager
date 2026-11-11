@@ -4,9 +4,9 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import { isStarter } from '../../../engine/team/edit.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, Bar, Crest, ElementDots, TraitChip } from '../../components/common.tsx';
+import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, TraitChip } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
-import { fatigueColor, moraleKey } from '../../format.ts';
+import { fatigueColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
@@ -44,6 +44,7 @@ export function SquadScreen() {
       ),
     },
     { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
+    { key: 'level', label: t('col.level'), title: t('col.level.title'), sort: (c) => c.ability, render: (c) => <LevelBadge c={c} compact /> },
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
     { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => <RoleLabel role={bestRole(c)} /> },
     {
@@ -86,9 +87,9 @@ export function SquadScreen() {
         </span>
       ),
     },
-    { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)}>{t(moraleKey(c.condition.morale))}</span> },
+    { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)} style={{ color: moraleColor(c.condition.morale) }}>{t(moraleKey(c.condition.morale))}</span> },
     { key: 'form', label: t('col.form'), num: true, sort: (c) => c.condition.form, render: (c) => <Attr v={c.condition.form} /> },
-    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => tr.money(c.contract?.wage ?? 0) },
+    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => <Money v={c.contract?.wage ?? 0} /> },
     {
       key: 'contract',
       label: t('col.contract'),

@@ -61,6 +61,9 @@ interface GameStore {
   update: (f: (g: GameState) => GameState) => void;
   /** Creature sheet opened from anywhere (inbox, recruitment…). */
   sheet: string | null;
+  /** Welcome window of a new game (not saved: shown once, right after the game is created). */
+  intro: boolean;
+  closeIntro: () => void;
   openSheet: (id: string | null) => void;
 }
 
@@ -96,7 +99,7 @@ export const useGame = create<GameStore>()((set, get) => {
 
     newGame: (teamName, seed, difficulty) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty });
-      set({ match: null, viewing: null, screen: 'inbox' });
+      set({ match: null, viewing: null, screen: 'inbox', intro: true });
       commit(game);
     },
 
@@ -188,5 +191,7 @@ export const useGame = create<GameStore>()((set, get) => {
 
     sheet: null,
     openSheet: (sheet) => set({ sheet }),
+    intro: false,
+    closeIntro: () => set({ intro: false }),
   };
 });

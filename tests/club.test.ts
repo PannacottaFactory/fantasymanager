@@ -129,3 +129,13 @@ describe('deaths', () => {
     expect(h.news.filter((n) => n.kind === 'death')).toEqual(dead);
   });
 });
+
+describe('new game', () => {
+  it('gives every stable a different name (the player keeps theirs)', () => {
+    for (let i = 0; i < 60; i++) {
+      const g = newGame({ seed: `names${i}`, teamName: '', lang: i % 2 ? 'fr' : 'en' });
+      const names = g.teams.map((t) => t.name);
+      expect(new Set(names).size).toBe(names.length);
+    }
+  });
+});

@@ -7,7 +7,7 @@ import type { BreakDecision, SubstitutionDecision } from '../../../engine/combat
 import type { Aggression, Risk, Stance, TeamOrders } from '../../../engine/model.ts';
 import { roleText, speciesName } from '../../../engine/text/localize.ts';
 import { Bar, Crest, Modal } from '../../components/common.tsx';
-import { hpColor, moraleKey } from '../../format.ts';
+import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 
@@ -106,7 +106,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                     <td style={{ width: 100 }}>
                       <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" title={`${Math.round(staminaFraction(c) * 100)} %`} />
                     </td>
-                    <td>{down ? '—' : t(moraleKey(c.morale))}</td>
+                    <td style={{ color: down ? undefined : moraleColor(c.morale) }}>{down ? '—' : t(moraleKey(c.morale))}</td>
                     <td>
                       {!down && (
                         <select className="compact" value={stances[c.id]} onChange={(e) => setStances({ ...stances, [c.id]: e.target.value as Stance })}>

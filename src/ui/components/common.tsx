@@ -172,3 +172,20 @@ export function LevelBadge({ c, compact }: { c: Creature; compact?: boolean }) {
     </span>
   );
 }
+
+/** Amounts as `money()` writes them: digits (thin-space or comma groups, optional "k"), a no-break space, po / gp. */
+const MONEY_RE = /([−+-]?\d[\d\u202f,.]*(?:\u202fk)?\u00a0(?:po|gp))/;
+
+/** Text with every amount of gold in gold colour (other children are rendered as they are). */
+export function Gold({ children }: { children: ReactNode }) {
+  if (typeof children !== 'string') return <>{children}</>;
+  const parts = children.split(MONEY_RE);
+  if (parts.length === 1) return <>{children}</>;
+  return <>{parts.map((p, i) => (i % 2 ? <span key={i} className="gold">{p}</span> : p))}</>;
+}
+
+/** An amount of gold. */
+export function Money({ v, compact }: { v: number; compact?: boolean }) {
+  const { money } = useT();
+  return <span className="gold">{money(v, compact)}</span>;
+}

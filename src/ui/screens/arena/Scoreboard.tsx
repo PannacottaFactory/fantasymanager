@@ -8,7 +8,7 @@ import type { CombatantView, MatchView } from '../../../engine/combat/view.ts';
 import { abilityText, effectText, speciesName } from '../../../engine/text/localize.ts';
 import { AbilityCard, AbilityTip, KIND_GLYPH, abilityColor } from '../../components/AbilityCard.tsx';
 import { Bar, Crest } from '../../components/common.tsx';
-import { hpColor, moraleKey } from '../../format.ts';
+import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { reducedMotion, type CardFx, type FxBatch } from './matchFx.ts';
 import { RoleLabel, SpeciesIcon } from '../../icons/Icon.tsx';
@@ -173,7 +173,7 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
               {c.hp}/{c.maxHp}
             </span>
             <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" thin ghost title={t('bar.stamina', { v: c.stamina, max: c.maxStamina })} />
-            <span title={t('col.morale')} style={{ color: c.morale < 30 ? 'var(--bad)' : c.morale >= 70 ? 'var(--good)' : undefined }}>
+            <span title={t('col.morale')} style={{ color: moraleColor(c.morale) }}>
               {t(moraleKey(c.morale))}
             </span>
           </div>

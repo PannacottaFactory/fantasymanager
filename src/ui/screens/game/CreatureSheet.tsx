@@ -4,7 +4,6 @@
  */
 import { useState } from 'react';
 import type { AttributeKey } from '../../../data/attributes.ts';
-import { attributeText } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
@@ -14,13 +13,12 @@ import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature, Team } from '../../../engine/model.ts';
 import { toggleFavorite } from '../../../engine/team/edit.ts';
-import { Knowledge, Stars } from '../../components/common.tsx';
+import { Knowledge, Stars, Gold, Money } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
 import { planOf, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
 import { IntensitySelect, ProgramSelect } from './TrainingScreen.tsx';
-import { maxLevelOf } from '../../../engine/progression/levels.ts';
 
 const YEARS = [1, 2, 3];
 
@@ -88,7 +86,7 @@ function BidPanel({ game, creature, team }: { game: GameState; creature: Creatur
   return (
     <div className="market-panel">
       <div className="muted" style={{ fontSize: '0.929rem' }}>
-        {t('bid.asking', { v: money(est) })}
+        <Gold>{t('bid.asking', { v: money(est) })}</Gold>
       </div>
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
         <label className="field">
@@ -101,14 +99,14 @@ function BidPanel({ game, creature, team }: { game: GameState; creature: Creatur
         </button>
         {answer?.counter !== undefined && (
           <button className="btn" onClick={() => send(answer.counter!)}>
-            {t('bid.payCounter', { fee: money(answer.counter) })}
+            <Gold>{t('bid.payCounter', { fee: money(answer.counter) })}</Gold>
           </button>
         )}
       </div>
       <div className="muted" style={{ fontSize: '0.857rem' }}>
-        {t('bid.wage', { wage: money(askingWage(creature, rep, years)) })} · {t('topbar.balance')} {money(clubOf(game, game.playerTeamId).balance)}
+        <Gold>{t('bid.wage', { wage: money(askingWage(creature, rep, years)) })}</Gold> · {t('topbar.balance')} <Money v={clubOf(game, game.playerTeamId).balance} />
       </div>
-      {answer && <div className={`answer ${answer.tone}`}>{answer.text}</div>}
+      {answer && <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div>}
     </div>
   );
 }
@@ -126,7 +124,7 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
         <YearsPicker value={years} onChange={setYears} />
         <span className="muted" style={{ fontSize: '0.929rem' }}>
-          {t('sign.body', { fee: money(fee), wage: money(wage) })}
+          <Gold>{t('sign.body', { fee: money(fee), wage: money(wage) })}</Gold>
         </span>
         <button
           className="btn primary"
@@ -137,10 +135,10 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
             else setAnswer({ text: o.error === 'refused' ? t('sign.refused', { name: creature.name }) : errorText(tr, o.error), tone: 'bad' });
           }}
         >
-          {t('sign.confirm', { fee: money(fee) })}
+          <Gold>{t('sign.confirm', { fee: money(fee) })}</Gold>
         </button>
       </div>
-      {answer && <div className={`answer ${answer.tone}`}>{answer.text}</div>}
+      {answer && <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div>}
     </div>
   );
 }
@@ -158,14 +156,14 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
     <div className="market-panel">
       <div className="row wrap" style={{ gap: 10 }}>
         <b>{t('contract.title')}</b>
-        {c && <span>{t('contract.current', { wage: money(c.wage), s: c.untilSeason })}</span>}
+        {c && <span><Gold>{t('contract.current', { wage: money(c.wage), s: c.untilSeason })}</Gold></span>}
         {c && c.untilSeason <= game.season && <span className="tag bad">{t('contract.expiring')}</span>}
-        <span className="muted">{t('cr.value', { v: money(creatureValue(creature)) })}</span>
+        <span className="muted"><Gold>{t('cr.value', { v: money(creatureValue(creature)) })}</Gold></span>
       </div>
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
         <YearsPicker value={years} onChange={setYears} />
         <span className="muted" style={{ fontSize: '0.929rem' }}>
-          {t('contract.renewAsk', { wage: money(renewalDemand(game, creature, years)), n: years })}
+          <Gold>{t('contract.renewAsk', { wage: money(renewalDemand(game, creature, years)), n: years })}</Gold>
         </span>
         <button
           className="btn"
@@ -194,11 +192,11 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
             else if (o) setAnswer({ text: errorText(tr, o.error), tone: 'bad' });
           }}
         >
-          {t('release.btn', { cost: money(cost) })}
+          <Gold>{t('release.btn', { cost: money(cost) })}</Gold>
         </button>
       </div>
-      {confirmRelease && <div className="answer bad">{t('release.confirm', { name: creature.name, cost: money(cost) })}</div>}
-      {answer && <div className={`answer ${answer.tone}`}>{answer.text}</div>}
+      {confirmRelease && <div className="answer bad"><Gold>{t('release.confirm', { name: creature.name, cost: money(cost) })}</Gold></div>}
+      {answer && <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div>}
     </div>
   );
 }
@@ -227,85 +225,21 @@ function RelationsRow({ team, creature }: { team: Team; creature: Creature }) {
   );
 }
 
+/** Training plan of an own creature, on one line (the ▲ next to the attributes show what it brought). */
 function TrainingRow({ game, creature }: { game: GameState; creature: Creature }) {
   const { t } = useT();
   const plan = planOf(game, creature.id);
   const update = useGame.getState().update;
   const gain = creature.growth?.season ?? 0;
   return (
-    <div className="row wrap" style={{ gap: 10 }}>
+    <div className="row wrap training-row">
       <b>{t('cr.training')}</b>
       <ProgramSelect value={plan.program} onChange={(program) => update((g) => setPlan(g, [creature.id], { program }))} />
       <IntensitySelect value={plan.intensity} onChange={(intensity) => update((g) => setPlan(g, [creature.id], { intensity }))} />
-      <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: '0.929rem' }}>
+      <span className="spacer" />
+      <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: '0.857rem' }}>
         {t('cr.seasonGain', { n: gain > 0 ? `+${gain}` : gain })}
       </span>
-    </div>
-  );
-}
-
-/** Ability over the weeks (own creatures), with the potential as a dashed ceiling, and the latest changes. */
-function ProgressPanel({ creature }: { creature: Creature }) {
-  const tr = useT();
-  const { t, lang } = tr;
-  const g = creature.growth;
-  const hist = g?.history ?? [];
-  const recent = [...(g?.recent ?? [])].reverse().slice(0, 8);
-  const [hover, setHover] = useState<number | null>(null);
-  if (hist.length < 2 && !recent.length) return null;
-  const w = 320;
-  const h = 90;
-  const pad = { l: 28, r: 6, t: 6, b: 14 };
-  const lvl = (a: number) => 1 + (a - 1) / DEFAULT_CONFIG.training.levels.abilityPerLevel;
-  const values = hist.map((x) => lvl(x[2]));
-  const ceiling = maxLevelOf(creature);
-  const lo = Math.max(1, Math.floor(Math.min(...values) - 0.5));
-  const hi = Math.min(DEFAULT_CONFIG.training.levels.max + 1, Math.ceil(Math.max(...values, ceiling + 1)));
-  const x = (i: number) => pad.l + (hist.length <= 1 ? 0 : (i / (hist.length - 1)) * (w - pad.l - pad.r));
-  const y = (v: number) => pad.t + (1 - (v - lo) / Math.max(1, hi - lo)) * (h - pad.t - pad.b);
-  const d = values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const when = (s: number, wk: number) => (wk === 0 ? t('cr.offseason', { s }) : t('cr.when', { s, w: wk }));
-  const shown = hover ?? hist.length - 1;
-  return (
-    <div className="progress-panel">
-      <div className="row wrap" style={{ gap: 8, alignItems: 'baseline' }}>
-        <b>{t('cr.progress')}</b>
-        {hist[shown] && (
-          <span className="muted" style={{ fontSize: '0.857rem' }}>
-            {when(hist[shown]![0], hist[shown]![1])} · {t('lvl.short', { n: Math.floor(values[shown]!) })} · <span className="faint">{t('cr.potentialLine', { n: ceiling })}</span>
-          </span>
-        )}
-      </div>
-      {hist.length >= 2 && (
-        <svg className="ana-chart" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={t('cr.progress')} onMouseLeave={() => setHover(null)} style={{ maxWidth: 420 }}>
-          <line x1={pad.l} x2={w - pad.r} y1={y(lvl(creature.potential))} y2={y(lvl(creature.potential))} stroke="var(--faint)" strokeDasharray="4 3" />
-          {Array.from({ length: hi - lo + 1 }, (_, i) => lo + i).map((v) => (
-            <g key={v}>
-              <line x1={pad.l} x2={w - pad.r} y1={y(v)} y2={y(v)} stroke="var(--border)" strokeWidth={0.5} />
-              <text x={pad.l - 4} y={y(v) + 4} textAnchor="end" className="ana-axis">
-                {v}
-              </text>
-            </g>
-          ))}
-          <path d={d} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" />
-          <circle cx={x(shown)} cy={y(values[shown]!)} r={4} fill="var(--accent)" stroke="var(--panel)" strokeWidth={2} />
-          {hist.map((_, i) => (
-            <rect key={i} x={x(i) - (w - pad.l - pad.r) / Math.max(1, hist.length - 1) / 2} y={0} width={(w - pad.l - pad.r) / Math.max(1, hist.length - 1)} height={h} fill="transparent" onMouseEnter={() => setHover(i)} />
-          ))}
-        </svg>
-      )}
-      {recent.length > 0 && (
-        <div className="recent-moves">
-          <span className="faint" style={{ fontSize: '0.857rem' }}>
-            {t('cr.recent')}
-          </span>
-          {recent.map((r, i) => (
-            <span key={i} className={`attr-move ${r.d > 0 ? 'up' : 'down'}`} title={when(r.s, r.w)}>
-              {attributeText(r.k, lang).name} {r.d > 0 ? `+${r.d}` : r.d}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -341,7 +275,7 @@ function Sheet({ id }: { id: string }) {
           <span className="row" style={{ gap: 6 }}>
             <Knowledge k={k} /> <span className="muted">{t('cr.knowledge', { k })}</span>
           </span>
-          <span>{t('cr.valueEst', { v: money(estimatedValue(creature, k)) })}</span>
+          <span><Gold>{t('cr.valueEst', { v: money(estimatedValue(creature, k)) })}</Gold></span>
           <span className="row" style={{ gap: 4 }}>
             {t('cr.potentialEst')} <Stars value={potentialStars(creature, k)} />
           </span>
@@ -356,7 +290,6 @@ function Sheet({ id }: { id: string }) {
       {own && (
         <div className="market-panel">
           <TrainingRow game={game} creature={creature} />
-          <ProgressPanel creature={creature} />
         </div>
       )}
       {own && <RelationsRow team={team!} creature={creature} />}

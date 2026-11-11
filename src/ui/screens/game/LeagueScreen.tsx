@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { lastMatchday, playerDivision, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import type { Fixture, GameState } from '../../../engine/league/types.ts';
-import { Seg } from '../../components/common.tsx';
+import { Seg, Gold } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -185,7 +185,7 @@ function Cup({ game }: { game: GameState }) {
             <div key={r} className={`cup-round ${r === game.cup.round ? 'current' : ''}`}>
               <h4>{t(cupRoundKey(r, rounds))}</h4>
               <div className="faint" style={{ fontSize: '0.857rem', marginBottom: 6 }}>
-                {t('cup.after', { d: c.after[r] ?? '?' })} · {t('cup.prize', { prize: money(c.prize[r] ?? 0) })}
+                <Gold>{t('cup.after', { d: c.after[r] ?? '?' })} · {t('cup.prize', { prize: money(c.prize[r] ?? 0) })}</Gold>
               </div>
               {ties.length === 0 && <div className="faint">{t('cup.notDrawn')}</div>}
               <table className="data fixtures">

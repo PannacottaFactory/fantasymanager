@@ -11,13 +11,18 @@ export const TRAINING_CONFIG = {
   /** Playing in the week's match helps (legacy multiplier, replaced by match XP). */
   playedBonus: 0,
   /** Levels: 1–10, each = 20 aptitude points = 100 XP. */
-  levels: { max: 10, abilityPerLevel: 20, xpPerLevel: 100 },
+  /**
+   * Level 1 below base + abilityPerLevel aptitude, then one level per abilityPerLevel (level 10 at 188):
+   * a new stable sits around levels 1–4 and the elite reach 8–10. Level 1 shows its XP from base − abilityPerLevel.
+   */
+  levels: { max: 10, base: 44, abilityPerLevel: 16, xpPerLevel: 100 },
   /**
    * Experience. Training gives `trainingShare` of the former weekly gain; a match gives
    * played + starter + (rating − 5) × perRatingPoint + win (× life stage, up to the potential). No KO bonus: it would
    * favour strikers over healers and tanks; the rating already rewards every role.
    */
-  xp: { trainingShare: 0.6, played: 3, starter: 1, perRatingPoint: 1, ko: 0, win: 1 },
+  // Match XP is converted at xpPerLevel / abilityPerLevel XP per aptitude point (6.25).
+  xp: { trainingShare: 0.6, played: 3.75, starter: 1.25, perRatingPoint: 1.25, ko: 0, win: 1.25 },
   /** Intensity: growth multiplier, extra fatigue per week, injury chance per week (× proneness/10). */
   /** Visual progression kept for the player's creatures. */
   progressLog: { recent: 16, history: 72 },

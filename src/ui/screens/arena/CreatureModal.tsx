@@ -18,7 +18,7 @@ import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
 import { AbilityCard } from '../../components/AbilityCard.tsx';
 import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, TraitChip, LevelBadge } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
-import { fatigueColor, moraleKey } from '../../format.ts';
+import { fatigueColor, moraleColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
@@ -96,8 +96,8 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             {known && <StatTile label={t('sheet.level')} value={<LevelBadge c={creature} />} />}
             {known && <StatTile label={t('sheet.hp')} value={maxHp(creature, DEFAULT_CONFIG)} />}
             {known && <StatTile label={t('sheet.stamina')} value={maxStamina(creature, DEFAULT_CONFIG)} />}
-            {known && <StatTile label={t('col.form')} value={`${creature.condition.form}/20`} />}
-            {known && <StatTile label={t('col.morale')} value={t(moraleKey(creature.condition.morale))} title={String(creature.condition.morale)} />}
+            {known && <StatTile label={t('col.form')} value={<><Attr v={creature.condition.form} /><span className="faint">/20</span></>} title={t('sheet.formTip')} />}
+            {known && <StatTile label={t('col.morale')} value={<span style={{ color: moraleColor(creature.condition.morale) }}>{t(moraleKey(creature.condition.morale))}</span>} title={t('sheet.moraleTip', { v: creature.condition.morale })} />}
             {known && <StatTile label={t('col.fatigue')} value={<span style={{ color: fatigueColor(creature.condition.fatigue) }}>{creature.condition.fatigue} %</span>} />}
           </div>
           {known && injuries.length > 0 && (

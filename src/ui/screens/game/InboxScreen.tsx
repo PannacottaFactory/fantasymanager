@@ -3,7 +3,7 @@ import { playerFixture, seasonOver, standings, teamById } from '../../../engine/
 import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
-import { Bar } from '../../components/common.tsx';
+import { Bar, Gold } from '../../components/common.tsx';
 import type { StringKey } from '../../i18n/strings.ts';
 import { cupRoundKey } from './LeagueScreen.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
@@ -134,7 +134,7 @@ function wording(tr: Translator, m: InboxMessage, cupRounds: number): { title: s
       return { title: t('msg.financeWarning.title'), body: t('msg.financeWarning.body', { v: tr.money(m.balance) }), tone: 'bad' };
     case 'marketNews': {
       const free = t('msg.marketNews.free');
-      const lines = m.moves.map((x) => `${x.name} (${speciesName(x.speciesId, tr.lang)}) : ${x.from ?? free} → ${x.to ?? free}${x.fee ? ` · ${tr.money(x.fee, true)}` : ''}`);
+      const lines = m.moves.map((x) => `${x.name} (${speciesName(x.speciesId, tr.lang)}) : ${x.from ?? free} → ${x.to ?? free}${x.fee ? ` · $<Money v={x.fee} compact />` : ''}`);
       return { title: t('msg.marketNews.title'), body: lines.join('\n'), tone: 'info' };
     }
     case 'youthIntake':
@@ -237,7 +237,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
     const c = locate(game, m.creatureId)?.creature;
     return (
       <div className="stack" style={{ gap: 6, marginTop: 4 }}>
-        <div className="muted">{t('msg.offerReceived.body', { fee: money(m.fee), value: c ? money(estimatedValue(c, knowledgeOf(game, c.id))) : '?' })}</div>
+        <div className="muted"><Gold>{t('msg.offerReceived.body', { fee: money(m.fee), value: c ? money(estimatedValue(c, knowledgeOf(game, c.id))) : '?' })}</Gold></div>
         {open ? (
           <div className="row" style={{ gap: 6 }}>
             <button
@@ -247,7 +247,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
                 if (o?.kind === 'error') setError(errorText(tr, o.error));
               }}
             >
-              {t('offer.accept', { fee: money(m.fee) })}
+              <Gold>{t('offer.accept', { fee: money(m.fee) })}</Gold>
             </button>
             <button className="btn small" onClick={() => act((g) => answerOffer(g, m.offerId, false))}>
               {t('offer.decline')}
@@ -397,13 +397,13 @@ export function InboxScreen() {
                   <span className="msg-cat" title={t(`inbox.cat.${cat}` as StringKey)}>
                     {CATEGORY_STYLE[cat].glyph}
                   </span>
-                  <b className="msg-title">{w.title}</b>
+                  <b className="msg-title"><Gold>{w.title}</Gold></b>
                   <span className="spacer" />
                   <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                     {t('inbox.matchday', { season: m.season, d: m.matchday })}
                   </span>
                 </div>
-                {w.body && <div className="muted msg-body">{w.body}</div>}
+                {w.body && <div className="muted msg-body"><Gold>{w.body}</Gold></div>}
                 <MessageActions game={game} m={m} />
                 {m.kind === 'matchResult' && (canReport || recorded) && (
                   <span className="row" style={{ gap: 6, marginTop: 6 }}>

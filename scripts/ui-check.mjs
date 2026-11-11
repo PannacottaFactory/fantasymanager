@@ -49,6 +49,9 @@ const tips = page.locator('.start input[type=checkbox]');
 if (await tips.count()) await tips.first().uncheck();
 await page.locator('.start .btn.primary').last().click();
 await wait(800);
+// Welcome window of the new game.
+await shot('00-intro');
+await closeModal();
 
 // Play a few weeks (simulated matches).
 for (let w = 0; w < weeks; w++) {

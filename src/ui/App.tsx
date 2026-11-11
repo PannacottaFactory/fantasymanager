@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { LANGS } from '../core/i18n.ts';
+import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
 import { cupDue, lastMatchday, playerTeam, seasonOver } from '../engine/league/season.ts';
 import { TEXT_SCALE, TEXT_SIZES, THEMES, useSettings, useT } from './i18n/index.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
@@ -11,6 +12,7 @@ import { SquadScreen } from './screens/game/SquadScreen.tsx';
 import { StartScreen } from './screens/game/StartScreen.tsx';
 import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
 import { GameSheet } from './screens/game/CreatureSheet.tsx';
+import { IntroModal } from './screens/game/IntroModal.tsx';
 import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
 import { FacilitiesScreen } from './screens/game/FacilitiesScreen.tsx';
@@ -25,9 +27,10 @@ import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { LiveMatch } from './screens/arena/LiveMatch.tsx';
 import { EncyclopediaScreen } from './screens/EncyclopediaScreen.tsx';
 import { TutorialOverlay } from './tutorial/TutorialOverlay.tsx';
+import { Money } from './components/common.tsx';
 
 function ContinueButton() {
-  const { t, money } = useT();
+  const { t } = useT();
   const game = useGame((s) => s.game);
   const match = useGame((s) => s.match);
   if (!game) return null;
@@ -43,7 +46,7 @@ function ContinueButton() {
     <div className="continue" data-tip="continue">
       {club && (
         <button className={`balance ${club.balance < 0 ? 'neg' : ''}`} title={t('topbar.balance')} onClick={() => useGame.getState().setScreen('finances')}>
-          {money(club.balance, true)}
+          <Money v={club.balance} compact />
         </button>
       )}
       <span className="muted status">
@@ -63,7 +66,7 @@ function ContinueButton() {
 export function App() {
   const { t } = useT();
   const { lang, theme, textSize, setLang, setTheme, setTextSize } = useSettings();
-  const { ready, game, screen, viewing, saveError, replaying } = useGame();
+  const { ready, game, screen, viewing, saveError, replaying, intro } = useGame();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
   const unread = game?.inbox.filter((m) => !m.read).length ?? 0;
@@ -129,10 +132,7 @@ export function App() {
     <div className="app">
       <header className="topbar">
         <button className="brand" onClick={() => (game ? setNewGameOpen(true) : setScreen('inbox'))} title={t('start.new')}>
-          <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
-            <path d="M16 2 L28 9 V23 L16 30 L4 23 V9 Z" fill="var(--accent)" />
-            <path d="M11 21 L21 11 M11 11 L21 21" stroke="var(--panel)" strokeWidth="3" />
-          </svg>
+          <svg className="brand-icon" width="30" height="30" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
           <div>
             <h1>{t('app.title')}</h1>
             <small>{game ? playerTeam(game).name : t('app.subtitle')}</small>
@@ -185,7 +185,8 @@ export function App() {
           <GameSheet />
         </ErrorBoundary>
       )}
-      <TutorialOverlay active={!!game && !newGameOpen && ready && !viewing} />
+      {game && !newGameOpen && <IntroModal />}
+      <TutorialOverlay active={!!game && !newGameOpen && ready && !viewing && !intro} />
     </div>
   );
 }

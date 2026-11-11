@@ -5,7 +5,7 @@ import { clubOf } from '../../../engine/economy/finance.ts';
 import type { Coach } from '../../../engine/league/types.ts';
 import { coachFactor, fireCoach, hireCoach, hireFee } from '../../../engine/progression/training.ts';
 import { categoryName } from '../../../engine/text/localize.ts';
-import { Stars } from '../../components/common.tsx';
+import { Stars, Gold, Money } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -60,7 +60,7 @@ export function StaffScreen() {
         );
       },
     },
-    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.wage, render: (c) => money(c.wage) },
+    { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.wage, render: (c) => <Money v={c.wage} /> },
     {
       key: 'hire',
       label: '',
@@ -75,7 +75,7 @@ export function StaffScreen() {
             else setNote({ text: errorText(tr, o.error === 'taken' ? 'notFound' : o.error), tone: 'bad' });
           }}
         >
-          {t('staff.hire', { fee: money(hireFee(c)) })}
+          <Gold>{t('staff.hire', { fee: money(hireFee(c)) })}</Gold>
         </button>
       ),
     },
@@ -103,7 +103,7 @@ export function StaffScreen() {
                       <Stars value={Math.max(0.5, Math.round(c.quality / 2) / 2)} /> <span className="faint">{c.quality}/20</span>
                     </span>
                     <span className="faint" style={{ fontSize: '0.857rem' }}>
-                      {t('staff.effect', { f: tr.dec(coachFactor(game, game.playerTeamId, d), 2) })} · {t('common.perWeek', { v: money(c.wage) })}
+                      <Gold>{t('staff.effect', { f: tr.dec(coachFactor(game, game.playerTeamId, d), 2) })} · {t('common.perWeek', { v: money(c.wage) })}</Gold>
                     </span>
                     <button className="btn small ghost" style={{ alignSelf: 'start' }} onClick={() => update((g) => fireCoach(g, d))}>
                       {t('staff.fire')}

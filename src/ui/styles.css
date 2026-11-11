@@ -10,6 +10,7 @@
   --muted: #a8977b;
   --faint: #6f6252;
   --accent: #c9a24a;
+  --gold: #e8c547;
   --accent-strong: #e2bb5c;
   --accent-text: #1a1510;
   --good: #7cb35a;
@@ -47,6 +48,7 @@
   --muted: #6b5a40;
   --faint: #9a8766;
   --accent: #8a5a12;
+  --gold: #9c7400;
   --accent-strong: #a86d16;
   --accent-text: #fff6e2;
   --good: #3f7d25;
@@ -137,6 +139,7 @@ label.field { display: flex; flex-direction: column; gap: 2px; font-size: 0.857r
   border-bottom: 1px solid var(--border);
 }
 .brand { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+.brand-icon { color: var(--accent); flex: none; }
 .brand h1 { font-size: 1.25rem; color: var(--accent); }
 .brand small { color: var(--muted); font-size: 0.786rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .nav { display: flex; gap: 2px; overflow-x: auto; flex: 1; min-width: 0; scrollbar-width: thin; }
@@ -548,6 +551,7 @@ table.ledger tr.ledger-total td { font-weight: 700; border-top: 2px solid var(--
   --muted: #9b9aa2;
   --faint: #62626b;
   --accent: #d0a94e;
+  --gold: #f0cb4c;
   --accent-strong: #e6c066;
   --accent-text: #121008;
   --shadow: 0 6px 24px rgb(0 0 0 / 0.65);
@@ -792,3 +796,10 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 
 .error-panel { border-left: 4px solid var(--bad); }
 .error-panel pre { white-space: pre-wrap; font-size: 0.857rem; background: var(--panel-2); padding: 6px 8px; border-radius: var(--radius); }
+
+/* Gold pieces: amounts of money are always written in gold. */
+.gold { color: var(--gold); white-space: nowrap; }
+/* …unless the amount is already coloured as a gain or a loss. */
+.good-text .gold, .bad-text .gold { color: inherit; }
+.intro { gap: 10px; max-width: 760px; }
+.intro p { margin: 0; line-height: 1.5; }
