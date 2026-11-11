@@ -204,7 +204,7 @@ export function App() {
         <NavBar
           screen={newGameOpen || launch ? null : screen}
           hasGame={!!game}
-          badges={{ inbox: unread }}
+          badges={{ inbox: unread, squad: game ? playerTeam(game).creatures.reduce((s, c) => s + (c.growth?.freePoints ?? 0), 0) : 0 }}
           onSelect={(id) => {
             setNewGameOpen(false);
             setScreen(id);

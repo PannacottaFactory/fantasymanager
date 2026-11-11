@@ -18,6 +18,8 @@ export function SquadScreen() {
   const { t, lang } = tr;
   const game = useGame((s) => s.game)!;
   const team = playerTeam(game);
+  const openSheet = (id: string) => useGame.getState().openSheet(id);
+  const waiting = team.creatures.filter((c) => (c.growth?.freePoints ?? 0) > 0);
   const selection = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
 
   const columns: Column<Creature>[] = [
@@ -45,7 +47,22 @@ export function SquadScreen() {
       ),
     },
     { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
-    { key: 'level', label: t('col.level'), title: t('col.level.title'), sort: (c) => c.ability, render: (c) => <LevelBadge c={c} compact /> },
+    {
+      key: 'level',
+      label: t('col.level'),
+      title: t('col.level.title'),
+      sort: (c) => c.ability,
+      render: (c) => (
+        <span className="row" style={{ gap: 6 }}>
+          <LevelBadge c={c} compact />
+          {(c.growth?.freePoints ?? 0) > 0 && (
+            <button className="point-chip" title={t('points.chip.title')} onClick={() => openSheet(c.id)}>
+              +{c.growth!.freePoints}
+            </button>
+          )}
+        </span>
+      ),
+    },
     { key: 'pot', label: t('col.potential'), title: t('stars.potentialCol'), sort: (c) => c.potential, render: (c) => <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} /> },
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
     { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => <RoleLabel role={bestRole(c)} /> },
@@ -129,6 +146,22 @@ export function SquadScreen() {
         <p className="muted" style={{ marginTop: 0, fontSize: '0.929rem' }}>
           {t('squad.hint')}
         </p>
+        {waiting.length > 0 && (
+          <div className="points-banner">
+            <span className="pb-icon">+{waiting.reduce((n, c) => n + (c.growth?.freePoints ?? 0), 0)}</span>
+            <div className="grow">
+              <b>{t('points.banner.title')}</b>
+              <div className="muted">{t('points.banner.body')}</div>
+              <div className="pb-list">
+                {waiting.map((c) => (
+                  <button key={c.id} className="point-chip wide" onClick={() => openSheet(c.id)}>
+                    {c.name} +{c.growth!.freePoints}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         <p className="grow-hint">
           <span className="grow-hint-ico">▲</span>
           <span className="grow">{t('grow.hint')}</span>

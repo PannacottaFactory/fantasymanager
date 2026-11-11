@@ -326,7 +326,15 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - `npm run ui:check` closes the end-of-week summaries (screenshot `00-recap`).
 - **Navigation tabs** (`NavBar.tsx`): a game-icon per screen (`UI_ICONS['nav-*']`), animated underline on the active
   tab, chevron that turns, menus that unfold (icon tile + name + one-line hint `nav.hint.*`); below 1600 px inactive
-  tabs show only their icon (name in the tooltip). The creature sheet shows the potential as a stat tile.
+  tabs show only their icon (name in the tooltip) when the tabs do not fit — measured on an invisible copy
+  (`.nav-measure`), so it follows the window and the text size. The creature sheet shows the potential as a stat tile.
+- **Attribute points to place** (one per level gained): gold « +N » badge on the Stable tab / Squad entry, a banner in
+  the Squad listing the creatures (chips open the sheet), a pulsing « +N » next to their level, a gold box in the sheet
+  with pulsing + buttons. The overall-rating column is « Note » / « Rating ». Stun = one blinking diamond.
+- The nav measure copy must stay outside the `.nav.compact` rules (`> .nav-tab`), otherwise the tabs flip in a loop.
+  The top bar no longer repeats the season/week (the ribbon shows it).
+- Knocked-out creatures are red in the live match (`.fighter.is-ko`, own fall animation) and in the break table.
+  After the end-of-week summary, « Continuer » opens the League (the next match starts from the top bar).
 - **Renaming**: own creatures are renamed from their sheet (✎ next to the name, `engine/team/rename.ts`, 30 chars max;
   the id stays). Sheets show the species' description in italics. Ability kinds and staff domains use game-icons
   (`<KindIcon>`, `UI_ICONS['kind-*' | 'dom-*']`). The break panel is a wide dialog with « Reprendre le combat » in its

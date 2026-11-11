@@ -31,7 +31,7 @@ export function WeekRecap() {
   const close = () => st.closeRecap();
   const go = () => {
     st.closeRecap();
-    st.continueGame();
+    st.openLeague('table');
   };
   const week = completedWeek(after);
   const playedBefore = new Set(playerSeason(before).filter((x) => x.played).map((x) => x.fixtureId));

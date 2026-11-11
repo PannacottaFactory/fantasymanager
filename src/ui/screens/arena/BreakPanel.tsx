@@ -129,7 +129,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                 const down = c.state !== 'active';
                 const sub = subs.find((s) => s.outId === c.id);
                 return (
-                  <tr key={c.id} className={down ? 'dim' : ''}>
+                  <tr key={c.id} className={`${down ? 'dim' : ''} ${c.state === 'ko' ? 'ko-row' : ''}`}>
                     <td>
                       <span className="row" style={{ gap: 6 }}>
                         <Crest speciesId={c.speciesId} name={c.name} /> {c.name} {down && <span className="tag">{stateTag(c.state)}</span>}

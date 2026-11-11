@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import type { Screen } from '../store/gameStore.ts';
@@ -39,6 +39,22 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
   const { t } = useT();
   const [open, setOpen] = useState<string | null>(null);
   const ref = useRef<HTMLElement>(null);
+  // Not enough room for every name (window width, text size): inactive tabs keep only their icon.
+  const [compact, setCompact] = useState(false);
+  // An invisible copy of the tabs with every name gives the width they need (it follows the text size).
+  const measure = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const m = measure.current;
+    if (!el || !m) return;
+    // + room for the unread badges, which the copy does not have.
+    const check = () => setCompact(m.scrollWidth + 40 > el.clientWidth);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    ro.observe(m);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -92,14 +108,23 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
     },
   ];
 
-  const badge = (n?: number) => (n ? <span className="badge">{n}</span> : null);
+  const badge = (n?: number, gold = false) => (n ? <span className={`badge ${gold ? 'gold-badge' : ''}`}>{gold ? `+${n}` : n}</span> : null);
   const pick = (id: Screen) => {
     setOpen(null);
     onSelect(id);
   };
 
   return (
-    <nav className="nav" aria-label="Screens" ref={ref} data-tip="nav">
+    <nav className={`nav ${compact ? 'compact' : ''}`} aria-label="Screens" ref={ref} data-tip="nav">
+      <div className="nav-measure" ref={measure} aria-hidden="true">
+        {entries.map((e) => (
+          <span key={isGroup(e) ? e.label : e.id} className="nav-tab">
+            <UiIcon name={isGroup(e) ? e.icon : (ICON[e.id] ?? '')} size="1.05em" />
+            <span className="nav-label">{t(isGroup(e) ? (e.items.find((i) => i.id === screen)?.label ?? e.label) : e.label)}</span>
+            {isGroup(e) && <i className="nav-chevron">▾</i>}
+          </span>
+        ))}
+      </div>
       {entries.map((e) => {
         if (!isGroup(e)) {
           const disabled = e.needsGame && !hasGame;
@@ -114,6 +139,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         const active = e.items.some((i) => i.id === screen);
         const current = e.items.find((i) => i.id === screen);
         const total = e.items.reduce((s, i) => s + (badges[i.id] ?? 0), 0);
+        const gold = e.items.some((i) => i.id === 'squad' && badges.squad);
         return (
           <div key={e.label} className="nav-group">
             <button
@@ -129,7 +155,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
               <i className="nav-chevron" aria-hidden="true">
                 ▾
               </i>
-              {badge(total)}
+              {badge(total, gold)}
             </button>
             {open === e.label && (
               <div className="nav-menu" role="menu">
@@ -149,7 +175,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
                       <b>{t(i.label)}</b>
                       <small>{t(`nav.hint.${i.id}` as StringKey)}</small>
                     </span>
-                    {badge(badges[i.id])}
+                    {badge(badges[i.id], i.id === 'squad')}
                   </button>
                 ))}
               </div>

@@ -148,6 +148,7 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
   const cls = [
     'fighter',
     down ? 'down' : '',
+    c.state === 'ko' ? 'is-ko' : '',
     c.state === 'bench' ? 'bench' : '',
     acting !== null ? 'acting' : '',
     focus === 'actor' ? 'focus-actor' : '',

@@ -114,7 +114,15 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         </div>
         {extra}
 
-        {freePoints > 0 && <div className="remark good free-points">{t('lvl.freePoints', { n: freePoints })}</div>}
+        {freePoints > 0 && (
+          <div className="points-banner in-sheet">
+            <span className="pb-icon">+{freePoints}</span>
+            <div className="grow">
+              <b>{t('lvl.freePoints', { n: freePoints })}</b>
+              <div className="muted">{t('points.why')}</div>
+            </div>
+          </div>
+        )}
         <div className="attr-grid" data-tip="sheet-attrs">
           {(Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).map((cat) => (
             <div key={cat}>

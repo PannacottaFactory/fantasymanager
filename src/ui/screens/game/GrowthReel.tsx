@@ -95,8 +95,8 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
             </button>
             <div className="grow-bar">
               <i className={up ? 'wrap' : 'fill'} style={{ width: 'var(--to)' }} />
-              {up && <span className="grow-level">{t('grow.levelUp', { n: g.lv1 })}</span>}
             </div>
+            {up && <span className="grow-level">{t('grow.levelUp', { n: g.lv1 })}</span>}
             {atMax && <small className="faint">{t('grow.maxed')}</small>}
             {(g.attrs.length > 0 || g.abilities.length > 0 || (up && (g.c.growth?.freePoints ?? 0) > 0)) && (
               <div className="grow-chips">
