@@ -7,6 +7,7 @@ import { normalizeSeed } from '../../../core/rng.ts';
 import type { MatchResult, MatchSetup } from '../../../engine/combat/types.ts';
 import { explainMatch, type TipTarget } from '../../../engine/report/verdict.ts';
 import { useT } from '../../i18n/index.ts';
+import { effectText } from '../../../engine/text/localize.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 
@@ -22,16 +23,22 @@ function useSetup(result: MatchResult, given?: MatchSetup): MatchSetup | undefin
 }
 
 export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: MatchSetup }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const game = useGame((s) => s.game);
   const before = useSetup(result, setup);
   const v = useMemo(() => explainMatch(result, 0, before), [result, before]);
+  const order = (a: string | number | undefined) => (a === 'cautious' || a === 'balanced' || a === 'aggressive' ? t(`orders.${a}`) : String(a ?? ''));
   const vars = (x: Record<string, string | number>) => ({
     ...x,
     casters: t('target.casters'),
     weakest: t('target.weakest'),
+    strongest: t('target.strongest'),
     cautious: t('orders.cautious'),
-    pct: x.pct,
+    ours: order(x.ours),
+    theirs: order(x.theirs),
+    counter: order(x.counter),
+    effect: x.effect ? effectText(String(x.effect), lang).name : '',
+    rating: typeof x.rating === 'string' && lang === 'fr' ? x.rating.replace('.', ',') : x.rating,
   });
   const go = (to: TipTarget) => {
     if (to === 'encyclopedia') useGame.getState().setScreen('encyclopedia');
@@ -51,6 +58,12 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
               </li>
             ))}
           </ul>
+          {v.counterpoint && (
+            <div className={`verdict-counter ${v.counterpoint.tone}`}>
+              <span className="faint">{v.won ? t('verdict.butWin') : t('verdict.butLoss')}</span>{' '}
+              {t(`verdict.f.${v.counterpoint.key}` as StringKey, vars(v.counterpoint.vars))}
+            </div>
+          )}
         </div>
         <div>
           <h3>💡 {t('verdict.next')}</h3>

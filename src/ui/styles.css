@@ -1074,3 +1074,6 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 .verdict-list li.bad .ico { color: var(--bad); }
 .verdict-list.tips li { align-items: center; padding: 6px 8px; border-radius: var(--radius); background: var(--panel-2); }
 .verdict-list.tips .btn { flex: none; }
+.verdict-counter { margin-top: 10px; padding: 6px 10px; border-radius: var(--radius); background: var(--panel-2); font-size: 0.929rem; border-left: 3px solid var(--border-strong); }
+.verdict-counter.good { border-left-color: var(--good); }
+.verdict-counter.bad { border-left-color: var(--bad); }

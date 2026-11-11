@@ -265,9 +265,12 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   both line-ups with the abilities seen used, **replays**: `GameState.matchHistory` keeps the last 10 player
   matches (setup snapshot + break decisions; `replayMatch` / `replayDeciders` reproduce them exactly), "Watch
   again" and "Report" in the inbox, `LiveMatch` `replay` mode. 113 tests.
-- **Match verdict** (`engine/report/verdict.ts` → `ui/screens/arena/VerdictPanel.tsx`, top of every report): up to 3
-  reasons for the result (strength gap, fatigue, elements, off-role starters, back line, healers, damage, KOs, nerves…;
-  uses the pre-match line-ups found in `matchHistory` by seed) and 1–3 tips with a button to the right screen.
+- **Match verdict** (`engine/report/verdict.ts` → `ui/screens/arena/VerdictPanel.tsx`, top of every report): up to 4
+  weighted reasons for the result among ~40 (strength, fatigue, morale, roles, lines, bench, approach ascendancy, elements
+  both ways, their star / our star / weak link, accuracy, crits, damage over time, purification, breaks, unused subs,
+  control, thorns, back line, healers, stamina, nerves, discipline…; uses the pre-match line-ups found in `matchHistory`
+  by seed), one counterpoint (a weakness despite a win / a strength despite a loss) and 1–3 varied tips (one per kind,
+  heaviest first) with a button to the right screen.
 - **Favourite moves**: the Tactics column « Coups favoris » opens a small picker with only the abilities (☆).
 - **Sheet tour**: tips anchored inside the creature sheet (`sheet-tiles`, `sheet-roles`, `sheet-abilities`,
   `sheet-attrs` « the rest can wait »); while a window is open, only tips inside it show (scrolled into view).
