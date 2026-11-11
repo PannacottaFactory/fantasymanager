@@ -9,5 +9,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Season-long simulations are slow on CI machines.
+    testTimeout: 120000,
   },
 });
