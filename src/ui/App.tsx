@@ -160,7 +160,7 @@ export function App() {
   else if (screen === 'help') content = <HelpScreen />;
   else if (screen === 'encyclopedia') content = <EncyclopediaScreen />;
   else if (screen === 'arena') content = <ArenaScreen />;
-  else if (!game || newGameOpen || launch) content = <StartScreen onCancel={game && newGameOpen ? () => setNewGameOpen(false) : undefined} />;
+  else if (!game || newGameOpen || launch) content = <StartScreen onCancel={game && newGameOpen ? () => setNewGameOpen(false) : undefined} onCreated={() => setNewGameOpen(false)} />;
   else if (screen === 'squad') content = <SquadScreen />;
   else if (screen === 'tactics') content = <TacticsScreen />;
   else if (screen === 'league') content = <LeagueScreen />;

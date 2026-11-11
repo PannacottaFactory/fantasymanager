@@ -14,7 +14,7 @@ import { useTutorial } from '../../tutorial/tutorial.ts';
 const DIFF_ICON: Record<DifficultyId, string> = { easy: '🌿', normal: '⚔', hard: '💀' };
 
 /** Shown when no game is loaded, or from the "new game" button: continue the save, or start a new game. */
-export function StartScreen({ onCancel }: { onCancel?: () => void }) {
+export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; onCreated?: () => void }) {
   const tr = useT();
   const { t, lang } = tr;
   const game = useGame((s) => s.game);
@@ -32,6 +32,7 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
     if (tips) tutorial.restart();
     else tutorial.setEnabled(false);
     newGame(name.trim() || suggested, seed, difficulty);
+    onCreated?.();
   };
 
   const saved = game ? playerTeam(game) : null;
@@ -107,7 +108,7 @@ export function StartScreen({ onCancel }: { onCancel?: () => void }) {
             </label>
           )}
           <div className="row wrap" style={{ gap: 10 }}>
-            <button className={`btn ${game ? '' : 'primary'} big-btn`} onClick={start}>
+            <button className={`btn ${game && !onCancel ? '' : 'primary'} big-btn`} onClick={start}>
               {t('start.begin')}
             </button>
             {onCancel && (

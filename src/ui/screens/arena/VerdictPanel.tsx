@@ -45,7 +45,7 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
     else if (game) useGame.getState().setScreen(to);
   };
   return (
-    <section className={`panel verdict ${v.won ? 'won' : 'lost'}`}>
+    <section className={`panel verdict ${v.won ? 'won' : 'lost'}`} data-tip="report">
       <div className="verdict-cols">
         <div>
           <h3>{v.won ? t('verdict.whyWin') : t('verdict.whyLoss')}</h3>

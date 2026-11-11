@@ -128,7 +128,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                       )}
                       {known && deltas?.[k] ? (
                         <span className={`attr-delta ${deltas[k]! > 0 ? 'up' : 'down'}`} title={t('cr.sinceSeason')}>
-                          {deltas[k]! > 0 ? `▲${deltas[k]}` : `▼${-deltas[k]!}`}
+                          {deltas[k]! > 0 ? `+${deltas[k]}` : `−${-deltas[k]!}`}
                         </span>
                       ) : null}
                     </span>

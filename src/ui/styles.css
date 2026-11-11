@@ -366,6 +366,8 @@ table.data tr.sep td { border-top: 2px solid var(--border-strong); }
 .start-card h2 { font-size: 1.5rem; color: var(--accent); margin-bottom: 6px; }
 .resume { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel-2); }
 .next-match h4 { margin-bottom: 6px; }
+.dash .next-match { border-color: color-mix(in srgb, var(--home) 70%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--home) 22%, var(--panel)), color-mix(in srgb, var(--home) 6%, var(--panel)) 70%); box-shadow: inset 4px 0 0 var(--home); }
+.dash .next-match h4 { color: var(--home); }
 .inbox { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .msg {
   --cat: var(--border-strong);
@@ -1129,8 +1131,13 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 /* ——— Tactics table: boxes and row drag ——— */
 .drag-hint { font-size: 0.786rem; margin: 0 0 4px; }
 table.data tbody.group { border-left: 3px solid var(--border-strong); }
-table.data tbody.grp-starter { border-left-color: var(--home); }
-table.data tbody.grp-bench { border-left-color: color-mix(in srgb, var(--home) 45%, var(--muted)); }
+table.data tbody.group { border-left-width: 4px; }
+table.data tbody.grp-starter { border-left-color: var(--good); }
+table.data tbody.grp-bench { border-left-color: #6cb6e8; }
+table.data tbody.grp-reserve { border-left-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+.grp-starter .group-title b { color: var(--good); }
+.grp-bench .group-title b { color: #6cb6e8; }
+.warn-text { color: var(--warn, #d9a441); }
 table.data tr.group-head td { padding: 10px 8px 4px; border-bottom: 1px solid var(--border-strong); background: transparent; }
 table.data tbody.group + tbody.group tr.group-head td { padding-top: 16px; }
 table.data tr.group-head:hover td { background: transparent; box-shadow: none; }

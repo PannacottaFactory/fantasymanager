@@ -163,7 +163,7 @@ export function ReportView({ result, actions, setup }: { result: MatchResult; ac
   return (
     <div className="stack">
       <section className="panel">
-        <div className="report-head" data-tip="report">
+        <div className="report-head">
           <span className={`result-badge ${report.won ? 'win' : 'loss'}`}>{report.won ? t('report.victory') : t('report.defeat')}</span>
           <div className="grow">
             <h2>{report.headline}</h2>

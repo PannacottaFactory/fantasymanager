@@ -92,7 +92,7 @@ tests/       Vitest
 - **Live match visuals**: `ui/screens/arena/matchFx.ts` turns events into card reactions (attacker glow/lunge,
   target shake + floating number, ghost HP bar); hovering a commentary line highlights actor & target
   (`CommentaryLine.actor/target`).
-- **Builds**: `Tactic.favorites[creatureId]` = up to 2 favourite abilities; the combat AI multiplies their score
+- **Builds**: `Tactic.favorites[creatureId]` = one favourite ability (`cfg.combat.favorites.max` = 1); the combat AI multiplies their score
   (`cfg.combat.favorites`, scaled by discipline). Chosen with ★ in the creature sheet (Tactics « Build » column).
 - **Stamina gauges**: abilities cost stamina (no mana). A `spend` event (cost, stamina left, cooldown) precedes each
   ability/guard so the live view drains gauges and refills cooldown chips; the commentator ignores it.
@@ -285,7 +285,9 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Drag and drop in Tactics**: the table is split into three boxes (`SortableTable.groups`: Starters / Bench / Reserve,
   one tbody each with a heading). `ui/components/rowDrag.ts` drags the whole row with pointer events (a copy follows the
   pointer; touch: the ⠿ grip), boxes light up (red when full). Drop on a box = `setSelection`; on a creature = `dropOnto`
-  (free place in its group, otherwise swap; between two starters their lines swap) in `engine/team/edit.ts`.
+  (free place in its group, otherwise swap; between two starters their lines swap) in `engine/team/edit.ts`. A box may be
+  over-filled (`setSelection(…, over = true)`, « 6/5 » in red, the match stays blocked). Box borders: starters green,
+  bench light blue, reserve grey.
 - **Ambitions** (`engine/club/ambitions.ts`): 11 career goals (first win → top half → cup semi-final → promotion → level-8
   creature → survive in D1 → all facilities max → cup → D1 title → double → 3 titles). `GameState.career` logs each
   finished season (`recordSeason` in `endOfLeague`), `GameState.ambitions` = season reached; `checkAmbitions` runs at

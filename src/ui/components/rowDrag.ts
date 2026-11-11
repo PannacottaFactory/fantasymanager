@@ -10,7 +10,8 @@ export interface RowDrag<G extends string> {
   row?: string;
 }
 
-const INTERACTIVE = 'select, button, input, a, textarea, label, [role=radio]';
+// Buttons and links stay clickable (a drag only starts after the pointer moves); menus and fields keep the pointer.
+const INTERACTIVE = 'select, input, textarea';
 
 export function useRowDrag<G extends string>(onDrop: (id: string, target: { group: G; row?: string }) => void) {
   const [drag, setDrag] = useState<RowDrag<G> | null>(null);
@@ -20,6 +21,7 @@ export function useRowDrag<G extends string>(onDrop: (id: string, target: { grou
     const target = e.target as HTMLElement;
     if (target.closest(INTERACTIVE)) return;
     if (e.pointerType !== 'mouse' && !target.closest('.drag-grip')) return;
+    if (e.pointerType === 'mouse') e.preventDefault(); // no text selection while dragging
     const tr = e.currentTarget;
     const rect = tr.getBoundingClientRect();
     const sx = e.clientX;

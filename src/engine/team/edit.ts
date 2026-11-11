@@ -33,11 +33,12 @@ export function selectionOf(team: Team, id: string): Selection {
 }
 
 /** Puts a creature in the lineup, on the bench or in reserve (no change when the target group is full). */
-export function setSelection(team: Team, id: string, to: Selection, cfg: GameConfig = DEFAULT_CONFIG): Team {
+/** `over`: allow more starters / substitutes than the rules (the editor shows it in red; the match stays blocked). */
+export function setSelection(team: Team, id: string, to: Selection, cfg: GameConfig = DEFAULT_CONFIG, over = false): Team {
   const from = selectionOf(team, id);
   if (from === to) return team;
-  if (to === 'starter' && team.tactic.lineup.length >= cfg.match.starters) return team;
-  if (to === 'bench' && team.tactic.bench.length >= cfg.match.benchSize) return team;
+  if (!over && to === 'starter' && team.tactic.lineup.length >= cfg.match.starters) return team;
+  if (!over && to === 'bench' && team.tactic.bench.length >= cfg.match.benchSize) return team;
   const c = team.creatures.find((x) => x.id === id);
   if (!c) return team;
   const t = structuredClone(team.tactic);

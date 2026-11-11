@@ -107,15 +107,15 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const groupOf = (c: Creature): Group => selectionOf(team, c.id);
   const isFull = (g: Group) => (g === 'starter' ? team.tactic.lineup.length >= m.starters : g === 'bench' ? team.tactic.bench.length >= m.benchSize : false);
   const { drag, start } = useRowDrag<Group>((id, to) => {
-    const next = to.row ? dropOnto(team, id, to.row) : setSelection(team, id, to.group);
+    const next = to.row ? dropOnto(team, id, to.row) : setSelection(team, id, to.group, DEFAULT_CONFIG, true);
     if (next !== team) onChange(next);
   });
   const dragFrom = drag ? selectionOf(team, drag.id) : null;
   const rowProps = (c: Creature) => ({ 'data-row-id': c.id, onPointerDown: (e: ReactPointerEvent<HTMLTableRowElement>) => start(e, c.id) });
   const groupProps = (g: string) => {
     const over = drag?.group === g && dragFrom !== g;
-    const blocked = over && !drag?.row && isFull(g as Group);
-    return { 'data-drop-group': g, className: `${drag && dragFrom !== g ? 'drop-target' : ''} ${over ? (blocked ? 'drop-blocked' : 'drop-over') : ''}` };
+    const willOverflow = over && !drag?.row && isFull(g as Group);
+    return { 'data-drop-group': g, className: `${drag && dragFrom !== g ? 'drop-target' : ''} ${over ? (willOverflow ? 'drop-blocked' : 'drop-over') : ''}` };
   };
   const groupHead = (g: Group) => {
     const n = g === 'starter' ? team.tactic.lineup.length : g === 'bench' ? team.tactic.bench.length : team.creatures.length - team.tactic.lineup.length - team.tactic.bench.length;
@@ -123,8 +123,9 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     return (
       <span className="group-title">
         <b>{t(`grp.${g}`)}</b>
-        <span className="mono">{max ? `${n}/${max}` : n}</span>
+        <span className={`mono ${max && n > max ? 'bad-text' : max && n < max ? 'warn-text' : ''}`}>{max ? `${n}/${max}` : n}</span>
         <span className="faint">{t(`sel.${g}.title`)}</span>
+        {max && n > max && <span className="bad-text">{t('grp.tooMany', { n: n - max })}</span>}
         {drag && dragFrom !== g && drag.group === g && !drag.row && isFull(g) && <span className="bad-text">{t('grp.full')}</span>}
       </span>
     );
@@ -137,7 +138,6 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       sort: status,
       render: (c) => {
         const st = selectionOf(team, c.id);
-        const full = { starter: team.tactic.lineup.length >= m.starters, bench: team.tactic.bench.length >= m.benchSize, reserve: false };
         return (
           <span className="row" style={{ gap: 4 }}>
             <span className="drag-grip" aria-hidden="true">⠿</span>
@@ -148,9 +148,8 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
                   role="radio"
                   aria-checked={st === to}
                   className={st === to ? `on sel-${to}` : ''}
-                  disabled={st !== to && full[to]}
-                  title={st !== to && full[to] ? t(to === 'starter' ? 'sel.fullStarters' : 'sel.fullBench') : t(`sel.${to}.title`)}
-                  onClick={() => onChange(setSelection(team, c.id, to))}
+                  title={t(`sel.${to}.title`)}
+                  onClick={() => onChange(setSelection(team, c.id, to, DEFAULT_CONFIG, true))}
                 >
                   {t(`sel.${to}.short`)}
                 </button>
@@ -374,7 +373,10 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
                 unlockAt={unlockLevel(a.minAbility)}
                 current={levelOf(favCreature)}
                 favorite={favs(favCreature.id).includes(a.id)}
-                onToggleFavorite={() => onChange(toggleFavorite(team, favCreature.id, a.id))}
+                onToggleFavorite={() => {
+                  onChange(toggleFavorite(team, favCreature.id, a.id));
+                  if (!favs(favCreature.id).includes(a.id)) setFavFor(null);
+                }}
               />
             ))}
           </div>

@@ -159,7 +159,7 @@ export const COMBAT_CONFIG = {
   cover: { minFront: 2, reduction: 0.2 },
   /** Favourite abilities chosen by the manager (per creature). */
   favorites: {
-    max: 2,
+    max: 1,
     /** Score multiplier = 1 + bonus × (0.4 + 0.6 × discipline/20): disciplined creatures follow the build more. */
     bonus: 0.9,
   },
