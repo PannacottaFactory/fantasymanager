@@ -1,4 +1,4 @@
-import { useState, type DragEvent, type ReactNode } from 'react';
+import { useState, type ReactNode, type PointerEvent as ReactPointerEvent } from 'react';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 import { ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES_IDS } from '../../data/species.ts';
@@ -17,6 +17,7 @@ import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
 import { Attr, Bar, Crest, ElementDots, Modal, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
+import { useRowDrag } from './rowDrag.ts';
 import { RoleIcon } from '../icons/Icon.tsx';
 import { SpeciesIcon } from '../icons/Icon.tsx';
 
@@ -101,35 +102,33 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const slot = (id: string) => team.tactic.lineup.find((s) => s.creatureId === id);
   const status = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
   const m = DEFAULT_CONFIG.match;
-  // Drag and drop between rows: onto a creature of another group = take a free place there, or swap.
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
-  const rowProps = (c: Creature) => ({
-    draggable: true,
-    title: t('sel.drag.title'),
-    onDragStart: (e: DragEvent) => {
-      e.dataTransfer.setData('text/plain', c.id);
-      e.dataTransfer.effectAllowed = 'move';
-      setDragId(c.id);
-    },
-    onDragEnd: () => {
-      setDragId(null);
-      setOverId(null);
-    },
-    onDragOver: (e: DragEvent) => {
-      if (!dragId || dragId === c.id) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if (overId !== c.id) setOverId(c.id);
-    },
-    onDrop: (e: DragEvent) => {
-      e.preventDefault();
-      const id = dragId ?? e.dataTransfer.getData('text/plain');
-      setDragId(null);
-      setOverId(null);
-      if (id && id !== c.id) onChange(dropOnto(team, id, c.id));
-    },
+  // Drag a whole row into a box (starters / bench / reserve) or onto a creature: a free place there, otherwise a swap.
+  type Group = 'starter' | 'bench' | 'reserve';
+  const groupOf = (c: Creature): Group => selectionOf(team, c.id);
+  const isFull = (g: Group) => (g === 'starter' ? team.tactic.lineup.length >= m.starters : g === 'bench' ? team.tactic.bench.length >= m.benchSize : false);
+  const { drag, start } = useRowDrag<Group>((id, to) => {
+    const next = to.row ? dropOnto(team, id, to.row) : setSelection(team, id, to.group);
+    if (next !== team) onChange(next);
   });
+  const dragFrom = drag ? selectionOf(team, drag.id) : null;
+  const rowProps = (c: Creature) => ({ 'data-row-id': c.id, onPointerDown: (e: ReactPointerEvent<HTMLTableRowElement>) => start(e, c.id) });
+  const groupProps = (g: string) => {
+    const over = drag?.group === g && dragFrom !== g;
+    const blocked = over && !drag?.row && isFull(g as Group);
+    return { 'data-drop-group': g, className: `${drag && dragFrom !== g ? 'drop-target' : ''} ${over ? (blocked ? 'drop-blocked' : 'drop-over') : ''}` };
+  };
+  const groupHead = (g: Group) => {
+    const n = g === 'starter' ? team.tactic.lineup.length : g === 'bench' ? team.tactic.bench.length : team.creatures.length - team.tactic.lineup.length - team.tactic.bench.length;
+    const max = g === 'starter' ? m.starters : g === 'bench' ? m.benchSize : null;
+    return (
+      <span className="group-title">
+        <b>{t(`grp.${g}`)}</b>
+        <span className="mono">{max ? `${n}/${max}` : n}</span>
+        <span className="faint">{t(`sel.${g}.title`)}</span>
+        {drag && dragFrom !== g && drag.group === g && !drag.row && isFull(g) && <span className="bad-text">{t('grp.full')}</span>}
+      </span>
+    );
+  };
 
   const columns: Column<Creature>[] = [
     {
@@ -336,13 +335,15 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         rows={team.creatures}
         columns={columns}
         rowKey={(c) => c.id}
-        initialSort={{ key: 'status', dir: 1 }}
+        initialSort={{ key: 'ovr', dir: -1 }}
         rowProps={rowProps}
-        rowClass={(c, i, sorted) => {
+        groups={(['starter', 'bench', 'reserve'] as const).map((g) => ({ id: g, head: groupHead(g), empty: t('grp.drop'), className: `grp-${g}` }))}
+        groupOf={groupOf}
+        groupProps={groupProps}
+        rowClass={(c) => {
           const st = status(c);
-          const prev = i > 0 ? status(sorted[i - 1]!) : st;
           const injured = league && isInjured(c) && st !== 2;
-          return `drag-row ${st === 2 ? 'dim' : ''} ${st !== prev ? 'sep' : ''} ${injured ? 'warn-row' : ''} ${dragId === c.id ? 'dragging' : ''} ${overId === c.id ? 'drop-over' : ''}`;
+          return `drag-row ${st === 2 ? 'dim' : ''} ${injured ? 'warn-row' : ''} ${drag?.id === c.id ? 'dragging' : ''} ${drag?.row === c.id ? 'drop-over' : ''}`;
         }}
       />
       </div>

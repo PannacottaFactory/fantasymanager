@@ -16,11 +16,15 @@ interface Props<T> {
   rowClass?: (row: T, index: number, sorted: T[]) => string;
   initialSort?: { key: string; dir: 1 | -1 };
   /** Extra attributes / handlers of a row (e.g. drag and drop). */
-  rowProps?: (row: T) => HTMLAttributes<HTMLTableRowElement> & { draggable?: boolean };
+  rowProps?: (row: T) => HTMLAttributes<HTMLTableRowElement> & Record<`data-${string}`, string>;
+  /** Optional sections (one tbody each, with a heading row); rows are sorted within their section. */
+  groups?: { id: string; head: ReactNode; empty?: ReactNode; className?: string }[];
+  groupOf?: (row: T) => string;
+  groupProps?: (id: string) => HTMLAttributes<HTMLTableSectionElement> & Record<`data-${string}`, string>;
 }
 
 /** Dense spreadsheet-like table. Click a header to sort, click again to reverse. */
-export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort, rowProps }: Props<T>) {
+export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort, rowProps, groups, groupOf, groupProps }: Props<T>) {
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 } | null>(initialSort ?? null);
   const sorted = useMemo(() => {
     if (!sort) return rows;
@@ -33,6 +37,16 @@ export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort,
       return (va < vb ? -1 : va > vb ? 1 : 0) * sort.dir;
     });
   }, [rows, columns, sort]);
+
+  const renderRow = (r: T, i: number, list: T[]) => (
+    <tr key={rowKey(r)} {...rowProps?.(r)} className={rowClass?.(r, i, list)}>
+      {columns.map((c) => (
+        <td key={c.key} className={c.num ? 'num' : ''}>
+          {c.render(r)}
+        </td>
+      ))}
+    </tr>
+  );
 
   return (
     <div className="table-wrap">
@@ -52,17 +66,26 @@ export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort,
             ))}
           </tr>
         </thead>
-        <tbody>
-          {sorted.map((r, i) => (
-            <tr key={rowKey(r)} {...rowProps?.(r)} className={rowClass?.(r, i, sorted)}>
-              {columns.map((c) => (
-                <td key={c.key} className={c.num ? 'num' : ''}>
-                  {c.render(r)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
+        {groups && groupOf ? (
+          groups.map((g) => {
+            const list = sorted.filter((r) => groupOf(r) === g.id);
+            return (
+              <tbody key={g.id} {...groupProps?.(g.id)} className={`group ${g.className ?? ''} ${groupProps?.(g.id).className ?? ''}`}>
+                <tr className="group-head">
+                  <td colSpan={columns.length}>{g.head}</td>
+                </tr>
+                {list.map((r, i) => renderRow(r, i, list))}
+                {list.length === 0 && g.empty && (
+                  <tr className="group-empty">
+                    <td colSpan={columns.length}>{g.empty}</td>
+                  </tr>
+                )}
+              </tbody>
+            );
+          })
+        ) : (
+          <tbody>{sorted.map((r, i) => renderRow(r, i, sorted))}</tbody>
+        )}
       </table>
     </div>
   );

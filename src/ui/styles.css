@@ -1126,14 +1126,33 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 :root[data-effects='reduced'] .cta-live::after { animation: none; display: none; }
 @media (max-width: 700px) { .match-cta { flex-direction: column; } .match-cta > * { flex: 1 1 auto !important; } }
 
-/* ——— Tactics table: drag and drop ——— */
+/* ——— Tactics table: boxes and row drag ——— */
 .drag-hint { font-size: 0.786rem; margin: 0 0 4px; }
+table.data tbody.group { border-left: 3px solid var(--border-strong); }
+table.data tbody.grp-starter { border-left-color: var(--home); }
+table.data tbody.grp-bench { border-left-color: color-mix(in srgb, var(--home) 45%, var(--muted)); }
+table.data tr.group-head td { padding: 10px 8px 4px; border-bottom: 1px solid var(--border-strong); background: transparent; }
+table.data tbody.group + tbody.group tr.group-head td { padding-top: 16px; }
+table.data tr.group-head:hover td { background: transparent; box-shadow: none; }
+.group-title { display: inline-flex; gap: 10px; align-items: baseline; font-size: 0.857rem; white-space: normal; }
+.group-title b { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.929rem; }
+table.data tr.group-empty td { text-align: center; color: var(--muted); padding: 14px; font-size: 0.857rem; border: 1px dashed var(--border-strong); }
 tr.drag-row { cursor: grab; }
-tr.drag-row:active { cursor: grabbing; }
-tr.drag-row.dragging { opacity: 0.4; }
-tr.drag-row.drop-over td { background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent); }
-.drag-grip { color: var(--faint, var(--muted)); cursor: grab; font-size: 1rem; line-height: 1; padding: 0 2px; }
+body.row-dragging, body.row-dragging * { cursor: grabbing !important; user-select: none; }
+tr.drag-row.dragging td { opacity: 0.25; }
+tbody.drop-target tr.group-head td { color: var(--accent); }
+tbody.drop-target { outline: 1px dashed color-mix(in srgb, var(--accent) 50%, transparent); outline-offset: -1px; }
+tbody.drop-over td { background: color-mix(in srgb, var(--accent) 12%, transparent) !important; }
+tbody.drop-over { outline: 2px solid var(--accent); }
+tbody.drop-blocked { outline: 2px solid var(--bad); }
+tbody.drop-blocked td { background: color-mix(in srgb, var(--bad) 8%, transparent) !important; }
+tr.drag-row.drop-over td { background: color-mix(in srgb, var(--accent) 28%, transparent) !important; box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent); }
+.drag-grip { color: var(--muted); cursor: grab; font-size: 1.071rem; line-height: 1; padding: 0 2px; touch-action: none; }
 tr.drag-row:hover .drag-grip { color: var(--accent); }
+.row-ghost { position: fixed; left: 0; top: 0; z-index: 1000; pointer-events: none; border-radius: 6px; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--accent); box-shadow: 0 14px 34px rgb(0 0 0 / 0.45); opacity: 0.95; }
+.row-ghost table.data { margin: 0; }
+.row-ghost td { background: color-mix(in srgb, var(--accent) 10%, var(--panel)); border-bottom: none; }
 
 /* ——— Ambitions ——— */
 .amb-bar { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
