@@ -2,6 +2,7 @@
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import { ROLES } from '../../data/roles.ts';
 import { bestRole } from '../creature/derived.ts';
+import type { Line } from '../../data/schema.ts';
 import type { Creature, LineupSlot, Team, TeamOrders } from '../model.ts';
 
 export function isStarter(team: Team, id: string): boolean {
@@ -122,4 +123,38 @@ export function toggleFavorite(team: Team, creatureId: string, abilityId: string
   if (next.length) favorites[creatureId] = next;
   else delete favorites[creatureId];
   return { ...team, tactic: { ...team.tactic, favorites } };
+}
+
+// ——— Line-up board (drag and drop) ———
+
+/** Line-up board zones: the two lines of starters, the bench and the reserve. */
+export type Zone = 'front' | 'back' | 'bench' | 'reserve';
+/** Where a creature sits on the board. */
+export function zoneOf(team: Team, id: string): Zone {
+  const slot = team.tactic.lineup.find((s) => s.creatureId === id);
+  if (slot) return slot.line;
+  return selectionOf(team, id) === 'bench' ? 'bench' : 'reserve';
+}
+
+/** The team after moving creature `id` to a zone (unchanged when the zone is full). */
+export function moveToZone(team: Team, id: string, to: Zone, cfg: GameConfig = DEFAULT_CONFIG): Team {
+  const from = zoneOf(team, id);
+  if (from === to) return team;
+  if (to === 'front' || to === 'back') {
+    const next = from === 'front' || from === 'back' ? team : setSelection(team, id, 'starter', cfg);
+    if (next === team && from !== 'front' && from !== 'back') return team;
+    return updateSlot(next, id, { line: to as Line });
+  }
+  return setSelection(team, id, to === 'bench' ? 'bench' : 'reserve', cfg);
+}
+
+/** The team after dropping `id` on creature `on`: swap places (or lines, between two starters). */
+export function dropOnCreature(team: Team, id: string, on: string): Team {
+  if (id === on) return team;
+  const a = zoneOf(team, id);
+  const b = zoneOf(team, on);
+  if (a === b) return team;
+  const starter = (z: Zone) => z === 'front' || z === 'back';
+  if (starter(a) && starter(b)) return updateSlot(updateSlot(team, id, { line: b as Line }), on, { line: a as Line });
+  return swapCreatures(team, id, on);
 }

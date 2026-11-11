@@ -1,4 +1,5 @@
 /** Season state. Plain serializable data: this is what a save file contains. */
+import type { AmbitionId } from '../club/ambitions.ts';
 import type { Lang } from '../../core/i18n.ts';
 import type { AttributeCategory, AttributeKey } from '../../data/attributes.ts';
 import type { IntensityId, ProgramId } from '../../data/config/training.ts';
@@ -99,6 +100,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'friendLeft'; name: string; friends: string[] }
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
   | { kind: 'relation'; a: string; b: string; bond: 'friends' | 'rivals' }
+  | { kind: 'ambition'; ambition: AmbitionId }
 );
 
 /** A transfer between two stables (null = free agent pool). */
@@ -302,4 +304,17 @@ export interface GameState {
   matchHistory?: MatchRecord[];
   /** The player's creatures who died (memorial), oldest first. */
   fallen?: FallenCreature[];
+  /** The player's finished seasons, oldest first. */
+  career?: SeasonRecord[];
+  /** Ambitions reached (season when reached). */
+  ambitions?: Partial<Record<AmbitionId, number>>;
+}
+
+/** One finished season of the player's stable. */
+export interface SeasonRecord {
+  season: number;
+  division: number;
+  position: number;
+  points: number;
+  cupWon: boolean;
 }

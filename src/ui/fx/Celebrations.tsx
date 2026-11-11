@@ -21,6 +21,7 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'abilityUnlocked':
       return 'small';
     case 'transferIn':
+    case 'ambition':
       return 'big';
     case 'promoted':
     case 'cupWon':

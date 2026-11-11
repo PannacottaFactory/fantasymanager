@@ -2,7 +2,8 @@
  * AI stable identities: a play style (squad, signings, favoured abilities, target orders) and a manager
  * temperament (aggression, risk, substitutions, reading the opponent). Pure functions.
  */
-import type { Rng } from '../../core/rng.ts';
+import { Rng } from '../../core/rng.ts';
+import { MANAGER_NAMES } from '../../data/names.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import { DEFAULT_CONFIG, type DifficultyId, type GameConfig, type ManagerId, type PlayStyleId } from '../../data/config/index.ts';
 import { MANAGER_IDS, PLAY_STYLE_IDS, STYLE_FOCUS } from '../../data/config/identity.ts';
@@ -10,6 +11,12 @@ import type { TargetPriority } from '../../data/schema.ts';
 import { getAbilities } from '../creature/derived.ts';
 import { counterApproach } from '../combat/formulas.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
+
+/** Name of a stable's manager: fixed for the stable (drawn from its id), never changes results. */
+export function managerName(team: Pick<Team, 'id'>): string {
+  const rng = new Rng(`manager|${team.id}`);
+  return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
+}
 
 /** Distinct styles for as many stables as possible (then repeats), each with a manager temperament and a focus. */
 export function drawIdentities(rng: Rng, count: number): StableIdentity[] {

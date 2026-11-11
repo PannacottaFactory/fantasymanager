@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { TargetPriority } from '../../../data/schema.ts';
 import type { Combat } from '../../../engine/combat/combat.ts';
-import { aiBreakDecision, DEFAULT_AI_STYLE } from '../../../engine/combat/decisions.ts';
-import { ascendancyMult, hpFraction, staminaFraction } from '../../../engine/combat/formulas.ts';
+import { aiBreakDecision, DEFAULT_AI_STYLE, readTarget } from '../../../engine/combat/decisions.ts';
+import { hpFraction, staminaFraction } from '../../../engine/combat/formulas.ts';
 import type { BreakDecision, SubstitutionDecision } from '../../../engine/combat/types.ts';
 import type { Aggression, Risk, Stance, TeamOrders } from '../../../engine/model.ts';
 import { roleText, speciesName } from '../../../engine/text/localize.ts';
@@ -33,10 +33,10 @@ export function BreakPanel({ combat, onResume }: Props) {
   const outIds = new Set(subs.map((s) => s.outId));
   const inIds = new Set(subs.map((s) => s.inId));
   const suggest = () => {
-    // The assistant reads the opponent when asked: target and the approach with the upper hand.
-    const d = aiBreakDecision(combat, side, { ...DEFAULT_AI_STYLE, reads: true });
+    // The assistant reads the visible line-up (target) but, like you, cannot see the opponent's approach.
+    const d = aiBreakDecision(combat, side, DEFAULT_AI_STYLE);
     setSubs(d.substitutions ?? []);
-    if (d.orders) setOrders(d.orders);
+    setOrders({ ...(d.orders ?? orders), target: readTarget(combat, side) });
   };
   const toggleOut = (id: string) => {
     if (outIds.has(id)) setSubs(subs.filter((s) => s.outId !== id));
@@ -151,7 +151,7 @@ export function BreakPanel({ combat, onResume }: Props) {
               <option value="aggressive">{t('orders.aggressive')}</option>
             </select>
           </label>
-          <AscendancyHint mine={orders} theirs={combat.sides[1].orders} cfg={cfg} />
+          <AscendancyHint />
           <label className="field">
             {t('orders.target')}
             <select value={orders.target} onChange={(e) => setOrders({ ...orders, target: e.target.value as TargetPriority })}>
@@ -180,16 +180,12 @@ export function BreakPanel({ combat, onResume }: Props) {
   );
 }
 
-/** Opponent's current approach and who has the upper hand with the approach being chosen. */
-function AscendancyHint({ mine, theirs, cfg }: { mine: TeamOrders; theirs: TeamOrders; cfg: Combat['cfg'] }) {
+/** The approach cycle as a reminder: the opponent's approach stays hidden, you have to guess it. */
+function AscendancyHint() {
   const { t } = useT();
-  const pct = Math.round(cfg.combat.orders.ascendancy.bonus * 100);
-  const ours = ascendancyMult(mine, theirs, cfg) > 1;
-  const them = ascendancyMult(theirs, mine, cfg) > 1;
   return (
-    <span className="muted" style={{ fontSize: '0.857rem', maxWidth: 260, alignSelf: 'center' }} title={t('orders.ascendancy.title')}>
-      {t('break.theirApproach', { a: t(`orders.${theirs.aggression}`).toLowerCase() })}{' '}
-      {ours ? <span className="good-text">{t('break.ascendancy.ours', { n: pct })}</span> : them ? <span className="bad-text">{t('break.ascendancy.theirs', { n: pct })}</span> : null}
+    <span className="muted" style={{ fontSize: '0.857rem', maxWidth: 280, alignSelf: 'center' }} title={t('orders.ascendancy.title')}>
+      {t('break.hiddenApproach')}
     </span>
   );
 }

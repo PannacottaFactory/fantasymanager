@@ -66,6 +66,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'cupWon':
     case 'promoted':
     case 'relegated':
+    case 'ambition':
       return 'competition';
     default:
       return 'club';
@@ -221,6 +222,8 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
       return m.bond === 'friends'
         ? { title: t('msg.relation.friends'), body: t('msg.relation.friendsBody', { a: m.a, b: m.b }), tone: 'good' }
         : { title: t('msg.relation.rivals'), body: t('msg.relation.rivalsBody', { a: m.a, b: m.b }), tone: 'bad' };
+    case 'ambition':
+      return { title: t('msg.ambition.title', { a: t(`amb.${m.ambition}`) }), body: t('msg.ambition.body', { a: t(`amb.${m.ambition}`), desc: t(`amb.${m.ambition}.desc`) }), tone: 'good' };
     case 'emergencySigning':
       return { title: t('msg.emergencySigning.title'), body: t('msg.emergencySigning.body', { names: m.names.join(', ') }), tone: 'bad' };
   }

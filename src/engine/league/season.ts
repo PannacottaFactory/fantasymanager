@@ -2,6 +2,7 @@
  * Season flow (pure): create a world, play a week (league matchday or cup round), move to the next season.
  * Every function returns a NEW GameState; nothing reads the clock or Math.random.
  */
+import { checkAmbitions, recordSeason } from '../club/ambitions.ts';
 import type { Lang } from '../../core/i18n.ts';
 import { clamp } from '../../core/math.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
@@ -437,6 +438,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
 
   next.matchday++;
   if (next.matchday > lastMatchday(next)) endOfLeague(next, cfg);
+  checkAmbitions(next, cfg);
   return next;
 }
 
@@ -449,6 +451,7 @@ function endOfLeague(next: GameState, cfg: GameConfig) {
   const table = tables[div]!;
   const pos = table.findIndex((r) => r.teamId === next.playerTeamId) + 1;
   pushMessage(next, { kind: 'seasonEnd', position: pos, champion: teamById(next, table[0]!.teamId).name, points: table[pos - 1]!.points });
+  recordSeason(next, div, pos, table[pos - 1]!.points);
   boardVerdict(next, cfg);
 }
 
@@ -520,6 +523,7 @@ export function playCupRound(state: GameState, playerMatch: MatchResult | null =
       if (winner === next.playerTeamId) pushMessage(next, { kind: 'cupWon', prize });
     }
   } else drawCupRound(next, cfg);
+  checkAmbitions(next, cfg);
   return next;
 }
 
@@ -567,5 +571,6 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
   snapshotSeasonStart(next, cfg);
   pushMessage(next, { kind: 'newSeason' });
   newSeasonObjective(next, cfg);
+  checkAmbitions(next, cfg);
   return next;
 }

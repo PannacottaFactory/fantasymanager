@@ -244,8 +244,8 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   since the season started, ability curve with the potential as a ceiling and latest changes in the sheet, trend
   sparkline in Training, attributes named in the training report. 107 tests.
 - [x] **Orders that matter**: ascendancy between approaches (`cfg.combat.orders.ascendancy`: cautious > aggressive >
-  balanced > cautious, +8 % damage), reading managers counter the opponent's approach (pre-match and at breaks), the
-  break panel shows the opponent's approach and who has the upper hand, the assistant's suggestion reads too.
+  balanced > cautious, +8 % damage), reading AI managers counter the opponent's approach (pre-match and at breaks); the
+  player cannot see the opponent's approach (guessing game, see « Hidden approach »).
   **Sim bug fixed**: mirror matches cloned teams with identical creature ids (corrupting `sim:levers`/`sim:ai`);
   `cloneTeam()` gives fresh ids and `Combat` now refuses duplicate ids. Measured against varied opponents
   (`sim:levers`, paired with/without): counter approach +14, aggressive vs balanced +16, wrong roles −17, all back
@@ -276,6 +276,19 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Top-bar button** says what it does: « Prochain match » (opens the pre-match screen), « Retour au match »,
   « Semaine suivante », « Saison suivante ». Pre-match screen: big « Jouer le match en direct » card + « Simuler ».
 - Approach ascendancy is a cycle (cautious > aggressive > balanced > cautious): the verdict says so, never « best ».
+- **Hidden approach**: the player never sees the opponent's approach before or during a match (break panel shows only the
+  cycle; the break assistant reads the line-up for the target but not the approach). The post-match verdict may name it.
+- Live-match speed: only « slow » is remembered; fast / instant reset to normal at the next match.
+- **Managers' names**: `managerName(team)` (`engine/team/identity.ts`, from `MANAGER_NAMES` in `data/names.ts`, drawn from the
+  team id, no RNG of the world) shown with the temperament on the pre-match screen (French gambler = « flambeur »).
+- Pre-match: line-ups first, then a centred row « Modifier la tactique » (`.cta-tactics`) · « Jouer en direct » · « Simuler ».
+- **Line-up board** (`ui/components/SelectionBoard.tsx`, above the Tactics table): zones front line / back line / bench /
+  reserve; drag a creature to a zone, or onto another creature to swap (between two starters: swap lines); click then
+  click works on touch. Pure logic in `engine/team/edit.ts` (`zoneOf`, `moveToZone`, `dropOnCreature`).
+- **Ambitions** (`engine/club/ambitions.ts`): 11 career goals (first win → top half → cup semi-final → promotion → level-8
+  creature → survive in D1 → all facilities max → cup → D1 title → double → 3 titles). `GameState.career` logs each
+  finished season (`recordSeason` in `endOfLeague`), `GameState.ambitions` = season reached; `checkAmbitions` runs at
+  the end of every league / cup week and at the season change, with an `ambition` inbox message (toast). Dashboard card.
 - **Favourite moves**: the Tactics column « Coups favoris » opens a small picker with only the abilities (☆).
 - **Sheet tour**: tips anchored inside the creature sheet (`sheet-tiles`, `sheet-roles`, `sheet-abilities`,
   `sheet-attrs` « the rest can wait »); while a window is open, only tips inside it show (scrolled into view).

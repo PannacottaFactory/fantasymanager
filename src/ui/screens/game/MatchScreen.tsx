@@ -6,6 +6,7 @@ import { aiPrepare, lastMatchday, playerPrepare, playerTeam, standings, teamById
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Team } from '../../../engine/model.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
+import { managerName } from '../../../engine/team/identity.ts';
 import { Bar, Crest } from '../../components/common.tsx';
 import { issueText } from '../../components/TeamEditor.tsx';
 import { fatigueColor } from '../../format.ts';
@@ -87,7 +88,7 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
             <div className="muted" style={{ fontSize: '0.857rem' }}>
               {home ? t('common.home') : t('common.away')} · {t('league.division', { n: divisionOf(game, opp.id) + 1 })} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
               {opp.identity && DEFAULT_CONFIG.identity.difficulties[game.difficulty ?? 'normal'].identities && (
-                <span title={t(`manager.${opp.identity.manager}.desc`)}> · {t('match.manager', { m: t(`manager.${opp.identity.manager}`) })}</span>
+                <span title={t(`manager.${opp.identity.manager}.desc`)}> · {t('match.manager', { name: managerName(opp), m: t(`manager.${opp.identity.manager}`) })}</span>
               )}
             </div>
           </div>
@@ -96,9 +97,6 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
             <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
             {t('match.manageBreaks')}
           </label>
-          <button className="btn" onClick={() => setScreen('tactics')}>
-            {t('match.editTactics')}
-          </button>
         </div>
         {issues.length > 0 && (
           <div className="remark bad" style={{ marginTop: 10 }}>
@@ -112,7 +110,18 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           </div>
         )}
       </section>
+      <div className="two-cols">
+        <LineupCard team={mine} title={t('match.lineup')} side={0} />
+        <LineupCard team={opp} title={t('match.opponent')} side={1} />
+      </div>
       <section className="match-cta" data-tip="prematch">
+        <button className="cta-tactics" onClick={() => setScreen('tactics')}>
+          <span className="cta-tactics-icon">✎</span>
+          <span className="cta-text">
+            <b>{t('match.editTactics')}</b>
+            <small>{t('match.editTacticsSub')}</small>
+          </span>
+        </button>
         <button className="cta-live" disabled={issues.length > 0} onClick={playLive}>
           <span className="cta-icon">⚔</span>
           <span className="cta-text">
@@ -125,10 +134,6 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           <small>{t('match.simulateSub')}</small>
         </button>
       </section>
-      <div className="two-cols">
-        <LineupCard team={mine} title={t('match.lineup')} side={0} />
-        <LineupCard team={opp} title={t('match.opponent')} side={1} />
-      </div>
     </div>
   );
 }

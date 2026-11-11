@@ -31,7 +31,8 @@ const SPEED_KEY = 'arena.speed';
 function loadSpeed(): Speed {
   try {
     const v = localStorage.getItem(SPEED_KEY);
-    if (v === 'slow' || v === 'normal' || v === 'fast' || v === 'instant') return v;
+    // Fast and instant only last for one match: the next one starts at normal speed again.
+    if (v === 'slow') return v;
   } catch {
     /* storage unavailable */
   }

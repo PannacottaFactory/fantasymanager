@@ -22,6 +22,12 @@ export const TEAM_NAME_PARTS = {
   places: ['Duskmoor', 'Karak Varn', 'the Mire', 'Emberfall', 'Greyhaven', 'the Hollow Peaks', 'Saltmarsh', 'Thornwood', 'Old Brannoc', 'Skarn'],
 };
 
+/** Names of the managers of AI stables (the same in every language). */
+export const MANAGER_NAMES = {
+  first: ['Aldric', 'Brunhild', 'Cassian', 'Dagna', 'Edric', 'Fenna', 'Gaspard', 'Hilde', 'Ivo', 'Jorunn', 'Kaspar', 'Liesel', 'Magnus', 'Nerys', 'Osric', 'Perrine', 'Quentin', 'Rowena', 'Sigurd', 'Tamsin', 'Ulric', 'Vesna', 'Wendel', 'Ysolde', 'Zoran', 'Albane', 'Bertrand', 'Corentine', 'Doran', 'Elske'],
+  last: ['Corbeval', 'Ashgrove', 'Malvoisin', 'Thornquist', 'Brisefer', 'Duskwell', 'Hautecombe', 'Ironside', 'Lautrec', 'Morrow', 'Valdane', 'Grimaud', 'Stonebridge', 'Roquelaure', 'Harrowgate', 'Vexley', 'Montfaucon', 'Blackwood', 'Kessler', 'Dunmore', 'Ravenhill', 'Sorrel', 'Tarnwick', 'Varga'],
+};
+
 export const NAME_CULTURES: Record<string, NameCulture> = {
   goblin: {
     style: 'syllables',

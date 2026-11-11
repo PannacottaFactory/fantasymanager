@@ -4,7 +4,7 @@ import { ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES_IDS } from '../../data/species.ts';
 import type { Line, RoleId, TargetPriority } from '../../data/schema.ts';
 import { isInjured, maxHp, overallRating } from '../../engine/creature/derived.ts';
-import { isStarter, selectionOf, setOrders, setSelection, swapCreatures, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
+import { isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
@@ -17,6 +17,7 @@ import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
 import { Attr, Bar, Crest, ElementDots, Modal, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
+import { SelectionBoard } from './SelectionBoard.tsx';
 import { RoleIcon } from '../icons/Icon.tsx';
 import { SpeciesIcon } from '../icons/Icon.tsx';
 
@@ -110,7 +111,6 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       render: (c) => {
         const st = selectionOf(team, c.id);
         const full = { starter: team.tactic.lineup.length >= m.starters, bench: team.tactic.bench.length >= m.benchSize, reserve: false };
-        const others = team.creatures.filter((x) => x.id !== c.id && selectionOf(team, x.id) !== st && selectionOf(team, x.id) !== 'reserve');
         return (
           <span className="row" style={{ gap: 4 }}>
             <span className="sel-seg" role="radiogroup" aria-label={t('col.selection')}>
@@ -128,16 +128,6 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
                 </button>
               ))}
             </span>
-            {others.length > 0 && (st === 'reserve' || st === 'bench') && (
-              <select className="compact swap-select" value="" title={t('sel.swap.title')} onChange={(e) => e.target.value && onChange(swapCreatures(team, c.id, e.target.value))}>
-                <option value="">⇄</option>
-                {others.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {t(isStarter(team, o.id) ? 'sel.swapStarter' : 'sel.swapBench', { name: o.name })}
-                  </option>
-                ))}
-              </select>
-            )}
           </span>
         );
       },
@@ -311,7 +301,8 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
           </span>
         )}
       </div>
-      <div data-tip={league ? 'lineup' : undefined}>
+      <SelectionBoard team={team} onChange={onChange} league={league} onOpen={(id) => setOpenId(id)} />
+      <div>
       <SortableTable
         rows={team.creatures}
         columns={columns}

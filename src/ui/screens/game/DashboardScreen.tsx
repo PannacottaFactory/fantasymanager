@@ -5,6 +5,7 @@
 import { useState, type ReactNode } from 'react';
 import { FirstSteps, useLearning } from '../../tutorial/FirstSteps.tsx';
 import { overallRating } from '../../../engine/creature/derived.ts';
+import { AMBITION_IDS, ambitionProgress } from '../../../engine/club/ambitions.ts';
 import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
 import { lastMatchday, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
@@ -275,6 +276,48 @@ function News({ game }: { game: GameState }) {
   );
 }
 
+/** Long-term goals of the career: the next ones to reach, the others on demand. */
+function Ambitions({ game }: { game: GameState }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const done = game.ambitions ?? {};
+  const count = AMBITION_IDS.filter((id) => done[id] !== undefined).length;
+  const next = AMBITION_IDS.filter((id) => done[id] === undefined);
+  const shown = open ? AMBITION_IDS : next.slice(0, 3);
+  return (
+    <section className="panel dash-card dash-ambitions">
+      <div className="dash-card-head">
+        <h3>{t('amb.title')}</h3>
+        <span className="faint mono">{t('amb.count', { n: count, of: AMBITION_IDS.length })}</span>
+      </div>
+      <div className="amb-bar" aria-hidden="true">
+        <span style={{ width: `${(count / AMBITION_IDS.length) * 100}%` }} />
+      </div>
+      <ul className="amb-list">
+        {shown.map((id) => {
+          const reached = done[id];
+          const p = ambitionProgress(game, id);
+          return (
+            <li key={id} className={`${reached !== undefined ? 'done' : ''} ${id === next[0] ? 'current' : ''}`}>
+              <span className="amb-ico">{reached !== undefined ? '✓' : id === next[0] ? '➤' : '○'}</span>
+              <span className="grow">
+                <b>{t(`amb.${id}` as StringKey)}</b>
+                <span className="muted"> — {t(`amb.${id}.desc` as StringKey)}</span>
+                {p && reached === undefined && <span className="faint mono"> ({p.n}/{p.of})</span>}
+              </span>
+              {reached !== undefined && <span className="faint">{t('amb.season', { s: reached })}</span>}
+            </li>
+          );
+        })}
+        {!open && next.length === 0 && <li className="done">{t('amb.all')}</li>}
+      </ul>
+      <button className="link" onClick={() => setOpen((x) => !x)}>
+        {open ? t('dash.showLess') : t('amb.seeAll')}
+      </button>
+    </section>
+  );
+}
+
 export function DashboardScreen() {
   const { t } = useT();
   const game = useGame((s) => s.game)!;
@@ -287,6 +330,7 @@ export function DashboardScreen() {
       <Hero game={game} />
       <FirstSteps />
       <NextMatch game={game} />
+      <Ambitions game={game} />
       {full && <BoardCard game={game} />}
       <div className="dash-grid">
         <SquadStatus game={game} />
