@@ -14,7 +14,7 @@ import { ageAbilityFactor, generateCreature } from '../creature/generate.ts';
 import { generateName } from '../creature/names.ts';
 import { bestRole, getSpecies } from '../creature/derived.ts';
 import { clubOf, spend } from '../economy/finance.ts';
-import { injuryWeeksFactor, nurseryBonus, trainingFactor } from '../club/facilities.ts';
+import { injuryWeeksFactor, trainingFactor } from '../club/facilities.ts';
 import { transfer } from '../economy/market.ts';
 import { askingWage, roundTo } from '../economy/value.ts';
 import { pushMessage } from '../league/messages.ts';
@@ -340,36 +340,40 @@ export function ageing(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
   if (retired.length) pushMessage(state, { kind: 'retired', names: retired });
 }
 
-/** Youngsters for every stable: the player chooses; AI stables keep the promising ones they have room for. */
+/**
+ * Young prospects every off-season (2–4 per stable): AI stables sign the promising ones they have room for, the others
+ * — and the player's share — join the free-agent market, where the player can sign them like anyone else.
+ */
 export function youthIntake(state: GameState, rng: Rng, cfg: GameConfig = DEFAULT_CONFIG) {
   const y = cfg.training.youth;
+  const onMarket: string[] = [];
   for (const team of state.teams) {
     const rep = clubOf(state, team.id).reputation;
-    const nursery = nurseryBonus(state, team.id, cfg);
-    const count = rng.int(y.min, y.max) + nursery.extra;
+    const count = rng.int(y.min, y.max);
     const kids: Creature[] = [];
     for (let i = 0; i < count; i++) {
       const species = SPECIES[rng.weighted(SPECIES_IDS, (id) => SPECIES[id]!.rarity)]!;
-      const potential = clamp(Math.round(rng.normal(y.potentialBase + rep * y.potentialPerReputation + nursery.potential, y.potentialSd)), 40, 200);
+      const potential = clamp(Math.round(rng.normal(y.potentialBase + rep * y.potentialPerReputation, y.potentialSd)), 40, 200);
       const c = generateCreature(rng, { speciesId: species.id, potential, age: species.lifeCurve.minAge, stableId: null, lang: state.lang }, cfg);
       c.ability = clamp(Math.round(potential * ageAbilityFactor(species, c.age, cfg)), cfg.generation.minAbility, potential);
       kids.push(c);
     }
     if (team.id === state.playerTeamId) {
-      state.youth = kids;
-      pushMessage(state, { kind: 'youthIntake', names: kids.map((k) => k.name) });
+      state.freeAgents.push(...kids);
+      onMarket.push(...kids.map((k) => k.name));
       continue;
     }
     const bar = [...team.creatures].sort((a, b) => b.potential - a.potential)[7]?.potential ?? 0;
     for (const k of kids.sort((a, b) => b.potential - a.potential)) {
+      state.freeAgents.push(k);
       if (team.creatures.length >= cfg.economy.club.maxSquad - 1 || k.potential <= bar) {
-        state.freeAgents.push(k);
+        onMarket.push(k.name);
         continue;
       }
-      state.freeAgents.push(k);
       transfer(state, k.id, team.id, 0, { wage: youthWage(k, rep, cfg), years: y.years }, cfg);
     }
   }
+  if (onMarket.length) pushMessage(state, { kind: 'youthIntake', names: onMarket.slice(0, 6), count: onMarket.length });
 }
 
 export function youthWage(c: Creature, reputation: number, cfg: GameConfig = DEFAULT_CONFIG): number {
@@ -391,29 +395,6 @@ export type TrainingError = 'notFound' | 'squadFull' | 'noMoney' | 'taken';
 export function setPlan(state: GameState, creatureIds: string[], plan: Partial<TrainingPlan>): GameState {
   const next = structuredClone(state);
   for (const id of creatureIds) next.training[id] = { ...planOf(next, id), ...plan };
-  return next;
-}
-
-export function keepYouth(state: GameState, creatureId: string, cfg: GameConfig = DEFAULT_CONFIG): { state: GameState; outcome: { kind: 'kept'; wage: number } | { kind: 'error'; error: TrainingError } } {
-  const kid = state.youth.find((c) => c.id === creatureId);
-  if (!kid) return { state, outcome: { kind: 'error', error: 'notFound' } };
-  const team = state.teams.find((t) => t.id === state.playerTeamId)!;
-  if (team.creatures.length >= cfg.economy.club.maxSquad) return { state, outcome: { kind: 'error', error: 'squadFull' } };
-  const next = structuredClone(state);
-  const k = next.youth.find((c) => c.id === creatureId)!;
-  next.youth = next.youth.filter((c) => c.id !== creatureId);
-  next.freeAgents.push(k);
-  const wage = youthWage(k, clubOf(next, next.playerTeamId).reputation, cfg);
-  transfer(next, k.id, next.playerTeamId, 0, { wage, years: cfg.training.youth.years }, cfg);
-  return { state: next, outcome: { kind: 'kept', wage } };
-}
-
-export function dismissYouth(state: GameState, creatureId: string): GameState {
-  const next = structuredClone(state);
-  const k = next.youth.find((c) => c.id === creatureId);
-  if (!k) return state;
-  next.youth = next.youth.filter((c) => c.id !== creatureId);
-  next.freeAgents.push(k);
   return next;
 }
 

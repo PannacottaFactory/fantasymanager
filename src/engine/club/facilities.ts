@@ -34,11 +34,6 @@ export function trainingFactor(state: GameState, teamId: string, cfg: GameConfig
 export function ticketsFactor(state: GameState, teamId: string, cfg: GameConfig = DEFAULT_CONFIG) {
   return 1 + facilityLevel(state, teamId, 'stands') * cfg.club.facilities.stands.tickets;
 }
-export function nurseryBonus(state: GameState, teamId: string, cfg: GameConfig = DEFAULT_CONFIG) {
-  const level = facilityLevel(state, teamId, 'nursery');
-  const n = cfg.club.facilities.nursery;
-  return { extra: Math.floor(level / 2) * n.extraYouthPerTwoLevels, potential: level * n.potential };
-}
 
 /** Weekly upkeep of a stable's facilities. */
 export function facilitiesUpkeep(state: GameState, teamId: string, cfg: GameConfig = DEFAULT_CONFIG): number {

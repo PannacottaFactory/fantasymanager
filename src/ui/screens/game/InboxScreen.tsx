@@ -141,7 +141,7 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
       return { title: t('msg.marketNews.title'), body: lines.join('\n'), tone: 'info' };
     }
     case 'youthIntake':
-      return { title: t('msg.youthIntake.title'), body: t('msg.youthIntake.body', { names: m.names.join(', ') }), tone: 'good' };
+      return { title: t('msg.youthIntake.title'), body: t('msg.youthIntake.body', { names: m.names.join(', '), n: m.count ?? m.names.length }), tone: 'good' };
     case 'youthReleased':
       return { title: t('msg.youthReleased.title'), body: t('msg.youthReleased.body', { names: m.names.join(', ') }), tone: 'info' };
     case 'retired':
@@ -281,10 +281,10 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
         {t('msg.openSheet')}
       </button>
     );
-  if (m.kind === 'youthIntake' && game.youth.length)
+  if (m.kind === 'youthIntake')
     return (
-      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen('training')}>
-        {t('msg.openTraining')}
+      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen('recruit')}>
+        {t('msg.openRecruit')}
       </button>
     );
   if (m.kind === 'scoutReport' || m.kind === 'contractExpiring')

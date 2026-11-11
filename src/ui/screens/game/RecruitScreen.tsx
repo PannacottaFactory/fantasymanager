@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { recallScout, sendScout } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
-import { locate, signingBonus } from '../../../engine/economy/market.ts';
+import { locate, signingBonus, transferOffers } from '../../../engine/economy/market.ts';
 import { estimatedValue, knowledgeOf, overallRange, potentialLevel } from '../../../engine/economy/scouting.ts';
 import { askingWage } from '../../../engine/economy/value.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
@@ -262,7 +262,7 @@ export function RecruitScreen() {
   const { t, money } = tr;
   const game = useGame((s) => s.game)!;
   const [tab, setTab] = useState<Tab>('free');
-  const [teamFilter, setTeamFilter] = useState<string>('all');
+  const [teamFilter, setTeamFilter] = useState<string>('picks');
   const [note, setNote] = useState<string | null>(null);
   const [view, setViewState] = useState<View>(readView);
   const setView = (v: View) => {
@@ -277,11 +277,14 @@ export function RecruitScreen() {
   const others = game.teams.filter((x) => x.id !== game.playerTeamId);
 
   const freeRows = useMemo<Row[]>(() => game.freeAgents.map((c) => ({ c, team: null, k: knowledgeOf(game, c.id) })), [game]);
+  // By default a short selection of offers; one stable (or all of them) on demand.
   const teamRows = useMemo<Row[]>(
     () =>
-      others
-        .filter((x) => teamFilter === 'all' || x.id === teamFilter)
-        .flatMap((x) => x.creatures.map((c) => ({ c, team: x.name, k: knowledgeOf(game, c.id) }))),
+      teamFilter === 'picks'
+        ? transferOffers(game).map(({ creature, team }) => ({ c: creature, team: team.name, k: knowledgeOf(game, creature.id) }))
+        : others
+            .filter((x) => teamFilter === 'all' || x.id === teamFilter)
+            .flatMap((x) => x.creatures.map((c) => ({ c, team: x.name, k: knowledgeOf(game, c.id) }))),
     [game, others, teamFilter],
   );
   const freeCols = useColumns(game, true);
@@ -310,6 +313,7 @@ export function RecruitScreen() {
           {tab === 'stables' && (
             <>
               <select className="compact" value={teamFilter} onChange={(e) => setTeamFilter(e.target.value)}>
+                <option value="picks">{t('recruit.filter.picks')}</option>
                 <option value="all">{t('recruit.filter.all')}</option>
                 {others.map((x) => (
                   <option key={x.id} value={x.id}>
@@ -317,7 +321,7 @@ export function RecruitScreen() {
                   </option>
                 ))}
               </select>
-              {teamFilter !== 'all' && (
+              {teamFilter !== 'all' && teamFilter !== 'picks' && (
                 <button
                   className="btn small"
                   onClick={() => {
@@ -360,7 +364,7 @@ export function RecruitScreen() {
         {tab === 'stables' && (
           <>
             <p className="muted" style={{ marginTop: 0 }}>
-              {t('recruit.stables.intro')}
+              {teamFilter === 'picks' ? t('recruit.stables.picks') : t('recruit.stables.intro')}
             </p>
             {view === 'cards' ? (
               <RecruitCards rows={teamRows} columns={teamCols} free={false} game={game} />

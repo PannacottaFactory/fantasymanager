@@ -6,7 +6,7 @@ import { getSpecies } from '../src/engine/creature/derived.ts';
 import { newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
 import type { GameState } from '../src/engine/league/types.ts';
 import type { Creature } from '../src/engine/model.ts';
-import { ageing, coachFactor, hireCoach, keepYouth, lifeStage, setPlan, weeklyTraining } from '../src/engine/progression/training.ts';
+import { ageing, coachFactor, hireCoach, lifeStage, setPlan, weeklyTraining } from '../src/engine/progression/training.ts';
 
 const game = (seed = 'train') => newGame({ seed, teamName: 'Test', lang: 'en' });
 const sumCat = (c: Creature, cat: keyof typeof ATTRIBUTE_CATEGORIES) => ATTRIBUTE_CATEGORIES[cat].reduce((s, k) => s + c.attributes[k], 0);
@@ -85,22 +85,17 @@ describe('ageing & youth', () => {
     expect(g.inbox.some((m) => m.kind === 'retired')).toBe(true);
   });
 
-  it('a brood arrives each off-season; kept youngsters join, the others leave at the first match', () => {
+  it('young prospects arrive each off-season: AI stables sign some, the rest (and the player\'s share) go to the market', () => {
     let g = game('youth');
     while (!seasonOver(g)) g = playMatchday(g);
+    const agents = new Set(g.freeAgents.map((c) => c.id));
+    const squads = new Set(g.teams.flatMap((t) => t.creatures.map((c) => c.id)));
     g = startNextSeason(g);
-    const y = DEFAULT_CONFIG.training.youth;
-    expect(g.youth.length).toBeGreaterThanOrEqual(y.min);
-    expect(g.youth.length).toBeLessThanOrEqual(y.max);
-    const kept = g.youth[0]!;
-    const others = g.youth.slice(1).map((c) => c.id);
-    const r = keepYouth(g, kept.id);
-    expect(r.outcome.kind).toBe('kept');
-    g = r.state;
-    expect(playerTeam(g).creatures.some((c) => c.id === kept.id)).toBe(true);
-    g = playMatchday(g);
-    expect(g.youth.length).toBe(0);
-    for (const id of others) expect(playerTeam(g).creatures.some((c) => c.id === id)).toBe(false);
+    const fresh = (c: Creature) => !agents.has(c.id) && !squads.has(c.id) && lifeStage(c) === 'young' && c.age === getSpecies(c).lifeCurve.minAge;
+    expect(g.freeAgents.filter(fresh).length).toBeGreaterThan(0);
+    expect(g.teams.some((t) => t.id !== g.playerTeamId && t.creatures.some(fresh))).toBe(true);
+    expect(playerTeam(g).creatures.some(fresh)).toBe(false);
+    expect(g.inbox.some((m) => m.kind === 'youthIntake')).toBe(true);
   }, 60000);
 });
 

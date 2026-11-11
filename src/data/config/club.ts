@@ -11,7 +11,6 @@ export const CLUB_CONFIG = {
     infirmary: { injuryWeeks: -0.15, medicalCost: -0.15 },
     training: { growth: 0.1 },
     stands: { tickets: 0.12 },
-    nursery: { extraYouthPerTwoLevels: 1, potential: 4 },
     /** Starting level by club quality. */
     start: { novice: 0, regional: 0, professional: 1, elite: 2, legendary: 3 },
     /** AI stables start building when they can afford it with this much left over. */
@@ -64,5 +63,5 @@ export const CLUB_CONFIG = {
 };
 
 export type ClubConfig = typeof CLUB_CONFIG;
-export type FacilityId = 'infirmary' | 'training' | 'stands' | 'nursery';
-export const FACILITY_IDS: FacilityId[] = ['training', 'infirmary', 'stands', 'nursery'];
+export type FacilityId = 'infirmary' | 'training' | 'stands';
+export const FACILITY_IDS: FacilityId[] = ['training', 'infirmary', 'stands'];

@@ -5,7 +5,6 @@
  */
 import { renew } from '../engine/economy/actions.ts';
 import { isInjured } from '../engine/creature/derived.ts';
-import { keepYouth } from '../engine/progression/training.ts';
 import { aiPrepare, newGame, playMatchday, playerTeam, seasonOver, startNextSeason, teamById } from '../engine/league/season.ts';
 import type { GameState } from '../engine/league/types.ts';
 import { parseArgs } from './args.ts';
@@ -39,8 +38,6 @@ for (let s = 0; s < seasons; s++) {
     const me = playerTeam(g);
     for (const c of [...me.creatures].sort((a, b) => b.ability - a.ability).slice(0, 9)) if (c.contract && c.contract.untilSeason <= g.season) g = renew(g, c.id, 2).state;
     g = startNextSeason(g);
-    const median = [...playerTeam(g).creatures].map((c) => c.potential).sort((a, b) => a - b)[6] ?? 0;
-    for (const y of [...g.youth]) if (y.potential > median) g = keepYouth(g, y.id).state;
   }
   const fatigue: number[] = [];
   let injuredWeeks = 0;

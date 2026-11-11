@@ -15,6 +15,7 @@ import { speciesName } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { Crest, Gold, LevelBadge, Attr, RollingMoney } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
+import { levelOf, maxLevelOf } from '../../../engine/progression/levels.ts';
 import { divName } from '../../competitions.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame, type Screen } from '../../store/gameStore.ts';
@@ -115,7 +116,7 @@ function SquadStatus({ game }: { game: GameState }) {
     { n: tired, label: 'dash.tired', to: 'tactics', tone: tired ? 'warn' : 'info' },
     { n: expiring, label: 'dash.expiring', to: 'finances', tone: expiring ? 'warn' : 'info' },
     { n: points, label: 'dash.freePoints', to: 'squad', tone: points ? 'good' : 'info' },
-    { n: game.youth.length, label: 'dash.youth', to: 'training', tone: game.youth.length ? 'good' : 'info' },
+    { n: team.creatures.filter((c) => levelOf(c) < maxLevelOf(c)).length, label: 'dash.growing', to: 'training', tone: 'good' },
   ];
   return (
     <Card title={t('dash.squad')} to="squad" link={t('nav.squad')}>
@@ -331,8 +332,10 @@ export function DashboardScreen() {
   return (
     <div className="stack dash" data-tip="dashboard">
       <Hero game={game} />
-      <FirstSteps />
-      <NextMatch game={game} />
+      <div className="dash-top">
+        <FirstSteps />
+        <NextMatch game={game} />
+      </div>
       <Ambitions game={game} />
       {full && <BoardCard game={game} />}
       <div className="dash-grid">

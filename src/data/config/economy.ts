@@ -96,7 +96,12 @@ export const ECONOMY_CONFIG = {
   },
   freeAgents: {
     /** Pool size kept by weekly arrivals. */
-    pool: 22,
+    pool: 12,
+    /** At most this many free agents: the least valuable leave (e.g. after the off-season's young prospects). */
+    max: 16,
+    /** « Other stables » shortlist: offers shown, divisions around the player's. */
+    offers: 15,
+    offerDivisions: 1,
     /** Chance per week that a free agent signs elsewhere / leaves. */
     leaveChance: 0.12,
     /** Quality of newcomers (weights). */

@@ -8,14 +8,13 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { Gold } from '../../components/common.tsx';
 
-const ICON: Record<FacilityId, string> = { training: '🏟', infirmary: '✚', stands: '🎟', nursery: '🥚' };
+const ICON: Record<FacilityId, string> = { training: '🏟', infirmary: '✚', stands: '🎟' };
 
 function effectValue(id: FacilityId): number {
   const f = DEFAULT_CONFIG.club.facilities;
   if (id === 'training') return Math.round(f.training.growth * 100);
   if (id === 'infirmary') return Math.round(-f.infirmary.injuryWeeks * 100);
-  if (id === 'stands') return Math.round(f.stands.tickets * 100);
-  return f.nursery.potential;
+  return Math.round(f.stands.tickets * 100);
 }
 
 export function FacilitiesScreen() {

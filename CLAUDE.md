@@ -57,7 +57,7 @@ src/engine/  pure game logic, no UI imports, no Math.random / Date (enforced by 
              scouting (knowledge → attribute ranges), player actions (bid, sign, sell, renew, release, scouts),
              setup (initEconomy, migrateGame v1→v2→v3)
   progression/ training.ts: weekly training (programs × intensity × coaches), ageing & retirement,
-             youth intake (brood), coaches (hire/fire), training plans
+             young prospects (to the free-agent market), coaches (hire/fire), training plans
   text/      localize.ts: data names/descriptions per language
 src/sim/     headless CLI scripts (Node via tsx)
 src/ui/      React screens; reads engine state, sends decisions; zero game rules
@@ -133,10 +133,11 @@ tests/       Vitest
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
   new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
   scouts, staff) → scouting → market (free agents, AI signings/buys, AI offers to the player) → contract
-  warning; training runs before the money (after rest). Unkept youngsters leave at the first matchday.
+  warning; training runs before the money (after rest). (Old saves: pending youngsters go to the free agents at the first matchday.)
   The player's team is always side 0 in its match. Season end: prize money + reputation; next season:
   ageing (+1 year, decline past the prime, retirement past maxAge) → expired contracts leave (player) or are
-  renewed/released (AI) → brood of 2–4 youngsters (player decides in Training; AI keeps the promising ones) →
+  renewed/released (AI) → young prospects (2–4 per stable: AI stables sign the promising ones, the rest and the player's share join the
+  free agents — no nursery, no « brood » the player keeps) →
   new coach market → `ensureSquads` keeps every squad ≥ 9.
 - **Levels & XP** (`engine/progression/levels.ts`, `cfg.training.levels / xp`): the player sees a level 1–10 and
   0–100 XP; underneath, levels are steps of the hidden aptitude (`ability`, 1–200; `levels.steps` = [28, 40, 50, 60,
@@ -165,6 +166,9 @@ tests/       Vitest
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
+- **Market size**: at most `freeAgents.max` (16) free agents (the least valuable leave each week; refill to `pool` 12).
+  Recruitment › Other stables opens on « Sélection pour vous » = `transferOffers` (15 creatures outside their stable's
+  best five, divisions ±1, within reach of the treasury — relaxed when too few); a stable or « all » shows full squads.
 - **Imperfect information**: the player sees other creatures through `knowledgeOf` (own = 100, league 25,
   free agents 10; matches +20 up to 60; scouts 70/90). Ranges come from a fixed per-creature offset
   (`noise(id, key)`), always contain the truth and narrow monotonically — never show raw attributes,
@@ -222,7 +226,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   Known: average potential drifts up slowly over seasons (AI keeps its best youngsters) — watch it.
 - [x] **Phase 5** — 2 divisions of 10 (player starts in D2, 2 up / 2 down, money ×1.5 in D1), Shadow Cup for
   all 20 stables (preliminary round for the 8 weakest, midweek after matchdays 3/7/11/14/17, half rest, prizes),
-  4 facilities × 3 levels (training ground, infirmary, stands, nursery; paid up front, weeks of works, upkeep),
+  facilities × 3 levels (training ground, infirmary, stands — the nursery was removed later; paid up front, weeks of works, upkeep),
   board objective & confidence (bonus, warnings, no sacking), news feed, relations (bonds from fighting together,
   quarrels, match-start morale, friends mourn departures), grouped navigation, save migration v3→v4. 77 tests.
 - [x] **Tutorial** (reworked for new players): `ui/tutorial/FirstSteps.tsx` = « Premiers pas » checklist on the home

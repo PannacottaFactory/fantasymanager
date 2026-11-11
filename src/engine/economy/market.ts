@@ -6,6 +6,7 @@ import { Rng, deriveSeed } from '../../core/rng.ts';
 import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/config/index.ts';
 import { generateCreature } from '../creature/generate.ts';
 import { matchdayCount } from '../league/schedule.ts';
+import { divisionOf } from '../league/divisions.ts';
 import { pushMessage } from '../league/messages.ts';
 import { addNews } from '../league/news.ts';
 import { friendsMourn } from '../club/relations.ts';
@@ -40,6 +41,25 @@ export const isPlayerTeam = (state: GameState, team: Team | null) => !!team && t
 export function importance(team: Team, creatureId: string): number {
   const rank = [...team.creatures].sort((a, b) => b.ability - a.ability || a.id.localeCompare(b.id)).findIndex((c) => c.id === creatureId);
   return rank < 0 ? 0 : rank < 5 ? 1 : rank < 8 ? 0.5 : 0;
+}
+
+/**
+ * A shortlist of creatures the other stables would let go (outside their best five), from divisions around the
+ * player's, within reach of its treasury (relaxed when too few), most valuable first.
+ */
+export function transferOffers(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): { creature: Creature; team: Team }[] {
+  const f = cfg.economy.freeAgents;
+  const me = divisionOf(state, state.playerTeamId);
+  const balance = clubOf(state, state.playerTeamId).balance;
+  const all = state.teams
+    .filter((t) => t.id !== state.playerTeamId && Math.abs(divisionOf(state, t.id) - me) <= f.offerDivisions && canLose(t, cfg))
+    .flatMap((team) => team.creatures.filter((c) => importance(team, c.id) < 1).map((creature) => ({ creature, team, price: askingPrice(team, creature, cfg) })));
+  const byValue = (a: { creature: Creature }, b: { creature: Creature }) => creatureValue(b.creature, cfg) - creatureValue(a.creature, cfg) || a.creature.id.localeCompare(b.creature.id);
+  for (const reach of [1.2, 2.5, Infinity]) {
+    const picks = all.filter((x) => x.price <= Math.max(balance, 0) * reach).sort(byValue);
+    if (picks.length >= f.offers || reach === Infinity) return picks.slice(0, f.offers).map(({ creature, team }) => ({ creature, team }));
+  }
+  return [];
 }
 
 /** What an AI stable wants for one of its creatures. */
@@ -234,8 +254,10 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   const moves: TransferMove[] = [];
   const target = cfg.league.squadSize;
 
-  // Free agents drift away; newcomers arrive.
+  // Free agents drift away; newcomers arrive. A crowded market keeps only its most valuable creatures.
   state.freeAgents = state.freeAgents.filter(() => !rng.chance(cfg.economy.freeAgents.leaveChance));
+  if (state.freeAgents.length > cfg.economy.freeAgents.max)
+    state.freeAgents = [...state.freeAgents].sort((a, b) => creatureValue(b, cfg) - creatureValue(a, cfg) || a.id.localeCompare(b.id)).slice(0, cfg.economy.freeAgents.max);
 
   const ai = state.teams.filter((x) => x.id !== state.playerTeamId);
   const styleBias = cfg.identity.difficulties[state.difficulty ?? 'normal'].styleBias;

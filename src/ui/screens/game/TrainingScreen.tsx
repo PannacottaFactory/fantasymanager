@@ -2,19 +2,16 @@ import { useState } from 'react';
 import { INTENSITY_IDS, PROGRAM_IDS, type IntensityId, type ProgramId } from '../../../data/config/training.ts';
 import { overallRating } from '../../../engine/creature/derived.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
-import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { coachFactor, dismissYouth, keepYouth, lifeStage, planOf, setPlan, youthWage } from '../../../engine/progression/training.ts';
+import { coachFactor, lifeStage, planOf, setPlan } from '../../../engine/progression/training.ts';
 import { abilityText, attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
 import { SPECIES } from '../../../data/species.ts';
-import { clubOf } from '../../../engine/economy/finance.ts';
-import { Bar, Crest, ElementDots, LevelBadge, Stars, Gold } from '../../components/common.tsx';
+import { Bar, Crest, ElementDots, LevelBadge, Stars } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { errorText } from './CreatureSheet.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
 import { TrainingGuide } from './TrainingGuide.tsx';
 import { levelOf, maxLevelOf, unlockLevel } from '../../../engine/progression/levels.ts';
@@ -44,65 +41,6 @@ export function IntensitySelect({ value, onChange }: { value: IntensityId; onCha
         </option>
       ))}
     </select>
-  );
-}
-
-function Youth({ game }: { game: GameState }) {
-  const tr = useT();
-  const { t, lang, money } = tr;
-  const [error, setError] = useState<string | null>(null);
-  const { act, update, openSheet } = useGame.getState();
-  const rep = clubOf(game, game.playerTeamId).reputation;
-  if (!game.youth.length) return null;
-  return (
-    <section className="panel youth" data-tip="youth">
-      <h3 style={{ marginBottom: 4 }}>🥚 {t('youth.title')}</h3>
-      <p className="muted" style={{ marginTop: 0 }}>
-        {t('youth.intro')}
-      </p>
-      <div className="youth-grid">
-        {game.youth.map((c) => (
-          <div key={c.id} className="youth-card">
-            <div className="row" style={{ gap: 8 }}>
-              <Crest speciesId={c.speciesId} name={c.name} size={28} />
-              <div>
-                <b>{c.name}</b>
-                <div className="muted" style={{ fontSize: '0.857rem' }}>
-                  <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} /> · {t('col.age')} {c.age}
-                </div>
-              </div>
-            </div>
-            <div className="row" style={{ gap: 10, fontSize: '0.929rem' }}>
-              <span>
-                {t('col.ovr')} <b>{overallRating(c)}</b>
-              </span>
-              <span className="row" style={{ gap: 4 }}>
-                {t('cr.potentialEst')} <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} />
-              </span>
-            </div>
-            <div className="row" style={{ gap: 6 }}>
-              <button
-                className="btn small primary"
-                onClick={() => {
-                  const o = act((g) => keepYouth(g, c.id));
-                  if (o?.kind === 'error') setError(errorText(tr, o.error === 'taken' ? 'notFound' : o.error));
-                }}
-              >
-                <Gold>{t('youth.keep', { wage: money(youthWage(c, rep)) })}</Gold>
-              </button>
-              <button className="btn small" onClick={() => update((g) => dismissYouth(g, c.id))}>
-                {t('youth.release')}
-              </button>
-              <span className="spacer" />
-              <button className="btn small ghost" onClick={() => openSheet(c.id)}>
-                {t('msg.openSheet')}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      {error && <div className="answer bad">{error}</div>}
-    </section>
   );
 }
 
@@ -218,7 +156,6 @@ export function TrainingScreen() {
 
   return (
     <div className="stack">
-      <Youth game={game} />
       <section className="panel">
         <div className="panel-head">
           <h2>{t('train.title')}</h2>

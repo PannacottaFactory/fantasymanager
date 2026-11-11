@@ -258,8 +258,6 @@ function Sheet({ id }: { id: string }) {
   const { t, money } = tr;
   const game = useGame((s) => s.game)!;
   const { openSheet, setPlayerTeam, update } = useGame.getState();
-  const kid = game.youth.find((c) => c.id === id);
-  if (kid) return <CreatureModal creature={kid} onClose={() => openSheet(null)} showHidden={false} />;
   const loc = locate(game, id);
   if (!loc) return null;
   const { creature, team } = loc;

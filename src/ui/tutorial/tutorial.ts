@@ -28,7 +28,6 @@ export const STEPS: TutorialStep[] = [
   { id: 'report', anchor: 'report' },
   { id: 'inbox', anchor: 'inbox' },
   { id: 'training', anchor: 'training' },
-  { id: 'youth', anchor: 'youth' },
   { id: 'league', anchor: 'league-tabs' },
   { id: 'recruit', anchor: 'recruit' },
   { id: 'finances', anchor: 'finances' },

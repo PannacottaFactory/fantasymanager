@@ -76,7 +76,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'marketNews'; moves: TransferMove[] }
   | { kind: 'emergencySigning'; names: string[] }
   // ——— Phase 4: training & life cycle ———
-  | { kind: 'youthIntake'; names: string[] }
+  | { kind: 'youthIntake'; names: string[]; count?: number }
   | { kind: 'youthReleased'; names: string[] }
   | { kind: 'retired'; names: string[] }
   | {

@@ -1497,3 +1497,16 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .next-match { padding-block: 8px; }
 .next-match .nm-label { margin: 0; font-size: 0.786rem; text-transform: uppercase; letter-spacing: 0.05em; }
 .next-match .btn.primary { padding-block: 4px; }
+
+/* Home: « First steps » and « Next match » share one row. */
+.dash-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 12px; align-items: stretch; }
+.dash-top > .panel { margin: 0; min-width: 0; }
+.dash-top .first-steps.compact .fs-row { flex-wrap: nowrap; }
+.dash-top .next-match .row { flex-wrap: nowrap; }
+.dash-top .next-match b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dash-top { align-items: center; }
+.dash-top .next-match .nm-label { white-space: nowrap; }
+.dash-top .next-match .row > .muted { white-space: nowrap; font-size: 0.857rem; }
+.dash-top .next-match .row > b { flex: 0 1 auto; }
+.dash-top .next-match .tag { flex: none; }
+.dash-top .fs-link { font-size: 0.786rem; }

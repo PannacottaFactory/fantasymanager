@@ -200,7 +200,7 @@ export function App() {
         <NavBar
           screen={newGameOpen || launch ? null : screen}
           hasGame={!!game}
-          badges={{ inbox: unread, training: game?.youth.length ?? 0 }}
+          badges={{ inbox: unread }}
           onSelect={(id) => {
             setNewGameOpen(false);
             setScreen(id);
