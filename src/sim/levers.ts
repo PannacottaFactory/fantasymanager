@@ -23,6 +23,8 @@ interface Lever {
   opponent?: (i: number) => Team;
   decider?: BreakDecider;
   opponentDecider?: BreakDecider;
+  /** Situation applied to our squad with and without the change. */
+  prep?: Mod;
 }
 
 const squad = (i: number, pool?: string[]) => generateTeam(new Rng(deriveSeed('lever', i, pool?.join() ?? '')), { quality: 'professional', speciesPool: pool });
@@ -31,6 +33,10 @@ const lineup = (f: (s: Team['tactic']['lineup'][number], k: number, all: Team['t
   ...t,
   tactic: { ...t.tactic, lineup: t.tactic.lineup.map(f) },
 });
+const tired: Mod = (t) => {
+  for (const c of t.creatures) c.condition.fatigue = 60;
+  return t;
+};
 const noBreaks: BreakDecider = () => ({});
 const subsOnly: BreakDecider = (c, side) => ({ substitutions: aiBreakDecision(c, side).substitutions });
 const lastPeriodAllOut: BreakDecider = (c, side) => {
@@ -48,6 +54,11 @@ const LEVERS: Lever[] = [
   { label: 'balanced vs a cautious opponent', mod: orders({ aggression: 'balanced' }), opponent: (i) => orders({ aggression: 'cautious' })(squad(i + 100000)) },
   { label: 'cautious all match', mod: orders({ aggression: 'cautious' }) },
   { label: 'all-out in the last period', decider: lastPeriodAllOut },
+  { label: 'stance: all starters all out', mod: lineup((s) => ({ ...s, stance: 'allOut' })) },
+  { label: 'stance: all starters pace themselves', mod: lineup((s) => ({ ...s, stance: 'conserve' })) },
+  { label: 'stance: tanks pace themselves', mod: lineup((s) => (s.role === 'tank' ? { ...s, stance: 'conserve' } : s)) },
+  { label: 'stance: strikers all out', mod: lineup((s) => (s.role === 'striker' ? { ...s, stance: 'allOut' } : s)) },
+  { label: 'stance: back line all out', mod: lineup((s) => (s.line === 'back' ? { ...s, stance: 'allOut' } : s)) },
   { label: 'no break decisions (vs AI)', decider: noBreaks },
   { label: 'orders never adapted to the score', decider: subsOnly },
   { label: 'all in the back line', mod: lineup((s) => ({ ...s, line: 'back' })) },
@@ -67,6 +78,12 @@ const LEVERS: Lever[] = [
     },
   },
   {
+    label: 'tired squad paces itself (vs tired)',
+    prep: tired,
+    mod: lineup((s) => ({ ...s, stance: 'conserve' })),
+    opponent: (i) => tired(squad(i + 100000)),
+  },
+  {
     label: 'tired squad (fatigue 60)',
     mod: (t) => {
       for (const c of t.creatures) c.condition.fatigue = 60;
@@ -82,7 +99,8 @@ function rate(lever: Lever, changed: boolean): number {
   let wins = 0;
   for (let i = 0; i < N; i++) {
     const base = squad(i);
-    const a = changed && lever.mod ? lever.mod(cloneTeam(base, 'a')) : cloneTeam(base, 'a');
+    const own = lever.prep ? lever.prep(cloneTeam(base, 'a')) : cloneTeam(base, 'a');
+    const a = changed && lever.mod ? lever.mod(own) : own;
     const b = lever.opponent ? lever.opponent(i) : squad(i + 100000);
     const swap = i % 2 === 1;
     const mine = changed ? lever.decider : undefined;

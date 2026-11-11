@@ -119,9 +119,14 @@ tests/       Vitest
   `playMatchday` plays it first (`playCupRound` plays every round of that key). `playerFixture` returns the player's tie
   in a midweek (or nothing). In the UI, « Next match » plays midweeks without the player on their own up to its next match.
   Cup messages carry `tournament` / `rounds`; `SeasonRecord.trophies` lists the season's tournament wins.
-- **League screen**: tabs Championship (pyramid of the 4 leagues, division hero with rules + gap to promotion / drop,
-  table with zones and ▲▼ movement since the previous matchday, fixtures), Competitions (a card per competition: status,
-  trophy, next round, registration, draw), Honours (trophy cabinet with greyed trophies still to win, season by season).
+- **League screen**: tabs Championship (pyramid of the 4 leagues with the money scale « po ×1,35 » in gold, division
+  hero with rules + gap to promotion / drop, table with zones and ▲▼ movement since the previous matchday, fixtures),
+  Competitions (« Votre programme » = the player's coming league matchdays and midweek rounds in play order, flags weeks
+  with two matches; then every competition as a list (default) or cards, choice in localStorage `fm.compView`: status,
+  next round, tie, trophy, registration, draw), Honours (trophy cabinet with greyed trophies still to win, season by season).
+  Competition colours: `.def-<id>` sets `--comp` (league, shadow, champions, division, or, argent, marches, preseason),
+  used by `.comp-badge` (schedule, pre-match title). Division emblems `DIV_ICON`: 👑 ⚜️ 🏰 ⛺.
+- **Coaches** cost wage = 40 + quality² × 2.2 per week and a hiring fee of 12 weeks of wages (a top coach ≈ 10k).
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
   new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
   scouts, staff) → scouting → market (free agents, AI signings/buys, AI offers to the player) → contract
@@ -148,6 +153,9 @@ tests/       Vitest
   from ranged attacks and spells (melee reaching the back line ignores it).
 - **Orders**: aggressive = more damage for much more stamina (a burst, ruinous over a whole match); cautious = armour
   and stamina savings. `Combat.sides[].baseOrders` = starting orders, which break decisions return to when level.
+  Individual instruction (`cfg.combat.stances`): all out = +8 % damage, −4 % armour, +15 % stamina costs; pace yourself
+  = −8 % damage, −15 % stamina costs (AI uses fewer big abilities); normal = neither. Neutral on average in `sim:levers`
+  (±1.5), a tired squad pacing itself +4.
 - **Fatigue**: pre-match fatigue removes up to 70 % of the stamina pool, penalties start below 60 % stamina (up to
   −40 % hit/damage/initiative/interception) and injuries are ×(1 + fatigue/100).
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in

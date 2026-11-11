@@ -49,9 +49,9 @@ export const TRAINING_CONFIG = {
     noCoach: 0.5,
     /** Weekly wage = base + quality² × perQualitySq (rounded to 10). */
     wageBase: 40,
-    wagePerQualitySq: 1.6,
+    wagePerQualitySq: 2.2,
     /** One-off hiring fee = this many weeks of wages. */
-    hireWeeks: 4,
+    hireWeeks: 12,
     /** Coaches on the market at the start of each season. */
     market: 9,
     /** Starting coach quality by club quality tier (mean). */

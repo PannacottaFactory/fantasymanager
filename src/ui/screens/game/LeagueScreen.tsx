@@ -11,7 +11,7 @@ import { computeStandings } from '../../../engine/league/standings.ts';
 import { registerTournament, registrationState, tournamentDef, tournamentPrize } from '../../../engine/league/tournaments.ts';
 import type { Fixture, GameState, Tournament } from '../../../engine/league/types.ts';
 import { COMP_ICON, compName, DIV_ICON, divName, roundKey } from '../../competitions.ts';
-import { Gold, Seg } from '../../components/common.tsx';
+import { Gold, Money, Seg } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -56,7 +56,7 @@ function Pyramid({ game, selected, onSelect }: { game: GameState; selected: numb
               <span className="pyr-name">
                 <b>{divName(t, d)}</b>
                 <small>
-                  {t('div.short', { n: d + 1 })} · {t('league.money', { x: String(DEFAULT_CONFIG.league.divisionMoney[d] ?? 1).replace('.', lang === 'fr' ? ',' : '.') })}
+                  {t('div.short', { n: d + 1 })} · <span className="gold">{t('league.money', { x: String(DEFAULT_CONFIG.league.divisionMoney[d] ?? 1).replace('.', lang === 'fr' ? ',' : '.') })}</span>
                 </small>
               </span>
               {d === mine && (
@@ -328,10 +328,9 @@ function views(game: GameState): CompView[] {
   return [shadow, ...tours];
 }
 
-function CompCard({ game, v }: { game: GameState; v: CompView }) {
-  const tr = useT();
-  const { t, money } = tr;
-  const [open, setOpen] = useState(false);
+/** What every view of a competition needs: status, next round, the player's tie, registration. */
+function useCompInfo(game: GameState, v: CompView) {
+  const { t, money } = useT();
   const [note, setNote] = useState<string | null>(null);
   const me = game.playerTeamId;
   const inIt = v.entrants.includes(me);
@@ -350,7 +349,9 @@ function CompCard({ game, v }: { game: GameState; v: CompView }) {
   else if (reg === 'reputation') status = { text: t('comp.status.locked', { rep: def?.minRep ?? 0, mine: clubOf(game, me).reputation }), tone: 'locked' };
   else if (reg === 'closed' && t0?.kind === 'open') status = { text: t('comp.status.closed'), tone: 'none' };
   else status = { text: t('comp.status.notIn'), tone: 'none' };
-  const next = v.round < v.rounds ? v.keys[v.round] : undefined;
+  const nextKey = v.round < v.rounds ? v.keys[v.round] : undefined;
+  const nextText =
+    v.winner || nextKey === undefined ? '' : nextKey < 1 ? t('comp.nextPre', { round: roundName(v.round) }) : t('comp.next', { round: roundName(v.round), d: Math.floor(nextKey) });
   const register = () => {
     const o = useGame.getState().act((g) => registerTournament(g, v.id));
     if (!o) return;
@@ -362,14 +363,55 @@ function CompCard({ game, v }: { game: GameState; v: CompView }) {
       : def?.minRep
         ? t('comp.desc.open', { rep: def.minRep, fee: money(def.fee ?? 0) })
         : t('comp.desc.openAll', { fee: money(def?.fee ?? 0) });
+  const canRegister = reg === 'ok' || reg === 'money';
+  const registerButton = canRegister ? (
+    <button className="btn primary small" disabled={reg === 'money'} onClick={register}>
+      {reg === 'money' ? t('comp.noMoney') : t('comp.register', { fee: money(def?.fee ?? 0) })}
+    </button>
+  ) : null;
+  const opp = nextTie ? teamById(game, nextTie.home === me ? nextTie.away : nextTie.home).name : undefined;
+  return { name, status, nextText, desc, registerButton, note, opp, inIt, me };
+}
+
+function Bracket({ game, v }: { game: GameState; v: CompView }) {
+  const { t } = useT();
   return (
-    <section className={`panel comp-card comp-${status.tone} def-${v.def}`}>
+    <div className="cup-rounds">
+      {Array.from({ length: v.rounds }, (_, r) => {
+        const ties = v.fixtures.filter((f) => f.round === r);
+        return (
+          <div key={r} className={`cup-round ${r === v.round ? 'current' : ''}`}>
+            <h4>{t(roundKey(r, v.rounds))}</h4>
+            <div className="faint" style={{ fontSize: '0.786rem', marginBottom: 4 }}>
+              {(v.keys[r] ?? 0) < 1 ? t('comp.beforeFirst') : t('cup.after', { d: Math.floor(v.keys[r] ?? 0) })}
+            </div>
+            {ties.length === 0 && <div className="faint">{t('cup.notDrawn')}</div>}
+            <table className="data fixtures">
+              <tbody>
+                {ties.map((f) => (
+                  <FixtureRow key={f.id} game={game} f={f} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function CompCard({ game, v }: { game: GameState; v: CompView }) {
+  const { t, money } = useT();
+  const [open, setOpen] = useState(false);
+  const c = useCompInfo(game, v);
+  return (
+    <section className={`panel comp-card comp-${c.status.tone} def-${v.def}`}>
       <div className="comp-head">
         <span className="comp-icon">{COMP_ICON[v.def] ?? '🏆'}</span>
         <div className="grow">
-          <h3>{name}</h3>
+          <h3>{c.name}</h3>
           <div className="muted" style={{ fontSize: '0.857rem' }}>
-            <Gold>{desc}</Gold>
+            <Gold>{c.desc}</Gold>
           </div>
         </div>
         <span className="comp-trophy" title={t('comp.trophy', { prize: money(v.trophy) })}>
@@ -377,84 +419,252 @@ function CompCard({ game, v }: { game: GameState; v: CompView }) {
         </span>
       </div>
       <div className="comp-status">
-        <span className={`comp-chip ${status.tone}`}>{status.text}</span>
-        {v.winner && v.winner !== me && <span className="muted">{t('comp.status.over', { team: teamById(game, v.winner).name })}</span>}
-        {!v.winner && next !== undefined && (
-          <span className="muted">{next < 1 ? t('comp.nextPre', { round: roundName(v.round) }) : t('comp.next', { round: roundName(v.round), d: Math.floor(next) })}</span>
-        )}
-        {nextTie && <span>{t('comp.yourMatch', { opp: teamById(game, nextTie.home === me ? nextTie.away : nextTie.home).name })}</span>}
-        {v.def === 'champions' && !inIt && <span className="faint">{t('comp.req.champions')}</span>}
+        <span className={`comp-chip ${c.status.tone}`}>{c.status.text}</span>
+        {v.winner && v.winner !== c.me && <span className="muted">{t('comp.status.over', { team: teamById(game, v.winner).name })}</span>}
+        {c.nextText && <span className="muted">{c.nextText}</span>}
+        {c.opp && <span>{t('comp.yourMatch', { opp: c.opp })}</span>}
+        {v.def === 'champions' && !c.inIt && <span className="faint">{t('comp.req.champions')}</span>}
       </div>
-      {(reg === 'ok' || reg === 'money') && (
+      {c.registerButton && (
         <div className="row" style={{ gap: 8 }}>
-          <button className="btn primary" disabled={reg === 'money'} onClick={register}>
-            {reg === 'money' ? t('comp.noMoney') : t('comp.register', { fee: money(def?.fee ?? 0) })}
-          </button>
+          {c.registerButton}
         </div>
       )}
-      {note && <div className="muted">{note}</div>}
+      {c.note && <div className="muted">{c.note}</div>}
       {v.fixtures.length > 0 && (
         <button className="link" style={{ alignSelf: 'flex-start' }} onClick={() => setOpen((x) => !x)}>
           {open ? t('comp.hideBracket') : t('comp.bracket')}
         </button>
       )}
+      {open && <Bracket game={game} v={v} />}
+    </section>
+  );
+}
+
+function CompRow({ game, v }: { game: GameState; v: CompView }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const c = useCompInfo(game, v);
+  return (
+    <>
+      <tr className={`comp-row comp-${c.status.tone} def-${v.def}`}>
+        <td>
+          <span className="comp-row-name" title={c.desc}>
+            <span className="comp-icon-sm">{COMP_ICON[v.def] ?? '🏆'}</span>
+            <b>{c.name}</b>
+          </span>
+        </td>
+        <td>
+          <span className={`comp-chip ${c.status.tone}`}>{c.status.text}</span>
+          {v.winner && v.winner !== c.me && (
+            <div className="faint" style={{ fontSize: '0.786rem' }}>
+              {t('comp.status.over', { team: teamById(game, v.winner).name })}
+            </div>
+          )}
+          {v.def === 'champions' && !c.inIt && <span className="faint comp-req">{t('comp.req.champions')}</span>}
+        </td>
+        <td className="muted">{c.nextText.replace(/^[^:]*:\s*/, '') || '—'}</td>
+        <td>{c.opp ?? <span className="faint">—</span>}</td>
+        <td className="num">
+          <Money v={v.trophy} />
+        </td>
+        <td className="right">
+          <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
+            {c.registerButton}
+            {v.fixtures.length > 0 && (
+              <button className="link" onClick={() => setOpen((x) => !x)}>
+                {open ? t('comp.hideBracket') : t('comp.bracket')}
+              </button>
+            )}
+          </span>
+          {c.note && (
+            <div className="muted" style={{ fontSize: '0.786rem' }}>
+              {c.note}
+            </div>
+          )}
+        </td>
+      </tr>
       {open && (
-        <div className="cup-rounds">
-          {Array.from({ length: v.rounds }, (_, r) => {
-            const ties = v.fixtures.filter((f) => f.round === r);
-            return (
-              <div key={r} className={`cup-round ${r === v.round ? 'current' : ''}`}>
-                <h4>{roundName(r)}</h4>
-                <div className="faint" style={{ fontSize: '0.786rem', marginBottom: 4 }}>
-                  {(v.keys[r] ?? 0) < 1 ? t('comp.beforeFirst') : t('cup.after', { d: Math.floor(v.keys[r] ?? 0) })}
-                </div>
-                {ties.length === 0 && <div className="faint">{t('cup.notDrawn')}</div>}
-                <table className="data fixtures">
-                  <tbody>
-                    {ties.map((f) => (
-                      <FixtureRow key={f.id} game={game} f={f} />
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })}
-        </div>
+        <tr className="comp-row-bracket">
+          <td colSpan={6}>
+            <Bracket game={game} v={v} />
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
+function CompTable({ game, list }: { game: GameState; list: CompView[] }) {
+  const { t } = useT();
+  return (
+    <section className="panel">
+      <div className="table-wrap">
+        <table className="data comp-list">
+          <thead>
+            <tr>
+              <th>{t('comp.col.name')}</th>
+              <th>{t('comp.col.status')}</th>
+              <th>{t('comp.col.next')}</th>
+              <th>{t('comp.col.match')}</th>
+              <th className="num">{t('comp.col.trophy')}</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((v) => (
+              <CompRow key={v.id} game={game} v={v} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+/** The player's coming matches, league and competitions together, in the order they are played. */
+function Schedule({ game, comps }: { game: GameState; comps: CompView[] }) {
+  const { t } = useT();
+  const [all, setAll] = useState(false);
+  const me = game.playerTeamId;
+  type Item = { key: number; when: string; comp: string; def: string; opp?: string; tbd?: boolean; maybe?: boolean; midweek: boolean };
+  const items: Item[] = [];
+  for (const f of game.fixtures) {
+    if (f.competition || f.result || (f.home !== me && f.away !== me)) continue;
+    items.push({
+      key: f.matchday,
+      when: t('cal.matchday', { d: f.matchday }),
+      comp: `${t('cal.league')} · ${divName(t, f.division ?? 0)}`,
+      def: 'league',
+      opp: teamById(game, f.home === me ? f.away : f.home).name,
+      midweek: false,
+    });
+  }
+  for (const v of comps) {
+    if (!v.entrants.includes(me) || !v.alive.includes(me) || v.winner) continue;
+    for (let r = v.round; r < v.rounds; r++) {
+      const k = v.keys[r];
+      if (k === undefined) continue;
+      const tie = v.fixtures.find((f) => !f.result && f.round === r && (f.home === me || f.away === me));
+      items.push({
+        // A midweek after matchday d comes after that matchday (and a later midweek, d.5, after it).
+        key: Number.isInteger(k) ? k + 0.01 : k,
+        when: k < 1 ? t('cal.before') : t('cal.midweek', { d: Math.floor(k) }),
+        comp: `${compName(t, v.id)} · ${t(roundKey(r, v.rounds))}`,
+        def: v.def,
+        opp: tie ? teamById(game, tie.home === me ? tie.away : tie.home).name : undefined,
+        tbd: !tie && r === v.round,
+        maybe: r > v.round,
+        midweek: true,
+      });
+    }
+  }
+  items.sort((a, b) => a.key - b.key);
+  // A matchday followed by a midweek before the next matchday = two matches that week.
+  const double = new Set(items.filter((x) => x.midweek && x.key >= 1).map((x) => Math.floor(x.key)));
+  const LIMIT = 8;
+  const shown = all ? items : items.slice(0, LIMIT);
+  return (
+    <section className="panel schedule">
+      <h3>{t('cal.title')}</h3>
+      <p className="muted" style={{ marginTop: 0, fontSize: '0.857rem' }}>
+        {t('cal.intro')}
+      </p>
+      {items.length === 0 ? (
+        <p className="faint">{t('cal.empty')}</p>
+      ) : (
+        <ol className="cal-list">
+          {shown.map((x, i) => (
+            <li key={i} className={`cal-item ${x.midweek ? 'midweek' : 'league'} ${x.maybe ? 'maybe' : ''}`}>
+              <span className="cal-when">
+                {x.when}
+                {!x.midweek && double.has(x.key) && <small className="cal-double">{t('cal.double')}</small>}
+              </span>
+              <span className={`comp-badge def-${x.def}`}>
+                {x.def === 'league' ? DIV_ICON[playerDivision(game)] : (COMP_ICON[x.def] ?? '🏆')} {x.comp}
+              </span>
+              <span className="cal-opp">
+                {x.opp ? (
+                  <>
+                    <span className="muted">{t('common.vs')}</span> {x.opp}
+                  </>
+                ) : (
+                  <span className="faint">{x.maybe ? t('cal.ifThrough') : x.tbd ? t('cal.tbd') : ''}</span>
+                )}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+      {items.length > LIMIT && (
+        <button className="link" onClick={() => setAll((x) => !x)}>
+          {all ? t('cal.less') : t('cal.more', { n: items.length - LIMIT })}
+        </button>
       )}
     </section>
   );
 }
 
+type CompLayout = 'cards' | 'list';
+const COMP_VIEW_KEY = 'fm.compView';
+const readCompView = (): CompLayout => {
+  try {
+    return localStorage.getItem(COMP_VIEW_KEY) === 'cards' ? 'cards' : 'list';
+  } catch {
+    return 'list';
+  }
+};
+
 function Competitions({ game }: { game: GameState }) {
   const { t } = useT();
   const [others, setOthers] = useState(false);
+  const [view, setViewState] = useState<CompLayout>(readCompView);
+  const setView = (v: CompLayout) => {
+    setViewState(v);
+    try {
+      localStorage.setItem(COMP_VIEW_KEY, v);
+    } catch {
+      /* per-viewer convenience only */
+    }
+  };
   const all = views(game);
   const myDiv = divisionOf(game, game.playerTeamId);
   const order = ['shadow', `division-${myDiv}`, 'champions', 'marches', 'argent', 'or', 'preseason'];
   const main = order.map((id) => all.find((v) => v.id === id)).filter((v): v is CompView => !!v);
   const rest = all.filter((v) => v.def === 'division' && v.id !== `division-${myDiv}`);
-  return (
-    <div className="stack">
-      <p className="muted" style={{ margin: 0 }}>
-        {t('comp.intro')}
-      </p>
+  const block = (list: CompView[]) =>
+    view === 'list' ? (
+      <CompTable game={game} list={list} />
+    ) : (
       <div className="comp-grid">
-        {main.map((v) => (
+        {list.map((v) => (
           <CompCard key={v.id} game={game} v={v} />
         ))}
       </div>
+    );
+  return (
+    <div className="stack">
+      <Schedule game={game} comps={all} />
+      <div className="row" style={{ gap: 12, alignItems: 'center' }}>
+        <p className="muted grow" style={{ margin: 0 }}>
+          {t('comp.intro')}
+        </p>
+        <Seg
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'list', label: `☰ ${t('comp.view.list')}` },
+            { value: 'cards', label: `▦ ${t('comp.view.cards')}` },
+          ]}
+        />
+      </div>
+      {block(main)}
       {rest.length > 0 && (
         <>
           <button className="link" style={{ alignSelf: 'flex-start' }} onClick={() => setOthers((x) => !x)}>
             {t('comp.otherDivisions')} {others ? '▴' : '▾'}
           </button>
-          {others && (
-            <div className="comp-grid">
-              {rest.map((v) => (
-                <CompCard key={v.id} game={game} v={v} />
-              ))}
-            </div>
-          )}
+          {others && block(rest)}
         </>
       )}
     </div>

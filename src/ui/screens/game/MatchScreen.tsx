@@ -1,6 +1,6 @@
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
-import { compName, divName, roundKey } from '../../competitions.ts';
+import { COMP_ICON, compDef, compName, DIV_ICON, divName, roundKey } from '../../competitions.ts';
 import { isInjured } from '../../../engine/creature/derived.ts';
 import { aiPrepare, lastMatchday, playerPrepare, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -81,7 +81,11 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
       <section className="panel">
         <div className="matchbar">
           <div>
-            <h4>{title}</h4>
+            <h4>
+              <span className={`comp-badge big def-${f.competition ? compDef(f.tournamentId) : 'league'}`}>
+                {f.competition ? (COMP_ICON[compDef(f.tournamentId)] ?? '🏆') : DIV_ICON[f.division ?? 0]} {title}
+              </span>
+            </h4>
             <h2>
               <span className="home-text">{mine.name}</span> <span className="muted">{t('common.vs')}</span> <span className="away-text">{opp.name}</span>
             </h2>

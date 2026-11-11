@@ -227,7 +227,7 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   dmg *= roleDamageFactor(attacker, kind, cfg);
   dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
   dmg *= ascendancyMult(ctx.orders, ctx.foeOrders, cfg);
-  if (attacker.stance === 'allOut') dmg *= 1.08;
+  dmg *= cfg.combat.stances[attacker.stance].damageMult;
   if (ctx.solo) dmg *= traitMult(attacker, 'soloDamageMult');
   dmg *= 1 - fatiguePenalty(attacker, cfg);
   dmg *= moraleFactor(attacker, cfg);
@@ -275,6 +275,7 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
   m += effectMod(defender, 'mitigation');
   m += roleMitigation(defender, cfg);
   m += cfg.combat.orders[orders.aggression].mitigation;
+  m += cfg.combat.stances[defender.stance].mitigation;
   if (defender.guarding) m += cfg.combat.guard.guardMitigation;
   return clamp(m, d.minMitigation, d.maxMitigation);
 }
@@ -287,8 +288,7 @@ export function healAmount(healer: Combatant, ability: AbilityDef, cfg: GameConf
 export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {
   let cost = ability.staminaCost * cfg.combat.stamina.sizeCostMult[c.size];
   cost *= cfg.combat.orders[orders.aggression].staminaCostMult;
-  if (c.stance === 'allOut') cost *= 1.15;
-  if (c.stance === 'conserve') cost *= 0.9;
+  cost *= cfg.combat.stances[c.stance].staminaCostMult;
   return Math.round(cost);
 }
 

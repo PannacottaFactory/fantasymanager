@@ -85,7 +85,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                 <th>{t('col.health')}</th>
                 <th>{t('col.stamina')}</th>
                 <th>{t('col.morale')}</th>
-                <th>{t('col.orders')}</th>
+                <th title={t('col.orders.title')}>{t('col.orders')}</th>
                 <th>{t('col.substitute')}</th>
               </tr>
             </thead>

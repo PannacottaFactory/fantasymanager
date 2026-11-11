@@ -138,6 +138,15 @@ export const COMBAT_CONFIG = {
     riskLow: { critBonus: -0.01, hitBonus: 0.02, bigAbilityBias: -0.3 },
   },
   /**
+   * Individual instruction of a creature. Each one away from normal trades something:
+   * all out hits harder but costs stamina and leaves it open; pacing itself saves stamina but holds back its blows.
+   */
+  stances: {
+    normal: { damageMult: 1, mitigation: 0, staminaCostMult: 1 },
+    allOut: { damageMult: 1.08, mitigation: -0.04, staminaCostMult: 1.15 },
+    conserve: { damageMult: 0.92, mitigation: 0, staminaCostMult: 0.85 },
+  },
+  /**
    * How well a creature suits its role (role fit 1–20) scales what the role does: tank interceptions,
    * striker melee damage, caster spell damage, support healing, skirmisher strikes on the back line.
    * factor = 1 + (fit − 10) × perPoint, clamped.

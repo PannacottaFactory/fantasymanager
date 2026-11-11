@@ -22,7 +22,7 @@ export function compName(t: T, id?: string): string {
 
 /** Emblem of each competition and division. */
 export const COMP_ICON: Record<string, string> = { shadow: '🏆', division: '🛡', champions: '👑', preseason: '⚑', marches: '🏮', argent: '🥈', or: '🥇' };
-export const DIV_ICON = ['👑', '🦁', '🏰', '⛺'];
+export const DIV_ICON = ['👑', '⚜️', '🏰', '⛺'];
 
 /** Name of a round, counted from the final. */
 export function roundKey(round: number, rounds: number): StringKey {

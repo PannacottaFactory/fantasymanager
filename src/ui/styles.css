@@ -1283,6 +1283,48 @@ table.standings .pts { font-size: 1.071rem; }
 .comp-chip.open { color: var(--good); border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
 .comp-chip.locked::before { content: '🔒 '; }
 
+/* Colour of each competition (cards, list rows, badges in the schedule and the pre-match screen). */
+.def-league { --comp: var(--accent); }
+.def-shadow { --comp: #9a7bd6; }
+.def-champions { --comp: var(--gold); }
+.def-division { --comp: var(--home); }
+.def-or { --comp: #e8c547; }
+.def-argent { --comp: #9fb0c0; }
+.def-marches { --comp: #e08a3c; }
+.def-preseason { --comp: #3fb5a3; }
+.comp-card.def-preseason { border-top-color: var(--comp); }
+.comp-badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 12px; font-size: 0.857rem; font-weight: 700;
+  color: var(--comp, var(--accent)); border: 1px solid color-mix(in srgb, var(--comp, var(--accent)) 60%, transparent);
+  background: color-mix(in srgb, var(--comp, var(--accent)) 14%, transparent); white-space: nowrap; }
+.comp-badge.big { font-size: 1rem; padding: 4px 14px; border-radius: 14px; letter-spacing: 0.02em; }
+
+/* Competitions as a list. */
+table.comp-list td { vertical-align: middle; white-space: normal; }
+table.comp-list td.num, .comp-row-name, table.comp-list .comp-chip, table.comp-list .link, table.comp-list .btn { white-space: nowrap; }
+.comp-req { display: block; font-size: 0.786rem; margin-top: 2px; }
+table.comp-list tr.comp-row td:first-child { border-left: 3px solid var(--comp, var(--border-strong)); }
+table.comp-list tr.comp-won td { background: color-mix(in srgb, var(--gold) 8%, transparent); }
+table.comp-list tr.comp-locked { opacity: 0.7; }
+.comp-row-name { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.comp-icon-sm { font-size: 1.286rem; line-height: 1; }
+tr.comp-row-bracket > td { padding: 8px 4px 14px; }
+
+/* The player's schedule. */
+.cal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.cal-item { display: grid; grid-template-columns: minmax(160px, 15rem) auto 1fr; gap: 12px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--border); }
+.cal-item:last-child { border-bottom: 0; }
+.cal-item.midweek { padding-left: 18px; position: relative; }
+.cal-item.midweek::before { content: '↳'; position: absolute; left: 4px; color: var(--muted); }
+.cal-item.maybe { opacity: 0.6; }
+.cal-when { display: flex; flex-direction: column; font-size: 0.857rem; color: var(--muted); }
+.cal-item.league .cal-when { color: var(--text); font-weight: 600; }
+.cal-double { color: var(--warn, var(--gold)); font-weight: 400; font-size: 0.714rem; }
+.cal-opp { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) {
+  .cal-item { grid-template-columns: 1fr; gap: 4px; }
+  .comp-badge { white-space: normal; }
+}
+
 .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .trophy-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border-radius: 10px; border: 1px dashed var(--border-strong); text-align: center; }
 .trophy-tile .trophy-icon { font-size: 2rem; filter: grayscale(1) opacity(0.35); }

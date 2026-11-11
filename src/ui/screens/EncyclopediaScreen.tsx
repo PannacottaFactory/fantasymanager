@@ -704,6 +704,8 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       cd: mult(c.orders.cautious.damageMult), cm: p(c.orders.cautious.mitigation), cs: mult(c.orders.cautious.staminaCostMult),
       ad: mult(c.orders.aggressive.damageMult), am: pct(c.orders.aggressive.mitigation), as: mult(c.orders.aggressive.staminaCostMult),
       asc: p(c.orders.ascendancy.bonus),
+      sad: mult(c.stances.allOut.damageMult), sam: pct(c.stances.allOut.mitigation), sas: mult(c.stances.allOut.staminaCostMult),
+      scd: mult(c.stances.conserve.damageMult), scs: mult(c.stances.conserve.staminaCostMult),
       rhc: p(c.orders.riskHigh.critBonus), rhh: pct(c.orders.riskHigh.hitBonus), rlc: pct(c.orders.riskLow.critBonus), rlh: p(c.orders.riskLow.hitBonus),
     },
     stamina: {
