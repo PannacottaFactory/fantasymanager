@@ -2,6 +2,7 @@
  * Season flow (pure): create a world, play a week (league matchday or cup round), move to the next season.
  * Every function returns a NEW GameState; nothing reads the clock or Math.random.
  */
+import type { TeamCrest } from '../../data/crest.ts';
 import { checkAmbitions, recordSeason } from '../club/ambitions.ts';
 import type { Lang } from '../../core/i18n.ts';
 import { clamp } from '../../core/math.ts';
@@ -39,6 +40,8 @@ export interface NewGameOptions {
   lang: Lang;
   /** Default: normal. */
   difficulty?: DifficultyId;
+  /** The player's crest (default: drawn from the stable's id). */
+  crest?: TeamCrest;
 }
 
 /** Generates the stables of every division (the player's stable is the last slot of its division). */
@@ -127,6 +130,9 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
     news: [],
     difficulty,
   };
+  if (opts.crest) state.teams.find((t) => t.id === playerId)!.crest = { ...opts.crest, field: [...opts.crest.field] };
+  // The player's club is small (money, reputation, staff) even when its squad is not.
+  qualities[playerId] = cfg.identity.difficulties[difficulty].playerClub ?? 'novice';
   initEconomy(state, qualities, cfg);
   const club = state.clubs[playerId];
   if (club) club.balance = Math.round(club.balance * cfg.identity.difficulties[difficulty].startMoney);

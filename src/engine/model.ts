@@ -1,4 +1,5 @@
 /** Runtime data model shared by every engine module. Everything here is plain, serializable data. */
+import type { TeamCrest } from '../data/crest.ts';
 import type { AttributeKey, Attributes } from '../data/attributes.ts';
 import type { Line, RoleId, TargetPriority } from '../data/schema.ts';
 import type { ManagerId, PlayStyleId } from '../data/config/identity.ts';
@@ -137,4 +138,6 @@ export interface Team {
   tactic: Tactic;
   /** AI stables only. */
   identity?: StableIdentity;
+  /** The stable's crest (the player's choice; AI stables: drawn from the id when missing). */
+  crest?: TeamCrest;
 }

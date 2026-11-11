@@ -24,6 +24,7 @@ export interface SeasonItem {
   rounds?: number;
   fixtureId?: string;
   opp?: string;
+  oppId?: string;
   played: boolean;
   outcome?: 'win' | 'loss';
   score?: [number, number];
@@ -40,12 +41,13 @@ export function playerSeason(game: GameState): SeasonItem[] {
   const me = game.playerTeamId;
   const items: SeasonItem[] = [];
   const mineF = (f: Fixture) => f.home === me || f.away === me;
-  const played = (f: Fixture, base: Omit<SeasonItem, 'played' | 'opp' | 'fixtureId'>): SeasonItem => {
+  const played = (f: Fixture, base: Omit<SeasonItem, 'played' | 'opp' | 'oppId' | 'fixtureId'>): SeasonItem => {
     const side = f.home === me ? 0 : 1;
     return {
       ...base,
       fixtureId: f.id,
       opp: teamById(game, side === 0 ? f.away : f.home).name,
+      oppId: side === 0 ? f.away : f.home,
       played: !!f.result,
       outcome: f.result ? (f.result.winner === side ? 'win' : 'loss') : undefined,
       score: f.result ? (side === 0 ? f.result.score : [f.result.score[1], f.result.score[0]]) : undefined,
@@ -104,4 +106,18 @@ type T = (key: StringKey, vars?: Record<string, string | number>) => string;
 /** « Marches League » or « Shadow Cup · Quarter-finals ». */
 export function itemLabel(t: T, x: SeasonItem): string {
   return x.league ? divName(t, x.division ?? 0) : `${compName(t, x.tournamentId)} · ${t(roundKey(x.round ?? 0, x.rounds ?? 1))}`;
+}
+
+/** The week being played: the one of the player's next match (0 = pre-season), n + 1 once the season is over. */
+export function currentWeek(game: GameState): number {
+  const next = playerSeason(game).find((x) => !x.played && !x.maybe);
+  if (next) return next.week;
+  return Math.min(completedWeek(game) + 1, lastMatchday(game) + 1);
+}
+
+/** « week 3/18 », « pre-season » or « season over ». */
+export function weekText(t: T, game: GameState): string {
+  const w = currentWeek(game);
+  const n = lastMatchday(game);
+  return w === 0 ? t('week.pre') : w > n ? t('week.over') : t('week.of', { d: w, n });
 }

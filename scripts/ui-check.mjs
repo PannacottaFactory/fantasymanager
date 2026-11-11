@@ -53,8 +53,23 @@ await wait(800);
 await shot('00-intro');
 await closeModal();
 
+/** Closes the end-of-week summary (screenshot of the first one). */
+let recaps = 0;
+const closeRecap = async () => {
+  while (await page.locator('.recap').count()) {
+    recaps++;
+    if (recaps === 1) {
+      await wait(2500);
+      await shot('00-recap');
+    }
+    await page.locator('.dialog-head .btn.ghost[aria-label]').first().click();
+    await wait(300);
+  }
+};
+
 // Play a few weeks (simulated matches).
 for (let w = 0; w < weeks; w++) {
+  await closeRecap();
   await page.locator('.topbar .btn.primary').first().click();
   await wait(600);
   const sim = page.locator('button.cta-sim');
@@ -69,6 +84,7 @@ for (let w = 0; w < weeks; w++) {
   }
   if (!(await alive(`week ${w + 1}`))) break;
 }
+await closeRecap();
 await go(null, 0);
 await shot('01-inbox');
 

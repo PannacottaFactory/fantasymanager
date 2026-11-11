@@ -315,7 +315,19 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   filling — wrapping with « Niveau N ! » on a level-up —, attribute chips popping one by one, new abilities, point to
   place; sparkles; still when effects are off), position ▲▼, treasury delta, infirmary, next week.
   The ribbon is a rail filled up to the current week, a medallion per week (league result), diamonds for cup matches.
-- **Difficulty** (re-tuned): the player starts with a regional squad in every difficulty; the Marches League holds
+- **Crests** (`data/crest.ts`, `engine/team/crest.ts`, `ui/components/TeamCrest.tsx`): `Team.crest` = emblem (32 game-icons,
+  `CREST_ICONS`) + two field colours + pattern (plain, pale, fess, bend, quarterly, chevron) + emblem colour; chosen in
+  the new-game screen (`CrestEditor`, `NewGameOptions.crest`), AI stables get `defaultCrest(id)`. Shown in the top bar,
+  home hero, league tables, pre-match, calendar, continue card.
+- **Current week**: `currentWeek` / `weekText` (`ui/season.ts`) = the week of the player's next match (0 = pre-season) —
+  the same number in the ribbon, home hero, top bar status and start screen; the division hero shows weeks played.
+- **Start screen** fits without scrolling: compact hero, the saved game as a banner, new game in two columns (name +
+  crest | difficulty + start). News items use game-icons (`<NewsIcon kind>`, `UI_ICONS['news-<kind>']`).
+- `npm run ui:check` closes the end-of-week summaries (screenshot `00-recap`).
+- **Season calendar** (League › Competitions, « Votre saison »): a tile per week (pre-season … 18), each match a chip in
+  its competition's colour (opponent crest, V/D + score once played, « prochain match »), current week highlighted.
+- **Difficulty** (re-tuned): the player starts with a regional squad in every difficulty but a small club (money,
+  reputation, staff: `DifficultyDef.playerClub`, novice except easy); the Marches League holds
   0 / 3 / 6 regional stables (easy / normal / hard) and AI identities, reading, money and board differ. `sim:ai
   --season-only` (autopilot, enters the invitationals it can) ≈ 4th · 1.4 trophies/season (easy), 5th · 0.8 (normal),
   7th · 0.5 (hard) — a skilled player does better.

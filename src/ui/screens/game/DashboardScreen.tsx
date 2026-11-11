@@ -2,6 +2,8 @@
  * Dashboard: the stable at a glance — next match, board, table position, squad status, best creatures,
  * money, recent results, messages and news. Every card leads to the screen that deals with it.
  */
+import { weekText } from '../../season.ts';
+import { StableCrest } from '../../components/TeamCrest.tsx';
 import { ReputationLine } from '../../components/Reputation.tsx';
 import { useState, type ReactNode } from 'react';
 import { FirstSteps } from '../../tutorial/FirstSteps.tsx';
@@ -9,7 +11,7 @@ import { overallRating } from '../../../engine/creature/derived.ts';
 import { AMBITION_IDS, ambitionProgress } from '../../../engine/club/ambitions.ts';
 import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
-import { lastMatchday, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
+import { playerTeam, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -21,7 +23,7 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame, type Screen } from '../../store/gameStore.ts';
 import { BoardCard, NextMatch, wording } from './InboxScreen.tsx';
 import { FormDots } from './LeagueScreen.tsx';
-import { newsText } from './NewsScreen.tsx';
+import { NewsIcon, newsText } from './NewsScreen.tsx';
 
 function Card({ title, to, link, children, className = '' }: { title: string; to?: Screen; link?: string; children: ReactNode; className?: string }) {
   return (
@@ -47,14 +49,13 @@ function Hero({ game }: { game: GameState }) {
   const table = standings(game, d);
   const pos = table.findIndex((r) => r.teamId === team.id) + 1;
   const row = table[pos - 1];
-  const best = [...team.creatures].sort((a, b) => b.ability - a.ability)[0];
   return (
     <section className="panel dash-hero">
-      {best && <Crest speciesId={best.speciesId} name={team.name} size={56} />}
+      <StableCrest team={team} size={60} />
       <div className="grow">
         <h2>{team.name}</h2>
         <div className="muted">
-          {divName(t, d)} · {t('dash.season', { s: game.season, d: Math.min(game.matchday, lastMatchday(game)), n: lastMatchday(game) })} ·{' '}
+          {divName(t, d)} · {t('dash.season', { s: game.season, w: weekText(t, game) })} ·{' '}
           {t(`diff.${game.difficulty ?? 'normal'}` as StringKey)}
         </div>
         <ReputationLine game={game} />
@@ -270,6 +271,7 @@ function News({ game }: { game: GameState }) {
       <ul className="dash-list">
         {list.map((n) => (
           <li key={n.id}>
+            <NewsIcon kind={n.kind} />
             <span className="grow">
               <Gold>{newsText(tr, n)}</Gold>
             </span>

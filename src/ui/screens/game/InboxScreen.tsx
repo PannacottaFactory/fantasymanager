@@ -328,16 +328,22 @@ export function NextMatch({ game }: { game: GameState }) {
   if (!f || seasonOver(game)) return null;
   const home = f.home === game.playerTeamId;
   const opp = teamById(game, home ? f.away : f.home);
-  const table = standings(game);
+  // The opponent may play in another division (cups): its own table.
+  const table = standings(game, divisionOf(game, opp.id));
   const pos = table.findIndex((r) => r.teamId === opp.id) + 1;
-  const row = table[pos - 1]!;
+  const row = table[pos - 1];
   return (
     <section className="panel next-match">
       <div className="row wrap" style={{ gap: 10 }}>
         <h4 className="nm-label">{t('inbox.nextMatch')}</h4>
         <span className="tag">{home ? t('common.home') : t('common.away')}</span>
         <b style={{ fontFamily: 'var(--font-title)', fontSize: '1.05rem' }}>{opp.name}</b>
-        <span className="muted">{t('match.position', { pos: tr.ordinal(pos), pts: row.points })}</span>
+        {row && (
+          <span className="muted">
+            {divisionOf(game, opp.id) !== divisionOf(game, game.playerTeamId) && `${divName(t, divisionOf(game, opp.id))} · `}
+            {t('match.position', { pos: tr.ordinal(pos), pts: row.points })}
+          </span>
+        )}
         <span className="spacer" />
         <button className="btn primary" onClick={() => useGame.getState().continueGame()}>
           {t('continue.next')} ▶

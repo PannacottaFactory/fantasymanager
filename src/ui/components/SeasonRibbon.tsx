@@ -7,7 +7,7 @@ import type { CSSProperties } from 'react';
 import { lastMatchday } from '../../engine/league/season.ts';
 import type { GameState } from '../../engine/league/types.ts';
 import { useT } from '../i18n/index.ts';
-import { byWeek, itemLabel, playerSeason, type SeasonItem } from '../season.ts';
+import { byWeek, currentWeek, itemLabel, playerSeason, type SeasonItem } from '../season.ts';
 import { useGame } from '../store/gameStore.ts';
 
 export function SeasonRibbon({ game }: { game: GameState }) {
@@ -16,7 +16,7 @@ export function SeasonRibbon({ game }: { game: GameState }) {
   const weeks = new Map(byWeek(items).map((w) => [w.week, w.items]));
   const n = lastMatchday(game);
   const next = items.find((x) => !x.played && !x.maybe);
-  const current = next ? next.week : n + 1;
+  const current = currentWeek(game);
   // Columns: pre-season, weeks 1…n, the end.
   const cols = n + 2;
   const fill = Math.min(1, current / (cols - 1));

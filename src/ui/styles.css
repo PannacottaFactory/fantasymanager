@@ -1230,7 +1230,6 @@ tr.drag-row:hover .drag-grip { color: var(--accent); }
   transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s; position: relative; min-width: 0; }
 .pyr-tier:hover { transform: translateY(-1px); border-color: var(--tier); }
 .pyr-tier.on { border-color: var(--tier); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tier) 45%, transparent), 0 6px 18px color-mix(in srgb, var(--tier) 25%, transparent); }
-.pyr-tier.mine::before { content: ''; position: absolute; left: -10px; top: 50%; width: 6px; height: 6px; border-radius: 50%; background: var(--home); transform: translateY(-50%); box-shadow: 0 0 8px var(--home); }
 .pyr-icon { font-size: 1.429rem; line-height: 1; display: inline-flex; }
 /* Competition & division emblems (game-icons), each in its colour. */
 .comp-ico, .div-ico { display: inline-flex; vertical-align: -0.15em; }
@@ -1528,3 +1527,99 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .dash-ambitions.compact .amb-more { white-space: nowrap; font-size: 0.857rem; }
 .recruit-card { position: relative; }
 .recruit-card > .new-badge { position: absolute; top: -7px; left: 12px; z-index: 1; }
+
+/* ——— Stable crests ——— */
+.team-crest { flex: none; vertical-align: -0.2em; filter: drop-shadow(0 1px 1px rgb(0 0 0 / 0.35)); }
+.team-cell { display: inline-flex; align-items: center; gap: 6px; }
+.brand-team { display: inline-flex; align-items: center; gap: 5px; }
+.crest-editor { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; margin-top: 4px; }
+.crest-preview { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.crest-controls { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 8px; }
+.crest-row { display: flex; flex-direction: column; gap: 4px; }
+.crest-label { font-size: 0.786rem; color: var(--muted); }
+.crest-emblems { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 4px; }
+.crest-emblem { display: grid; place-items: center; height: 34px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel-2); color: var(--text); cursor: pointer; padding: 0; }
+.crest-emblem:hover { border-color: var(--border-strong); }
+.crest-emblem.on { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.crest-swatches { display: flex; flex-wrap: wrap; gap: 4px; }
+.swatch-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-strong); cursor: pointer; padding: 0; }
+.swatch-btn.on { border-color: var(--text); box-shadow: 0 0 0 2px var(--accent); }
+.crest-patterns { display: flex; flex-wrap: wrap; gap: 4px; }
+.crest-pattern { display: grid; place-items: center; padding: 3px; border-radius: 6px; border: 1px solid var(--border); background: var(--panel-2); cursor: pointer; }
+.crest-pattern.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+
+/* ——— The season calendar (League › Competitions) ——— */
+.cal-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 0.786rem; }
+.cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--border-strong); }
+.cal-dot.win { background: var(--good); border-color: var(--good); }
+.cal-dot.loss { background: var(--bad); border-color: var(--bad); }
+.cal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.cal-tile { display: flex; flex-direction: column; gap: 5px; padding: 7px 8px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-2); min-width: 0; }
+.cal-tile.past { opacity: 0.78; }
+.cal-tile.now { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 0 14px color-mix(in srgb, var(--accent) 25%, transparent);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--panel-2)), var(--panel-2) 70%); }
+.cal-tile-head { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.cal-tile-head b { font-family: var(--font-title); font-size: 0.929rem; }
+.cal-tile .cal-now { font-size: 0.643rem; }
+.cal-tile .cal-double { font-size: 0.714rem; }
+.cal-empty { font-size: 0.857rem; }
+.cal-chip { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 6px; row-gap: 1px; align-items: center; padding: 4px 6px;
+  border-radius: 7px; border-left: 3px solid var(--comp, var(--accent)); background: color-mix(in srgb, var(--comp, var(--accent)) 9%, var(--panel)); min-width: 0; font-size: 0.857rem; }
+.cal-chip.maybe { opacity: 0.5; border-left-style: dashed; }
+.cal-chip.next { box-shadow: 0 0 0 1px var(--accent); }
+.cal-chip-comp { grid-row: 1 / span 2; display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--comp, var(--accent)); }
+.cal-chip-comp small { font-size: 0.571rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); max-width: 4.6rem; text-align: center; line-height: 1.1; }
+.cal-chip-opp { display: flex; align-items: center; gap: 5px; min-width: 0; font-weight: 600; }
+.cal-chip-opp .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cal-res { font: 700 0.75rem var(--font-mono); }
+.cal-res.win { color: var(--good); }
+.cal-res.loss { color: var(--bad); }
+.cal-res.next { font-family: inherit; font-size: 0.643rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); }
+
+.cal-grid { grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); }
+.cal-chip { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+.cal-chip-comp { flex-direction: row; align-items: center; gap: 5px; min-width: 0; }
+.cal-chip-comp small { max-width: none; text-align: left; font-size: 0.643rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--comp, var(--muted)); }
+.cal-chip.def-league .cal-chip-comp small { color: var(--muted); }
+.cal-chip-opp { font-size: 0.857rem; }
+.cal-res { align-self: flex-start; }
+
+/* ——— Start screen: everything visible without scrolling ——— */
+.start { gap: 12px; padding-top: 1.5vh; }
+.start-hero { display: flex; align-items: center; gap: 14px; text-align: left; max-width: 900px; }
+.start-hero h1 { font-size: 2rem; margin: 0; }
+.start-hero p { margin: 2px 0 0; font-size: 0.857rem; }
+.start-logo { width: 56px; height: 56px; flex: none; }
+.start-card { padding: 16px 18px; padding-top: 22px; gap: 10px; width: min(1100px, 100%); }
+.start-card h2 { font-size: 1.214rem; }
+.continue-card { flex-direction: row; align-items: center; gap: 14px; }
+.continue-card .big-btn { align-self: center; }
+.new-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.new-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.diff-cards { grid-template-columns: 1fr; gap: 6px; }
+.diff-card { flex-direction: row; align-items: center; gap: 12px; padding: 8px 10px; }
+.diff-text { display: flex; flex-direction: column; gap: 1px; }
+.start-actions { margin-top: 4px; }
+.start-links { margin: 0; font-size: 0.857rem; }
+.crest-editor { gap: 12px; }
+.crest-emblems { grid-template-columns: repeat(auto-fill, minmax(28px, 1fr)); gap: 3px; }
+.crest-emblem { height: 28px; }
+.crest-emblem svg { width: 18px; height: 18px; }
+.swatch-btn { width: 18px; height: 18px; }
+.crest-controls { gap: 6px; }
+.crest-row { gap: 3px; }
+@media (max-width: 900px) { .new-grid { grid-template-columns: minmax(0, 1fr); } .continue-card { flex-wrap: wrap; } }
+
+/* News icons by tone. */
+.news-icon { display: inline-flex; color: var(--muted); }
+.news-icon.n-upset, .news-icon.n-quickKo { color: #e0a63c; }
+.news-icon.n-streak { color: #e2703a; }
+.news-icon.n-leader, .news-icon.n-champion, .news-icon.n-cupWinner, .news-icon.n-bigTransfer { color: var(--gold); }
+.news-icon.n-starInjury, .news-icon.n-relegation { color: var(--bad); }
+.news-icon.n-promotion { color: var(--good); }
+.news-icon.n-death, .news-icon.n-retirement { color: #b48cf0; }
+
+@media (max-width: 1100px) {
+  .topbar { flex-wrap: wrap; row-gap: 4px; }
+  .topbar > .nav { order: 10; flex: 1 1 100%; }
+}

@@ -1,3 +1,4 @@
+import { StableCrest } from '../../components/TeamCrest.tsx';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
 import { compDef, compName, divName, roundKey } from '../../competitions.ts';
@@ -23,8 +24,8 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
   return (
     <section className={`panel ${side === 0 ? 'side-home' : 'side-away'}`}>
       <h4 style={{ marginBottom: 4 }}>{title}</h4>
-      <h3 className={side === 0 ? 'home-text' : 'away-text'} style={{ marginBottom: 8 }}>
-        {team.name}
+      <h3 className={`row ${side === 0 ? 'home-text' : 'away-text'}`} style={{ marginBottom: 8, gap: 8 }}>
+        <StableCrest team={team} size={26} /> {team.name}
       </h3>
       <div className="lineup">
         {team.tactic.lineup.map((s) => {

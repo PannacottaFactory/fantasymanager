@@ -1,23 +1,18 @@
+import { UiIcon } from '../../icons/Icon.tsx';
 import { compName, divName } from '../../competitions.ts';
 import type { NewsItem } from '../../../engine/league/types.ts';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { Gold } from '../../components/common.tsx';
 
-const ICON: Record<NewsItem['kind'], string> = {
-  upset: '⚡',
-  quickKo: '💥',
-  streak: '🔥',
-  leader: '👑',
-  bigTransfer: '💰',
-  starInjury: '🩹',
-  cupWinner: '🏆',
-  champion: '👑',
-  promotion: '⬆',
-  relegation: '⬇',
-  retirement: '🌅',
-  death: '🕯',
-};
+/** Icon of a news item (game-icons, coloured by tone in CSS). */
+export function NewsIcon({ kind }: { kind: NewsItem['kind'] }) {
+  return (
+    <span className={`news-icon n-${kind}`}>
+      <UiIcon name={`news-${kind}`} size="1.15em" />
+    </span>
+  );
+}
 
 export function newsText(tr: Translator, n: NewsItem): string {
   const { t, money } = tr;
@@ -62,7 +57,7 @@ export function NewsScreen() {
         <ul className="news">
           {items.map((n) => (
             <li key={n.id}>
-              <span className="news-icon">{ICON[n.kind]}</span>
+              <NewsIcon kind={n.kind} />
               <span className="grow"><Gold>{newsText(tr, n)}</Gold></span>
               <span className="faint mono" style={{ fontSize: '0.786rem' }}>
                 {t('inbox.matchday', { season: n.season, d: n.matchday })}

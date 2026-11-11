@@ -1,7 +1,9 @@
+import { weekText } from './season.ts';
+import { StableCrest } from './components/TeamCrest.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { LANGS } from '../core/i18n.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
-import { cupDue, lastMatchday, playerFixture, playerTeam, seasonOver } from '../engine/league/season.ts';
+import { cupDue, playerFixture, playerTeam, seasonOver } from '../engine/league/season.ts';
 import type { GameState } from '../engine/league/types.ts';
 import type { StringKey } from './i18n/strings.ts';
 import { NewsTicker } from './components/NewsTicker.tsx';
@@ -108,7 +110,7 @@ function ContinueButton() {
           ? t('status.seasonOver', { season: game.season })
           : cupDue(game)
             ? t('status.cup', { season: game.season, round: midweekLabel(t, game) })
-            : t('status.season', { season: game.season, d: game.matchday, n: lastMatchday(game) })}
+            : t('status.season', { season: game.season, w: weekText(t, game) })}
       </span>
       <button className="btn primary" onClick={onClick} title={over ? t('continue.title') : t('continue.nextTitle')}>
         {continueLabel(t, game, match)} ▶
@@ -194,7 +196,9 @@ export function App() {
           <svg className="brand-icon" width="30" height="30" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
           <div>
             <h1>{t('app.title')}</h1>
-            <small>{game ? playerTeam(game).name : t('app.subtitle')}</small>
+            <small className="brand-team">
+              {game && <StableCrest team={playerTeam(game)} size={14} />} {game ? playerTeam(game).name : t('app.subtitle')}
+            </small>
           </div>
         </button>
         <NavBar

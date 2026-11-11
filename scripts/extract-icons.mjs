@@ -91,6 +91,18 @@ const UI = {
   'diff-normal': 'crossed-swords',
   'diff-hard': 'death-skull',
   'new-game': 'scroll-quill',
+  'news-upset': 'thunder-struck',
+  'news-quickKo': 'punch-blast',
+  'news-streak': 'flame',
+  'news-leader': 'crown',
+  'news-bigTransfer': 'two-coins',
+  'news-starInjury': 'bandage-roll',
+  'news-cupWinner': 'trophy-cup',
+  'news-champion': 'laurel-crown',
+  'news-promotion': 'upgrade',
+  'news-relegation': 'team-downgrade',
+  'news-retirement': 'sunset',
+  'news-death': 'candle-skull',
 };
 
 /** Competition definition → icon name. */
@@ -106,6 +118,14 @@ const COMPETITIONS = {
 
 /** Division (0 = top) → icon name. */
 const DIVISIONS = ['crown', 'fleur-de-lys', 'castle', 'watchtower'];
+
+/** Crest emblems (ids = icon names; keep in sync with src/data/crest.ts). */
+const CREST = [
+  'dragon-head', 'wolf-head', 'lion', 'griffin-symbol', 'eagle-head', 'bear-head', 'deer-head', 'boar',
+  'snake', 'raven', 'fox-head', 'horse-head', 'unicorn', 'owl', 'scorpion', 'hydra',
+  'skull-crossed-bones', 'crossed-swords', 'battle-axe', 'spartan-helmet', 'crown', 'fleur-de-lys', 'tower-flag', 'castle',
+  'sun', 'evil-moon', 'flame', 'lightning-helix', 'snowflake-1', 'oak', 'rose', 'trident',
+];
 
 /** Role id → icon name. */
 const ROLES = {
@@ -149,6 +169,11 @@ ${block(UI)}
 /** SVG bodies of the competition emblems (fill = currentColor). */
 export const COMP_ICONS: Record<string, string> = {
 ${block(COMPETITIONS)}
+};
+
+/** SVG bodies of the crest emblems (fill = currentColor). */
+export const CREST_ICONS: Record<string, string> = {
+${block(Object.fromEntries(CREST.map((n) => [n, n])))}
 };
 
 /** SVG bodies of the division emblems, from the top division down (fill = currentColor). */

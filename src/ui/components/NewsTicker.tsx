@@ -34,7 +34,7 @@ function items(tr: Translator, game: GameState): string[] {
   });
   const mine = standings(game, divisionOf(game, me.id));
   const pos = mine.findIndex((r) => r.teamId === me.id) + 1;
-  if (mine[pos - 1]?.played) out.push(t('ticker.position', { team: me.name, pos: tr.ordinal(pos), d: Math.min(game.matchday, lastMatchday(game)) }));
+  if (mine[pos - 1]?.played) out.push(t('ticker.position', { team: me.name, pos: tr.ordinal(pos), d: Math.min(game.matchday - 1, lastMatchday(game)) }));
   if (game.cup.winner) out.push(t('ticker.cupWinner', { team: teamById(game, game.cup.winner).name }));
   else if (game.cup.round > 0) out.push(t('ticker.cupAlive', { n: game.cup.alive.length, in: game.cup.alive.includes(me.id) ? t('ticker.cupIn') : t('ticker.cupOut') }));
   const injured = me.creatures.filter((c) => c.condition.injuries.some((i) => i.weeksLeft > 0)).length;

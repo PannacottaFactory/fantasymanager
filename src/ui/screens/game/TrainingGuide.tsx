@@ -22,6 +22,19 @@ function writeOpen(open: boolean) {
   }
 }
 
+/** « <b>Title</b> — text » → a bold title and the rest. */
+function bold(text: string) {
+  const m = /^<b>(.*?)<\/b>(.*)$/.exec(text);
+  return m ? (
+    <>
+      <b>{m[1]}</b>
+      {m[2]}
+    </>
+  ) : (
+    text
+  );
+}
+
 export function TrainingGuide() {
   const { t } = useT();
   const [open, setOpen] = useState(readOpen);
@@ -39,14 +52,15 @@ export function TrainingGuide() {
         <b>{t('guide.title')}</b>
       </summary>
       <ol className="guide-steps">
-        <li>{t('guide.step1')}</li>
-        <li>{t('guide.step2')}</li>
-        <li>{t('guide.step3')}</li>
+        <li>{bold(t('guide.step1'))}</li>
+        <li>{bold(t('guide.step2'))}</li>
+        <li>{bold(t('guide.step3'))}</li>
       </ol>
       <ul className="guide-lines">
         <li>{t('guide.xp')}</li>
         <li>{t('guide.program')}</li>
         <li>{t('guide.intensity')}</li>
+        <li>{t('guide.potential')}</li>
       </ul>
     </details>
   );

@@ -2,6 +2,7 @@
  * League: the pyramid of divisions (where you are, where you are going), the table of a division with zones and
  * movements, its fixtures; every competition of the season (status, prizes, registration, draw); the honours.
  */
+import { StableCrest } from '../../components/TeamCrest.tsx';
 import { useEffect, useState, type ReactNode } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
@@ -200,7 +201,11 @@ function Standings({ game, division }: { game: GameState; division: number }) {
                     <span className="pos-badge">{i + 1}</span>
                   </td>
                   <td className={`moved ${moved > 0 ? 'good-text' : moved < 0 ? 'bad-text' : 'faint'}`}>{moved > 0 ? `▲${moved}` : moved < 0 ? `▼${-moved}` : '·'}</td>
-                  <td>{teamById(game, r.teamId).name}</td>
+                  <td>
+                    <span className="team-cell">
+                      <StableCrest team={teamById(game, r.teamId)} size={18} /> {teamById(game, r.teamId).name}
+                    </span>
+                  </td>
                   <td className="num">{r.played}</td>
                   <td className="num">{r.koWins}</td>
                   <td className="num">{r.pointsWins}</td>
@@ -571,68 +576,73 @@ function CompTable({ game, list }: { game: GameState; list: CompView[] }) {
   );
 }
 
-/** The player's coming matches, league and competitions together, in the order they are played. */
+/** The season as a calendar: a tile per week, results of the past weeks, opponents of the coming ones. */
 function Schedule({ game }: { game: GameState }) {
   const { t } = useT();
-  const [all, setAll] = useState(false);
-  const weeks = byWeek(playerSeason(game).filter((x) => !x.played));
-  const LIMIT = 5;
-  const shown = all ? weeks : weeks.slice(0, LIMIT);
-  let order = 0;
+  const items = playerSeason(game);
+  const weeks = new Map(byWeek(items).map((w) => [w.week, w.items]));
+  const n = lastMatchday(game);
+  const next = items.find((x) => !x.played && !x.maybe);
+  const current = next ? next.week : n + 1;
   return (
     <section className="panel schedule">
-      <h3>{t('cal.title')}</h3>
+      <div className="panel-head">
+        <h3>{t('cal.title')}</h3>
+        <span className="spacer" />
+        <span className="cal-legend faint">
+          <i className="cal-dot win" /> {t('recap.win')} <i className="cal-dot loss" /> {t('recap.loss')} <i className="cal-dot todo" /> {t('ribbon.toPlay')}
+        </span>
+      </div>
       <p className="muted" style={{ marginTop: 0, fontSize: '0.857rem' }}>
         {t('cal.intro')}
       </p>
-      {weeks.length === 0 ? (
-        <p className="faint">{t('cal.empty')}</p>
-      ) : (
-        <ol className="cal-weeks">
-          {shown.map((w, wi) => (
-            <li key={w.week} className={`cal-week ${wi === 0 ? 'now' : ''}`}>
-              <div className="cal-week-head">
-                <b>{w.week === 0 ? t('cal.before') : t('cal.week', { d: w.week })}</b>
-                {w.week === 0 && <small className="faint">{t('cal.preseasonHint')}</small>}
-                {wi === 0 && <span className="cal-now">{t('cal.thisWeek')}</span>}
-                {w.items.length > 1 && <small className="cal-double">{t('cal.double')}</small>}
+      <div className="cal-grid">
+        {Array.from({ length: n + 1 }, (_, w) => {
+          const list = weeks.get(w) ?? [];
+          const when = w < current ? 'past' : w === current ? 'now' : 'later';
+          return (
+            <div key={w} className={`cal-tile ${when} ${list.length > 1 ? 'double' : ''}`}>
+              <div className="cal-tile-head">
+                <b>{w === 0 ? t('cal.before') : t('cal.week', { d: w })}</b>
+                {when === 'now' && <span className="cal-now">{t('cal.thisWeek')}</span>}
+                {list.length > 1 && when !== 'past' && <span className="cal-double">{t('cal.double')}</span>}
               </div>
-              <ol className="cal-matches">
-                {w.items.map((x, i) => {
-                  order++;
-                  const next = order === 1;
-                  return (
-                    <li key={i} className={`cal-match ${x.maybe ? 'maybe' : ''} ${next ? 'next' : ''}`}>
-                      <span className="cal-step" title={t('cal.order', { n: i + 1 })}>
-                        {i + 1}
+              {list.length === 0 && <div className="faint cal-empty">—</div>}
+              {list.map((x, i) => {
+                const opp = x.oppId ? teamById(game, x.oppId) : null;
+                return (
+                  <div
+                    key={i}
+                    className={`cal-chip def-${x.def} ${x.played ? x.outcome : x.maybe ? 'maybe' : 'todo'} ${x === next ? 'next' : ''}`}
+                    title={`${itemLabel(t, x)}${x.opp ? ` · ${t('common.vs')} ${x.opp}` : ''}`}
+                  >
+                    <span className="cal-chip-comp">
+                      {x.league ? <DivIcon d={x.division ?? 0} /> : <CompIcon def={x.def} />}
+                      <small>{x.league ? t('cal.league') : itemLabel(t, x)}</small>
+                    </span>
+                    <span className="cal-chip-opp">
+                      {opp ? (
+                        <>
+                          <StableCrest team={opp} size={16} /> <span className="ellipsis">{opp.name}</span>
+                        </>
+                      ) : (
+                        <span className="faint">{x.maybe ? t('cal.ifThrough') : t('cal.tbd')}</span>
+                      )}
+                    </span>
+                    {x.played && x.score ? (
+                      <span className={`cal-res ${x.outcome}`}>
+                        {t(x.outcome === 'win' ? 'cal.w' : 'cal.l')} {x.score[0]}–{x.score[1]}
                       </span>
-                      <span className="cal-moment faint">{x.league ? t('cal.matchday') : i === 0 ? t('cal.comp') : w.week === 0 ? t('cal.then') : t('cal.midweek')}</span>
-                      <span className={`comp-badge def-${x.def}`}>
-                        {x.league ? <DivIcon d={x.division ?? 0} /> : <CompIcon def={x.def} />} {itemLabel(t, x)}
-                      </span>
-                      <span className="cal-opp">
-                        {x.opp ? (
-                          <>
-                            <span className="muted">{t('common.vs')}</span> <b>{x.opp}</b>
-                          </>
-                        ) : (
-                          <span className="faint">{x.maybe ? t('cal.ifThrough') : x.tbd ? t('cal.tbd') : ''}</span>
-                        )}
-                      </span>
-                      {next && <span className="cal-next">{t('cal.next')}</span>}
-                    </li>
-                  );
-                })}
-              </ol>
-            </li>
-          ))}
-        </ol>
-      )}
-      {weeks.length > LIMIT && (
-        <button className="link" onClick={() => setAll((x) => !x)}>
-          {all ? t('cal.less') : t('cal.more', { n: weeks.length - LIMIT })}
-        </button>
-      )}
+                    ) : x === next ? (
+                      <span className="cal-res next">{t('cal.next')}</span>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }

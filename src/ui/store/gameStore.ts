@@ -2,6 +2,7 @@
  * UI state of a league game: the current GameState (saved to IndexedDB after every change),
  * the screen shown and the match-day flow. Game rules live in src/engine/league.
  */
+import type { TeamCrest } from '../../data/crest.ts';
 import { create } from 'zustand';
 import type { MatchResult, MatchSetup } from '../../engine/combat/types.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
@@ -43,7 +44,7 @@ interface GameStore {
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
-  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId) => void;
+  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest) => void;
   setScreen: (s: Screen) => void;
   setPlayerTeam: (team: Team) => void;
   autoPick: () => void;
@@ -115,8 +116,8 @@ export const useGame = create<GameStore>()((set, get) => {
       set({ game, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game, weekStart: game });
     },
 
-    newGame: (teamName, seed, difficulty) => {
-      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty });
+    newGame: (teamName, seed, difficulty, crest) => {
+      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest });
       set({ match: null, viewing: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null });
       commit(game);
     },
