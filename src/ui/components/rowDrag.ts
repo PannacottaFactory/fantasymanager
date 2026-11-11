@@ -4,16 +4,20 @@
  */
 import { useState, type PointerEvent as ReactPointerEvent } from 'react';
 
+export type DropPos = 'before' | 'on' | 'after';
+
 export interface RowDrag<G extends string> {
   id: string;
   group?: G;
   row?: string;
+  /** Where on the row: its top edge (insert before), middle (swap) or bottom edge (insert after). */
+  pos?: DropPos;
 }
 
 // Buttons and links stay clickable (a drag only starts after the pointer moves); menus and fields keep the pointer.
 const INTERACTIVE = 'select, input, textarea';
 
-export function useRowDrag<G extends string>(onDrop: (id: string, target: { group: G; row?: string }) => void) {
+export function useRowDrag<G extends string>(onDrop: (id: string, target: { group: G; row?: string; pos?: DropPos }) => void) {
   const [drag, setDrag] = useState<RowDrag<G> | null>(null);
 
   const start = (e: ReactPointerEvent<HTMLTableRowElement>, id: string) => {
@@ -27,7 +31,7 @@ export function useRowDrag<G extends string>(onDrop: (id: string, target: { grou
     const sx = e.clientX;
     const sy = e.clientY;
     let ghost: HTMLDivElement | null = null;
-    let cur: { group?: G; row?: string } = {};
+    let cur: { group?: G; row?: string; pos?: DropPos } = {};
 
     const begin = () => {
       const clone = tr.cloneNode(true) as HTMLTableRowElement;
@@ -53,13 +57,21 @@ export function useRowDrag<G extends string>(onDrop: (id: string, target: { grou
         if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return;
         begin();
       }
-      ghost!.style.transform = `translate(${rect.left + ev.clientX - sx}px, ${rect.top + ev.clientY - sy}px) rotate(-0.6deg)`;
+      // The copy hangs just below the pointer, so the drop line under it stays visible.
+      ghost!.style.transform = `translate(${rect.left + ev.clientX - sx}px, ${ev.clientY + 14}px) rotate(-0.6deg)`;
       const el = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
       const group = el?.closest<HTMLElement>('[data-drop-group]')?.dataset.dropGroup as G | undefined;
-      const hit = el?.closest<HTMLElement>('tr[data-row-id]')?.dataset.rowId;
+      const hitTr = el?.closest<HTMLElement>('tr[data-row-id]');
+      const hit = hitTr?.dataset.rowId;
       const row = hit && hit !== id ? hit : undefined;
-      if (group !== cur.group || row !== cur.row) {
-        cur = { group, row };
+      let pos: DropPos | undefined;
+      if (row && hitTr) {
+        const r = hitTr.getBoundingClientRect();
+        const f = (ev.clientY - r.top) / r.height;
+        pos = f < 0.3 ? 'before' : f > 0.7 ? 'after' : 'on';
+      }
+      if (group !== cur.group || row !== cur.row || pos !== cur.pos) {
+        cur = { group, row, pos };
         setDrag({ id, ...cur });
       }
       if (ev.clientY < 70) window.scrollBy(0, -14);
@@ -72,7 +84,7 @@ export function useRowDrag<G extends string>(onDrop: (id: string, target: { grou
       if (ghost) {
         ghost.remove();
         document.body.classList.remove('row-dragging');
-        if (drop && cur.group) onDrop(id, { group: cur.group, row: cur.row });
+        if (drop && cur.group) onDrop(id, { group: cur.group, row: cur.row, pos: cur.pos });
       }
       setDrag(null);
     };

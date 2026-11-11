@@ -214,7 +214,7 @@ table.data tr.sep td { border-top: 2px solid var(--border-strong); }
 .bar > i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
 .bar > i.fill { transition: width 0.25s ease, background-color 0.4s; }
 /* Damage trail: follows the value late, so the chunk just lost stays visible for a moment. */
-.bar > i.ghost { background: color-mix(in srgb, var(--hp-low) 40%, var(--text)); transition: width 0.7s ease-in 0.5s; }
+.bar > i.ghost { background: #fff; opacity: 0.9; transition: width 0.7s ease-in 0.5s; }
 .bar.thin { height: 5px; }
 
 /* Crests (creature initials on an element-coloured shield) */
@@ -1153,6 +1153,8 @@ tbody.drop-over td { background: color-mix(in srgb, var(--accent) 12%, transpare
 tbody.drop-over { outline: 2px solid var(--accent); }
 tbody.drop-blocked { outline: 2px solid var(--bad); }
 tbody.drop-blocked td { background: color-mix(in srgb, var(--bad) 8%, transparent) !important; }
+tr.drag-row.drop-before td { box-shadow: inset 0 4px 0 var(--accent), inset 0 10px 10px -8px color-mix(in srgb, var(--accent) 60%, transparent); }
+tr.drag-row.drop-after td { box-shadow: inset 0 -4px 0 var(--accent), inset 0 -10px 10px -8px color-mix(in srgb, var(--accent) 60%, transparent); }
 tr.drag-row.drop-over td { background: color-mix(in srgb, var(--accent) 28%, transparent) !important; box-shadow: inset 0 2px 0 var(--accent), inset 0 -2px 0 var(--accent); }
 .drag-grip { color: var(--muted); cursor: grab; font-size: 1.071rem; line-height: 1; padding: 0 2px; touch-action: none; }
 tr.drag-row:hover .drag-grip { color: var(--accent); }
@@ -1172,3 +1174,39 @@ tr.drag-row:hover .drag-grip { color: var(--accent); }
 .amb-ico { width: 1em; text-align: center; color: var(--muted); }
 .amb-list li.current .amb-ico { color: var(--accent); }
 .dash-ambitions > .link { align-self: flex-start; }
+
+/* ——— Knock-out: stamp + arena shake ——— */
+.ko-stamp { position: absolute; left: 50%; top: 50%; z-index: 5; pointer-events: none; font: 900 1.857rem var(--font-title); letter-spacing: 0.08em;
+  color: #ff3b26; -webkit-text-stroke: 1px #5a0c05; text-shadow: 0 0 12px rgb(255 60 30 / 0.7), 0 3px 0 #5a0c05;
+  border: 3px solid #ff3b26; border-radius: 6px; padding: 0 8px; background: rgb(20 4 2 / 0.55);
+  transform: translate(-50%, -50%) rotate(-12deg); animation: ko-stamp 1.8s cubic-bezier(.2,1.6,.4,1) forwards; }
+@keyframes ko-stamp {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(-12deg) scale(3); }
+  14% { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(0.92); }
+  22% { transform: translate(-50%, -50%) rotate(-12deg) scale(1.05); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+}
+.live.ko-shake { animation: ko-shake 0.45s ease-out; }
+@keyframes ko-shake {
+  0%, 100% { transform: none; }
+  15% { transform: translate(-6px, 3px); }
+  30% { transform: translate(6px, -3px); }
+  45% { transform: translate(-4px, 2px); }
+  60% { transform: translate(3px, -1px); }
+  80% { transform: translate(-1px, 1px); }
+}
+:root[data-effects='reduced'] .ko-stamp { animation-duration: 1.2s; }
+:root[data-effects='reduced'] .live.ko-shake { animation: none; }
+
+/* ——— Break panel: substitutes ——— */
+.bench-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.bench-card { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: var(--panel-2); display: flex; flex-direction: column; gap: 5px; font-size: 0.857rem; }
+.bench-card.chosen { border-color: var(--home); box-shadow: inset 3px 0 0 var(--home); }
+.bench-card .bc-head { display: flex; gap: 6px; align-items: center; }
+.bench-card .bc-head b { font-size: 0.929rem; }
+.bench-card .bc-stats { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; }
+.bench-card .bc-abilities { display: flex; flex-wrap: wrap; gap: 3px; }
+.bench-card .bc-enter { display: flex; flex-direction: column; gap: 2px; margin-top: auto; }
+.bench-card .bc-enter select { width: 100%; }
+.bench-card .bc-abilities span { border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; }

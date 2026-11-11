@@ -288,6 +288,12 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   (free place in its group, otherwise swap; between two starters their lines swap) in `engine/team/edit.ts`. A box may be
   over-filled (`setSelection(…, over = true)`, « 6/5 » in red, the match stays blocked). Box borders: starters green,
   bench light blue, reserve grey.
+  Rows follow the team order (lineup, bench, reserve); the top / bottom third of a row = insert there (`insertInGroup`,
+  accent line), the middle = `dropOnto`. The dragged copy hangs just below the pointer.
+- **Break panel**: under the table, a card per substitute (level, species, role / off-role, health, stamina, morale,
+  pre-match fatigue, element advantage / vulnerability against the opponents still standing, abilities, « comes on for »).
+- **KO**: `fxCanvas.knockout` (dust, chunks, red flash, two shockwaves, embers) + `koStamp` in Projectiles (« K.O. » stamp
+  on the card, short shake of `.live`). Health lost trails in white (`.bar > i.ghost`).
 - **Ambitions** (`engine/club/ambitions.ts`): 11 career goals (first win → top half → cup semi-final → promotion → level-8
   creature → survive in D1 → all facilities max → cup → D1 title → double → 3 titles). `GameState.career` logs each
   finished season (`recordSeason` in `endOfLeague`), `GameState.ambitions` = season reached; `checkAmbitions` runs at

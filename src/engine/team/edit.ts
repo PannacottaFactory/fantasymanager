@@ -173,3 +173,28 @@ export function dropOnto(team: Team, id: string, on: string, cfg: GameConfig = D
   const moved = moveToZone(team, id, b, cfg);
   return moved !== team ? moved : dropOnCreature(team, id, on);
 }
+
+/**
+ * Moves creature `id` into a group at a position: just before (or after) creature `anchor` of that group.
+ * A starter dropped among starters of a line takes that line. Over-filling is allowed (the editor shows it).
+ */
+export function insertInGroup(team: Team, id: string, group: Selection, anchor: string, after: boolean): Team {
+  if (id === anchor) return team;
+  const c = team.creatures.find((x) => x.id === id);
+  if (!c) return team;
+  const t = structuredClone(team.tactic);
+  const oldSlot = t.lineup.find((s) => s.creatureId === id);
+  t.lineup = t.lineup.filter((s) => s.creatureId !== id);
+  t.bench = t.bench.filter((b) => b !== id);
+  if (group === 'starter') {
+    const at = t.lineup.findIndex((s) => s.creatureId === anchor);
+    const anchorLine = at >= 0 ? t.lineup[at]!.line : undefined;
+    const role = oldSlot?.role ?? bestRole(c);
+    const slot: LineupSlot = { creatureId: id, role, line: anchorLine ?? oldSlot?.line ?? ROLES[role].defaultLine, stance: oldSlot?.stance ?? 'normal' };
+    t.lineup.splice(at < 0 ? t.lineup.length : at + (after ? 1 : 0), 0, slot);
+  } else if (group === 'bench') {
+    const at = t.bench.indexOf(anchor);
+    t.bench.splice(at < 0 ? t.bench.length : at + (after ? 1 : 0), 0, id);
+  }
+  return { ...team, tactic: t };
+}

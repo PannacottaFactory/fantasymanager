@@ -4,7 +4,7 @@ import { ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES_IDS } from '../../data/species.ts';
 import type { Line, RoleId, TargetPriority } from '../../data/schema.ts';
 import { isInjured, maxHp, overallRating } from '../../engine/creature/derived.ts';
-import { dropOnto, isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
+import { dropOnto, insertInGroup, isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
@@ -107,10 +107,20 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const groupOf = (c: Creature): Group => selectionOf(team, c.id);
   const isFull = (g: Group) => (g === 'starter' ? team.tactic.lineup.length >= m.starters : g === 'bench' ? team.tactic.bench.length >= m.benchSize : false);
   const { drag, start } = useRowDrag<Group>((id, to) => {
-    const next = to.row ? dropOnto(team, id, to.row) : setSelection(team, id, to.group, DEFAULT_CONFIG, true);
+    const next = !to.row
+      ? setSelection(team, id, to.group, DEFAULT_CONFIG, true)
+      : to.pos === 'on'
+        ? dropOnto(team, id, to.row)
+        : insertInGroup(team, id, to.group, to.row, to.pos === 'after');
     if (next !== team) onChange(next);
   });
   const dragFrom = drag ? selectionOf(team, drag.id) : null;
+  const byId = new Map(team.creatures.map((c) => [c.id, c]));
+  const ordered = [
+    ...team.tactic.lineup.map((s) => byId.get(s.creatureId)),
+    ...team.tactic.bench.map((id) => byId.get(id)),
+    ...team.creatures.filter((c) => selectionOf(team, c.id) === 'reserve'),
+  ].filter((c): c is Creature => !!c);
   const rowProps = (c: Creature) => ({ 'data-row-id': c.id, onPointerDown: (e: ReactPointerEvent<HTMLTableRowElement>) => start(e, c.id) });
   const groupProps = (g: string) => {
     const over = drag?.group === g && dragFrom !== g;
@@ -331,10 +341,9 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       <div data-tip={league ? 'lineup' : undefined}>
       <div className="faint drag-hint">{t('sel.drag.hint')}</div>
       <SortableTable
-        rows={team.creatures}
+        rows={ordered}
         columns={columns}
         rowKey={(c) => c.id}
-        initialSort={{ key: 'ovr', dir: -1 }}
         rowProps={rowProps}
         groups={(['starter', 'bench', 'reserve'] as const).map((g) => ({ id: g, head: groupHead(g), empty: t('grp.drop'), className: `grp-${g}` }))}
         groupOf={groupOf}
@@ -342,7 +351,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         rowClass={(c) => {
           const st = status(c);
           const injured = league && isInjured(c) && st !== 2;
-          return `drag-row ${st === 2 ? 'dim' : ''} ${injured ? 'warn-row' : ''} ${drag?.id === c.id ? 'dragging' : ''} ${drag?.row === c.id ? 'drop-over' : ''}`;
+          return `drag-row ${st === 2 ? 'dim' : ''} ${injured ? 'warn-row' : ''} ${drag?.id === c.id ? 'dragging' : ''} ${drag?.row === c.id ? (drag.pos === 'before' ? 'drop-before' : drag.pos === 'after' ? 'drop-after' : 'drop-over') : ''}`;
         }}
       />
       </div>

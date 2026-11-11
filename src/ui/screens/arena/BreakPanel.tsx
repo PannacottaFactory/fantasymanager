@@ -2,11 +2,14 @@ import { useState } from 'react';
 import type { TargetPriority } from '../../../data/schema.ts';
 import type { Combat } from '../../../engine/combat/combat.ts';
 import { aiBreakDecision, DEFAULT_AI_STYLE, readTarget } from '../../../engine/combat/decisions.ts';
-import { hpFraction, staminaFraction } from '../../../engine/combat/formulas.ts';
-import type { BreakDecision, SubstitutionDecision } from '../../../engine/combat/types.ts';
+import { elementMultiplier, hpFraction, staminaFraction } from '../../../engine/combat/formulas.ts';
+import { levelOfAbility } from '../../../engine/progression/levels.ts';
+import { ABILITIES } from '../../../data/abilities.ts';
+import { KIND_GLYPH } from '../../components/AbilityCard.tsx';
+import type { BreakDecision, Combatant, SubstitutionDecision } from '../../../engine/combat/types.ts';
 import type { Aggression, Risk, Stance, TeamOrders } from '../../../engine/model.ts';
-import { roleText, speciesName } from '../../../engine/text/localize.ts';
-import { Bar, Crest, Modal } from '../../components/common.tsx';
+import { abilityText, roleText, speciesName } from '../../../engine/text/localize.ts';
+import { Bar, Crest, ElementDots, Modal } from '../../components/common.tsx';
 import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
@@ -142,6 +145,31 @@ export function BreakPanel({ combat, onResume }: Props) {
         </div>
         {bench.length === 0 && <div className="muted">{t('break.noBench')}</div>}
 
+        {bench.length > 0 && (
+          <div>
+            <h4 style={{ margin: '4px 0 6px' }}>{t('break.benchTitle')}</h4>
+            <div className="bench-cards">
+              {bench.map((b) => {
+                const sub = subs.find((x) => x.inId === b.id);
+                return (
+                  <BenchCard
+                    key={b.id}
+                    c={b}
+                    foes={combat.active(1)}
+                    cfg={cfg}
+                    replacing={sub?.outId ?? null}
+                    options={mine.filter((m) => !outIds.has(m.id) || subs.find((x) => x.outId === m.id)?.inId === b.id)}
+                    canAdd={!!sub || subs.length < subsLeft}
+                    onPick={(outId) => {
+                      const rest = subs.filter((x) => x.inId !== b.id && x.outId !== outId);
+                      setSubs(outId ? [...rest, { outId, inId: b.id }] : rest);
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="row wrap" style={{ gap: 14 }}>
           <label className="field">
             <span title={t('orders.approach.title')}>{t('orders.approach')} ⓘ</span>
@@ -187,5 +215,76 @@ function AscendancyHint() {
     <span className="muted" style={{ fontSize: '0.857rem', maxWidth: 280, alignSelf: 'center' }} title={t('orders.ascendancy.title')}>
       {t('break.hiddenApproach')}
     </span>
+  );
+}
+
+/** A substitute at a break: what it brings (level, role, health, stamina, elements against the creatures still standing, abilities). */
+function BenchCard({
+  c,
+  foes,
+  cfg,
+  replacing,
+  options,
+  canAdd,
+  onPick,
+}: {
+  c: Combatant;
+  foes: Combatant[];
+  cfg: Combat['cfg'];
+  replacing: string | null;
+  options: Combatant[];
+  canAdd: boolean;
+  onPick: (outId: string | null) => void;
+}) {
+  const { t, lang } = useT();
+  const strong = foes.filter((f) => c.elements.some((e) => elementMultiplier(e, f.elements, cfg) > 1));
+  const weak = foes.filter((f) => f.elements.some((e) => elementMultiplier(e, c.elements, cfg) > 1));
+  const fatigue = Math.round(c.preFatigue);
+  return (
+    <div className={`bench-card ${replacing ? 'chosen' : ''}`}>
+      <div className="bc-head">
+        <Crest speciesId={c.speciesId} name={c.name} />
+        <b className="grow ellipsis">{c.name}</b>
+        <span className="tag">{t('break.level', { n: levelOfAbility(c.ability, cfg) })}</span>
+      </div>
+      <div className="row" style={{ gap: 6 }}>
+        <ElementDots speciesId={c.speciesId} />
+        <span className="muted">{speciesName(c.speciesId, lang)}</span>
+        <span className="spacer" />
+        <RoleLabel role={c.role} />
+        {!c.naturalRole && <span className="tag bad" title={t('break.offRole.title')}>{t('break.offRole')}</span>}
+      </div>
+      <div className="bc-stats">
+        <span className="muted">{t('col.health')}</span>
+        <Bar value={c.hp} max={c.maxHp} color={hpColor(hpFraction(c))} title={`${Math.round(c.hp)}/${c.maxHp}`} />
+        <span className="muted">{t('col.stamina')}</span>
+        <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" title={`${Math.round(staminaFraction(c) * 100)} %`} />
+      </div>
+      <div className="muted">
+        {t('break.hpStats', { hp: c.maxHp })} · <span style={{ color: moraleColor(c.morale) }}>{t(moraleKey(c.morale))}</span>
+        {fatigue > 0 && <> · {t('break.fatigue', { n: fatigue })}</>}
+      </div>
+      {strong.length > 0 && <div className="good-text">▲ {t('break.strongVs', { names: strong.map((f) => f.name).join(', ') })}</div>}
+      {weak.length > 0 && <div className="bad-text">▼ {t('break.weakVs', { names: weak.map((f) => f.name).join(', ') })}</div>}
+      <div className="bc-abilities">
+        {c.abilities.slice(0, 5).map((a) => (
+          <span key={a} title={abilityText(a, lang).description}>
+            {ABILITIES[a] ? KIND_GLYPH[ABILITIES[a]!.kind] : ''} {abilityText(a, lang).name}
+            {c.favorites.includes(a) ? ' ★' : ''}
+          </span>
+        ))}
+      </div>
+      <label className="bc-enter">
+        <span className="muted">{t('break.enterFor')}</span>
+        <select className="compact" value={replacing ?? ''} disabled={!canAdd} onChange={(e) => onPick(e.target.value || null)}>
+          <option value="">{t('break.stayBench')}</option>
+          {options.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name} ({roleText(o.role, lang).name}, {Math.round(hpFraction(o) * 100)} %{o.state !== 'active' ? `, ${o.state.toUpperCase()}` : ''})
+            </option>
+          ))}
+        </select>
+      </label>
+    </div>
   );
 }

@@ -323,6 +323,15 @@ export class FxCanvas {
       this.emit({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, palette: dust, life: 0.9, size: rand(3, 6), shape: 'chunk', gravity: 900, vr: rand(-10, 10), drag: 0.98, grow: 1 });
     }
     this.add(new Ring(at, '#ff3b26', Math.max(60, r.width / 2), 600, 4));
+    // The big blow: a red flash, a second wider shockwave, embers and bone-white shards.
+    this.add(new Flash(at, '#ff5a3c', Math.max(160, r.width * 1.2), true));
+    this.add(new Ring(at, '#ffd2a8', Math.max(110, r.width), 900, 2));
+    const embers = ['#ffffff', '#ffd27a', '#ff7a3c', '#e8361f'];
+    for (let i = 0; i < 40; i++) {
+      const a = rand(0, Math.PI * 2);
+      const v = rand(160, 420);
+      this.emit({ x: at.x, y: at.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, palette: embers, life: rand(0.5, 1.1), size: rand(2, 4.5), shape: i % 3 ? 'spark' : 'glow', drag: 0.93, gravity: 220 });
+    }
   }
 
   /** A creature gets back up: light and bone-white sparks rising from its card. */

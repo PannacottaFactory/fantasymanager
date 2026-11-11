@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AMBITION_IDS } from '../src/engine/club/ambitions.ts';
 import { newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
-import { dropOnCreature, dropOnto, moveToZone, zoneOf } from '../src/engine/team/edit.ts';
+import { dropOnCreature, dropOnto, insertInGroup, moveToZone, zoneOf } from '../src/engine/team/edit.ts';
 import { managerName } from '../src/engine/team/identity.ts';
 
 describe('ambitions', () => {
@@ -40,6 +40,18 @@ describe('line-up board', () => {
     expect(zoneOf(t, starter)).toBe('reserve');
     expect(zoneOf(t, reserve)).toBe(zoneOf(team, starter));
     expect(t.tactic.lineup).toHaveLength(team.tactic.lineup.length);
+  });
+
+  it('inserts between two creatures of a group, even over the limit', () => {
+    const b0 = team.tactic.bench[0]!;
+    const t = insertInGroup(team, reserve, 'bench', b0, false);
+    expect(t.tactic.bench[0]).toBe(reserve);
+    expect(t.tactic.bench[1]).toBe(b0);
+    expect(t.tactic.bench).toHaveLength(team.tactic.bench.length + 1);
+    const s1 = team.tactic.lineup[1]!;
+    const u = insertInGroup(team, bench, 'starter', s1.creatureId, true);
+    expect(u.tactic.lineup[2]!.creatureId).toBe(bench);
+    expect(u.tactic.lineup[2]!.line).toBe(s1.line);
   });
 
   it('takes a free place in the group, otherwise swaps (table drag and drop)', () => {
