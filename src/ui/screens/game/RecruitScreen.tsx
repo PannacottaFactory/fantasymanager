@@ -17,6 +17,16 @@ import { errorText } from './CreatureSheet.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
 
 type Tab = 'free' | 'stables' | 'scouts';
+type View = 'cards' | 'table';
+const VIEW_KEY = 'fm.recruitView';
+const readView = (): View => {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards';
+  } catch {
+    return 'cards';
+  }
+};
+const CARD_SORTS = ['value', 'ovr', 'pot', 'age', 'wage'] as const;
 
 interface Row {
   c: Creature;
@@ -111,6 +121,98 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
   return cols;
 }
 
+/** Compact cards: crest, species, overall, potential, price, knowledge and the action — sorted like the table. */
+function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Column<Row>[]; free: boolean; game: GameState }) {
+  const tr = useT();
+  const { t, lang } = tr;
+  const { openSheet } = useGame.getState();
+  const rep = clubOf(game, game.playerTeamId).reputation;
+  const [by, setBy] = useState<(typeof CARD_SORTS)[number]>('value');
+  const [dir, setDir] = useState<1 | -1>(-1);
+  const sorted = useMemo(() => {
+    const get = columns.find((c) => c.key === by)?.sort;
+    if (!get) return rows;
+    return rows.slice().sort((a, b) => {
+      const va = get(a);
+      const vb = get(b);
+      return (va < vb ? -1 : va > vb ? 1 : 0) * dir;
+    });
+  }, [rows, columns, by, dir]);
+  return (
+    <>
+      <div className="row" style={{ gap: 8, marginBottom: 8 }}>
+        <span className="muted" style={{ fontSize: '0.857rem' }}>{t('recruit.sortBy')}</span>
+        <select className="compact" value={by} onChange={(e) => setBy(e.target.value as typeof by)}>
+          {CARD_SORTS.map((k) => (
+            <option key={k} value={k}>
+              {columns.find((c) => c.key === k)?.label}
+            </option>
+          ))}
+        </select>
+        <button className="btn small ghost" onClick={() => setDir((d) => (d === 1 ? -1 : 1))} title={t('recruit.sortDir')}>
+          {dir === -1 ? '↓' : '↑'}
+        </button>
+        <span className="faint" style={{ fontSize: '0.857rem' }}>{t('recruit.count', { n: rows.length })}</span>
+      </div>
+      <div className="recruit-cards">
+        {sorted.map((r) => {
+          const o = overallRange(r.c, r.k);
+          const scouting = game.scouting.missions.some((m) => m.targetId === r.c.id);
+          return (
+            <div key={r.c.id} className="recruit-card" onClick={() => openSheet(r.c.id)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && openSheet(r.c.id)}>
+              <div className="rc-head">
+                <Crest speciesId={r.c.speciesId} name={r.c.name} size={30} />
+                <div className="rc-who">
+                  <b title={r.c.name}>{r.c.name}</b>
+                  <span className="faint">
+                    <SpeciesIcon id={r.c.speciesId} size="1em" /> {speciesName(r.c.speciesId, lang)} <ElementDots speciesId={r.c.speciesId} /> · {t('sheet.age', { age: r.c.age })}
+                  </span>
+                </div>
+                <span className="rc-ovr" title={t('col.ovr.title')}>
+                  {o.low === o.high ? o.low : `${o.low}–${o.high}`}
+                </span>
+              </div>
+              {!free && r.team && <div className="faint rc-team">{r.team}</div>}
+              <div className="rc-row">
+                <Stars value={potentialStars(r.c, r.k)} title={t('col.potential.title')} />
+                <span title={t('col.known.title')} className="row" style={{ gap: 4 }}>
+                  {scouting && '🔍'}
+                  <Knowledge k={r.k} />
+                </span>
+                <span className="spacer" />
+                <button
+                  className="btn small rc-act"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openSheet(r.c.id);
+                  }}
+                >
+                  {free ? t('act.sign') : t('act.offer')}
+                </button>
+              </div>
+              <div className="rc-row rc-money">
+                <span title={t('col.value.title')}>
+                  <Money v={estimatedValue(r.c, r.k)} compact />
+                </span>
+                {free && (
+                  <span className="faint" title={t('col.bonus.title')}>
+                    {t('col.bonus')} <Money v={signingBonus(r.c)} compact />
+                  </span>
+                )}
+                <span className="spacer" />
+                <span className="faint" title={t('col.wage.title')}>
+                  <Money v={askingWage(r.c, rep)} />
+                  {t('recruit.perWeek')}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
 function Scouts({ game }: { game: GameState }) {
   const tr = useT();
   const { t, money } = tr;
@@ -162,6 +264,15 @@ export function RecruitScreen() {
   const [tab, setTab] = useState<Tab>('free');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [note, setNote] = useState<string | null>(null);
+  const [view, setViewState] = useState<View>(readView);
+  const setView = (v: View) => {
+    setViewState(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* per-viewer convenience only */
+    }
+  };
   const mine = playerTeam(game);
   const others = game.teams.filter((x) => x.id !== game.playerTeamId);
 
@@ -220,13 +331,30 @@ export function RecruitScreen() {
               {note && <span className="muted" style={{ fontSize: '0.857rem' }}>{note}</span>}
             </>
           )}
+          {tab !== 'scouts' && (
+            <>
+              <span className="spacer" />
+              <Seg<View>
+                value={view}
+                onChange={setView}
+                options={[
+                  { value: 'cards', label: `▦ ${t('recruit.view.cards')}` },
+                  { value: 'table', label: `☰ ${t('recruit.view.table')}` },
+                ]}
+              />
+            </>
+          )}
         </div>
         {tab === 'free' && (
           <>
             <p className="muted" style={{ marginTop: 0 }}>
               {t('recruit.free.intro')}
             </p>
-            <SortableTable rows={freeRows} columns={freeCols} rowKey={(r) => r.c.id} initialSort={{ key: 'value', dir: -1 }} />
+            {view === 'cards' ? (
+              <RecruitCards rows={freeRows} columns={freeCols} free game={game} />
+            ) : (
+              <SortableTable rows={freeRows} columns={freeCols} rowKey={(r) => r.c.id} initialSort={{ key: 'value', dir: -1 }} />
+            )}
           </>
         )}
         {tab === 'stables' && (
@@ -234,7 +362,11 @@ export function RecruitScreen() {
             <p className="muted" style={{ marginTop: 0 }}>
               {t('recruit.stables.intro')}
             </p>
-            <SortableTable rows={teamRows} columns={teamCols} rowKey={(r) => r.c.id} initialSort={{ key: 'value', dir: -1 }} />
+            {view === 'cards' ? (
+              <RecruitCards rows={teamRows} columns={teamCols} free={false} game={game} />
+            ) : (
+              <SortableTable rows={teamRows} columns={teamCols} rowKey={(r) => r.c.id} initialSort={{ key: 'value', dir: -1 }} />
+            )}
           </>
         )}
       </section>

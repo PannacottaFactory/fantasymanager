@@ -1027,3 +1027,37 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 .dash-who .faint { font-size: 0.786rem; }
 .start-cards { align-items: start; }
 .continue-card { justify-content: flex-start; }
+
+/* ——— First steps ——— */
+.first-steps { border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border)); background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%); animation: fadein 0.4s ease-out both; }
+.first-steps.done { border-color: var(--gold); }
+.fs-trophy { font-size: 1.857rem; }
+.fs-bar { width: 140px; height: 6px; border-radius: 3px; background: var(--panel-3); overflow: hidden; }
+.fs-bar i { display: block; height: 100%; background: var(--gold); transition: width 0.6s cubic-bezier(.2, .8, .2, 1); }
+.fs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 4px 16px; }
+.fs-list li { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: 4px; font-size: 0.929rem; }
+.fs-list li.next { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.fs-list li.ok b { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
+.fs-check { width: 20px; height: 20px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--border-strong); color: var(--accent-text); font-weight: 800; font-size: 0.786rem; }
+.fs-list li.ok .fs-check { background: var(--good); border-color: var(--good); animation: check-pop 0.4s cubic-bezier(.2, 1.6, .4, 1); }
+.fs-list li.next .fs-check { border-color: var(--accent); }
+@keyframes check-pop { from { transform: scale(0.3); } to { transform: none; } }
+:root[data-effects='reduced'] .first-steps, :root[data-effects='reduced'] .fs-check { animation: none; }
+
+/* ——— Recruitment cards (compact) ——— */
+.recruit-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
+.recruit-card { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer;
+  background: var(--panel-2); border: 1px solid var(--border); transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s; font-size: 0.857rem; }
+.recruit-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); box-shadow: 0 6px 16px rgb(0 0 0 / 0.22); }
+.rc-head { display: flex; align-items: center; gap: 8px; }
+.rc-who { display: flex; flex-direction: column; min-width: 0; flex: 1; line-height: 1.25; }
+.rc-who b { font-size: 0.929rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-who .faint { font-size: 0.786rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rc-ovr { font: 700 1rem var(--font-mono); color: var(--text); padding: 1px 6px; border-radius: 4px; background: var(--panel-3); white-space: nowrap; }
+.rc-team { font-size: 0.786rem; margin-top: -2px; }
+.rc-row { display: flex; align-items: center; gap: 8px; }
+.rc-money { font-size: 0.857rem; }
+.rc-act { padding: 1px 8px; }
+:root[data-effects='reduced'] .recruit-card:hover { transform: none; }
+.rc-money > span { white-space: nowrap; }
+.rc-money { font-size: 0.786rem; gap: 6px; }

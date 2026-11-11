@@ -70,7 +70,6 @@ export function TutorialOverlay({ active }: { active: boolean }) {
   if (!enabled || !active || !found) return null;
   const { step, rect } = found;
   const placement = step.placement ?? 'below';
-  const index = STEPS.indexOf(step) + 1;
   const pad = 6;
 
   return (
@@ -82,7 +81,7 @@ export function TutorialOverlay({ active }: { active: boolean }) {
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <b className="grow">{t(`tut.${step.id}.title` as StringKey)}</b>
           <span className="faint mono" style={{ fontSize: '0.786rem' }}>
-            {index}/{STEPS.length}
+            💡
           </span>
         </div>
         <div className="tutorial-body">{t(`tut.${step.id}.body` as StringKey)}</div>

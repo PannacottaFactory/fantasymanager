@@ -15,27 +15,26 @@ export interface TutorialStep {
 
 /** In order: a tip shows when it is the first unseen one whose anchor is on screen. */
 export const STEPS: TutorialStep[] = [
-  { id: 'welcome', anchor: 'dashboard', placement: 'center' },
-  { id: 'board', anchor: 'board' },
   { id: 'continue', anchor: 'continue' },
-  { id: 'nav', anchor: 'nav' },
-  { id: 'help', anchor: 'help-btn' },
-  { id: 'inbox', anchor: 'inbox' },
   { id: 'squad', anchor: 'squad' },
   { id: 'lineup', anchor: 'lineup', placement: 'above' },
-  { id: 'orders', anchor: 'orders' },
   { id: 'prematch', anchor: 'prematch' },
   { id: 'liveCards', anchor: 'live-cards', placement: 'right' },
-  { id: 'liveFeed', anchor: 'live-feed', placement: 'left' },
-  { id: 'liveSpeed', anchor: 'live-speed' },
   { id: 'break', anchor: 'break' },
   { id: 'report', anchor: 'report' },
+  { id: 'inbox', anchor: 'inbox' },
+  { id: 'training', anchor: 'training' },
+  { id: 'youth', anchor: 'youth' },
   { id: 'league', anchor: 'league-tabs' },
   { id: 'recruit', anchor: 'recruit' },
   { id: 'finances', anchor: 'finances' },
-  { id: 'training', anchor: 'training' },
-  { id: 'youth', anchor: 'youth' },
 ];
+
+/** First steps: a short list of things to do, ticked as the player does them. */
+export const QUESTS = ['creature', 'tactics', 'match', 'report', 'training', 'recruit'] as const;
+export type QuestId = (typeof QUESTS)[number];
+const QUESTS_KEY = 'tutorial.quests';
+const QUESTS_HIDDEN_KEY = 'tutorial.questsHidden';
 
 const SEEN_KEY = 'tutorial.seen';
 const ENABLED_KEY = 'tutorial.enabled';
@@ -58,6 +57,11 @@ function write(key: string, value: string) {
 interface TutorialState {
   enabled: boolean;
   seen: string[];
+  /** First steps done, and whether the player closed the list. */
+  quests: QuestId[];
+  questsHidden: boolean;
+  markQuest: (id: QuestId) => void;
+  hideQuests: () => void;
   markSeen: (id: string) => void;
   skip: () => void;
   restart: () => void;
@@ -74,6 +78,25 @@ export const useTutorial = create<TutorialState>()((set, get) => ({
       return [];
     }
   })(),
+  quests: (() => {
+    try {
+      const v = JSON.parse(read(QUESTS_KEY) ?? '[]');
+      return Array.isArray(v) ? (v.filter((x) => (QUESTS as readonly string[]).includes(x)) as QuestId[]) : [];
+    } catch {
+      return [];
+    }
+  })(),
+  questsHidden: read(QUESTS_HIDDEN_KEY) === 'true',
+  markQuest: (id) => {
+    if (get().quests.includes(id)) return;
+    const quests = [...get().quests, id];
+    write(QUESTS_KEY, JSON.stringify(quests));
+    set({ quests });
+  },
+  hideQuests: () => {
+    write(QUESTS_HIDDEN_KEY, 'true');
+    set({ questsHidden: true });
+  },
   markSeen: (id) => {
     const seen = [...new Set([...get().seen, id])];
     write(SEEN_KEY, JSON.stringify(seen));
@@ -86,7 +109,9 @@ export const useTutorial = create<TutorialState>()((set, get) => ({
   restart: () => {
     write(ENABLED_KEY, 'true');
     write(SEEN_KEY, '[]');
-    set({ enabled: true, seen: [] });
+    write(QUESTS_KEY, '[]');
+    write(QUESTS_HIDDEN_KEY, 'false');
+    set({ enabled: true, seen: [], quests: [], questsHidden: false });
   },
   setEnabled: (enabled) => {
     write(ENABLED_KEY, String(enabled));

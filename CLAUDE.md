@@ -197,7 +197,10 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   4 facilities × 3 levels (training ground, infirmary, stands, nursery; paid up front, weeks of works, upkeep),
   board objective & confidence (bonus, warnings, no sacking), news feed, relations (bonds from fighting together,
   quarrels, match-start morale, friends mourn departures), grouped navigation, save migration v3→v4. 77 tests.
-- [x] **Tutorial**: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
+- [x] **Tutorial** (reworked for new players): `ui/tutorial/FirstSteps.tsx` = « Premiers pas » checklist on the home
+  screen (6 quests ticked automatically by `useFirstStepsTracker`: open a sheet, tactics, first match, report, training,
+  market; stored with the tutorial in localStorage); while learning, the dashboard shows only the essentials
+  (`useLearning`, « show all » link). 13 short tips (one or two sentences, no step counter). Originally: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
   unseen one whose anchor is visible is shown; progress in localStorage; only during a game), Help page (`?` button)
   with the manual and tutorial controls, opt-out checkbox on the start screen. Adding a screen ⇒ add a `data-tip`
   anchor + a step + `tut.<id>.title/body` strings if it needs explaining.

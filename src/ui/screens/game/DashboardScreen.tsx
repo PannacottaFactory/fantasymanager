@@ -2,7 +2,8 @@
  * Dashboard: the stable at a glance — next match, board, table position, squad status, best creatures,
  * money, recent results, messages and news. Every card leads to the screen that deals with it.
  */
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { FirstSteps, useLearning } from '../../tutorial/FirstSteps.tsx';
 import { overallRating } from '../../../engine/creature/derived.ts';
 import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
@@ -275,21 +276,36 @@ function News({ game }: { game: GameState }) {
 }
 
 export function DashboardScreen() {
+  const { t } = useT();
   const game = useGame((s) => s.game)!;
+  // While learning, the home screen keeps to the essentials (the rest is one click away).
+  const learning = useLearning();
+  const [all, setAll] = useState(false);
+  const full = !learning || all;
   return (
     <div className="stack dash" data-tip="dashboard">
       <Hero game={game} />
+      <FirstSteps />
       <NextMatch game={game} />
-      <BoardCard game={game} />
+      {full && <BoardCard game={game} />}
       <div className="dash-grid">
         <SquadStatus game={game} />
         <MiniTable game={game} />
-        <Money game={game} />
-        <Stars game={game} />
-        <Results game={game} />
-        <Messages game={game} />
-        <News game={game} />
+        {full && (
+          <>
+            <Money game={game} />
+            <Stars game={game} />
+            <Results game={game} />
+            <Messages game={game} />
+            <News game={game} />
+          </>
+        )}
       </div>
+      {learning && (
+        <button className="link" style={{ alignSelf: 'center' }} onClick={() => setAll((x) => !x)}>
+          {all ? t('dash.showLess') : t('dash.showAll')}
+        </button>
+      )}
     </div>
   );
 }

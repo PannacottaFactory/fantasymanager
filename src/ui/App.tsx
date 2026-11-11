@@ -14,6 +14,7 @@ import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
 import { GameSheet } from './screens/game/CreatureSheet.tsx';
 import { IntroModal } from './screens/game/IntroModal.tsx';
 import { DashboardScreen } from './screens/game/DashboardScreen.tsx';
+import { useFirstStepsTracker } from './tutorial/FirstSteps.tsx';
 import { FxLayer } from './fx/FxLayer.tsx';
 import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
@@ -97,6 +98,7 @@ export function App() {
   const { t } = useT();
   const { lang, theme, textSize, effects, setLang, setTheme, setTextSize, setEffects } = useSettings();
   const { ready, game, screen, viewing, saveError, replaying, intro, launch } = useGame();
+  useFirstStepsTracker();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
   const unread = game?.inbox.filter((m) => !m.read).length ?? 0;
