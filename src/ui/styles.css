@@ -1623,3 +1623,4 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
   .topbar { flex-wrap: wrap; row-gap: 4px; }
   .topbar > .nav { order: 10; flex: 1 1 100%; }
 }
+.continue-card + .new-card { margin-top: 10px; }
