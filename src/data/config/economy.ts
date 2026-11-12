@@ -69,7 +69,7 @@ export const ECONOMY_CONFIG = {
     /** Negotiation rounds per creature and week before the other stable stops answering. */
     maxBidsPerWeek: 3,
     /** Free agents: one-off signing bonus = value × this. */
-    signingBonus: 0.35,
+    signingBonus: 0.55,
     /** Chance per week that an AI stable bids for one of the player's creatures (and extra per listed creature). */
     aiOfferChance: 0.2,
     aiOfferChanceListed: 0.35,

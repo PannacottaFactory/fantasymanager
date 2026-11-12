@@ -19,6 +19,7 @@ import { TRAITS } from '../../data/traits.ts';
 import { ATTRIBUTE_KEYS, type Attributes } from '../../data/attributes.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import type { AbilityDef } from '../../data/schema.ts';
+import type { ArenaCondition, ArenaConditionId } from '../../data/config/arena.ts';
 import { bestRole, getAbilities, maxHp, maxStamina, roleFit } from '../creature/derived.ts';
 import { relationMorale } from '../club/relations.ts';
 import { ROLES } from '../../data/roles.ts';
@@ -36,11 +37,15 @@ import {
   isCleansable,
   elementMultiplier,
   hasEffect,
+  hasEffectFlag,
+  arenaCostMult,
+  arenaElementMult,
   hitChance,
   hpFraction,
   healAmount,
   initiative,
   interceptChance,
+  coverPoints,
   mitigation,
   rawDamage,
   resolveElement,
@@ -94,9 +99,14 @@ export class Combat {
   /** target id → ids of attackers who hit it this round. */
   private hitThisRound = new Map<string, Set<string>>();
   private readonly ai: AiContext;
+  /** Arena condition of the match (weather, hour), if any. */
+  readonly arena: ArenaCondition | undefined;
+  readonly arenaId: ArenaConditionId | undefined;
 
   constructor(setup: MatchSetup, cfg: GameConfig = DEFAULT_CONFIG) {
     this.cfg = cfg;
+    this.arenaId = setup.arena;
+    this.arena = setup.arena ? cfg.arena.conditions[setup.arena] : undefined;
     this.seed = normalizeSeed(setup.seed);
     this.rng = new Rng(this.seed);
     const [t0, t1] = setup.teams;
@@ -145,13 +155,14 @@ export class Combat {
         return false;
       },
       behind: (c) => Math.max(0, this.teamHealth(other(c.side)) - this.teamHealth(c.side)),
-      frontStanding: (side) => this.frontStanding(side),
+      coverPoints: (side) => this.coverPoints(side),
+      arena: this.arena,
     };
 
     for (const c of this.combatants) {
       if (c.state === 'active') for (const p of SPECIES[c.speciesId]?.passives ?? []) this.addEffect(c, p, 999, undefined, true);
     }
-    this.emit({ type: 'matchStart', round: 0, teams: [t0.name, t1.name], snapshot: this.snapshot() });
+    this.emit({ type: 'matchStart', round: 0, teams: [t0.name, t1.name], snapshot: this.snapshot(), ...(setup.arena ? { arena: setup.arena } : {}) });
   }
 
   // ——— Public API ———
@@ -183,6 +194,7 @@ export class Combat {
       if (this.phase !== 'running') break;
       if (this.cfg.match.breakRounds.includes(this.round)) {
         this.liftCurses();
+        this.rechargeWards();
         this.phase = 'break';
         this.emit({ type: 'break', round: this.round, index: this.breakIndex++ });
       }
@@ -413,7 +425,7 @@ export class Combat {
         const def = EFFECTS[e.id];
         if (!def) continue;
         if (def.kind === 'dot') {
-          const dmg = Math.max(1, Math.round(c.maxHp * (def.magnitude ?? 0) * (e.stacks ?? 1)));
+          const dmg = Math.max(1, Math.round(c.maxHp * (def.magnitude ?? 0) * (e.stacks ?? 1) * (this.arena?.dot ?? 1)));
           const real = Math.min(dmg, c.hp);
           c.hp -= real;
           const src = e.sourceId ? this.byId.get(e.sourceId) : undefined;
@@ -423,8 +435,9 @@ export class Combat {
             this.knockOut(c, src);
             break;
           }
+          this.checkTransform(c);
         } else if (def.kind === 'hot') {
-          const heal = Math.min(c.maxHp - c.hp, Math.round(c.maxHp * (def.magnitude ?? 0) * effectMod(c, 'healingTaken')));
+          const heal = Math.min(c.maxHp - c.hp, Math.round(c.maxHp * (def.magnitude ?? 0) * effectMod(c, 'healingTaken') * (this.arena?.healing ?? 1)));
           if (heal > 0) {
             c.hp += heal;
             this.emit({ type: 'effectTick', round: this.round, target: c.id, effect: e.id, amount: heal, hp: c.hp });
@@ -439,7 +452,9 @@ export class Combat {
     const cfg = this.cfg;
     for (const c of this.combatants) {
       if (c.state !== 'active') continue;
-      c.stamina = Math.min(c.maxStamina, c.stamina + staminaRegen(c, cfg));
+      c.stamina = Math.min(c.maxStamina, c.stamina + staminaRegen(c, cfg) * (this.arena?.staminaRegen ?? 1));
+      // A crowd in a frenzy lifts (or a hostile one sinks) every creature on the sand.
+      if (this.arena?.moralePerRound) this.changeMorale(c, this.arena.moralePerRound);
       for (const k of Object.keys(c.cooldowns)) if (c.cooldowns[k]! > 0) c.cooldowns[k]!--;
       for (const e of [...c.effects]) {
         const def = EFFECTS[e.id];
@@ -552,7 +567,7 @@ export class Combat {
   private execute(actor: Combatant, action: ChosenAction) {
     const cfg = this.cfg;
     if (action.type === 'rest') {
-      const gained = Math.round(Math.min(actor.maxStamina - actor.stamina, staminaRegen(actor, cfg) * cfg.combat.stamina.restMult));
+      const gained = Math.round(Math.min(actor.maxStamina - actor.stamina, staminaRegen(actor, cfg) * cfg.combat.stamina.restMult * (this.arena?.staminaRegen ?? 1)));
       actor.stamina += gained;
       this.emit({ type: 'rest', round: this.round, actor: actor.id, gained });
       return;
@@ -568,7 +583,7 @@ export class Combat {
     const ability = action.ability;
     const orders = this.sides[actor.side].orders;
     const before = actor.stamina;
-    actor.stamina = Math.max(0, actor.stamina - staminaCost(actor, ability, orders, cfg));
+    actor.stamina = Math.max(0, actor.stamina - staminaCost(actor, ability, orders, cfg) * arenaCostMult(this.arena));
     if (ability.cooldown > 0) actor.cooldowns[ability.id] = ability.cooldown + 1; // +1: decremented at end of this round
     this.emitSpend(actor, ability.id, before, ability.cooldown);
     if (ability.hpCost) {
@@ -579,6 +594,22 @@ export class Combat {
       }
     }
 
+    const hostile = ability.target === 'enemy' || ability.target === 'enemyFront' || ability.target === 'enemyBack' || ability.target === 'allEnemies';
+    this.resolveAbility(actor, action, ability);
+    // Striking from cover gives the hidden creature away.
+    if (hostile && actor.state === 'active') this.reveal(actor);
+  }
+
+  /** Camouflage ends: the creature is in plain sight again. */
+  private reveal(c: Combatant) {
+    for (const e of c.effects.filter((x) => EFFECTS[x.id]?.hidden)) {
+      c.effects = c.effects.filter((x) => x !== e);
+      this.emit({ type: 'effectExpired', round: this.round, target: c.id, effect: e.id });
+    }
+  }
+
+  private resolveAbility(actor: Combatant, action: Extract<ChosenAction, { type: 'ability' }>, ability: AbilityDef) {
+    const cfg = this.cfg;
     const enemies = this.active(other(actor.side));
     const allies = this.active(actor.side);
     switch (ability.target) {
@@ -607,7 +638,7 @@ export class Combat {
         const targets = ability.target === 'self' ? [actor] : ability.target === 'allAllies' ? allies : action.target ? [action.target] : [];
         if (ability.kind === 'heal') {
           for (const t of targets) {
-            const roll = healAmount(actor, ability, cfg) * this.rng.range(0.9, 1.1) * effectMod(t, 'healingTaken');
+            const roll = healAmount(actor, ability, cfg) * this.rng.range(0.9, 1.1) * effectMod(t, 'healingTaken') * (this.arena?.healing ?? 1);
             const amount = Math.round(Math.min(t.maxHp - t.hp, roll));
             t.hp += amount;
             this.emit({ type: 'heal', round: this.round, actor: actor.id, target: t.id, ability: ability.id, amount, targetHp: Math.round(t.hp) });
@@ -707,6 +738,21 @@ export class Combat {
     this.emit({ type: 'cleanse', round: this.round, actor: actor.id, target: target.id, ability: ability.id, removed });
   }
 
+  /** Passive wards (runic golem) come back at full strength at each break. */
+  private rechargeWards() {
+    for (const c of this.combatants) {
+      if (c.state !== 'active') continue;
+      for (const p of SPECIES[c.speciesId]?.passives ?? []) {
+        const def = EFFECTS[p];
+        if (!def?.rechargeAtBreak) continue;
+        const full = Math.round(c.maxHp * (def.magnitude ?? 0));
+        const cur = c.effects.find((e) => e.id === p);
+        if (cur && (cur.shieldHp ?? 0) >= full) continue;
+        this.addEffect(c, p, 999, undefined, false);
+      }
+    }
+  }
+
   /** Curses fade at each break. */
   private liftCurses() {
     for (const c of this.combatants) {
@@ -741,7 +787,10 @@ export class Combat {
     }
 
     const combo = this.ai.comboOn(actor, target);
-    const p = hitChance(actor, target, ability, { flank, combo, orders }, cfg);
+    let p = hitChance(actor, target, ability, { flank, combo, orders }, cfg);
+    const arenaHit = kind === 'ranged' ? (this.arena?.rangedHit ?? 0) : kind === 'melee' ? (this.arena?.meleeHit ?? 0) : 0;
+    if (arenaHit) p = clamp(p + arenaHit, cfg.combat.hit.min, cfg.combat.hit.max);
+    const ambush = hasEffectFlag(actor, 'hidden');
     const base = {
       type: 'attack' as const,
       round: this.round,
@@ -752,6 +801,7 @@ export class Combat {
       aoe,
       flank,
       interceptedFrom,
+      ...(ambush ? { ambush: true } : {}),
     };
     if (!this.rng.chance(p)) {
       this.emit({ ...base, hit: false, damage: 0, crit: false, elementMult: 1, absorbed: 0, targetHp: Math.round(target.hp) });
@@ -760,16 +810,17 @@ export class Combat {
 
     const element = resolveElement(ability.element, actor);
     const elementMult = elementMultiplier(element, target.elements, cfg);
-    const crit = this.rng.chance(critChance(actor, ability, orders, cfg));
+    const crit = this.rng.chance(critChance(actor, ability, orders, cfg) + (this.arena?.critBonus ?? 0));
     const d = cfg.combat.damage;
     let dmg = rawDamage(actor, ability, { orders, foeOrders: this.sides[target.side].orders, behind: this.ai.behind(actor), solo: !combo }, cfg);
     dmg *= this.rng.range(1 - d.variance, 1 + d.variance);
     dmg *= elementMult;
+    dmg *= arenaElementMult(this.arena, element) * (this.arena?.kinds?.[kind] ?? 1);
     if (crit) dmg *= d.critMult;
     if (aoe) dmg *= d.aoeFactor;
     const exec = executeMult(ability, target, cfg);
     dmg *= exec;
-    dmg *= coverMult(kind, target, this.frontStanding(target.side), cfg);
+    dmg *= coverMult(kind, target, this.coverPoints(target.side), cfg);
     const pack = ability.pack ? this.ai.alliesOn(actor, target) : 0;
     dmg *= packMult(ability, pack, cfg);
     dmg *= 1 - mitigation(target, kind, this.sides[target.side].orders, cfg);
@@ -793,7 +844,7 @@ export class Combat {
 
     let healed: number | undefined;
     if (ability.lifesteal && real > 0) {
-      healed = Math.round(Math.min(actor.maxHp - actor.hp, real * ability.lifesteal * effectMod(actor, 'healingTaken')));
+      healed = Math.round(Math.min(actor.maxHp - actor.hp, real * ability.lifesteal * effectMod(actor, 'healingTaken') * (this.arena?.healing ?? 1)));
       actor.hp += healed;
     }
 
@@ -804,6 +855,9 @@ export class Combat {
     // Thorns: part of a melee blow comes back to the attacker.
     const thorns = kind === 'melee' && real > 0 ? Math.round(real * effectMod(target, 'thorns')) : 0;
     if (thorns > 0) this.reflect(target, actor, thorns);
+    // A spell mirror sends part of a spell back to its caster.
+    const mirror = kind === 'spell' && real > 0 && actor.state === 'active' ? Math.round(real * effectMod(target, 'spellReflect')) : 0;
+    if (mirror > 0) this.reflect(target, actor, mirror, true);
 
     const m = cfg.combat.morale;
     if (crit) this.changeMorale(actor, m.critDealt);
@@ -821,20 +875,39 @@ export class Combat {
     this.applyAbilityEffects(actor, ability, target, 'target');
     if (!aoe && actor.state === 'active') this.applyAbilityEffects(actor, ability, actor, 'self');
     this.checkLowHpRage(target);
-    if (actor.state === 'active') this.checkLowHpRage(actor);
+    this.checkTransform(target);
+    if (actor.state === 'active') {
+      this.checkLowHpRage(actor);
+      this.checkTransform(actor);
+    }
   }
 
-  /** Creatures of a side standing in the front line. */
-  frontStanding(side: Side): number {
-    return this.combatants.filter((c) => c.side === side && c.state === 'active' && c.line === 'front').length;
+  /** Metamorphosis: below the threshold, the passive gives way to the creature's true form (once). */
+  private checkTransform(c: Combatant) {
+    if (c.state !== 'active') return;
+    const shift = c.effects.find((e) => {
+      const def = EFFECTS[e.id];
+      return def?.transformBelow !== undefined && def.transformInto && hpFraction(c) < def.transformBelow;
+    });
+    if (!shift) return;
+    const into = EFFECTS[shift.id]!.transformInto!;
+    c.effects = c.effects.filter((e) => e !== shift);
+    this.emit({ type: 'effectExpired', round: this.round, target: c.id, effect: shift.id });
+    this.addEffect(c, into, 999, undefined, true);
+    this.emit({ type: 'transform', round: this.round, actor: c.id, effect: into });
   }
 
-  private reflect(from: Combatant, to: Combatant, amount: number) {
+  /** Cover points of a side: its creatures standing in the front line (tanks count more). */
+  coverPoints(side: Side): number {
+    return coverPoints(this.combatants.filter((c) => c.side === side && c.state === 'active' && c.line === 'front'), this.cfg);
+  }
+
+  private reflect(from: Combatant, to: Combatant, amount: number, spell = false) {
     if (to.state !== 'active') return;
     const real = Math.min(amount, to.hp);
     to.hp -= real;
     from.damageDealt += real;
-    this.emit({ type: 'thorns', round: this.round, actor: from.id, target: to.id, amount: real, hp: Math.round(to.hp) });
+    this.emit({ type: 'thorns', round: this.round, actor: from.id, target: to.id, amount: real, hp: Math.round(to.hp), ...(spell ? { spell: true } : {}) });
     if (to.hp <= 0) this.knockOut(to, from);
   }
 

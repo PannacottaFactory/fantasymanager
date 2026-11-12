@@ -35,6 +35,7 @@ function write(key: string, value: string) {
 
 export type EffectsLevel = 'full' | 'reduced';
 const EFFECTS_KEY = 'fm.effects';
+const VOLUME_KEY = 'fm.volume';
 const systemReduced = () => {
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -50,6 +51,9 @@ interface SettingsState {
   /** Particles, shakes and celebrations (reduced: none). Defaults to the system's reduced-motion setting. */
   effects: EffectsLevel;
   setEffects: (e: EffectsLevel) => void;
+  /** Sound effects volume, 0 (off) … 1. */
+  volume: number;
+  setVolume: (v: number) => void;
   setLang: (l: Lang) => void;
   setTheme: (t: Theme) => void;
   setTextSize: (t: TextSize) => void;
@@ -87,6 +91,14 @@ export const useSettings = create<SettingsState>()((set) => ({
   setEffects: (effects) => {
     write(EFFECTS_KEY, effects);
     set({ effects });
+  },
+  volume: (() => {
+    const v = Number(read(VOLUME_KEY));
+    return read(VOLUME_KEY) !== null && Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.5;
+  })(),
+  setVolume: (volume) => {
+    write(VOLUME_KEY, String(volume));
+    set({ volume });
   },
 }));
 

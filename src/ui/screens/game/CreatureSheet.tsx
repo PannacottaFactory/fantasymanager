@@ -20,6 +20,8 @@ import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
 import { planOf, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
 import { IntensitySelect, ProgramSelect } from './TrainingScreen.tsx';
+import { CreatureRecordPanel } from '../../components/CreatureRecord.tsx';
+import { UiIcon } from '../../icons/Icon.tsx';
 
 const YEARS = [1, 2, 3];
 
@@ -59,7 +61,7 @@ function ScoutButton({ game, creature }: { game: GameState; creature: Creature }
           if (o) setMsg(o.kind === 'sent' ? tr.t('scout.sent', { weeks: tr.weeks(o.weeks) }) : errorText(tr, o.error));
         }}
       >
-        🔍 {onIt ? tr.t('scout.onIt') : tr.t('act.scout')}
+        <UiIcon name="scout" /> {onIt ? tr.t('scout.onIt') : tr.t('act.scout')}
       </button>
       {msg && <span className="muted" style={{ fontSize: '0.857rem' }}>{msg}</span>}
     </span>
@@ -289,6 +291,7 @@ function Sheet({ id }: { id: string }) {
         </div>
       )}
       {own && <RelationsRow team={team!} creature={creature} />}
+      <CreatureRecordPanel creature={creature} />
       {own && <ContractPanel game={game} creature={creature} />}
       {!own && team && <BidPanel key={id} game={game} creature={creature} team={team} />}
       {!own && !team && <SignPanel key={id} game={game} creature={creature} />}

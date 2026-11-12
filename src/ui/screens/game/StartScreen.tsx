@@ -47,11 +47,16 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
     <div className="start">
       {!onCancel && (
         <header className="start-hero">
-          <svg className="start-logo" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
-          <div>
-            <h1>{t('app.title')}</h1>
-            <p className="muted">{t('start.intro')}</p>
+          <div className="start-title-row">
+            <svg className="start-logo" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
+            <h1 className="start-title">{t('app.title')}</h1>
           </div>
+          <div className="start-ornament" aria-hidden="true">
+            <i />
+            <b>◆</b>
+            <i />
+          </div>
+          <p className="start-tagline">{t('start.intro')}</p>
         </header>
       )}
 
@@ -74,10 +79,12 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
 
       <section className="panel start-card new-card">
         <div className="start-card-tag new">{t('start.newTag')}</div>
-        <h2 className="row" style={{ gap: 8 }}>
-          <UiIcon name="new-game" size="1.1em" /> {t('start.new')}
-        </h2>
-        {game && <p className="answer bad" style={{ margin: 0 }}>{t('start.replaceWarning')}</p>}
+        <div className="row wrap new-head">
+          <h2 className="row" style={{ gap: 8 }}>
+            <UiIcon name="new-game" size="1.1em" /> {t('start.new')}
+          </h2>
+          {game && <span className="new-warning">{t('start.replaceWarning')}</span>}
+        </div>
         <div className="new-grid">
           <div className="new-col">
             <label className="field">

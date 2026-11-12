@@ -14,9 +14,13 @@ const sumCat = (c: Creature, cat: keyof typeof ATTRIBUTE_CATEGORIES) => ATTRIBUT
 /** A young player creature with plenty of room to grow. */
 function youngster(g: GameState): Creature {
   const team = playerTeam(g);
-  const young = team.creatures.filter((c) => lifeStage(c) === 'young').sort((a, b) => b.potential - a.potential);
+  // Room to grow in the physical attributes (they are capped by the species' range), then the highest potential.
+  const room = (c: Creature) => ATTRIBUTE_CATEGORIES.physical.reduce((s, k) => s + getSpecies(c).attributes[k][1] - c.attributes[k], 0);
+  const young = team.creatures.filter((c) => lifeStage(c) === 'young').sort((a, b) => room(b) - room(a) || b.potential - a.potential);
   const c = young[0] ?? team.creatures[0]!;
   c.age = getSpecies(c).lifeCurve.minAge;
+  // A real prospect: enough growth ahead to read the program's direction (the world may only hold modest youngsters).
+  c.potential = Math.max(c.potential, 130);
   c.ability = Math.min(c.ability, Math.round(c.potential * 0.6));
   return c;
 }

@@ -60,6 +60,31 @@ export interface Creature {
   contract?: Contract;
   /** Training progress not yet turned into whole points (league games). */
   growth?: CreatureGrowth;
+  /** Career record in league and cup matches (public: anyone can see it). */
+  record?: CreatureRecord;
+}
+
+/** What a creature has done in its career (league, cup and tournament matches). */
+export interface CreatureRecord {
+  matches: number;
+  starts: number;
+  wins: number;
+  /** Opponents knocked out. */
+  kos: number;
+  /** Times knocked out. */
+  downs: number;
+  damage: number;
+  healing: number;
+  /** Best creature of its side in a match. */
+  mvp: number;
+  /** Best match rating ×10. */
+  best: number;
+  /** Sum of the match ratings ×10 (average = ratingSum / matches). */
+  ratingSum: number;
+  /** Trophies won with its stable: season + competition ('league' = a title, with its division). */
+  trophies: { season: number; def: string; tournament?: string; division?: number }[];
+  /** Season of its first match for the current stable. */
+  since?: number;
 }
 
 export interface CreatureGrowth {

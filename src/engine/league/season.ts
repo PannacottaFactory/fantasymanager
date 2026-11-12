@@ -13,7 +13,9 @@ import type { MatchResult, MatchSetup, Side } from '../combat/types.ts';
 import { isInjured } from '../creature/derived.ts';
 import { generateTeamName } from '../creature/names.ts';
 import type { Team } from '../model.ts';
-import { buildReport } from '../report/report.ts';
+import { buildReport, type MatchReport } from '../report/report.ts';
+import { awardTrophy, initBestiary, recordSide, updateBestiary } from '../team/record.ts';
+import { arenaFor } from './arena.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
 import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
 import { levelOf, matchXp } from '../progression/levels.ts';
@@ -142,6 +144,7 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
   startCup(state, cfg);
   startTournaments(state, championsFrom(state), cfg);
   snapshotSeasonStart(state, cfg);
+  initBestiary(state);
   return state;
 }
 
@@ -222,7 +225,8 @@ export function fixtureSetup(state: GameState, fixture: Fixture, cfg: GameConfig
   const home = prep(fixture.home, fixture.away);
   const away = prep(fixture.away, fixture.home);
   const swapped = fixture.away === state.playerTeamId;
-  return { setup: { seed: fixtureSeed(state, fixture), teams: swapped ? [away, home] : [home, away] }, swapped };
+  const arena = arenaFor(state, fixture, cfg);
+  return { setup: { seed: fixtureSeed(state, fixture), teams: swapped ? [away, home] : [home, away], ...(arena ? { arena } : {}) }, swapped };
 }
 
 function toFixtureResult(result: MatchResult, swapped: boolean): FixtureResult {
@@ -248,6 +252,7 @@ function toFixtureResult(result: MatchResult, swapped: boolean): FixtureResult {
 
 interface MatchEffects {
   injuries: { creatureId: string; injuryId: string; weeks: number }[];
+  report: MatchReport;
 }
 
 /** Applies fatigue, injuries, morale and form from a match to one side's team (mutates `team`). */
@@ -258,7 +263,7 @@ function applyMatchEffects(team: Team, result: MatchResult, side: Side, injuryFa
   const o = result.outcome;
   const won = o.winner === side;
   const moraleDelta = won ? (o.method === 'ko' ? lc.morale.koWin : lc.morale.pointsWin) : o.method === 'ko' ? lc.morale.koLoss : lc.morale.pointsLoss;
-  const effects: MatchEffects = { injuries: [] };
+  const effects: MatchEffects = { injuries: [], report };
   for (const pm of result.postMatch) {
     if (result.roster[pm.creatureId]?.side !== side) continue;
     const c = team.creatures.find((x) => x.id === pm.creatureId);
@@ -354,6 +359,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
     played.push({ fixture: f, result, swapped });
   }
   const starters = new Map<string, string[]>();
+  const met: string[] = [];
   for (const { fixture, result, swapped } of played) {
     fixture.result = toFixtureResult(result, swapped);
     const sideOf = (teamId: string): Side => (result.teams[0].id === teamId ? 0 : 1);
@@ -363,6 +369,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
       starters.set(teamId, Object.values(result.roster).filter((r) => r.side === side && r.starter).map((r) => r.id));
       const injuryFactor = injuryWeeksFactor(next, teamId, cfg);
       const fx = applyMatchEffects(team, result, side, injuryFactor, cfg);
+      recordSide(next, team, result, side, fx.report.creatures, fx.report.mvp, cfg);
       for (const inj of fx.injuries) {
         const c = team.creatures.find((x) => x.id === inj.creatureId)!;
         if (inj.weeks >= cfg.club.news.starInjuryWeeks && isStar(next, c.id)) addNews(next, { kind: 'starInjury', name: c.name, team: team.name, weeks: inj.weeks }, cfg);
@@ -392,8 +399,10 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
         pushMessage(next, { kind: 'injury', creatureId: inj.creatureId, name: team.creatures.find((c) => c.id === inj.creatureId)!.name, injuryId: inj.injuryId, weeks: inj.weeks });
       }
       next.lastMatch = { fixtureId: fixture.id, result };
+      met.push(...Object.values(result.roster).filter((r) => r.side !== side).map((r) => r.speciesId));
     }
   }
+  if (met.length) updateBestiary(next, met, cfg);
   weeklyRelations(next, starters, cfg);
   weeklyBoard(next, played.map((p) => p.fixture), cfg);
   return played;
@@ -456,6 +465,8 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   contractWarning(next, cfg);
 
   next.matchday++;
+  // From now on the weather counts: the player is told once.
+  if (next.season === 1 && next.matchday === cfg.arena.startWeek) pushMessage(next, { kind: 'arenaIntro' });
   if (next.matchday > lastMatchday(next)) endOfLeague(next, cfg);
   checkAmbitions(next, cfg);
   return next;
@@ -465,7 +476,10 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
 function endOfLeague(next: GameState, cfg: GameConfig) {
   seasonPrizes(next, cfg);
   const tables = divisionTables(next, cfg);
-  tables.forEach((table, d) => addNews(next, { kind: 'champion', team: teamById(next, table[0]!.teamId).name, division: d }, cfg));
+  tables.forEach((table, d) => {
+    addNews(next, { kind: 'champion', team: teamById(next, table[0]!.teamId).name, division: d }, cfg);
+    awardTrophy(next, table[0]!.teamId, { def: 'league', division: d }, cfg);
+  });
   const div = playerDivision(next);
   const table = tables[div]!;
   const pos = table.findIndex((r) => r.teamId === next.playerTeamId) + 1;
@@ -549,6 +563,7 @@ export function playCupRound(state: GameState, playerMatch: MatchResult | null =
       if (winner) {
         next.cup.winner = winner;
         addNews(next, { kind: 'cupWinner', team: teamById(next, winner).name }, cfg);
+        awardTrophy(next, winner, { def: 'shadow' }, cfg);
         if (winner === next.playerTeamId) pushMessage(next, { kind: 'cupWon', prize });
       }
     } else drawCupRound(next, cfg);

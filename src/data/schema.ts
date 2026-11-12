@@ -122,6 +122,8 @@ export interface EffectMods {
   thorns?: number;
   /** Fury: damage bonus that grows with missing health (full value at 0 HP; additive). */
   fury?: number;
+  /** Fraction of spell damage taken that is sent back to the caster (additive). */
+  spellReflect?: number;
 }
 
 export interface EffectDef {
@@ -145,6 +147,17 @@ export interface EffectDef {
   endsOnHeal?: boolean;
   /** Passive used up when knocked out: the creature gets back up once with this fraction of its max health. */
   revive?: number;
+  /** Silence: cannot use spells nor heals. */
+  silence?: boolean;
+  /** Provocation: enemies' single-target attacks must aim at it when they can reach it. */
+  taunt?: boolean;
+  /** Camouflage: single-target abilities cannot pick it (area attacks still hit); its next hostile action reveals it. */
+  hidden?: boolean;
+  /** Passive shield that comes back at full strength at every break. */
+  rechargeAtBreak?: boolean;
+  /** Metamorphosis passive: below this health fraction the creature turns into `transformInto` (permanent effect). */
+  transformBelow?: number;
+  transformInto?: string;
 }
 
 export interface TraitCombatEffects {

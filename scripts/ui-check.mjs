@@ -1,4 +1,4 @@
-/* global console, process */
+/* global console, process, document */
 /**
  * Visual check of the game in a real (headless) browser: starts a game, plays a few weeks, visits the main
  * screens, opens every creature sheet of the squad and a few others, and saves screenshots + console / page errors.
@@ -39,7 +39,7 @@ const go = async (group, index) => {
 };
 const closeModal = async () => {
   const close = page.locator('.dialog-head .btn.ghost[aria-label]');
-  if (await close.count()) await close.first().click();
+  if (await close.count()) await close.last().click();
   await wait(200);
 };
 
@@ -72,6 +72,10 @@ for (let w = 0; w < weeks; w++) {
   await closeRecap();
   await page.locator('.topbar .btn.primary').first().click();
   await wait(600);
+  if (w === 0 && (await page.locator('.versus').count())) {
+    await wait(900);
+    await shot('00-prematch');
+  }
   const sim = page.locator('button.cta-sim');
   const fix = page.locator('.remark.bad .btn.small');
   if (await fix.count()) {
@@ -85,17 +89,26 @@ for (let w = 0; w < weeks; w++) {
   if (!(await alive(`week ${w + 1}`))) break;
 }
 await closeRecap();
+// The next pre-match screen (arena conditions start after a few weeks).
+await page.locator('.topbar .btn.primary').first().click();
+await wait(1500);
+if (await page.locator('.versus').count()) await shot('00-prematch-late');
 await go(null, 0);
 await shot('01-inbox');
 
 // Every sheet of the squad.
 await go(0, 0);
 await shot('02-squad');
-const n = await page.locator('table.data button.link').count();
+// Squad as cards (default view): every card opens its sheet.
+const n = await page.locator('.ccard').count();
 for (let i = 0; i < n; i++) {
-  await page.locator('table.data button.link').nth(i).click();
+  await page.locator('.ccard').nth(i).click();
   await wait(300);
-  if (i === 0) await shot('03-sheet');
+  if (i === 0) {
+    await shot('03-sheet');
+    const rec = page.locator('.rec-panel');
+    if (await rec.count()) await rec.first().screenshot({ path: `${out}/03-record.png` });
+  }
   if (!(await alive(`squad sheet ${i}`))) break;
   await closeModal();
 }
@@ -118,6 +131,30 @@ if (await alive('squad')) {
   }
   await go(2, 0);
   await shot('08-finances');
+  // Bestiary (Encyclopedia tab).
+  await go(3, 0);
+  await page.locator('.enc-bestiary-tab').click();
+  await wait(300);
+  await shot('09-bestiary');
+  // Combat rules › Arena conditions.
+  await page.locator('.enc-tabs').first().locator('.chip').last().click();
+  await wait(200);
+  await page.locator('.enc-list li button').last().click();
+  await wait(300);
+  await shot('09-arena-rule');
+  await go(null, 0);
+  await shot('10-dashboard');
+  // Top bar at several widths and text sizes: tab names must stay visible.
+  for (const [w, size] of [[1920, 'large'], [1440, 'large'], [1280, 'xlarge'], [1024, 'large']]) {
+    await page.locator('.settings-btn').click();
+    await page.locator('.settings-row').nth(1).locator('button').nth(size === 'xlarge' ? 2 : 1).click();
+    await page.keyboard.press('Escape');
+    await page.setViewportSize({ width: w, height: 900 });
+    await wait(400);
+    const nav = await page.evaluate(() => document.querySelector('nav.nav')?.className);
+    console.log(`top bar ${w}px: ${nav}`);
+    await page.screenshot({ path: `${out}/11-topbar-${w}.png`, clip: { x: 0, y: 0, width: w, height: 140 } });
+  }
 }
 
 console.log(errors.length ? errors.join('\n') : 'no errors');

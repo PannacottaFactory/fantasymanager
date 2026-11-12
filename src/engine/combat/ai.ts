@@ -9,6 +9,7 @@ import { ROLES } from '../../data/roles.ts';
 import { TRAITS } from '../../data/traits.ts';
 import type { GameConfig } from '../../data/config/index.ts';
 import type { AbilityDef, TargetPriority } from '../../data/schema.ts';
+import type { ArenaCondition } from '../../data/config/arena.ts';
 import type { Rng } from '../../core/rng.ts';
 import type { TeamOrders } from '../model.ts';
 import {
@@ -21,6 +22,10 @@ import {
   packMult,
   elementMultiplier,
   hasEffect,
+  hasEffectFlag,
+  isSilenceable,
+  arenaCostMult,
+  arenaElementMult,
   isCleansable,
   hitChance,
   hpFraction,
@@ -49,8 +54,10 @@ export interface AiContext {
   alliesOn(attacker: Combatant, target: Combatant): number;
   /** Fraction by which the creature's team trails on health (0 if ahead). */
   behind(c: Combatant): number;
-  /** Creatures of a side standing in the front line (cover). */
-  frontStanding(side: Combatant['side']): number;
+  /** Cover points of a side's front line (creatures standing in it, tanks count more). */
+  coverPoints(side: Combatant['side']): number;
+  /** Arena condition of the match (weather), if any. */
+  arena?: ArenaCondition;
 }
 
 export interface ChooseOptions {
@@ -72,17 +79,28 @@ export function instinctPriority(c: Combatant): TargetPriority {
   return 'nearest';
 }
 
-/** Enemies this ability can reach, with a flank flag for skirmishers hitting the back line. */
+/**
+ * Enemies this ability can reach, with a flank flag for melee strikes on the back line past a standing front line
+ * (an accuracy penalty: small for skirmishers, large for anyone else).
+ */
 export function reachableTargets(actor: Combatant, ability: AbilityDef, enemies: Combatant[]): { target: Combatant; flank: boolean }[] {
   if (attackKind(ability) !== 'melee' || ability.reachBack || actor.flying) {
     return enemies.map((target) => ({ target, flank: false }));
   }
   const front = enemies.filter((e) => e.line === 'front');
   if (!front.length) return enemies.map((target) => ({ target, flank: false }));
-  if (actor.role === 'skirmisher') {
-    return enemies.map((target) => ({ target, flank: target.line === 'back' }));
-  }
-  return front.map((target) => ({ target, flank: false }));
+  return enemies.map((target) => ({ target, flank: target.line === 'back' }));
+}
+
+/**
+ * Enemies a single-target hostile ability may pick: camouflaged ones are out of sight (unless every enemy is),
+ * and a provoking enemy within reach draws every such blow.
+ */
+export function pickableTargets(options: { target: Combatant; flank: boolean }[]): { target: Combatant; flank: boolean }[] {
+  const seen = options.filter((o) => !hasEffectFlag(o.target, 'hidden'));
+  const visible = seen.length ? seen : options;
+  const taunting = visible.filter((o) => hasEffectFlag(o.target, 'taunt'));
+  return taunting.length ? taunting : visible;
 }
 
 /** Bonus factor (0–1) for how well a target matches the given priority. */
@@ -123,8 +141,13 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const mit = mitigation(target, attackKind(ability), ctx.orders(target), cfg);
   const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders }, cfg);
   const pack = packMult(ability, ctx.alliesOn(actor, target), cfg);
-  const cover = coverMult(attackKind(ability), target, ctx.frontStanding(target.side), cfg);
-  return raw * perceivedMult * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * p * (ability.hits ?? 1);
+  const cover = coverMult(attackKind(ability), target, ctx.coverPoints(target.side), cfg);
+  // The weather is plain to see: everyone takes it into account.
+  const kind = attackKind(ability);
+  const weather = arenaElementMult(ctx.arena, resolveElement(ability.element, actor)) * (ctx.arena?.kinds?.[kind] ?? 1);
+  const arenaHit = kind === 'ranged' ? (ctx.arena?.rangedHit ?? 0) : kind === 'melee' ? (ctx.arena?.meleeHit ?? 0) : 0;
+  const hit = arenaHit ? Math.max(0.05, p + arenaHit) : p;
+  return raw * perceivedMult * weather * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * hit * (ability.hits ?? 1);
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */
@@ -189,6 +212,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
   const allies = ctx.allies(actor);
   const options: ChosenAction[] = [];
   const stFrac = staminaFraction(actor);
+  const silenced = hasEffectFlag(actor, 'silence');
   const riskBias =
     orders.risk === 'high' ? cfg.combat.orders.riskHigh.bigAbilityBias : orders.risk === 'low' ? cfg.combat.orders.riskLow.bigAbilityBias : 0;
 
@@ -196,8 +220,10 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     const ability = ABILITIES[id];
     if (!ability) continue;
     if ((actor.cooldowns[id] ?? 0) > 0) continue;
-    const cost = staminaCost(actor, ability, orders, cfg);
+    const cost = staminaCost(actor, ability, orders, cfg) * arenaCostMult(ctx.arena);
     if (cost > actor.stamina) continue;
+    // Silenced: no spells, no heals.
+    if (silenced && isSilenceable(ability)) continue;
     let bigMult = 1;
     if (ability.hpCost) {
       // Sacrifice: never at death's door, and less eagerly the more it costs.
@@ -220,7 +246,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     const damaging = ability.power > 0 && (ability.kind === 'melee' || ability.kind === 'ranged' || ability.kind === 'spell' || ability.kind === 'debuff');
 
     if (ability.target === 'enemy') {
-      for (const { target, flank } of reachableTargets(actor, ability, enemies)) {
+      for (const { target, flank } of pickableTargets(reachableTargets(actor, ability, enemies))) {
         let score = 0;
         if (damaging) {
           const exp = expectedDamage(ctx, actor, ability, target, flank);
@@ -230,10 +256,13 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         if (ability.kind === 'debuff') score += effectValue(ability, [target]) * role.debuff * 2 + (ability.fear ?? 0) * 0.01 * role.debuff;
         else score += effectValue(ability, [target]) * Math.max(role.debuff, 0.5);
         score += drainValue(ability, [target]) * Math.max(role.debuff, 0.5);
-        // Thorns hurt whoever strikes them in melee (seen in proportion to tactics).
-        const thorns = attackKind(ability) === 'melee' ? effectMod(target, 'thorns') : 0;
+        // Thorns hurt whoever strikes them in melee, mirrors whoever casts at them (seen in proportion to tactics).
+        const thorns = attackKind(ability) === 'melee' ? effectMod(target, 'thorns') : attackKind(ability) === 'spell' ? effectMod(target, 'spellReflect') : 0;
         if (thorns > 0 && damaging) score -= ((expectedDamage(ctx, actor, ability, target, flank) * thorns) / actor.maxHp) * 3 * (actor.attrs.tactics / 20);
-        score += priorityMatch(opts.priority, target, enemies) * ai.priorityBonus;
+        // Forcing a way past a standing front line is costly for anyone but a skirmisher: the target priority only
+        // pulls them there when it is really worth it.
+        const reach = flank && actor.role !== 'skirmisher' ? ai.reachPriority : 1;
+        score += priorityMatch(opts.priority, target, enemies) * ai.priorityBonus * reach;
         // Pack hunters converge on prey their allies are already biting.
         if (ability.pack) score += Math.min(ctx.alliesOn(actor, target), cfg.combat.damage.packMax) * ability.pack * 2;
         if (target.line === 'back') score += role.backlineHunter * 0.12;
@@ -278,6 +307,12 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         if (effectId === 'fortified') score += 0.3 * role.guard * (0.3 + hurt);
         if (effectId === 'evasive') score += 0.3 * (0.3 + hurt);
         if (effectId === 'shielded') score += 0.3 * role.guard * (0.3 + hurt);
+        // Slipping out of sight sets up a big blow; provoking protects the back line.
+        if (effectId === 'camouflaged') score += 0.35 * role.damage * (0.4 + hurt);
+        if (effectId === 'provoking') {
+          const back = allies.filter((a) => a.line === 'back' && a.id !== actor.id).length;
+          score += role.guard * (back ? 0.25 + 0.08 * back : 0.05) * (1.2 - hurt);
+        }
         options.push({ type: 'ability', ability, target: actor, flank: false, score: score * bigMult });
       } else if (ability.target === 'allAllies') {
         const without = allies.filter((a) => !effectId || !hasEffect(a, effectId)).length;

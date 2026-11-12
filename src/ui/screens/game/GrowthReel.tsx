@@ -16,6 +16,7 @@ import { Crest } from '../../components/common.tsx';
 import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
+import { play } from '../../sound/sfx.ts';
 
 const PER = DEFAULT_CONFIG.training.levels.xpPerLevel;
 const totalXp = (c: Creature) => (levelOf(c) - 1) * PER + xpInLevel(c);
@@ -58,7 +59,9 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
   const ups = list.filter((g) => g.lv1 > g.lv0).map((g) => g.c.id);
   const upsKey = ups.join(',');
   useEffect(() => {
-    if (!upsKey || !effectsOn()) return;
+    if (!upsKey) return;
+    const sound = window.setTimeout(() => play('levelUp'), 800);
+    if (!effectsOn()) return () => window.clearTimeout(sound);
     // Sparkles when the bars wrap round.
     const timer = window.setTimeout(() => {
       for (const id of upsKey.split(',')) {
@@ -66,7 +69,10 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
         if (at) fxLayer()?.sparkle(at.x, at.y, true);
       }
     }, 800);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(sound);
+    };
   }, [upsKey]);
   if (!list.length) return <p className="faint">{t('grow.none')}</p>;
   return (

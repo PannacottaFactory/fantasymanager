@@ -10,6 +10,7 @@ import { clubOf, earn, spend, ticketRevenue } from '../economy/finance.ts';
 import type { Team } from '../model.ts';
 import { divisionOf } from './divisions.ts';
 import { pushMessage } from './messages.ts';
+import { awardTrophy } from '../team/record.ts';
 import { addNews } from './news.ts';
 import type { Fixture, GameState, Tournament } from './types.ts';
 
@@ -174,6 +175,7 @@ export function finishTournamentRound(state: GameState, t: Tournament, played: F
     const winner = t.alive[0];
     if (!winner) return;
     t.winner = winner;
+    awardTrophy(state, winner, { def: t.def, tournament: t.id, division: t.division }, cfg);
     if (t.kind !== 'preseason') addNews(state, { kind: 'cupWinner', team: team(state, winner).name, tournament: t.id }, cfg);
     if (winner === state.playerTeamId) pushMessage(state, { kind: 'cupWon', prize, tournament: t.id });
   } else drawRound(state, t, cfg);

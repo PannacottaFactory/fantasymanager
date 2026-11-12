@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { effectsOn } from '../../i18n/index.ts';
 import { FxCanvas } from './fxCanvas.ts';
 import type { FxBatch, Shot } from './matchFx.ts';
+import { play } from '../../sound/sfx.ts';
 
 /** Full-screen canvas drawing projectiles and particles between fighter cards (display only). */
 export function Projectiles({ shots, bursts, flight }: { shots: Shot[]; bursts: FxBatch['bursts']; flight: number }) {
@@ -19,11 +20,24 @@ export function Projectiles({ shots, bursts, flight }: { shots: Shot[]; bursts: 
     };
   }, []);
   useEffect(() => {
+    if (!flight || !shots.length) return;
+    // Sounds land with the projectile (one per batch: the loudest).
+    const s = shots.find((x) => x.ko) ?? shots.find((x) => x.crit && !x.miss) ?? shots[0]!;
+    const sound = s.ko ? null : s.miss ? 'miss' : s.style === 'heal' ? 'heal' : s.style === 'buff' || s.style === 'debuff' ? 'magic' : s.crit ? 'crit' : 'hit';
+    if (sound) {
+      if (s.style === 'ranged' || s.style === 'spell') play('whoosh');
+      const timer = window.setTimeout(() => play(sound), flight);
+      timers.current.add(timer);
+    }
     const fx = engine.current;
-    if (!fx || !flight || !effectsOn()) return;
-    for (const s of shots) fx.launch(s, flight);
+    if (!fx || !effectsOn()) return;
+    for (const x of shots) fx.launch(x, flight);
   }, [shots, flight]);
   useEffect(() => {
+    if (bursts.some((b) => b.kind === 'ko')) {
+      const t = window.setTimeout(() => play('ko'), flight || 0);
+      timers.current.add(t);
+    }
     const fx = engine.current;
     if (!fx || !bursts.length || !effectsOn()) return;
     // A knock-out lands with the blow that caused it (timers survive the next batches).

@@ -7,7 +7,7 @@ import { aiPrepare, newGame } from '../src/engine/league/season.ts';
 import { counterTarget } from '../src/engine/team/identity.ts';
 import { SPECIES } from '../src/data/species.ts';
 import { ABILITIES } from '../src/data/abilities.ts';
-import { ascendancyMult, counterApproach, coverMult, roleDamageFactor } from '../src/engine/combat/formulas.ts';
+import { ascendancyMult, counterApproach, coverMult, coverPoints, roleDamageFactor } from '../src/engine/combat/formulas.ts';
 
 describe('AI stable identities', () => {
   it('style data only names existing species and abilities', () => {
@@ -70,11 +70,21 @@ describe('levers', () => {
     expect(focus.size).toBeGreaterThanOrEqual(3);
   });
 
-  it('cover protects the back line from ranged attacks while two creatures hold the front', () => {
+  it('cover grows with the front line (a tank counts more) but never protects fully', () => {
     const cfg = DEFAULT_CONFIG;
     const back = { line: 'back' } as Parameters<typeof coverMult>[1];
-    expect(coverMult('ranged', back, 2, cfg)).toBeCloseTo(1 - cfg.combat.cover.reduction);
-    expect(coverMult('spell', back, 1, cfg)).toBe(1);
+    const front = { line: 'front' } as Parameters<typeof coverMult>[1];
+    const one = coverMult('ranged', back, coverPoints([{ role: 'striker' }], cfg), cfg);
+    const tank = coverMult('ranged', back, coverPoints([{ role: 'tank' }], cfg), cfg);
+    const two = coverMult('spell', back, coverPoints([{ role: 'striker' }, { role: 'caster' }], cfg), cfg);
+    const four = coverMult('ranged', back, 4, cfg);
+    expect(one).toBeLessThan(1);
+    expect(tank).toBeLessThan(one);
+    expect(two).toBeLessThan(one);
+    expect(four).toBeLessThan(two);
+    expect(four).toBeGreaterThan(1 - cfg.combat.cover.max);
+    expect(coverMult('ranged', back, 0, cfg)).toBe(1);
+    expect(coverMult('ranged', front, 3, cfg)).toBe(1);
     expect(coverMult('melee', back, 3, cfg)).toBe(1);
   });
 
@@ -123,5 +133,27 @@ describe('ascendancy between approaches', () => {
     const g = newGame({ seed: 'dup', teamName: 'Me', lang: 'en' });
     const t = g.teams[0]!;
     expect(() => new Combat({ seed: 1, teams: [t, structuredClone(t)] })).toThrow(/Duplicate/);
+  });
+});
+
+describe('reaching the back line in melee', () => {
+  it('any melee fighter can strike the back line past a standing front line, with a bigger penalty than a skirmisher', async () => {
+    const { reachableTargets } = await import('../src/engine/combat/ai.ts');
+    const { hitChance } = await import('../src/engine/combat/formulas.ts');
+    const cfg = DEFAULT_CONFIG;
+    const ability = { kind: 'melee', power: 10 } as unknown as Parameters<typeof reachableTargets>[1];
+    const enemies = [{ id: 'f', line: 'front' }, { id: 'b', line: 'back' }] as unknown as Parameters<typeof reachableTargets>[2];
+    const brute = { role: 'striker' } as unknown as Parameters<typeof reachableTargets>[0];
+    const reach = reachableTargets(brute, ability, enemies);
+    expect(reach.map((r) => [r.target.line, r.flank])).toEqual([['front', false], ['back', true]]);
+    const attrs = Object.fromEntries(['attack', 'technique', 'defense', 'agility', 'teamwork'].map((k) => [k, 10]));
+    const mk = (role: string) => ({ role, roleFactor: 1, attrs, effects: [], traits: [], stamina: 100, maxStamina: 100, morale: 50, size: 'medium' }) as unknown as Parameters<typeof hitChance>[0];
+    const target = mk('caster');
+    const orders = { aggression: 'balanced', target: 'nearest', risk: 'normal' } as const;
+    const base = hitChance(mk('striker'), target, ability, { flank: false, combo: false, orders }, cfg);
+    const brutePen = base - hitChance(mk('striker'), target, ability, { flank: true, combo: false, orders }, cfg);
+    const skirmPen = base - hitChance(mk('skirmisher'), target, ability, { flank: true, combo: false, orders }, cfg);
+    expect(brutePen).toBeGreaterThan(skirmPen);
+    expect(skirmPen).toBeGreaterThan(0);
   });
 });

@@ -25,6 +25,7 @@ import { SpeciesIcon } from '../../icons/Icon.tsx';
 import { isUnlocked, levelOf, unlockLevel } from '../../../engine/progression/levels.ts';
 import { attributeCeiling } from '../../../engine/progression/training.ts';
 import { MAX_NAME_LENGTH } from '../../../engine/team/rename.ts';
+import { UiIcon } from '../../icons/Icon.tsx';
 
 interface Props {
   creature: Creature;
@@ -108,7 +109,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           </div>
           {known && injuries.length > 0 && (
             <div className="bad-text" style={{ fontSize: '0.929rem' }}>
-              🩹 {injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}
+              <UiIcon name="injury" /> {injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}
             </div>
           )}
         </div>

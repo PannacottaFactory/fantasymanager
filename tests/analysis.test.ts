@@ -74,3 +74,24 @@ describe('match verdict', () => {
     }
   });
 });
+
+describe('next-match advice', () => {
+  it('flags injured and tired starters and words every tip in both languages', async () => {
+    const { nextMatchAdvice } = await import('../src/engine/report/advice.ts');
+    const { newGame, playerTeam } = await import('../src/engine/league/season.ts');
+    const { en, fr } = await import('../src/ui/i18n/strings.ts');
+    const g = newGame({ seed: 'advice', teamName: 'Me', lang: 'en' });
+    const team = playerTeam(g);
+    const [a, b] = team.tactic.lineup.map((s) => team.creatures.find((c) => c.id === s.creatureId)!);
+    a!.condition.injuries.push({ injuryId: 'sprained-limb', weeksLeft: 2 });
+    b!.condition.fatigue = 70;
+    for (const foe of g.teams.filter((t) => t.id !== team.id).slice(0, 8)) {
+      const tips = nextMatchAdvice({ team, foe, double: true });
+      const keys = tips.map((t) => t.key);
+      expect(keys).toContain('nextInjured');
+      expect(keys).toContain('nextRest');
+      expect(keys).toContain('nextDouble');
+      for (const d of [en, fr] as Record<string, string>[]) for (const t of tips) expect(d[`verdict.t.${t.key}`], t.key).toBeTruthy();
+    }
+  });
+});

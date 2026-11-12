@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { STEPS, useTutorial, type Placement, type TutorialStep } from './tutorial.ts';
+import { UiIcon } from '../icons/Icon.tsx';
 
 const BUBBLE_W = 340;
 const GAP = 12;
@@ -87,7 +88,7 @@ export function TutorialOverlay({ active }: { active: boolean }) {
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <b className="grow">{t(`tut.${step.id}.title` as StringKey)}</b>
           <span className="faint mono" style={{ fontSize: '0.786rem' }}>
-            💡
+            <UiIcon name="tip" />
           </span>
         </div>
         <div className="tutorial-body">{t(`tut.${step.id}.body` as StringKey)}</div>

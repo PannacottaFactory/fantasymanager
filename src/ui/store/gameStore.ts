@@ -76,6 +76,10 @@ interface GameStore {
   /** Tab to open on the League screen (consumed by it). */
   leagueTab: 'table' | 'comps' | 'honours' | null;
   openLeague: (tab: 'table' | 'comps' | 'honours') => void;
+  /** Tab to open in the Encyclopedia (consumed by it). */
+  encTab: { tab: string; id?: string } | null;
+  openBestiary: () => void;
+  openEncyclopedia: (tab: string, id?: string) => void;
   openSheet: (id: string | null) => void;
 }
 
@@ -226,5 +230,8 @@ export const useGame = create<GameStore>()((set, get) => {
     closeRecap: () => set({ recap: null }),
     leagueTab: null,
     openLeague: (tab) => set({ leagueTab: tab, screen: 'league', viewing: null, launch: false }),
+    encTab: null,
+    openBestiary: () => set({ encTab: { tab: 'bestiary' }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null }),
+    openEncyclopedia: (tab, id) => set({ encTab: { tab, id }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null }),
   };
 });

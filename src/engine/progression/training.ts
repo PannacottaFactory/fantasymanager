@@ -218,7 +218,10 @@ export function weeklyTraining(state: GameState, _played: Set<string>, cfg: Game
       if (resting && !fromMatch) continue;
       if (isPlayer) g.seasonStart ??= { ...c.attributes };
       const intensity = t.intensity[(resting ? 'normal' : plan.intensity) as IntensityId];
-      if (!resting) c.condition.fatigue = clamp(c.condition.fatigue + intensity.fatigue, 0, 100);
+      if (!resting) {
+        c.condition.fatigue = clamp(c.condition.fatigue + intensity.fatigue, 0, 100);
+        c.condition.morale = clamp(c.condition.morale + intensity.morale, 0, 100);
+      }
       const stage = lifeStage(c);
       const gap = c.potential - c.ability;
       if (gap > 0 && t.stage[stage] > 0) {

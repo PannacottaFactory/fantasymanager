@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { INTENSITY_IDS, PROGRAM_IDS, type IntensityId, type ProgramId } from '../../../data/config/training.ts';
 import { overallRating } from '../../../engine/creature/derived.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
@@ -31,12 +32,20 @@ export function ProgramSelect({ value, onChange }: { value: ProgramId; onChange:
   );
 }
 
+/** What an intensity does, with the numbers of the config. */
+export function intensityDesc(t: ReturnType<typeof useT>['t'], lang: string, id: IntensityId): string {
+  const x = DEFAULT_CONFIG.training.intensity[id];
+  const n = (v: number) => (lang === 'fr' ? String(v).replace('.', ',') : String(v));
+  const signed = (v: number) => (v < 0 ? `−${n(-v)}` : n(v));
+  return t(`int.${id}.desc` as StringKey, { g: n(x.growth), f: signed(x.fatigue), m: signed(x.morale), i: n(Math.round(x.injury * 1000) / 10) });
+}
+
 export function IntensitySelect({ value, onChange }: { value: IntensityId; onChange: (p: IntensityId) => void }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   return (
-    <select className="compact" value={value} onChange={(e) => onChange(e.target.value as IntensityId)} title={t(`int.${value}.desc` as StringKey)}>
+    <select className="compact" value={value} onChange={(e) => onChange(e.target.value as IntensityId)} title={intensityDesc(t, lang, value)}>
       {INTENSITY_IDS.map((p) => (
-        <option key={p} value={p}>
+        <option key={p} value={p} title={intensityDesc(t, lang, p)}>
           {t(`int.${p}` as StringKey)}
         </option>
       ))}

@@ -52,7 +52,7 @@ export function NewsScreen() {
   return (
     <div className="stack narrow">
       <section className="panel">
-        <h2 style={{ marginBottom: 10 }}>📰 {t('news.title')}</h2>
+        <h2 style={{ marginBottom: 10 }}><UiIcon name="nav-news" /> {t('news.title')}</h2>
         {items.length === 0 && <div className="muted">{t('news.empty')}</div>}
         <ul className="news">
           {items.map((n) => (

@@ -3,20 +3,10 @@ import { Seg } from '../components/common.tsx';
 import type { StringKey } from '../i18n/strings.ts';
 import { useTutorial } from '../tutorial/tutorial.ts';
 import { useGame } from '../store/gameStore.ts';
+import { UiIcon } from '../icons/Icon.tsx';
 
 const SECTIONS = ['goal', 'week', 'combat', 'roles', 'squad', 'economy', 'recruit', 'training', 'competitions', 'club'] as const;
-const ICON: Record<(typeof SECTIONS)[number], string> = {
-  goal: '🎯',
-  week: '📅',
-  combat: '⚔',
-  roles: '🛡',
-  squad: '🐉',
-  economy: '💰',
-  recruit: '🔍',
-  training: '💪',
-  competitions: '🏆',
-  club: '🏛',
-};
+
 
 /** Always-available manual, plus tutorial controls. */
 export function HelpScreen() {
@@ -27,7 +17,7 @@ export function HelpScreen() {
     <div className="stack narrow">
       <section className="panel">
         <div className="panel-head">
-          <h2>❓ {t('help.title')}</h2>
+          <h2><UiIcon name="help" /> {t('help.title')}</h2>
           <span className="spacer" />
           <button className="btn small primary" onClick={restart}>
             {t('help.restart')}
@@ -43,14 +33,14 @@ export function HelpScreen() {
         </p>
         <p>
           <button className="btn small" onClick={() => useGame.getState().setScreen('encyclopedia')}>
-            📖 {t('help.encyclopedia')}
+            <UiIcon name="nav-encyclopedia" /> {t('help.encyclopedia')}
           </button>
         </p>
       </section>
       {SECTIONS.map((s) => (
         <section key={s} className="panel help-section">
           <h3>
-            {ICON[s]} {t(`help.${s}.title` as StringKey)}
+            <UiIcon name={`help-${s}`} /> {t(`help.${s}.title` as StringKey)}
           </h3>
           {t(`help.${s}.body` as StringKey)
             .split('\n')

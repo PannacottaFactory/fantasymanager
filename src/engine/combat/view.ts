@@ -117,6 +117,11 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
       if (t) t.hp = e.hp;
       break;
     }
+    case 'transform': {
+      const a = touch(e.actor);
+      if (a && !a.effects.includes(e.effect)) a.effects.push(e.effect);
+      break;
+    }
     case 'drain': {
       const t = touch(e.target);
       if (t) t.stamina = e.stamina;

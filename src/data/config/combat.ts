@@ -43,8 +43,10 @@ export const COMBAT_CONFIG = {
     max: 0.97,
     /** Big targets are easier to hit. */
     sizeMod: { small: -0.06, medium: 0, large: 0.04, huge: 0.08 } as Record<SizeClass, number>,
-    /** Skirmishers hitting the back line without reach. */
+    /** Skirmishers hitting the back line past a standing front line (× (2 − role factor)). */
     flankPenalty: 0.1,
+    /** Other melee fighters forcing their way to the back line past a standing front line. */
+    reachPenalty: 0.22,
     spellBonus: -0.03,
     /** Bonus per point of teamwork when an ally already hit the target this round. */
     comboPerTeamwork: 0.004,
@@ -164,8 +166,12 @@ export const COMBAT_CONFIG = {
     support: { melee: 0.85, ranged: 0.85, spell: 0.85, heal: 1.25, mitigation: 0 },
     skirmisher: { melee: 1.05, ranged: 1.1, spell: 1, heal: 1, mitigation: -0.04 },
   } as Record<RoleId, { melee: number; ranged: number; spell: number; heal: number; mitigation: number }>,
-  /** Cover: while at least `minFront` allies stand in the front line, the back line takes less from ranged attacks and spells. */
-  cover: { minFront: 2, reduction: 0.2 },
+  /**
+   * Cover: the creatures standing in the front line shield the back line from ranged attacks and spells.
+   * points = front creatures (a tank counts `tankWeight`); reduction = max × (1 − (1 − perPoint)^points):
+   * one creature ≈ −11 %, a lone tank ≈ −15 %, two ≈ −18 %, three ≈ −24 %, four ≈ −27 % — never total.
+   */
+  cover: { perPoint: 0.3, tankWeight: 1.5, max: 0.36 },
   /** Favourite abilities chosen by the manager (per creature). */
   favorites: {
     max: 1,
@@ -177,6 +183,8 @@ export const COMBAT_CONFIG = {
     noiseMax: 0.6,
     killBonus: 0.6,
     priorityBonus: 0.8,
+    /** Share of the priority bonus kept when a non-skirmisher would have to reach past the front line. */
+    reachPriority: 0.3,
     /** Rest becomes attractive below this stamina fraction. */
     restBelow: 0.35,
     restWeight: 1.2,
@@ -186,9 +194,9 @@ export const COMBAT_CONFIG = {
   rage: { duration: 3 },
   injury: {
     /** Chance of injury when knocked out (before modifiers). */
-    onKo: 0.07,
+    onKo: 0.09,
     /** Chance per heavy hit taken. */
-    onHeavyHit: 0.008,
+    onHeavyHit: 0.01,
     /** injuryProneness (1–20) multiplies chance by (0.5 + prone/20). */
     pronenessWeight: 1,
   },

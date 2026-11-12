@@ -76,7 +76,7 @@ export const LEAGUE_CONFIG = {
    * Chance by injury severity, × the infirmary factor (shorter injuries ⇒ fewer deaths).
    */
   death: {
-    chance: { minor: 0, moderate: 0.02, severe: 0.2, career: 0.5 } as Record<string, number>,
+    chance: { minor: 0, moderate: 0.016, severe: 0.16, career: 0.4 } as Record<string, number>,
     /** Morale lost by the rest of the stable (friends also lose `club.relations.friendLeft`). */
     teamMorale: -6,
   },

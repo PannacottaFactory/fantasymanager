@@ -10,6 +10,7 @@ const en = {
   intro: 'Everything the arena runs on, with the exact numbers the simulation uses.',
   search: 'Search…',
   none: 'Nothing matches.',
+  'tab.bestiary': 'Your bestiary',
   'tab.species': 'Species',
   'tab.abilities': 'Abilities',
   'tab.effects': 'Effects',
@@ -23,7 +24,7 @@ const en = {
   // Species
   'sp.size': 'Size',
   'sp.elements': 'Elements',
-  'sp.flying': 'Flies: its melee attacks reach the back line.',
+  'sp.flying': 'Flies: its melee attacks reach the back line without penalty.',
   'sp.roles': 'Natural roles',
   'sp.passives': 'Permanent effects',
   'sp.life': 'Life',
@@ -74,7 +75,7 @@ const en = {
   'target.ally': 'one ally',
   'target.allAllies': 'every ally on the field',
   'target.self': 'itself',
-  'spec.reachBack': 'Reaches any target, even in the back line, and ignores cover.',
+  'spec.reachBack': 'Reaches any target, even in the back line, without the accuracy penalty.',
   'spec.lifesteal': 'Heals the user for {v} % of the damage dealt.',
   'spec.cleanse': 'Purifies: removes every harmful effect from its targets (poisons, cold, stuns, bleeding…) — never curses.',
   'spec.execute': 'Execution: damage ×{v} against a target below {t} % health.',
@@ -180,11 +181,38 @@ const en = {
   'ro.ai.striker': 'Looks for damage above all.',
   'ro.ai.support': 'Heals and empowers before attacking.',
   'ro.ai.caster': 'Prefers damaging spells and debuffs.',
-  'ro.ai.skirmisher': 'Hunts the back line (with a small accuracy penalty when flanking).',
+  'ro.ai.skirmisher': 'Hunts the back line (with only a small accuracy penalty when flanking).',
 
   // Elements
   'el.intro': 'An attack of an element strong against one of the defender’s elements deals ×{strong}; against a resisting element ×{weak} (between ×{min} and ×{max} for two elements). Physical attacks are neutral.',
   'el.attacker': 'Attack ↓ / defender →',
+
+  // Attributes (what each one does, with the simulation's numbers)
+  'at.effects': 'In the arena',
+  'at.roles': 'Roles that rely on it',
+  'at.species': 'Best species (outstanding specimens)',
+  'at.scale': 'Values go from 1 to 20; a species can only reach its own range (see each species).',
+  'at.strength': 'Melee damage = power × ({base} + {per} × strength): ×{v10} at 10, ×{v20} at 20.\nHealth: +{hp} per point (× size).',
+  'at.stamina': 'Stamina pool: {base} + {per} per point ({p10} at 10, {p20} at 20).\nStamina regained each round: +{regen} per point.\nAlso the share of the potential that weekly fatigue eats into: a bigger pool lasts longer.',
+  'at.speed': 'Initiative: +{per} per point — who acts first each round (a random part up to {noise} is added).',
+  'at.agility': 'Harder to hit: −{melee} % to be hit in melee and −{ranged} % by ranged attacks per point above the attacker’s skill.',
+  'at.toughness': 'Health: +{hp} per point (× size).\nArmour against melee and ranged blows: +{arm} % per point (between {min} % and {max} % in all).',
+  'at.recovery': 'Stamina regained each round: +{regen} per point (×{rest} when resting).\nWeekly fatigue recovery: {base} + {week} per point.',
+  'at.attack': 'Melee accuracy: +{p} % to hit per point (attack skill = 70 % attack + 30 % technique).',
+  'at.accuracy': 'Ranged accuracy: +{p} % to hit per point (70 % accuracy + 30 % technique).\nRanged damage uses (accuracy + technique) / 2: power × ({base} + {per} × that).',
+  'at.defense': 'Parrying melee: −{p} % to be hit per point (melee defence = 60 % defence + 40 % agility).',
+  'at.magic': 'Spell damage = power × ({base} + {per} × magic); healing = power × ({hbase} + {hper} × magic).\nSpell accuracy: +{p} % per point (30 % of the spell skill).',
+  'at.focus': 'Spell accuracy: +{p} % per point (70 % of the spell skill).\nResisting spells: −{dodge} % to be hit per point, and spell armour +{arm} % per point (with courage).',
+  'at.technique': 'Critical hits: +{crit} % per point (critical ×{mult}).\nMelee and ranged accuracy: +{p} % per point (30 % of the skill); half of ranged damage.',
+  'at.courage': 'Morale losses (ally knocked out, heavy hit…) reduced by {c} % per point.\nLess likely to flee; spell armour +{arm} % per point (with focus).',
+  'at.composure': 'Critical hits: +{crit} % per point.\nHesitation when morale is low: −{h} % per point.\nSoftens the damage penalty below {low} % health (−{pen} % at 0, none at 20).',
+  'at.aggression': 'Melee and ranged damage: +{d} % per point, but armour −{a} % per point.\nAt {inst}+, a creature acting on instinct goes for the most dangerous foe.',
+  'at.tactics': 'Smarter choices: less randomness in picking actions (up to ±{noise} % at 1, none at 20), sees element match-ups in proportion.\nAt {inst}+, a creature acting on instinct goes for the weakest foe.',
+  'at.discipline': 'Follows orders: ignores them {d5} % of turns at 5, {d10} % at 10, {d15} % at 15, never at 20.\nUses the favourite move more (up to ×{fav} its score).',
+  'at.anticipation': 'Initiative: +{init} per point. Dodging ranged attacks and spells: −{p} % to be hit per point (30–50 % of the defence).\nTanks: interception +{g} % per point.',
+  'at.determination': 'When the team is behind on health: up to +{d} % damage at 20 (proportional).',
+  'at.teamwork': 'Combined attacks: +{c} % to hit per point on a foe an ally already hit this round.\nTanks: interception +{g} % per point.',
+  'at.leadership': 'The best leader on the field (from {min}) lifts its allies’ morale each round: +{a} per point above {below}.',
 
   // Injuries
   'inj.weeks': 'Weeks out',
@@ -211,7 +239,7 @@ const en = {
     'Damage = power × ({base} + {per} × the attacker’s stat), ±{variance} % at random, then multiplied by the element, role, orders, morale and fatigue, and reduced by the target’s armour (toughness, size, effects, orders; between {minM} % and {maxM} %). Critical hits ×{crit} (chance from technique and composure). Area attacks deal full damage to each target.',
   'ru.cover.title': 'Lines and cover',
   'ru.cover.body':
-    'Melee attackers can only reach the enemy back line once its front line is empty — unless they are skirmishers, flyers, or use a charge or dive.\nCover: while at least {min} creatures of a side stand in its front line, its back line takes {v} % less damage from ranged attacks and spells.',
+    'Melee attackers can reach the enemy back line while its front line stands, but with difficulty: −{reach} % to hit. Skirmishers only lose about {flank} % (less the better they fit the role); flyers, charges and dives reach it freely. Once the front line is empty, everyone can.\nCover: the creatures standing in a front line shield their back line from ranged attacks and spells — the more of them the better, and a tank counts one and a half: one creature −{one} %, a lone tank −{tank} %, two −{two} %, three −{three} %, four −{four} % (never more than {max} %). Melee strikes ignore cover.',
   'ru.guard.title': 'Tanks and guarding',
   'ru.guard.body':
     'A tank in the front line may throw itself in front of a physical single-target blow aimed at an ally: {passive} % chance (+ anticipation and teamwork), {active} % when it chose to guard that round, at most {max} %. Guarding also reduces the damage it takes by {gm} % for the round.',
@@ -230,6 +258,14 @@ const en = {
   'ru.injury.title': 'Injuries',
   'ru.injury.body':
     'A creature knocked out has a {ko} % chance of injury, a heavy hit (over {heavyHit} % of its health) {heavy} % — modified by its hidden injury proneness, its traits and its fatigue. Injuries keep a creature out for weeks; the infirmary shortens them.\nRarely, a creature knocked out dies of the injury it picked up: {severe} % for a severe injury, {career} % for a career-ending one, {moderate} % for a moderate one (less with the infirmary). The whole stable loses morale, its friends even more.',
+  'mod.spellReflect': 'Sends {v} % of the spell damage it takes back to the caster',
+  'fx.silence': 'Silence: cannot use spells nor heals (melee and ranged attacks still work).',
+  'fx.taunt': 'Provocation: enemies’ single-target attacks must aim at it when they can reach it (area attacks are free).',
+  'fx.hidden': 'Camouflage: single-target abilities cannot pick it (area attacks still hit); its next hostile action reveals it.',
+  'fx.recharge': 'Comes back at full strength at every break.',
+  'fx.transform': 'Below {v} % of its health, turns into {to} for the rest of the match.',
+  'ru.arena.title': 'Arena conditions',
+  'ru.arena.body': 'From week {start} of the first season (every week after that), a league or cup match may be fought in particular conditions: the weather (rain, fog, storm…), the ground (swamp, black ice, a narrow pit…), the crowd or the magic of the day. About {clear} % of matches stay ordinary.\nA condition applies the same rule to both sides: it boosts or weakens some elements or kinds of attack, changes accuracy, healing, damage over time, stamina or morale. It is announced on the pre-match screen — pick your line-up (and your elements) accordingly.',
 };
 
 export type EncKey = keyof typeof en;
@@ -239,6 +275,7 @@ const fr: Record<EncKey, string> = {
   intro: 'Tout ce qui fait tourner l’arène, avec les chiffres exacts qu’utilise la simulation.',
   search: 'Rechercher…',
   none: 'Aucun résultat.',
+  'tab.bestiary': 'Votre bestiaire',
   'tab.species': 'Espèces',
   'tab.abilities': 'Capacités',
   'tab.effects': 'Effets',
@@ -251,7 +288,7 @@ const fr: Record<EncKey, string> = {
 
   'sp.size': 'Taille',
   'sp.elements': 'Éléments',
-  'sp.flying': 'Vole : ses attaques au corps à corps atteignent la deuxième ligne.',
+  'sp.flying': 'Vole : ses attaques au corps à corps atteignent la deuxième ligne sans malus.',
   'sp.roles': 'Rôles naturels',
   'sp.passives': 'Effets permanents',
   'sp.life': 'Vie',
@@ -301,7 +338,7 @@ const fr: Record<EncKey, string> = {
   'target.ally': 'un allié',
   'target.allAllies': 'tous les alliés présents',
   'target.self': 'elle-même',
-  'spec.reachBack': 'Atteint n’importe quelle cible, même en deuxième ligne, et ignore la couverture.',
+  'spec.reachBack': 'Atteint n’importe quelle cible, même en deuxième ligne, sans malus de précision.',
   'spec.lifesteal': 'Soigne le lanceur de {v} % des dégâts infligés.',
   'spec.cleanse': 'Purifie : retire tous les effets néfastes de ses cibles (poisons, froid, étourdissements, saignements…) — jamais les malédictions.',
   'spec.execute': 'Exécution : dégâts ×{v} contre une cible sous {t} % de vie.',
@@ -409,6 +446,33 @@ const fr: Record<EncKey, string> = {
   'el.intro': 'Une attaque d’un élément fort contre un des éléments du défenseur inflige ×{strong} ; contre un élément qui résiste ×{weak} (entre ×{min} et ×{max} avec deux éléments). Les attaques physiques sont neutres.',
   'el.attacker': 'Attaque ↓ / défenseur →',
 
+  // Attributs
+  'at.effects': 'Dans l’arène',
+  'at.roles': 'Rôles qui en dépendent',
+  'at.species': 'Meilleures espèces (spécimens exceptionnels)',
+  'at.scale': 'Les valeurs vont de 1 à 20 ; une espèce ne dépasse pas sa propre fourchette (voir chaque espèce).',
+  'at.strength': 'Dégâts au corps à corps = puissance × ({base} + {per} × force) : ×{v10} à 10, ×{v20} à 20.\nVie : +{hp} par point (× taille).',
+  'at.stamina': 'Réserve d’endurance : {base} + {per} par point ({p10} à 10, {p20} à 20).\nEndurance regagnée à chaque round : +{regen} par point.\nUne grande réserve tient plus longtemps et souffre moins de la fatigue.',
+  'at.speed': 'Initiative : +{per} par point — qui agit en premier à chaque round (plus une part de hasard jusqu’à {noise}).',
+  'at.agility': 'Plus dure à toucher : −{melee} % de chances d’être touchée au corps à corps et −{ranged} % à distance, par point au-dessus de la compétence de l’attaquant.',
+  'at.toughness': 'Vie : +{hp} par point (× taille).\nArmure contre les coups au corps à corps et à distance : +{arm} % par point (entre {min} % et {max} % au total).',
+  'at.recovery': 'Endurance regagnée à chaque round : +{regen} par point (×{rest} au repos).\nRécupération de la fatigue chaque semaine : {base} + {week} par point.',
+  'at.attack': 'Précision au corps à corps : +{p} % pour toucher par point (compétence = 70 % attaque + 30 % technique).',
+  'at.accuracy': 'Précision à distance : +{p} % pour toucher par point (70 % précision + 30 % technique).\nLes dégâts à distance utilisent (précision + technique) / 2 : puissance × ({base} + {per} × cette valeur).',
+  'at.defense': 'Parade au corps à corps : −{p} % de chances d’être touchée par point (défense = 60 % défense + 40 % agilité).',
+  'at.magic': 'Dégâts des sorts = puissance × ({base} + {per} × magie) ; soins = puissance × ({hbase} + {hper} × magie).\nPrécision des sorts : +{p} % par point (30 % de la compétence).',
+  'at.focus': 'Précision des sorts : +{p} % par point (70 % de la compétence).\nRésister aux sorts : −{dodge} % de chances d’être touchée par point, et armure magique +{arm} % par point (avec le courage).',
+  'at.technique': 'Coups critiques : +{crit} % par point (critique ×{mult}).\nPrécision au corps à corps et à distance : +{p} % par point (30 % de la compétence) ; moitié des dégâts à distance.',
+  'at.courage': 'Pertes de moral (allié KO, gros coup…) réduites de {c} % par point.\nFuit moins souvent ; armure magique +{arm} % par point (avec la concentration).',
+  'at.composure': 'Coups critiques : +{crit} % par point.\nHésitation quand le moral est bas : −{h} % par point.\nAtténue la baisse de dégâts sous {low} % de vie (−{pen} % à 0, rien à 20).',
+  'at.aggression': 'Dégâts au corps à corps et à distance : +{d} % par point, mais armure −{a} % par point.\nÀ partir de {inst}, une créature qui suit son instinct vise l’adversaire le plus dangereux.',
+  'at.tactics': 'Des choix plus avisés : moins de hasard dans le choix des actions (jusqu’à ±{noise} % à 1, aucun à 20), voit les rapports d’éléments en proportion.\nÀ partir de {inst}, une créature qui suit son instinct vise l’adversaire le plus faible.',
+  'at.discipline': 'Suit les consignes : les ignore {d5} % des tours à 5, {d10} % à 10, {d15} % à 15, jamais à 20.\nUtilise davantage son coup favori (jusqu’à ×{fav} son intérêt).',
+  'at.anticipation': 'Initiative : +{init} par point. Esquive des tirs et des sorts : −{p} % de chances d’être touchée par point (30 à 50 % de la défense).\nTanks : interception +{g} % par point.',
+  'at.determination': 'Quand l’équipe est menée en vie : jusqu’à +{d} % de dégâts à 20 (proportionnel).',
+  'at.teamwork': 'Attaques combinées : +{c} % pour toucher par point sur un adversaire déjà frappé par un allié ce round.\nTanks : interception +{g} % par point.',
+  'at.leadership': 'Le meilleur meneur sur le terrain (à partir de {min}) relève le moral de ses alliés à chaque round : +{a} par point au-dessus de {below}.',
+
   'inj.weeks': 'Semaines d’absence',
   'inj.severity': 'Gravité',
   'inj.cause': 'Cause typique',
@@ -432,7 +496,7 @@ const fr: Record<EncKey, string> = {
     'Dégâts = puissance × ({base} + {per} × la caractéristique de l’attaquant), ±{variance} % au hasard, puis multipliés par l’élément, le rôle, les consignes, le moral et la fatigue, et réduits par l’armure de la cible (robustesse, taille, effets, consignes ; entre {minM} % et {maxM} %). Coups critiques ×{crit} (chance selon technique et sang-froid). Les attaques de zone infligent leurs dégâts complets à chaque cible.',
   'ru.cover.title': 'Lignes et couverture',
   'ru.cover.body':
-    'Au corps à corps, on n’atteint la deuxième ligne adverse qu’une fois sa première ligne vide — sauf tirailleurs, volants, charges et plongeons.\nCouverture : tant qu’au moins {min} créatures d’un camp tiennent sa première ligne, sa deuxième ligne subit {v} % de dégâts en moins des tirs et des sorts.',
+    'Au corps à corps, on peut atteindre la deuxième ligne adverse alors que sa première ligne tient, mais difficilement : −{reach} % pour toucher. Les tirailleurs ne perdent qu’environ {flank} % (moins s’ils sont faits pour ce rôle) ; volants, charges et plongeons l’atteignent librement. Une fois la première ligne vide, tout le monde le peut.\nCouverture : les créatures debout en première ligne protègent leur deuxième ligne des tirs et des sorts — d’autant mieux qu’elles sont nombreuses, et un tank compte pour une et demie : une créature −{one} %, un tank seul −{tank} %, deux −{two} %, trois −{three} %, quatre −{four} % (jamais plus de {max} %). Les coups au corps à corps ignorent la couverture.',
   'ru.guard.title': 'Tanks et garde',
   'ru.guard.body':
     'Un tank en première ligne peut se jeter devant un coup physique à cible unique visant un allié : {passive} % de chances (+ anticipation et esprit d’équipe), {active} % s’il s’est mis en garde ce round, {max} % au plus. La garde réduit aussi de {gm} % les dégâts qu’il subit pendant le round.',
@@ -451,6 +515,14 @@ const fr: Record<EncKey, string> = {
   'ru.injury.title': 'Blessures',
   'ru.injury.body':
     'Une créature mise KO a {ko} % de risque de blessure, un gros coup (plus de {heavyHit} % de sa vie) {heavy} % — modifiés par sa fragilité cachée, ses traits et sa fatigue. Les blessures écartent une créature pendant des semaines ; l’infirmerie les raccourcit.\nRarement, une créature mise KO meurt de la blessure reçue : {severe} % pour une blessure grave, {career} % pour une blessure de fin de carrière, {moderate} % pour une blessure modérée (moins avec l’infirmerie). Toute l’écurie perd du moral, ses amis davantage.',
+  'mod.spellReflect': 'Renvoie au lanceur {v} % des dégâts de sorts subis',
+  'fx.silence': 'Silence : ne peut utiliser ni sort ni soin (les attaques au corps à corps et à distance fonctionnent).',
+  'fx.taunt': 'Provocation : les attaques adverses à cible unique doivent la viser quand elles peuvent l’atteindre (les attaques de zone restent libres).',
+  'fx.hidden': 'Camouflage : aucune capacité à cible unique ne peut la viser (les attaques de zone la touchent) ; sa prochaine action hostile la révèle.',
+  'fx.recharge': 'Revient intact à chaque pause.',
+  'fx.transform': 'Sous {v} % de sa vie, se change en {to} jusqu’à la fin du match.',
+  'ru.arena.title': 'Conditions d’arène',
+  'ru.arena.body': 'À partir de la semaine {start} de la première saison (puis chaque semaine), un match de championnat ou de coupe peut se jouer dans des conditions particulières : la météo (pluie, brouillard, tempête…), le terrain (marécage, verglas, fosse étroite…), la foule ou la magie du jour. Environ {clear} % des matchs restent ordinaires.\nUne condition applique la même règle aux deux camps : elle renforce ou affaiblit certains éléments ou types d’attaque, change la précision, les soins, les dégâts sur la durée, l’endurance ou le moral. Elle est annoncée sur l’écran d’avant-match : choisissez votre composition (et vos éléments) en conséquence.',
 };
 
 export const ENC_DICTS: Record<Lang, Record<EncKey, string>> = { en, fr };

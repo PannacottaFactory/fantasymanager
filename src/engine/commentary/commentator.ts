@@ -70,6 +70,7 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
     case 'enrage':
     case 'exhausted':
     case 'moraleShift':
+    case 'transform':
       return { actor: e.actor };
     default:
       return {};
@@ -189,8 +190,12 @@ export class Commentator {
     switch (e.type) {
       case 'spend':
         return [];
-      case 'matchStart':
-        return this.line(e, 'matchStart', [], { home: e.teams[0], away: e.teams[1] }, 1, null);
+      case 'matchStart': {
+        const out = this.line(e, 'matchStart', [], { home: e.teams[0], away: e.teams[1] }, 1, null);
+        // The weather of the day, when there is one.
+        if (e.arena) out.push(...this.line(e, `arena.${e.arena}`, [], {}, 1, null));
+        return out;
+      }
       case 'roundStart': {
         if (e.round === 1) return this.line(e, 'roundFirst', [], {}, 0, null);
         if (e.round === this.cfg.match.maxRounds) return this.line(e, 'roundLast', [], {}, 1, null);
@@ -237,7 +242,10 @@ export class Commentator {
           return out;
         }
         const key = e.interceptedFrom ? 'attack.intercept' : e.hit ? 'attack.hit' : 'attack.miss';
-        const out = this.line(e, key, e.interceptedFrom ? [...tags, e.hit ? 'hit' : 'miss'] : tags, vars, importance, side);
+        // Out of nowhere: announced once per ambush (multi-strikes share it).
+        const prev = this.prev;
+        const ambushLine = e.ambush && !(prev?.type === 'attack' && prev.actor === e.actor && prev.ambush) ? this.line(e, 'ambush', [], vars, 1, side) : [];
+        const out = [...ambushLine, ...this.line(e, key, e.interceptedFrom ? [...tags, e.hit ? 'hit' : 'miss'] : tags, vars, importance, side)];
         if (e.crit && tags.includes('heavy')) out.push(...this.crowd(e, 0.35));
         return out;
       }
@@ -303,7 +311,11 @@ export class Commentator {
         return this.line(e, 'sacrifice', [], { ...this.actorVars(e.actor), n: e.amount, ab: abilityText(e.ability, lang).name }, 1, this.sideOf(e.actor));
       case 'thorns': {
         const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), n: e.amount, aE: this.fem(e.actor), tE: this.fem(e.target) };
-        return this.rng.chance(0.6) || e.hp <= 0 ? this.line(e, 'thorns', [], vars, 0, this.sideOf(e.actor)) : [];
+        return this.rng.chance(0.6) || e.hp <= 0 ? this.line(e, e.spell ? 'mirror' : 'thorns', [], vars, 0, this.sideOf(e.actor)) : [];
+      }
+      case 'transform': {
+        const key = COMMENTARY_BY_LANG[lang][`transform.${e.effect}`] ? `transform.${e.effect}` : 'transform';
+        return [...this.line(e, key, [], this.actorVars(e.actor), 2, this.sideOf(e.actor)), ...this.crowd(e, 0.5)];
       }
       case 'drain': {
         const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), n: e.amount, aE: this.fem(e.actor), tE: this.fem(e.target) };

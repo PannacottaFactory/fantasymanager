@@ -23,13 +23,16 @@ export const TRAINING_CONFIG = {
    */
   // Match XP is converted into aptitude at `levels.xpPerAbility` XP per point (the growth speed does not depend on the level).
   xp: { trainingShare: 0.6, played: 3.75, starter: 1.25, perRatingPoint: 1.25, ko: 0, win: 1.25 },
-  /** Intensity: growth multiplier, extra fatigue per week, injury chance per week (× proneness/10). */
   /** Visual progression kept for the player's creatures. */
   progressLog: { recent: 16, history: 72 },
+  /**
+   * Intensity: growth multiplier, extra fatigue per week (after the weekly recovery, so it is carried into the next
+   * match), morale change per week, injury chance per week (× proneness/10).
+   */
   intensity: {
-    light: { growth: 0.6, fatigue: -6, injury: 0 },
-    normal: { growth: 1, fatigue: 0, injury: 0.003 },
-    intense: { growth: 1.4, fatigue: 8, injury: 0.015 },
+    light: { growth: 0.6, fatigue: -8, morale: 1, injury: 0 },
+    normal: { growth: 1, fatigue: 0, morale: 0, injury: 0.003 },
+    intense: { growth: 1.4, fatigue: 16, morale: -2, injury: 0.03 },
   },
   /** Attribute weights by program (by category; 'role' follows the role-fit weights). */
   programs: {

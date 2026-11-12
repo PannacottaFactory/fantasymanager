@@ -177,6 +177,96 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['', '{a} paie {ab} de son propre sang (-{n}).'],
     ['', '{a} se déchire la chair pour déchaîner {ab} !'],
   ],
+  mirror: [
+    ['', 'Le sort ricoche sur {a} et frappe {t} ({n}) !'],
+    ['', '{a} renvoie la magie vers son lanceur : {t} perd {n}.'],
+    ['', 'Un éclat, un reflet : {t} encaisse {n} de son propre sort.'],
+  ],
+  ambush: [
+    ['', 'Surgi de nulle part : {a} frappe à couvert !'],
+    ['', 'Personne n’a vu venir {a} !'],
+    ['', '{a} jaillit de l’ombre et fond sur {t} !'],
+  ],
+  transform: [
+    ['', '{a} se transforme sous nos yeux : sa vraie forme apparaît !'],
+    ['', 'Les os craquent, la silhouette se tord : {a} n’est plus la même créature !'],
+  ],
+  'transform.kelpie-form': [
+    ['', 'Le cheval a disparu : {a} se dresse en monstre ruisselant !'],
+    ['', '{a} laisse tomber son déguisement : le kelpie montre ses crocs !'],
+  ],
+  'transform.bear-form': [
+    ['', '{a} enfle jusqu’à devenir un ours immense et rugit vers les tribunes !'],
+    ['', 'Fourrure, griffes, furie : {a} est devenu{aE} un ours !'],
+  ],
+  'arena.sacred': [
+    ['', 'L’arène repose sur un sol consacré aujourd’hui : les plaies se referment plus vite et la lumière brille plus fort.'],
+    ['', 'Une terre sainte sous leurs pieds : les soigneurs vont faire des miracles.'],
+  ],
+  'arena.cursed': [
+    ['', 'Terre maudite : des morts reposent sous ce sable, et les plaies refusent de se refermer.'],
+    ['', 'Mauvais présage : les soins dépérissent sur ce sol, les ombres prospèrent.'],
+  ],
+  'arena.swamp': [
+    ['', 'Le sable s’est changé en marécage : poisons et brûlures vont s’envenimer.'],
+    ['', 'De la boue jusqu’aux genoux : les dégâts sur la durée vont mordre plus fort.'],
+  ],
+  'arena.ice': [
+    ['', 'Du verglas sur le sable ! Les combattants au corps à corps vont glisser, les créatures d’eau patiner.'],
+    ['', 'L’arène est gelée : prudence pour ceux qui se battent de près.'],
+  ],
+  'arena.frenzy': [
+    ['', 'La foule est en délire : chaque créature se nourrit du vacarme, et les coups portent plus fort.'],
+    ['', 'Quelle ambiance ! Les tribunes sont debout avant le premier coup.'],
+  ],
+  'arena.thinAir': [
+    ['', 'Une arène de montagne, l’air est rare : l’endurance reviendra lentement aujourd’hui.'],
+    ['', 'Là-haut parmi les cimes, les poumons brûlent ; seules les créatures de l’air s’y sentent chez elles.'],
+  ],
+  'arena.mana': [
+    ['', 'Une marée de mana submerge l’arène : les sorts frapperont plus fort.'],
+    ['', 'L’air crépite de magie : grande journée pour les lanceurs de sorts.'],
+  ],
+  'arena.pit': [
+    ['', 'On se bat dans une fosse étroite aujourd’hui : de près ça fait mal, de loin c’est difficile.'],
+    ['', 'Pas de place pour tirer dans cette fosse : les cogneurs se frottent les mains.'],
+  ],
+  'arena.eclipse': [
+    ['', 'Une éclipse obscurcit le ciel : la lumière et le feu faiblissent, l’ombre se lève.'],
+    ['', 'Le soleil est englouti : les créatures des ténèbres s’agitent.'],
+  ],
+  'arena.sandstorm': [
+    ['', 'Une tempête de sable balaie l’arène : la terre est forte, les flèches se perdent.'],
+    ['', 'Du sable partout : les tireurs plissent les yeux, les créatures de terre sourient.'],
+  ],
+  'arena.eruption': [
+    ['', 'Le volcan gronde au-dessus de l’arène : le feu se déchaîne et les brûlures s’attardent.'],
+    ['', 'Une pluie de cendres et de braises : les créatures de feu sont dans leur élément.'],
+  ],
+  'arena.rain': [
+    ['', 'La pluie fouette le sable aujourd’hui : les créatures d’eau vont adorer, celles du feu beaucoup moins.'],
+    ['', 'Une averse sur l’arène : le feu va siffler, l’eau va chanter.'],
+  ],
+  'arena.heat': [
+    ['', 'Chaleur écrasante dans les tribunes : chaque effort coûtera cher.'],
+    ['', 'Le sable est brûlant : l’endurance va fondre aujourd’hui.'],
+  ],
+  'arena.fog': [
+    ['', 'Un épais brouillard recouvre l’arène : les tireurs auront du mal à viser.'],
+    ['', 'Du brouillard partout : bon courage à ceux qui tirent de loin.'],
+  ],
+  'arena.night': [
+    ['', 'Combat de nuit à la lueur des torches : l’ombre est chez elle, la lumière vacille.'],
+    ['', 'La nuit tombe sur le sable : les créatures des ténèbres sourient.'],
+  ],
+  'arena.sun': [
+    ['', 'Grand soleil sur l’arène : la lumière brillera plus fort, les ombres rétrécissent.'],
+    ['', 'Pas un nuage : belle journée pour les créatures de lumière.'],
+  ],
+  'arena.storm': [
+    ['', 'Une tempête hurle sur les tribunes : les vents portent l’air, les flèches dérivent.'],
+    ['', 'Tonnerre et rafales aujourd’hui : les créatures de l’air sont dans leur élément.'],
+  ],
   thorns: [
     ['', '{t} le paie cher : les épines piquent en retour ({n}).'],
     ['', 'Des pointes partout : {t} perd {n} sur les épines.'],

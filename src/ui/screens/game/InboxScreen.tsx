@@ -14,6 +14,7 @@ import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { BadgeIcon } from '../../icons/Icon.tsx';
+import { medalDesc, medalName } from '../../components/CreatureRecord.tsx';
 import { levelOfAbility, totalXpOfAbility } from '../../../engine/progression/levels.ts';
 
 /** Message families: each has a colour and a symbol in the inbox. */
@@ -58,6 +59,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'coachHired':
     case 'friendLeft':
     case 'relation':
+    case 'medal':
       return 'squad';
     case 'seasonEnd':
     case 'seasonPrize':
@@ -69,6 +71,8 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'promoted':
     case 'relegated':
     case 'ambition':
+    case 'bestiary':
+    case 'arenaIntro':
       return 'competition';
     default:
       return 'club';
@@ -232,6 +236,29 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
       return { title: t('msg.ambition.title', { a: t(`amb.${m.ambition}`) }), body: t('msg.ambition.body', { a: t(`amb.${m.ambition}`), desc: t(`amb.${m.ambition}.desc`) }), tone: 'good' };
     case 'emergencySigning':
       return { title: t('msg.emergencySigning.title'), body: t('msg.emergencySigning.body', { names: m.names.join(', ') }), tone: 'bad' };
+    case 'arenaIntro':
+      return { title: t('msg.arenaIntro.title'), body: t('msg.arenaIntro.body'), tone: 'info' };
+    case 'medal':
+      return {
+        title: t('msg.medal.title', { name: m.name, medal: medalName(tr, m.family, m.tier) }),
+        body: t('msg.medal.body', { name: m.name, desc: medalDesc(tr, m.family, DEFAULT_CONFIG.collection.medals[m.family][m.tier - 1] ?? 0) }),
+        tone: 'good',
+      };
+    case 'bestiary': {
+      const names = (ids: string[]) => ids.map((id) => speciesName(id, tr.lang)).join(', ');
+      const n = m.seen.length + m.owned.length;
+      return {
+        title: m.rewards.length ? t('msg.bestiary.tier', { n: m.rewards.at(-1)!.n }) : t(n === 1 ? 'msg.bestiary.one' : 'msg.bestiary.many', { n }),
+        body: [
+          m.seen.length ? t('msg.bestiary.seen', { list: names(m.seen) }) : '',
+          m.owned.length ? t('msg.bestiary.owned', { list: names(m.owned) }) : '',
+          ...m.rewards.map((r) =>
+            t(r.list === 'seen' ? 'msg.bestiary.rewardSeen' : 'msg.bestiary.rewardOwned', { n: r.n, gold: tr.money(r.gold) }) + (r.rep ? ` ${t('msg.bestiary.rep', { rep: r.rep })}` : ''),
+          ),
+        ].filter(Boolean).join('\n'),
+        tone: 'good',
+      };
+    }
   }
 }
 
@@ -274,11 +301,23 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
       </div>
     );
   }
-  const sheetId = m.kind === 'scoutReport' && m.target === 'creature' ? m.targetId : m.kind === 'transferIn' ? m.creatureId : null;
+  const sheetId = m.kind === 'scoutReport' && m.target === 'creature' ? m.targetId : m.kind === 'transferIn' || m.kind === 'medal' ? m.creatureId : null;
   if (sheetId && locate(game, sheetId))
     return (
       <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => openSheet(sheetId)}>
         {t('msg.openSheet')}
+      </button>
+    );
+  if (m.kind === 'arenaIntro')
+    return (
+      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => useGame.getState().openEncyclopedia('rules', 'arena')}>
+        {t('arena.open')}
+      </button>
+    );
+  if (m.kind === 'bestiary')
+    return (
+      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => useGame.getState().openBestiary()}>
+        {t('bestiary.open')}
       </button>
     );
   if (m.kind === 'youthIntake')

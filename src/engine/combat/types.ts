@@ -1,3 +1,4 @@
+import type { ArenaConditionId } from '../../data/config/arena.ts';
 import type { Attributes } from '../../data/attributes.ts';
 import type { ElementId, Line, RoleId, SizeClass } from '../../data/schema.ts';
 import type { Stance, Team, TeamOrders } from '../model.ts';
@@ -80,6 +81,8 @@ export interface RosterEntry {
 export interface MatchSetup {
   seed: number | string;
   teams: [Team, Team];
+  /** Arena condition (weather, hour) — none on an ordinary day. */
+  arena?: ArenaConditionId;
 }
 
 export interface SubstitutionDecision {
@@ -121,7 +124,7 @@ export interface CombatantSnapshot {
 export type AttackKind = 'melee' | 'ranged' | 'spell';
 
 export type MatchEvent =
-  | { type: 'matchStart'; round: 0; teams: [string, string]; snapshot: CombatantSnapshot[] }
+  | { type: 'matchStart'; round: 0; teams: [string, string]; snapshot: CombatantSnapshot[]; arena?: ArenaConditionId }
   | { type: 'roundStart'; round: number }
   | {
       type: 'attack';
@@ -145,11 +148,15 @@ export type MatchEvent =
       execute?: boolean;
       /** Pack: allies that had already hit the target this round (when it raised the damage). */
       pack?: number;
+      /** Struck from camouflage (bonus damage, the attacker is revealed). */
+      ambush?: boolean;
     }
   /** Sacrifice: the user paid `amount` of its own health. */
   | { type: 'sacrifice'; round: number; actor: string; ability: string; amount: number; hp: number }
-  /** Thorns: `actor` (the one hit) sends `amount` back to `target` (the melee attacker). */
-  | { type: 'thorns'; round: number; actor: string; target: string; amount: number; hp: number }
+  /** Thorns (or a spell mirror when `spell`): `actor` (the one hit) sends `amount` back to `target` (the attacker). */
+  | { type: 'thorns'; round: number; actor: string; target: string; amount: number; hp: number; spell?: boolean }
+  /** Metamorphosis: `actor` takes its true form (`effect` = the new permanent effect). */
+  | { type: 'transform'; round: number; actor: string; effect: string }
   /** Stamina drained from `target`. */
   | { type: 'drain'; round: number; actor: string; target: string; ability: string; amount: number; stamina: number }
   | { type: 'heal'; round: number; actor: string; target: string; ability: string; amount: number; targetHp: number }

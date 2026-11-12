@@ -8,6 +8,8 @@ import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { useGame, type Screen } from '../store/gameStore.ts';
 import { QUESTS, useTutorial, type QuestId } from './tutorial.ts';
+import { UiIcon } from '../icons/Icon.tsx';
+import { play } from '../sound/sfx.ts';
 
 const TARGET: Record<QuestId, Screen | 'continue'> = {
   creature: 'squad',
@@ -53,6 +55,7 @@ export function FirstSteps() {
   const done = quests.length >= QUESTS.length;
   useEffect(() => {
     if (!done || questsHidden || !enabled) return;
+    play('medal');
     const at = centreOf(document.querySelector('.first-steps'));
     if (at) fxLayer()?.sparkle(at.x, at.y, true);
   }, [done, questsHidden, enabled]);
@@ -69,7 +72,7 @@ export function FirstSteps() {
     return (
       <section className="panel first-steps done">
         <div className="row" style={{ gap: 12 }}>
-          <span className="fs-trophy">🏆</span>
+          <span className="fs-trophy"><UiIcon name="help-competitions" size="1.6em" /></span>
           <div className="grow">
             <b>{t('quest.done.title')}</b>
             <div className="muted">{t('quest.done.body')}</div>
@@ -85,7 +88,7 @@ export function FirstSteps() {
   return (
     <section className={`panel first-steps compact ${open ? 'open' : ''}`} data-tip="first-steps">
       <div className="fs-row">
-        <b className="fs-title">🧭 {t('quest.title')}</b>
+        <b className="fs-title"><UiIcon name="compass" /> {t('quest.title')}</b>
         <span className="fs-bar" aria-hidden="true">
           <i style={{ width: `${(100 * quests.length) / QUESTS.length}%` }} />
         </span>

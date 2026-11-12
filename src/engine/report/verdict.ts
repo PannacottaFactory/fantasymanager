@@ -8,6 +8,7 @@ import { SPECIES } from '../../data/species.ts';
 import type { MatchResult, MatchSetup, Side } from '../combat/types.ts';
 import { isInjured, overallRating } from '../creature/derived.ts';
 import type { Aggression, Creature, Team } from '../model.ts';
+import { coverPoints, coverReduction } from '../combat/formulas.ts';
 import { analyzeMatch } from './analysis.ts';
 import { buildReport } from './report.ts';
 
@@ -24,9 +25,13 @@ export type FactorKey =
 export type TipKey =
   | 'rest' | 'roles' | 'benchBetter' | 'frontLine' | 'healer' | 'morale' | 'counterApproach' | 'elements' | 'stopStar'
   | 'replaceWeak' | 'accuracy' | 'cleanseDot' | 'watchLive' | 'useSubs' | 'antiControl' | 'thornsRanged' | 'focus' | 'tank'
-  | 'targetHealers' | 'cautious' | 'calm' | 'discipline' | 'improve' | 'keepGoing' | 'favourites';
+  | 'targetHealers' | 'cautious' | 'calm' | 'discipline' | 'improve' | 'keepGoing' | 'favourites' | 'finishKo'
+  | 'starFavourite' | 'reachBack' | 'subsEarly' | 'closeLoss'
+  // next match (see advice.ts)
+  | 'nextElements' | 'nextVulnerable' | 'nextHealers' | 'nextTanks' | 'nextThorns' | 'nextRest' | 'nextInjured'
+  | 'nextPoints' | 'nextDouble';
 
-export type TipTarget = 'tactics' | 'training' | 'recruit' | 'encyclopedia';
+export type TipTarget = 'tactics' | 'training' | 'recruit' | 'encyclopedia' | 'squad';
 type Tone = 'good' | 'bad' | 'info';
 type Vars = Record<string, string | number>;
 
@@ -131,10 +136,11 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
       tip('benchBetter', 2 + (overallRating(bestBench) - overallRating(worstStarter) - 8) / 2, 'tactics', vars);
     }
 
-    const front = team.tactic.lineup.filter((s) => s.line === 'front').length;
-    if (front < cfg.combat.cover.minFront) {
-      add('thinFront', 'bad', 3, { n: front });
-      tip('frontLine', 5, 'tactics', { n: cfg.combat.cover.minFront });
+    const front = team.tactic.lineup.filter((s) => s.line === 'front');
+    const cover = coverReduction(coverPoints(front, cfg), cfg);
+    if (cover < 0.15 && team.tactic.lineup.some((s) => s.line === 'back')) {
+      add('thinFront', 'bad', 3, { n: front.length, pct: Math.round(cover * 100) });
+      tip('frontLine', 5, 'tactics', { two: Math.round(coverReduction(2, cfg) * 100), tank: Math.round(coverReduction(cfg.combat.cover.tankWeight, cfg) * 100) });
     }
     if (!team.tactic.lineup.some((s) => s.role === 'support') && mine.healing < 20 && theirs.damageDealt > mine.damageDealt) {
       add('noHealer', 'info', 2);
@@ -176,7 +182,10 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
     tip('stopStar', 4 + vars.pct / 15, 'tactics', { name: vars.name });
   }
   const best = ours.slice().sort((x, y) => y.rating - x.rating)[0];
-  if (best && best.rating >= 7.5) add('ourStar', 'good', 3 + (best.rating - 7) * 2, { name: name(best.id), rating: best.rating.toFixed(1), dmg: best.damageDealt, heal: best.healing });
+  if (best && best.rating >= 7.5) {
+    add('ourStar', 'good', 3 + (best.rating - 7) * 2, { name: name(best.id), rating: best.rating.toFixed(1), dmg: best.damageDealt, heal: best.healing });
+    if (setup && !setup.teams[side].tactic.favorites?.[best.id]) tip('starFavourite', 1.5, 'tactics', { name: name(best.id) });
+  }
   const weak = ours.filter((c) => c.roundsPlayed >= 5 && c.rating <= 5).sort((x, y) => x.rating - y.rating)[0];
   if (weak) {
     add('weakLink', 'bad', 2 + (5.5 - weak.rating) * 2, { name: name(weak.id), rating: weak.rating.toFixed(1) });
@@ -233,6 +242,7 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
       case 'healersUntouched':
         add('healers', 'bad', 5, { n: v.n! });
         tip('targetHealers', 5, 'tactics');
+        if (analysis.sides[side].sources.melee > analysis.sides[side].total * 0.6) tip('reachBack', 4, 'tactics', { pct: Math.round(cfg.combat.hit.reachPenalty * 100) });
         break;
       case 'enemySustain':
         add('sustain', 'bad', 3, { n: v.n! });
@@ -273,8 +283,14 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
   }
 
   const o = result.outcome;
-  if (o.method === 'points' && Math.abs(o.score[0] - o.score[1]) <= rc.closePointsMargin) add('close', 'info', 4, { a: o.score[side], b: o.score[opp] });
+  const close = o.method === 'points' && Math.abs(o.score[0] - o.score[1]) <= rc.closePointsMargin;
+  if (close) add('close', 'info', 4, { a: o.score[side], b: o.score[opp] });
   if (won && o.method === 'ko' && o.rounds <= 8) add('quick', 'good', 4, { n: o.rounds });
+  const pts = cfg.match.points;
+  if (won && o.method === 'points') tip('finishKo', close ? 2.5 : 1.5, 'tactics', { ko: pts.koWin, pts: pts.pointsWin });
+  if (!won && close) tip('closeLoss', 2, null, { pts: pts.pointsLoss });
+  // Starters out of breath early although substitutions were made: bring the fresh legs on sooner.
+  if (mine.substitutions > 0 && exhausted.length && !won) tip('subsEarly', 2, null, { first: cfg.match.breakRounds[0]! });
 
   // ——— Choosing what to show ———
   const wanted: Tone = won ? 'good' : 'bad';

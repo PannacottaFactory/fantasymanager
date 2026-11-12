@@ -100,6 +100,7 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
     case 'injury':
       return 'ko';
     case 'enrage':
+    case 'transform':
       return 'crit';
     case 'substitution':
     case 'ordersChanged':
@@ -181,6 +182,10 @@ export function addEventFx(
     case 'showboat':
     case 'enrage':
       batch.actor = { id: e.actor, nonce: ++counter };
+      break;
+    case 'transform':
+      batch.actor = { id: e.actor, nonce: ++counter };
+      put(e.actor, 'buff', '');
       break;
     case 'effectTick':
       if (e.amount < 0) put(e.target, 'dot', `${e.amount}`);

@@ -16,6 +16,7 @@ import { addEventFx, emptyFx, lineTone, reducedMotion, type FxBatch, type LineTo
 import { Projectiles } from './Projectiles.tsx';
 import { fxLayer } from '../../fx/FxLayer.tsx';
 import { Scoreboard, type Focus } from './Scoreboard.tsx';
+import { play } from '../../sound/sfx.ts';
 
 type Speed = 'slow' | 'normal' | 'fast' | 'instant';
 const DELAY: Record<Speed, number> = {
@@ -281,6 +282,17 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   useEffect(() => {
     if (won) fxLayer()?.confetti();
   }, [won]);
+  useEffect(() => {
+    if (ended && outcome) play(outcome.winner === 0 ? 'victory' : 'defeat');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ended]);
+  useEffect(() => {
+    if (atBreak) play('whistle');
+  }, [atBreak]);
+  useEffect(() => {
+    if (!replay) play('whistle');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const health = (side: 0 | 1) => {
     const mine = Object.values(view.creatures).filter((c) => c.side === side && c.state !== 'bench' && c.state !== 'withdrawn');
     return (

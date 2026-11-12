@@ -72,12 +72,12 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, 
         {el && el !== 'physical' && <span style={{ color }}>{elementName(el as ElementId, lang)}</span>}
         {def.power > 0 && (
           <span title={t('ab.power.title')}>
-            <span style={{ color: 'var(--bad)' }}>✸</span> {def.power}
+            <span style={{ color: 'var(--bad)' }}><UiIcon name="power" size="0.95em" /></span> {def.power}
             {def.hits && def.hits > 1 ? ` ×${def.hits}` : ''}
           </span>
         )}
         <span className="cost" title={t('ab.cost.title')}>
-          ⚡ {def.staminaCost}
+          <UiIcon name="stamina" size="0.95em" /> {def.staminaCost}
         </span>
         {def.cooldown > 0 && <span title={t('ab.cooldown.title')}>⟳ {t('ab.cooldown', { n: def.cooldown })}</span>}
       </div>

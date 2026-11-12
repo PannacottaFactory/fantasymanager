@@ -18,22 +18,26 @@ import {
   abilityKindName, abilityText, attributeText, categoryName, effectText, elementName, injuryText, roleText, sizeName,
   speciesText, traitText,
 } from '../../engine/text/localize.ts';
-import { RoleIcon, SpeciesIcon } from '../icons/Icon.tsx';
+import { RoleIcon, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
 import { KindIcon } from '../components/AbilityCard.tsx';
 import { unlockLevel } from '../../engine/progression/levels.ts';
+import { coverReduction } from '../../engine/combat/formulas.ts';
+import { useGame } from '../store/gameStore.ts';
+import { BestiaryView } from './BestiaryView.tsx';
+import { ArenaConditionList } from '../components/ArenaCondition.tsx';
 
 const cfg = DEFAULT_CONFIG;
-type Tab = 'species' | 'abilities' | 'effects' | 'traits' | 'roles' | 'elements' | 'attributes' | 'injuries' | 'rules';
+export type Tab = 'bestiary' | 'species' | 'abilities' | 'effects' | 'traits' | 'roles' | 'elements' | 'attributes' | 'injuries' | 'rules';
 const TABS: Tab[] = ['species', 'abilities', 'effects', 'traits', 'roles', 'elements', 'attributes', 'injuries', 'rules'];
 const ROLE_IDS = Object.keys(ROLES) as RoleId[];
-export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury', 'levels'] as const;
+export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury', 'levels', 'arena'] as const;
 
 /** Accent-insensitive, case-insensitive match. */
 const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
-interface Link {
+export interface Link {
   tab: Tab;
   id: string;
 }
@@ -42,8 +46,17 @@ export function EncyclopediaScreen() {
   const tr = useT();
   const { lang } = tr;
   const e = encT(lang);
-  const [tab, setTab] = useState<Tab>('species');
-  const [sel, setSel] = useState<string | null>(null);
+  const game = useGame((s) => s.game);
+  // Opened from a bestiary message or the dashboard: start on the collection.
+  // Opened on a given page (a bestiary or arena message, the dashboard): read once, then forgotten.
+  const [opened] = useState(() => {
+    const want = useGame.getState().encTab;
+    if (want) useGame.setState({ encTab: null });
+    return want;
+  });
+  const [tab, setTab] = useState<Tab>(() => (opened && (opened.tab !== 'bestiary' || game) ? (opened.tab as Tab) : 'species'));
+  const tabs: Tab[] = game ? ['bestiary', ...TABS] : TABS;
+  const [sel, setSel] = useState<string | null>(opened?.id ?? null);
   const [query, setQuery] = useState('');
   const go = (l: Link) => {
     setTab(l.tab);
@@ -78,18 +91,19 @@ export function EncyclopediaScreen() {
   const q = norm(query.trim());
   const shown = q ? sorted.filter((x) => norm(x.label).includes(q)) : sorted;
   const current = sel && entries.some((x) => x.id === sel) ? sel : (shown[0]?.id ?? null);
-  const hasList = tab !== 'elements';
+  const hasList = tab !== 'elements' && tab !== 'bestiary';
 
   return (
     <div className="stack">
       <section className="panel">
         <div className="panel-head">
-          <h2>📖 {e('title')}</h2>
+          <h2><UiIcon name="nav-encyclopedia" /> {e('title')}</h2>
           <span className="muted">{e('intro')}</span>
         </div>
         <div className="enc-tabs">
-          {TABS.map((t) => (
-            <button key={t} className={`chip ${t === tab ? 'on' : ''}`} onClick={() => go({ tab: t, id: '' })}>
+          {tabs.map((t) => (
+            <button key={t} className={`chip ${t === tab ? 'on' : ''} ${t === 'bestiary' ? 'enc-bestiary-tab' : ''}`} onClick={() => go({ tab: t, id: '' })}>
+              {t === 'bestiary' && <UiIcon name="bestiary" />}
               {e(`tab.${t}` as EncKey)}
             </button>
           ))}
@@ -114,12 +128,13 @@ export function EncyclopediaScreen() {
         )}
         <section className="panel enc-detail">
           {tab === 'elements' && <ElementsChart />}
+          {tab === 'bestiary' && game && <BestiaryView game={game} go={go} />}
           {current && tab === 'species' && <SpeciesEntry id={current} go={go} />}
           {current && tab === 'abilities' && <AbilityEntry id={current} go={go} />}
           {current && tab === 'effects' && <EffectEntry id={current} go={go} />}
           {current && tab === 'traits' && <TraitEntry id={current} go={go} />}
           {current && tab === 'roles' && <RoleEntry id={current as RoleId} go={go} />}
-          {current && tab === 'attributes' && <AttributeEntry id={current as AttributeKey} />}
+          {current && tab === 'attributes' && <AttributeEntry id={current as AttributeKey} go={go} />}
           {current && tab === 'injuries' && <InjuryEntry id={current} />}
           {current && tab === 'rules' && <RuleEntry id={current as (typeof RULES)[number]} />}
         </section>
@@ -130,7 +145,7 @@ export function EncyclopediaScreen() {
 
 // ——— helpers ———
 
-function elColor(el: AbilityDef['element']): string {
+export function elColor(el: AbilityDef['element']): string {
   return el === 'physical' || el === 'innate' ? 'var(--muted)' : ELEMENTS[el].color;
 }
 
@@ -202,7 +217,7 @@ function useModLines() {
       if (k === 'damageMult' || k === 'healingTaken' || k === 'staminaRegenMult') out.push(e(`mod.${k}`, { v: mult(v) }));
       else if (k === 'initiativeMult') out.push(e('mod.initiativeMult', { v: mult(v), when: e(v < 1 ? 'mod.later' : 'mod.earlier') }));
       else if (k === 'dodgeBonus') out.push(e('mod.dodgeBonus', { v: pct(-v) }));
-      else if (k === 'thorns' || k === 'fury') out.push(e(`mod.${k}`, { v: pct(v, false) }));
+      else if (k === 'thorns' || k === 'fury' || k === 'spellReflect') out.push(e(`mod.${k}`, { v: pct(v, false) }));
       else out.push(e(`mod.${k}` as EncKey, { v: pct(v) }));
     }
     return out;
@@ -255,7 +270,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
           [e('sp.price'), e('sp.priceText', { v: mult(sp.valueMult ?? 1) })],
         ]}
       />
-      {sp.flying && <p className="muted">🪽 {e('sp.flying')}</p>}
+      {sp.flying && <p className="muted"><UiIcon name="flying" /> {e('sp.flying')}</p>}
       {sp.passives?.length ? (
         <List
           title={e('sp.passives')}
@@ -382,7 +397,7 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
           [e('ab.element'), <span style={{ color: elColor(a.element) }}>{el}</span>],
           [e('ab.target'), e(`target.${a.target}` as EncKey)],
           ...(a.power > 0 ? ([[e('ab.power'), <span><span style={{ color: 'var(--bad)' }}>✸</span> {a.power}</span>]] as [string, ReactNode][]) : []),
-          [e('ab.cost'), `⚡ ${a.staminaCost}`],
+          [e('ab.cost'), <span><UiIcon name="stamina" /> {a.staminaCost}</span>],
           [e('ab.cooldown'), a.cooldown ? e('ab.cooldownText', { n: a.cooldown }) : e('ab.noCooldown')],
         ]}
       />
@@ -465,6 +480,20 @@ export function EffectEntry({ id, go }: { id: string; go: (l: Link) => void }) {
           {effectText(fx.onMaxStacks, lang).name}
         </A>
         {e('fx.converts', { n: fx.maxStacks ?? 0, to: '§' }).split('§')[1]}
+      </>,
+    );
+  if (fx.silence) lines.push(e('fx.silence'));
+  if (fx.taunt) lines.push(e('fx.taunt'));
+  if (fx.hidden) lines.push(e('fx.hidden'));
+  if (fx.rechargeAtBreak) lines.push(e('fx.recharge'));
+  if (fx.transformInto)
+    lines.push(
+      <>
+        {e('fx.transform', { v: pct(fx.transformBelow ?? 0, false), to: '§' }).split('§')[0]}
+        <A to={{ tab: 'effects', id: fx.transformInto }} go={go}>
+          {effectText(fx.transformInto, lang).name}
+        </A>
+        {e('fx.transform', { v: pct(fx.transformBelow ?? 0, false), to: '§' }).split('§')[1]}
       </>,
     );
   if (fx.curse) lines.push(e('fx.curse'));
@@ -649,16 +678,103 @@ export function ElementsChart() {
   );
 }
 
-export function AttributeEntry({ id }: { id: AttributeKey }) {
+/** What an attribute does, with the numbers the simulation uses. */
+function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => string, mult: (v: number) => string, num: (v: number) => string): Record<string, string | number> {
+  const c = cfg.combat;
+  const p = (v: number) => pct(v, false);
+  const hit = c.hit.perPoint;
+  const o = c.orders;
+  const disobey = (d: number) => p(o.disobeyBase * Math.pow(1 - d / 20, o.disobeyExponent));
+  switch (id) {
+    case 'strength':
+      return { base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), v10: mult(Math.round((c.damage.statBase + 10 * c.damage.statPerPoint) * 100) / 100), v20: mult(Math.round((c.damage.statBase + 20 * c.damage.statPerPoint) * 100) / 100), hp: num(c.hp.perStrength) };
+    case 'stamina':
+      return { base: c.stamina.base, per: c.stamina.perStamina, p10: c.stamina.base + 10 * c.stamina.perStamina, p20: c.stamina.base + 20 * c.stamina.perStamina, regen: num(c.stamina.regenPerStamina) };
+    case 'speed':
+      return { per: num(c.initiative.perSpeed), noise: c.initiative.noise };
+    case 'agility':
+      return { melee: p(hit * 0.4), ranged: p(hit * 0.7) };
+    case 'toughness':
+      return { hp: num(c.hp.perToughness), arm: p(c.damage.physMitigationPerToughness), min: pct(c.damage.minMitigation), max: p(c.damage.maxMitigation) };
+    case 'recovery':
+      return { regen: num(c.stamina.regenPerRecovery), rest: c.stamina.restMult, base: cfg.league.week.fatigueRecovery, week: num(cfg.league.week.fatigueRecoveryPerAttr) };
+    case 'attack':
+      return { p: p(hit * 0.7) };
+    case 'accuracy':
+      return { p: p(hit * 0.7), base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint) };
+    case 'defense':
+      return { p: p(hit * 0.6) };
+    case 'magic':
+      return { base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), hbase: mult(c.heal.statBase), hper: mult(c.heal.statPerPoint), p: p(hit * 0.3) };
+    case 'focus':
+      return { p: p(hit * 0.7), dodge: p(hit * 0.5), arm: p(c.damage.spellMitigationPerPoint / 2) };
+    case 'technique':
+      return { crit: p(c.damage.critPerTechnique), mult: mult(c.damage.critMult), p: p(hit * 0.3) };
+    case 'courage':
+      return { c: p(c.morale.courageReductionPerPoint), arm: p(c.damage.spellMitigationPerPoint / 2) };
+    case 'composure':
+      return { crit: p(c.damage.critPerComposure), h: p(c.morale.composureReductionPerPoint), low: p(c.damage.lowHpThreshold), pen: p(c.damage.lowHpPenalty) };
+    case 'aggression':
+      return { d: p(c.damage.aggressionPerPoint), a: p(c.damage.aggressionMitigationPenalty), inst: 14 };
+    case 'tactics':
+      return { noise: p(c.ai.noiseMax), inst: 14 };
+    case 'discipline':
+      return { d5: disobey(5), d10: disobey(10), d15: disobey(15), fav: mult(1 + c.favorites.bonus) };
+    case 'anticipation':
+      return { init: num(c.initiative.perAnticipation), p: p(hit * 0.4), g: p(c.guard.perAnticipation) };
+    case 'determination':
+      return { d: p(c.damage.determinationMax) };
+    case 'teamwork':
+      return { c: p(c.hit.comboPerTeamwork), g: p(c.guard.perTeamwork) };
+    case 'leadership':
+      return { min: c.morale.minLeadership, a: num(c.morale.leadershipAuraPerPoint), below: c.morale.minLeadership - 1 };
+  }
+}
+
+export function AttributeEntry({ id, go }: { id: AttributeKey; go?: (l: Link) => void }) {
   const { lang } = useT();
+  const e = encT(lang);
+  const pct = usePct();
+  const mult = useMult();
+  const num = (v: number) => (lang === 'fr' ? String(v).replace('.', ',') : String(v));
   const txt = attributeText(id, lang);
   const cat = (Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).find((c) => ATTRIBUTE_CATEGORIES[c].includes(id))!;
+  const roles = ROLE_IDS.map((r) => ({ r, w: (ROLES[r].fit as Partial<Record<AttributeKey, number>>)[id] ?? 0 }))
+    .filter((x) => x.w > 0)
+    .sort((a, b) => b.w - a.w);
+  const best = SPECIES_IDS.map((s) => ({ s, v: SPECIES[s]!.attributes[id][1] }))
+    .sort((a, b) => b.v - a.v)
+    .slice(0, 6);
+  const link = (to: Link, label: ReactNode) => (go ? <A to={to} go={go}>{label}</A> : label);
   return (
     <div>
       <h3 className="enc-title">
         {txt.name} <span className="faint">({txt.short} · {categoryName(cat, lang)})</span>
       </h3>
       <p>{txt.description}</p>
+      <h4>{e('at.effects')}</h4>
+      {e(`at.${id}` as EncKey, attributeVars(id, pct, mult, num))
+        .split('\n')
+        .map((line, i) => (
+          <p key={i}>{line}</p>
+        ))}
+      {roles.length > 0 && (
+        <>
+          <h4>{e('at.roles')}</h4>
+          <div className="enc-links">
+            {roles.map((x) => (
+              <span key={x.r}>{link({ tab: 'roles', id: x.r }, <><RoleIcon role={x.r} /> {roleText(x.r, lang).name}</>)}</span>
+            ))}
+          </div>
+        </>
+      )}
+      <h4>{e('at.species')}</h4>
+      <div className="enc-links">
+        {best.map((x) => (
+          <span key={x.s}>{link({ tab: 'species', id: x.s }, <><SpeciesIcon id={x.s} /> {speciesText(x.s, lang).name} ({x.v})</>)}</span>
+        ))}
+      </div>
+      <p className="faint small">{e('at.scale')}</p>
     </div>
   );
 }
@@ -698,7 +814,11 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     turn: { antic: mult(c.initiative.perAnticipation), small: c.initiative.sizeMod.small, large: c.initiative.sizeMod.large, huge: c.initiative.sizeMod.huge, noise: c.initiative.noise },
     hit: { base: p(c.hit.base), per: p(c.hit.perPoint), min: p(c.hit.min), max: p(c.hit.max), huge: p(c.hit.sizeMod.huge), small: pct(c.hit.sizeMod.small), spell: p(-c.hit.spellBonus) },
     damage: { base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), variance: p(c.damage.variance), minM: pct(c.damage.minMitigation), maxM: p(c.damage.maxMitigation), crit: mult(c.damage.critMult) },
-    cover: { min: c.cover.minFront, v: p(c.cover.reduction) },
+    cover: {
+      one: p(coverReduction(1, cfg)), tank: p(coverReduction(c.cover.tankWeight, cfg)), two: p(coverReduction(2, cfg)),
+      three: p(coverReduction(3, cfg)), four: p(coverReduction(4, cfg)), max: p(c.cover.max),
+      reach: p(c.hit.reachPenalty), flank: p(c.hit.flankPenalty),
+    },
     guard: { passive: p(c.guard.passiveBase), active: p(c.guard.activeBase), max: p(c.guard.max), gm: p(c.guard.guardMitigation) },
     orders: {
       cd: mult(c.orders.cautious.damageMult), cm: p(c.orders.cautious.mitigation), cs: mult(c.orders.cautious.staminaCostMult),
@@ -720,6 +840,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false),
       moderate: p(cfg.league.death.chance.moderate!), severe: p(cfg.league.death.chance.severe!), career: p(cfg.league.death.chance.career!),
     },
+    arena: { start: cfg.arena.startWeek, clear: p(cfg.arena.clearChance) },
     levels: {
       max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: num(cfg.training.xp.played), starter: num(cfg.training.xp.starter),
       rating: num(cfg.training.xp.perRatingPoint), win: num(cfg.training.xp.win),
@@ -734,6 +855,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
         .map((para, i) => (
           <p key={i}>{para}</p>
         ))}
+      {id === 'arena' && <ArenaConditionList />}
     </div>
   );
 }

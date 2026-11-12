@@ -39,21 +39,58 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
   const { t } = useT();
   const [open, setOpen] = useState<string | null>(null);
   const ref = useRef<HTMLElement>(null);
-  // Not enough room for every name (window width, text size): inactive tabs keep only their icon.
-  const [compact, setCompact] = useState(false);
+  // Where the tabs go, so their names always show: next to the title and buttons when they fit ('inline'), on a row
+  // of their own under them otherwise ('row'); only when even a full row is too narrow do inactive tabs keep just
+  // their icon ('icons').
+  const [mode, setMode] = useState<'inline' | 'row' | 'icons'>('inline');
   // An invisible copy of the tabs with every name gives the width they need (it follows the text size).
   const measure = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const el = ref.current;
     const m = measure.current;
-    if (!el || !m) return;
-    // + room for the unread badges, which the copy does not have.
-    const check = () => setCompact(m.scrollWidth + 40 > el.clientWidth);
+    const bar = el?.parentElement;
+    if (!el || !m || !bar) return;
+    const check = () => {
+      const cs = getComputedStyle(bar);
+      const full = bar.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const gap = parseFloat(cs.columnGap) || 0;
+      // The other items of the top bar keep their width wherever the tabs are, so this never loops.
+      const others = [...bar.children].filter((c) => c !== el).reduce((s, c) => s + (c as HTMLElement).offsetWidth + gap, 0);
+      // + room for the unread badges, which the copy does not have.
+      const need = m.scrollWidth + 40;
+      setMode((was) => {
+        // Hysteresis: go back to a roomier layout only once there is clearly enough space.
+        const fits = (room: number, current: boolean) => (current ? need <= room : need + 24 <= room);
+        if (fits(full - others, was === 'inline')) return 'inline';
+        if (fits(full, was !== 'icons')) return 'row';
+        return 'icons';
+      });
+    };
+    let frame = 0;
+    const later = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(check);
+    };
+    const ro = new ResizeObserver(later);
+    const watch = () => {
+      ro.disconnect();
+      ro.observe(bar);
+      ro.observe(m);
+      for (const c of bar.children) if (c !== el) ro.observe(c);
+    };
+    watch();
     check();
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    ro.observe(m);
-    return () => ro.disconnect();
+    // Items come and go in the top bar (the match button…): watch the new ones too.
+    const mo = new MutationObserver(() => {
+      watch();
+      later();
+    });
+    mo.observe(bar, { childList: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+      mo.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -115,12 +152,15 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
   };
 
   return (
-    <nav className={`nav ${compact ? 'compact' : ''}`} aria-label="Screens" ref={ref} data-tip="nav">
+    <nav className={`nav ${mode === 'icons' ? 'compact' : ''} ${mode === 'row' ? 'own-row' : ''}`} aria-label="Screens" ref={ref} data-tip="nav">
       <div className="nav-measure" ref={measure} aria-hidden="true">
         {entries.map((e) => (
           <span key={isGroup(e) ? e.label : e.id} className="nav-tab">
             <UiIcon name={isGroup(e) ? e.icon : (ICON[e.id] ?? '')} size="1.05em" />
-            <span className="nav-label">{t(isGroup(e) ? (e.items.find((i) => i.id === screen)?.label ?? e.label) : e.label)}</span>
+            {/* The longest name a group can show, whatever the screen: the measure never depends on where you are. */}
+            <span className="nav-label">
+              {isGroup(e) ? [e.label, ...e.items.map((i) => i.label)].map((k) => t(k)).reduce((a, b) => (b.length > a.length ? b : a)) : t(e.label)}
+            </span>
             {isGroup(e) && <i className="nav-chevron">▾</i>}
           </span>
         ))}

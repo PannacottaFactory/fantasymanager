@@ -140,4 +140,61 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'reassembling', name: 'Reassembling', kind: 'mods', beneficial: true, defaultDuration: 999, revive: 0.3,
     description: 'The first time it is knocked out, its bones pull back together: it gets up with 30 % of its health.',
   },
+  // ——— Wave 5: wards, silence, provocation, camouflage, corrosion, spell mirrors, metamorphosis ———
+  /** Runic golem passive: a ward that comes back at every break. */
+  'rune-ward': {
+    id: 'rune-ward', name: 'Rune Ward', kind: 'shield', beneficial: true, defaultDuration: 999, magnitude: 0.14, rechargeAtBreak: true,
+    description: 'Carved runes absorb damage worth 14 % of its health; the ward comes back at full strength at every break.',
+  },
+  silenced: {
+    id: 'silenced', name: 'Silenced', kind: 'mods', beneficial: false, defaultDuration: 2, silence: true,
+    description: 'Cannot cast spells nor heal. Melee and ranged attacks still work.',
+  },
+  provoking: {
+    id: 'provoking', name: 'Provocation', kind: 'mods', beneficial: true, defaultDuration: 2, taunt: true,
+    mods: { mitigation: 0.1 },
+    description: 'Draws every blow: enemies must aim their single-target attacks at it when they can reach it. Takes a little less damage.',
+  },
+  camouflaged: {
+    id: 'camouflaged', name: 'Camouflaged', kind: 'mods', beneficial: true, defaultDuration: 2, hidden: true,
+    mods: { damageMult: 1.3 },
+    description: 'Out of sight: single-target abilities cannot pick it (area attacks still hit). Its next attack deals 30 % more and reveals it.',
+  },
+  /** Stacks up to 4: each dose eats away 6 % of armour. */
+  corroded: {
+    id: 'corroded', name: 'Corroded', kind: 'mods', beneficial: false, defaultDuration: 3, maxStacks: 4,
+    mods: { mitigation: -0.07 },
+    description: 'Armour eaten away: 7 % less protection per dose (up to 4). Every new dose renews the duration.',
+  },
+  'spell-mirror': {
+    id: 'spell-mirror', name: 'Spell Mirror', kind: 'mods', beneficial: true, defaultDuration: 3,
+    mods: { spellReflect: 0.4 },
+    description: 'Sends 40 % of the spell damage it takes back to the caster.',
+  },
+  /** Qilin passive. */
+  'mirror-hide': {
+    id: 'mirror-hide', name: 'Mirror Hide', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { spellReflect: 0.3 },
+    description: 'Its shining hide sends 30 % of the spell damage it takes back to the caster.',
+  },
+  /** Kelpie passive: below half health, it drops the horse's shape. */
+  'kelpie-shift': {
+    id: 'kelpie-shift', name: 'Shapeshifter', kind: 'mods', beneficial: true, defaultDuration: 999, transformBelow: 0.5, transformInto: 'kelpie-form',
+    description: 'Below half health, it drops its horse shape and becomes a water monster.',
+  },
+  'kelpie-form': {
+    id: 'kelpie-form', name: 'Water Monster', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { damageMult: 1.3, initiativeMult: 1.2, mitigation: -0.1 },
+    description: 'True form: hits 30 % harder and acts sooner, but guards worse.',
+  },
+  /** Werebear passive. */
+  'bear-shift': {
+    id: 'bear-shift', name: 'Bear Blood', kind: 'mods', beneficial: true, defaultDuration: 999, transformBelow: 0.5, transformInto: 'bear-form',
+    description: 'Below half health, it turns into a huge bear.',
+  },
+  'bear-form': {
+    id: 'bear-form', name: 'Bear Form', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { damageMult: 1.15, mitigation: 0.12, initiativeMult: 0.85 },
+    description: 'A huge bear: hits harder and takes less damage, but acts later.',
+  },
 };

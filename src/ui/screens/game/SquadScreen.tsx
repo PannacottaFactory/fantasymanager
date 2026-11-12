@@ -4,7 +4,9 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import { isStarter } from '../../../engine/team/edit.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, Stars, TraitChip } from '../../components/common.tsx';
+import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, Seg, Stars, TraitChip } from '../../components/common.tsx';
+import { CreatureCard } from '../../components/CreatureCard.tsx';
+import { useState } from 'react';
 import { maxLevelOf } from '../../../engine/progression/levels.ts';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { fatigueColor, moraleKey, moraleColor } from '../../format.ts';
@@ -12,6 +14,9 @@ import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
+import { UiIcon } from '../../icons/Icon.tsx';
+
+const VIEW_KEY = 'fm.squadView';
 
 export function SquadScreen() {
   const tr = useT();
@@ -20,6 +25,21 @@ export function SquadScreen() {
   const team = playerTeam(game);
   const openSheet = (id: string) => useGame.getState().openSheet(id);
   const waiting = team.creatures.filter((c) => (c.growth?.freePoints ?? 0) > 0);
+  const [view, setView] = useState<'cards' | 'table'>(() => {
+    try {
+      return localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  });
+  const pickView = (v: 'cards' | 'table') => {
+    setView(v);
+    try {
+      localStorage.setItem(VIEW_KEY, v);
+    } catch {
+      /* private window: the choice is not kept */
+    }
+  };
   const selection = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
 
   const columns: Column<Creature>[] = [
@@ -169,11 +189,41 @@ export function SquadScreen() {
             {t('grow.link')}
           </button>
         </p>
-        <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />
+        <div className="row squad-view-bar">
+          <Seg<'cards' | 'table'>
+            value={view}
+            onChange={pickView}
+            options={[
+              { value: 'cards', label: <><UiIcon name="view-cards" /> {t('squad.view.cards')}</> },
+              { value: 'table', label: <><UiIcon name="view-table" /> {t('squad.view.table')}</> },
+            ]}
+          />
+        </div>
+        {view === 'table' ? (
+          <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />
+        ) : (
+          ([0, 1, 2] as const).map((g) => {
+            const list = team.creatures.filter((c) => selection(c) === g).sort((a, b) => overallRating(b) - overallRating(a));
+            if (!list.length) return null;
+            const sel = g === 0 ? 'starter' : g === 1 ? 'bench' : 'reserve';
+            return (
+              <div key={g} className="ccard-group">
+                <h3 className={`ccard-group-title sel-${sel}`}>
+                  {t(g === 0 ? 'sel.starters' : g === 1 ? 'sel.benchGroup' : 'sel.reserveGroup')} <span className="faint">{list.length}</span>
+                </h3>
+                <div className="ccard-grid">
+                  {list.map((c) => (
+                    <CreatureCard key={c.id} c={c} selection={sel} onOpen={() => openSheet(c.id)} forSale={game.forSale.includes(c.id)} />
+                  ))}
+                </div>
+              </div>
+            );
+          })
+        )}
       </section>
       {(game.fallen?.length ?? 0) > 0 && (
         <section className="panel memorial">
-          <h3>🕯 {t('memorial.title')}</h3>
+          <h3><UiIcon name="memorial" /> {t('memorial.title')}</h3>
           <ul>
             {[...game.fallen!].reverse().map((f) => (
               <li key={f.id}>

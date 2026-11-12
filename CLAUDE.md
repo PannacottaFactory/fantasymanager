@@ -154,8 +154,12 @@ tests/       Vitest
   caster +spells −armour, support +healing −damage, skirmisher +ranged/+melee −armour). Bonuses scale with
   `roleFactor` (role fit, 0.78–1.2); outside the species' natural roles (`Combatant.naturalRole`) damage and healing
   ×`roleFit.offRole` (0.8). Tank interceptions and the skirmisher flank penalty also use `roleFactor`.
-- **Cover** (`cfg.combat.cover`): while ≥ 2 creatures of a side stand in the front line, its back line takes 20 % less
-  from ranged attacks and spells (melee reaching the back line ignores it).
+- **Cover** (`cfg.combat.cover`, `coverPoints` / `coverReduction`): every creature standing in the front line shields
+  the back line from ranged attacks and spells (a tank counts 1.5), with diminishing returns: 1 → −11 %, lone tank −15 %,
+  2 → −18 %, 3 → −24 %, 4 → −27 %, max 36 % (melee ignores it).
+- **Melee reach**: any melee fighter may strike the back line past a standing front line (`flank`), at −22 % to hit
+  (`hit.reachPenalty`); skirmishers only −10 % × (2 − role factor); flyers / reachBack none. The AI keeps only 30 % of
+  the target-priority bonus for such strikes (`ai.reachPriority`), so brutes do it only when worth it.
 - **Orders**: aggressive = more damage for much more stamina (a burst, ruinous over a whole match); cautious = armour
   and stamina savings. `Combat.sides[].baseOrders` = starting orders, which break decisions return to when level.
   Individual instruction (`cfg.combat.stances`): all out = +8 % damage, −4 % armour, +15 % stamina costs; pace yourself
@@ -163,6 +167,12 @@ tests/       Vitest
   (±1.5), a tired squad pacing itself +4.
 - **Fatigue**: pre-match fatigue removes up to 70 % of the stamina pool, penalties start below 60 % stamina (up to
   −40 % hit/damage/initiative/interception) and injuries are ×(1 + fatigue/100).
+- **Training intensity** (`cfg.training.intensity`): light ×0.6 growth, −8 fatigue, +1 morale; intense ×1.4 growth,
+  +16 fatigue a week (after recovery, so carried into the match), −2 morale, 3 % injury a week (× proneness/10).
+  The select's tooltip shows these numbers (`intensityDesc`). Match injuries: KO 9 %, heavy hit 1 % (≈ 0.9 per match);
+  death chances lowered (1.6 / 16 / 40 %) to keep deaths flat. Free agents' signing bonus = 55 % of value (no fee).
+- **Encyclopedia › Attributes**: each attribute lists what it does in the arena with the config numbers
+  (`attributeVars`, `at.*` texts), the roles weighing it and the best species.
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
@@ -304,7 +314,9 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   both ways, their star / our star / weak link, accuracy, crits, damage over time, purification, breaks, unused subs,
   control, thorns, back line, healers, stamina, nerves, discipline…; uses the pre-match line-ups found in `matchHistory`
   by seed), one counterpoint (a weakness despite a win / a strength despite a loss) and 1–3 varied tips (one per kind,
-  heaviest first) with a button to the right screen.
+  heaviest first) with a button to the right screen. After the player's latest match, `engine/report/advice.ts`
+  (`nextMatchAdvice`) adds tips about the next opponent from public info only (their elements vs ours, healers, tanks,
+  thorns) and our squad (injured / tired starters, points to place, two matches next week): « Leçons » + « Prochain adversaire ».
 - **Time** (`ui/season.ts`: `playerSeason` = the player's matches past and coming in play order, `byWeek`,
   `completedWeek` = last week fully played, −1 during pre-season, `itemLabel`): **season ribbon** under the top bar
   (`ui/components/SeasonRibbon.tsx`: pre-season + weeks 1…n, circle = league, diamond = competition in its colour,
@@ -314,20 +326,24 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   closed; `continueGame` waits while it is open. Matches, **week's progress** (`GrowthReel.tsx`: per creature, XP bar
   filling — wrapping with « Niveau N ! » on a level-up —, attribute chips popping one by one, new abilities, point to
   place; sparkles; still when effects are off), position ▲▼, treasury delta, infirmary, next week.
-  The ribbon is a rail filled up to the current week, a medallion per week (league result), diamonds for cup matches.
+  The ribbon is a row of week tiles (number inside; green win / red defeat, « KO » corner; next match filled in the accent
+  colour; cup / tournament matches = diamonds in their colour on top), the W–L record on the left, the next match in words
+  on the right (hidden below 1100 px).
 - **Crests** (`data/crest.ts`, `engine/team/crest.ts`, `ui/components/TeamCrest.tsx`): `Team.crest` = emblem (32 game-icons,
   `CREST_ICONS`) + two field colours + pattern (plain, pale, fess, bend, quarterly, chevron) + emblem colour; chosen in
   the new-game screen (`CrestEditor`, `NewGameOptions.crest`), AI stables get `defaultCrest(id)`. Shown in the top bar,
   home hero, league tables, pre-match, calendar, continue card.
 - **Current week**: `currentWeek` / `weekText` (`ui/season.ts`) = the week of the player's next match (0 = pre-season) —
   the same number in the ribbon, home hero, top bar status and start screen; the division hero shows weeks played.
-- **Start screen** fits without scrolling: compact hero, the saved game as a banner, new game in two columns (name +
+- **Start screen** fits without scrolling (checked at 1366×768, 1440×900, 1920×1080): big gold title with the dragon beside it, ornament + tagline (hidden below 860 px of height), the saved game as a banner, new game in two columns (name +
   crest | difficulty + start). News items use game-icons (`<NewsIcon kind>`, `UI_ICONS['news-<kind>']`).
 - `npm run ui:check` closes the end-of-week summaries (screenshot `00-recap`).
 - **Navigation tabs** (`NavBar.tsx`): a game-icon per screen (`UI_ICONS['nav-*']`), animated underline on the active
   tab, chevron that turns, menus that unfold (icon tile + name + one-line hint `nav.hint.*`); below 1600 px inactive
   tabs show only their icon (name in the tooltip) when the tabs do not fit — measured on an invisible copy
-  (`.nav-measure`), so it follows the window and the text size. The creature sheet shows the potential as a stat tile.
+  (`.nav-measure`, longest name of each group so the result never depends on the screen; hysteresis 24 px): the tabs sit
+  beside the title when they fit, otherwise on a row of their own under it (`.nav.own-row`, names kept); icons only when
+  even a full row is too narrow. Language, text size, effects and theme live in one ⚙ menu (`SettingsMenu.tsx`). The creature sheet shows the potential as a stat tile.
 - **Attribute points to place** (one per level gained): gold « +N » badge on the Stable tab / Squad entry, a banner in
   the Squad listing the creatures (chips open the sheet), a pulsing « +N » next to their level, a gold box in the sheet
   with pulsing + buttons. The overall-rating column is « Note » / « Rating ». Stun = one blinking diamond.
@@ -361,7 +377,9 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - Live-match speed: only « slow » is remembered; fast / instant reset to normal at the next match.
 - **Managers' names**: `managerName(team)` (`engine/team/identity.ts`, fantasy names from `MANAGER_NAMES` in `data/names.ts`, drawn from the
   team id, no RNG of the world) shown with the temperament on the pre-match screen (French gambler = « flambeur »).
-- Pre-match: line-ups first, then a centred row « Modifier la tactique » (`.cta-tactics`) · « Jouer en direct » · « Simuler ».
+- Pre-match: face-off banner (`screens/game/Versus.tsx`: crests slide in on their colours, « VS » slams with a
+  clash sound, duel of the stars — the opponent's star from public record only —, last meeting), then the row
+  « Modifier la tactique » (`.cta-tactics`) · « Jouer en direct » · « Simuler », then both line-ups.
 - **Drag and drop in Tactics**: the table is split into three boxes (`SortableTable.groups`: Starters / Bench / Reserve,
   one tbody each with a heading). `ui/components/rowDrag.ts` drags the whole row with pointer events (a copy follows the
   pointer; touch: the ⠿ grip), boxes light up (red when full). Drop on a box = `setSelection`; on a creature = `dropOnto`
@@ -395,6 +413,47 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - [x] **Levels & XP rework** (10 levels, match + training XP, max level from potential, a free point per level,
   unlocks by level, encyclopedia "Levels and experience" rule, Level column / badge / chart in levels). 115 tests.
   Next (later): phase 6 (save slots, import/export, worker sims).
+- **Creature records & medals** (`engine/team/record.ts`, `cfg.collection.medals`): `Creature.record` (matches, starts,
+  wins, KOs, times KO, damage, healing, best of the match, best / average rating, trophies with season) filled after every
+  league / cup / tournament match (`recordSide` in `playFixtures`) and trophy (`awardTrophy`: every creature of the
+  winning squad); 7 medal families × 3–4 tiers (bronze, silver, gold, legend), `medal` inbox message + toast for the
+  player's creatures. Sheet: « Palmarès / Record » panel (`ui/components/CreatureRecord.tsx`). Bookkeeping only.
+- **Bestiary** (`GameState.bestiary`: species `seen` in the player's matches / `owned`, season of the first time,
+  `paid` tiers): `updateBestiary` after the player's matches, reward tiers in gold (+ reputation) from
+  `cfg.collection.bestiary`, `bestiary` inbox message; the starting squad is not rewarded (`initBestiary`, also for old
+  saves). Encyclopedia tab « Votre bestiaire » (`ui/screens/BestiaryView.tsx`: unknown species are silhouettes, rarity
+  from `SpeciesDef.rarity`), dashboard card, `openBestiary()` in the store.
+- **Creature cards** (`ui/components/CreatureCard.tsx`): Squad shows cards by default (Cards / Table switch, localStorage
+  `fm.squadView`), grouped Starters / Bench / Reserves; art in the element colours, frame metal by level (bronze 1–3,
+  silver 4–6, gold 7–9, legend 10 with a shine), rating, level + XP, points to place, condition bars, best medals.
+- **Sound** (`ui/sound/sfx.ts`): every sound is synthesised with Web Audio (no files); volume in the settings menu
+  (`useSettings().volume`, `fm.volume`, 0 = off, default 0.5); the context starts on the first gesture. Hooks: button
+  clicks (App), coins (treasury), toasts (Celebrations), level-ups (GrowthReel), hits / KO + crowd (Projectiles),
+  whistle / victory / defeat (LiveMatch), clash (Versus). Throttled (4 sounds / 120 ms). Never affects the game.
+- **Visual depth** (end of `styles.css`): ambient body gradients + vignette, film grain (`.app::before`) and ~46 glowing embers rising
+  (`ui/fx/Embers.tsx`, CSS animation, dark themes with effects on, z-index −1: only between the boxes — panels, top bar
+  and ribbon stay fully opaque), panels with gradient + soft depth shadow, the first
+  panel of a screen lit with a gilded top edge, smoother screen transition, gradient primary buttons, tabular numbers.
+  No emojis in the UI: game-icons everywhere (`UI_ICONS`: help-*, fac-*, scout, stamina, power, injury, tip…).
+- [x] **Wave 5** (+10 → 77 species, 27 abilities, 11 effects): runic golem (rune ward: passive shield of 14 % HP that
+  comes back at every break, `EffectDef.rechargeAtBreak`), spell eater + lamia (silence: no spells nor heals,
+  `silence`, `isSilenceable`), oni (provocation: single-target attacks must aim at it, `taunt`), kitsune (camouflage:
+  cannot be picked by single-target abilities, next attack +30 % and revealed, `hidden`, attack `ambush` flag),
+  lamia + cockatrice (corrosion: −7 % armour per dose up to 4 — additive mods now scale with stacks), qilin + tengu
+  (spell mirror: `EffectMods.spellReflect`, `thorns` event with `spell`, commentary key `mirror`), kelpie + werebear
+  (metamorphosis below half health: `transformBelow` / `transformInto`, `transform` event handled by commentator, view,
+  matchFx). AI: `pickableTargets` (camouflage, provocation), silence filter, mirror penalty. Prices from `sim:species`
+  (new species 42–65 %). `tests/wave5.test.ts`.
+- **Arena conditions** (`data/config/arena.ts`, `engine/league/arena.ts`): 17 — weather (rain, heatwave, fog, night,
+  blazing sun, storm, sandstorm, eclipse, eruption), ground (swamp, black ice, narrow pit, hallowed ground, cursed earth,
+  mountain air), crowd (frenzy) and magic (mana tide). Levers (`ArenaCondition`): element damage ×, kind of attack ×
+  (melee / ranged / spell), ranged / melee hit, stamina costs ×, stamina recovery ×, healing ×, damage over time ×,
+  critical chance +, morale per round — the same for both sides; adding one = config + `arena.cond.<id>` strings +
+  `arena.<id>` commentary (EN/FR) + `arena-<id>` icon + `.ac-<id>` colour (tested); `arenaFor(state, fixture)` draws
+  one per fixture from the world seed (40 % clear days), none before week 4 of the first season (`arenaActive`),
+  `MatchSetup.arena` → `Combat.arena` (also seen by the AI), `matchStart.arena` (commentary `arena.<id>`), `arenaIntro`
+  inbox message once. UI: `ui/components/ArenaCondition.tsx` (badge in the pre-match face-off, Encyclopedia rule
+  « Conditions d'arène » with every condition), `openEncyclopedia(tab, id)` in the store.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

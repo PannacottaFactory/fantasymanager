@@ -174,6 +174,96 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['', '{a} pays in blood for {ab} (-{n}).'],
     ['', '{a} tears its own flesh to unleash {ab}!'],
   ],
+  mirror: [
+    ['', 'The spell bounces off {a} and scorches {t} ({n})!'],
+    ['', '{a} turns the magic back on its caster — {t} loses {n}.'],
+    ['', 'A shimmer, a flash: {t} eats {n} of its own spell.'],
+  ],
+  ambush: [
+    ['', 'Out of nowhere — {a} strikes from cover!'],
+    ['', 'Nobody saw {a} coming!'],
+    ['', '{a} melts out of the shadows and pounces on {t}!'],
+  ],
+  transform: [
+    ['', '{a} changes before our eyes — its true form is out!'],
+    ['', 'Bones crack, shape twists: {a} is something else now!'],
+  ],
+  'transform.kelpie-form': [
+    ['', 'The horse is gone: {a} rears up as a dripping water monster!'],
+    ['', '{a} drops its disguise — the kelpie shows its fangs!'],
+  ],
+  'transform.bear-form': [
+    ['', '{a} swells into a huge bear and roars at the stands!'],
+    ['', 'Fur, claws, fury: {a} has become a bear!'],
+  ],
+  'arena.sacred': [
+    ['', 'The arena stands on hallowed ground today: every wound closes faster, and light shines brighter.'],
+    ['', 'Holy ground under their feet — healers will work wonders.'],
+  ],
+  'arena.cursed': [
+    ['', 'Cursed earth: the dead are buried under this sand, and wounds refuse to close.'],
+    ['', 'A bad omen — healing withers on this ground, shadows thrive.'],
+  ],
+  'arena.swamp': [
+    ['', 'The sand has turned to swamp: poisons and burns will fester.'],
+    ['', 'Knee-deep mud and rot — damage over time will bite harder today.'],
+  ],
+  'arena.ice': [
+    ['', 'Black ice on the sand! Melee fighters will slip, water creatures glide.'],
+    ['', 'The arena is frozen over — careful footing for anyone fighting up close.'],
+  ],
+  'arena.frenzy': [
+    ['', 'The crowd is in a frenzy — every creature feeds on the noise, and the blows land harder.'],
+    ['', 'What an atmosphere! The stands are on their feet before the first blow.'],
+  ],
+  'arena.thinAir': [
+    ['', 'A mountain arena, thin air: stamina will come back slowly today.'],
+    ['', 'Up among the peaks — the lungs burn, and only the creatures of the air feel at home.'],
+  ],
+  'arena.mana': [
+    ['', 'A mana tide washes over the arena: spells will hit harder.'],
+    ['', 'The air crackles with magic — a great day for casters.'],
+  ],
+  'arena.pit': [
+    ['', 'They fight in a narrow pit today: up close it hurts, from afar it is hard.'],
+    ['', 'No room to shoot in this pit — the brawlers are licking their lips.'],
+  ],
+  'arena.eclipse': [
+    ['', 'An eclipse darkens the sky: light and fire falter, shadow rises.'],
+    ['', 'The sun is swallowed whole — the creatures of the dark stir.'],
+  ],
+  'arena.sandstorm': [
+    ['', 'A sandstorm sweeps the arena: earth is strong, arrows lose their way.'],
+    ['', 'Sand everywhere — archers squint, earth creatures grin.'],
+  ],
+  'arena.eruption': [
+    ['', 'The volcano rumbles over the arena: fire is wild and burns will linger.'],
+    ['', 'Ash and embers rain down — fire creatures are in their element.'],
+  ],
+  'arena.rain': [
+    ['', 'Rain lashes the sand today: water creatures will love it, fire ones less so.'],
+    ['', 'A downpour over the arena — fire will hiss, water will sing.'],
+  ],
+  'arena.heat': [
+    ['', 'Blistering heat in the stands: every effort will cost dear.'],
+    ['', 'The sand is burning hot — stamina will melt away today.'],
+  ],
+  'arena.fog': [
+    ['', 'A thick fog rolls over the arena: archers will struggle to see their mark.'],
+    ['', 'Fog everywhere — good luck to anyone shooting from afar.'],
+  ],
+  'arena.night': [
+    ['', 'A night fight under the torches: shadow is at home, light flickers.'],
+    ['', 'Darkness over the sand — the creatures of the night are smiling.'],
+  ],
+  'arena.sun': [
+    ['', 'Blazing sun over the arena: light will burn brighter, shadows shrink.'],
+    ['', 'Not a cloud in the sky — a fine day for the creatures of light.'],
+  ],
+  'arena.storm': [
+    ['', 'A storm howls over the stands: the winds favour the air, arrows drift.'],
+    ['', 'Thunder and gusts today — air creatures are in their element.'],
+  ],
   thorns: [
     ['', '{t} pays for it — {a}’s thorns bite back ({n}).'],
     ['', 'Spikes everywhere: {t} takes {n} from {a}’s thorns.'],

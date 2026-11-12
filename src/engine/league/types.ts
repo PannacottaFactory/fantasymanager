@@ -5,6 +5,7 @@ import type { AttributeCategory, AttributeKey } from '../../data/attributes.ts';
 import type { IntensityId, ProgramId } from '../../data/config/training.ts';
 import type { FacilityId } from '../../data/config/club.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
+import type { MedalFamily } from '../../data/config/collection.ts';
 import type { MatchMethod, MatchResult, MatchSetup, Side } from '../combat/types.ts';
 import type { Creature, Team } from '../model.ts';
 
@@ -106,6 +107,9 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
   | { kind: 'relation'; a: string; b: string; bond: 'friends' | 'rivals' }
   | { kind: 'ambition'; ambition: AmbitionId }
+  | { kind: 'medal'; creatureId: string; name: string; family: MedalFamily; tier: number }
+  | { kind: 'bestiary'; seen: string[]; owned: string[]; rewards: BestiaryReward[] }
+  | { kind: 'arenaIntro' }
 );
 
 /** A transfer between two stables (null = free agent pool). */
@@ -317,6 +321,22 @@ export interface GameState {
   career?: SeasonRecord[];
   /** Ambitions reached (season when reached). */
   ambitions?: Partial<Record<AmbitionId, number>>;
+  /** The player's bestiary: species met in a match / owned, with the season of the first time. */
+  bestiary?: Bestiary;
+}
+
+export interface Bestiary {
+  seen: Record<string, number>;
+  owned: Record<string, number>;
+  /** Reward tiers already paid (number of species of the last tier reached). */
+  paid: { seen: number; owned: number };
+}
+
+export interface BestiaryReward {
+  list: 'seen' | 'owned';
+  n: number;
+  gold: number;
+  rep: number;
 }
 
 /** One finished season of the player's stable. */

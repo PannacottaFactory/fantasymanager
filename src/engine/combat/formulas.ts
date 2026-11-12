@@ -1,6 +1,7 @@
 /**
  * Pure combat formulas. Every number comes from GameConfig; these functions only combine them.
  */
+import type { ArenaCondition } from '../../data/config/arena.ts';
 import { clamp } from '../../core/math.ts';
 import { EFFECTS } from '../../data/effects.ts';
 import { TRAITS } from '../../data/traits.ts';
@@ -62,9 +63,30 @@ export function effectMod(c: Combatant, key: keyof EffectMods): number {
   for (const e of c.effects) {
     const m = EFFECTS[e.id]?.mods?.[key];
     if (m === undefined) continue;
-    v = multiplicative ? v * m : v + m;
+    // Additive mods add up per stack (corrosion); multiplicative ones apply once.
+    v = multiplicative ? v * m : v + m * (e.stacks ?? 1);
   }
   return v;
+}
+
+/** Does any effect on the creature carry this flag (silence, provocation, camouflage)? */
+export function hasEffectFlag(c: Combatant, flag: 'silence' | 'taunt' | 'hidden'): boolean {
+  return c.effects.some((e) => EFFECTS[e.id]?.[flag]);
+}
+
+/** Weather multiplier on an attack's element (1 on an ordinary day or for physical blows). */
+export function arenaElementMult(arena: ArenaCondition | undefined, element: ElementId | 'physical'): number {
+  return element === 'physical' ? 1 : (arena?.elements?.[element] ?? 1);
+}
+
+/** Arena multiplier on stamina costs (heat). */
+export function arenaCostMult(arena: ArenaCondition | undefined): number {
+  return arena?.staminaCost ?? 1;
+}
+
+/** Abilities a silenced creature cannot use. */
+export function isSilenceable(ability: AbilityDef): boolean {
+  return ability.kind === 'spell' || ability.kind === 'heal';
 }
 
 export function hasEffect(c: Combatant, id: string): boolean {
@@ -143,8 +165,8 @@ export function hitChance(
   p += h.sizeMod[defender.size];
   p += ability.accuracyMod ?? 0;
   if (kind === 'spell') p += h.spellBonus;
-  // A skilled skirmisher loses less accuracy when reaching the back line.
-  if (ctx.flank) p -= h.flankPenalty * (2 - attacker.roleFactor);
+  // Reaching the back line past a standing front line: easy for a skilled skirmisher, hard for anyone else.
+  if (ctx.flank) p -= attacker.role === 'skirmisher' ? h.flankPenalty * (2 - attacker.roleFactor) : h.reachPenalty;
   if (ctx.combo) p += attacker.attrs.teamwork * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
   p += effectMod(attacker, 'hitBonus') - effectMod(defender, 'dodgeBonus');
   if (ctx.orders.risk === 'high') p += cfg.combat.orders.riskHigh.hitBonus;
@@ -236,13 +258,23 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   return dmg;
 }
 
-/**
- * Cover: a back-line creature takes less from ranged attacks and spells while its front line holds
- * (at least `minFront` allies standing in front). Melee that reaches the back line (dives, charges) ignores it.
- */
-export function coverMult(kind: AttackKind, target: Combatant, frontStanding: number, cfg: GameConfig): number {
+/** Cover points of a front line: one per creature standing in it, a tank counts more. */
+export function coverPoints(front: { role: string }[], cfg: GameConfig): number {
+  return front.reduce((s, c) => s + (c.role === 'tank' ? cfg.combat.cover.tankWeight : 1), 0);
+}
+
+/** Share of ranged / spell damage the back line is spared for these cover points (grows with diminishing returns). */
+export function coverReduction(points: number, cfg: GameConfig): number {
   const c = cfg.combat.cover;
-  return kind !== 'melee' && target.line === 'back' && frontStanding >= c.minFront ? 1 - c.reduction : 1;
+  return points > 0 ? c.max * (1 - Math.pow(1 - c.perPoint, points)) : 0;
+}
+
+/**
+ * Cover: a back-line creature takes less from ranged attacks and spells while its front line holds — more with
+ * more creatures (and tanks) in front, never all of it. Melee that reaches the back line ignores it.
+ */
+export function coverMult(kind: AttackKind, target: Combatant, points: number, cfg: GameConfig): number {
+  return kind !== 'melee' && target.line === 'back' ? 1 - coverReduction(points, cfg) : 1;
 }
 
 /** Damage multiplier of an execution ability on this target. */

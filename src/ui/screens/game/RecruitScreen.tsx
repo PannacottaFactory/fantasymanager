@@ -15,6 +15,7 @@ import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
+import { UiIcon } from '../../icons/Icon.tsx';
 
 type Tab = 'free' | 'stables' | 'scouts';
 type View = 'cards' | 'table';
@@ -58,7 +59,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
           <button className="link" onClick={() => openSheet(r.c.id)}>
             {r.c.name}
           </button>
-          {game.scouting.missions.some((m) => m.targetId === r.c.id) && <span title={t('scout.onIt')}>🔍</span>}
+          {game.scouting.missions.some((m) => m.targetId === r.c.id) && <span title={t('scout.onIt')}><UiIcon name="scout" /></span>}
           {isNew(game, r) && <NewBadge />}
         </span>
       ),
@@ -186,7 +187,7 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
               <div className="rc-row">
                 <PotentialStars c={r.c} k={r.k} />
                 <span title={t('col.known.title')} className="row" style={{ gap: 4 }}>
-                  {scouting && '🔍'}
+                  {scouting && <UiIcon name="scout" />}
                   <Knowledge k={r.k} />
                 </span>
                 <span className="spacer" />
@@ -248,7 +249,7 @@ function Scouts({ game }: { game: GameState }) {
           const name = m.target === 'creature' ? (locate(game, m.targetId)?.creature.name ?? '?') : (game.teams.find((x) => x.id === m.targetId)?.name ?? '?');
           return (
             <li key={m.id} className="msg info row" style={{ gap: 10 }}>
-              <span>🔍 {m.target === 'creature' ? t('scout.mission.creature', { name }) : t('scout.mission.team', { name })}</span>
+              <span><UiIcon name="scout" /> {m.target === 'creature' ? t('scout.mission.creature', { name }) : t('scout.mission.team', { name })}</span>
               <span className="muted">{t('scout.weeksLeft', { weeks: tr.weeks(m.weeksLeft) })}</span>
               <span className="spacer" />
               {m.target === 'creature' && (
@@ -339,7 +340,7 @@ export function RecruitScreen() {
                     if (o) setNote(o.kind === 'sent' ? t('scout.sent', { weeks: tr.weeks(o.weeks) }) : errorText(tr, o.error));
                   }}
                 >
-                  🔍 {t('act.scoutTeam')}
+                  <UiIcon name="scout" /> {t('act.scoutTeam')}
                 </button>
               )}
               {note && <span className="muted" style={{ fontSize: '0.857rem' }}>{note}</span>}

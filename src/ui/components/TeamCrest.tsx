@@ -6,6 +6,7 @@ import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { CREST_ICONS, ICON_VIEWBOX } from '../icons/gameIcons.ts';
 import { randomSeed } from '../format.ts';
+import { UiIcon } from '../icons/Icon.tsx';
 
 const SHIELD = 'M2.5 2.5 H21.5 V11.5 C21.5 17.5 12 22.5 12 22.5 C12 22.5 2.5 17.5 2.5 11.5 Z';
 
@@ -71,7 +72,7 @@ export function CrestEditor({ value, onChange }: { value: TeamCrest; onChange: (
       <div className="crest-preview">
         <CrestShield crest={value} size={84} />
         <button type="button" className="btn small" onClick={() => onChange(defaultCrest(randomSeed()))}>
-          🎲 {t('crest.random')}
+          <UiIcon name="dice" /> {t('crest.random')}
         </button>
       </div>
       <div className="crest-controls">

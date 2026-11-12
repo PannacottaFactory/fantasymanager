@@ -7,8 +7,9 @@ import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { Gold } from '../../components/common.tsx';
+import { UiIcon } from '../../icons/Icon.tsx';
 
-const ICON: Record<FacilityId, string> = { training: '🏟', infirmary: '✚', stands: '🎟' };
+
 
 function effectValue(id: FacilityId): number {
   const f = DEFAULT_CONFIG.club.facilities;
@@ -41,7 +42,7 @@ export function FacilitiesScreen() {
             return (
               <div key={id} className="facility">
                 <div className="row" style={{ gap: 8 }}>
-                  <span className="facility-icon">{ICON[id]}</span>
+                  <span className="facility-icon"><UiIcon name={`fac-${id}`} size="1.3em" /></span>
                   <b className="grow">{t(`fac.${id}` as StringKey)}</b>
                   <span className="tag">{t('fac.level', { n: level, max })}</span>
                 </div>

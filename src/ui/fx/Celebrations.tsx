@@ -11,6 +11,9 @@ import { effectsOn, useT } from '../i18n/index.ts';
 import { useGame } from '../store/gameStore.ts';
 import { wording } from '../screens/game/InboxScreen.tsx';
 import { centreOf, fxLayer } from './FxLayer.tsx';
+import { UiIcon } from '../icons/Icon.tsx';
+import { Medal } from '../components/CreatureRecord.tsx';
+import { play } from '../sound/sfx.ts';
 
 type Moment = 'small' | 'big' | 'huge' | 'sad';
 
@@ -19,7 +22,11 @@ function momentOf(m: InboxMessage): Moment | null {
   switch (m.kind) {
     case 'levelUp':
     case 'abilityUnlocked':
+    case 'medal':
+    case 'arenaIntro':
       return 'small';
+    case 'bestiary':
+      return m.rewards.length ? 'big' : m.owned.length ? 'small' : null;
     case 'transferIn':
     case 'ambition':
       return 'big';
@@ -83,6 +90,15 @@ export function Celebrations() {
       .slice(0, MAX_TOASTS);
     if (!picked.length) return;
     setToasts((old) => [...picked, ...old].slice(0, MAX_TOASTS));
+    const top = picked[0]!;
+    play(
+      top.moment === 'huge' ? 'fanfare'
+      : top.moment === 'sad' ? 'sad'
+      : top.message.kind === 'medal' ? 'medal'
+      : top.message.kind === 'bestiary' ? 'discover'
+      : top.message.kind === 'levelUp' || top.message.kind === 'abilityUnlocked' ? 'levelUp'
+      : top.moment === 'big' ? 'medal' : 'discover',
+    );
     // Particles once the toasts are on screen.
     window.setTimeout(() => {
       const fx = fxLayer();
@@ -128,7 +144,7 @@ export function Celebrations() {
             }}
           >
             <span className="toast-icon">
-              {x.moment === 'sad' ? '🕯' : species ? <Crest speciesId={species} name={c?.name ?? ''} size={30} /> : x.moment === 'huge' ? '🏆' : '✦'}
+              {x.moment === 'sad' ? <UiIcon name="memorial" size="1.4em" /> : x.message.kind === 'medal' ? <Medal family={x.message.family} tier={x.message.tier} size="sm" /> : species ? <Crest speciesId={species} name={c?.name ?? ''} size={30} /> : x.message.kind === 'bestiary' ? <UiIcon name="bestiary" size="1.4em" /> : x.moment === 'huge' ? <UiIcon name="help-competitions" size="1.4em" /> : '✦'}
             </span>
             <span className="toast-text">
               <b>

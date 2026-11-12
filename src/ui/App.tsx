@@ -1,14 +1,13 @@
 import { weekText } from './season.ts';
 import { StableCrest } from './components/TeamCrest.tsx';
 import { useEffect, useRef, useState } from 'react';
-import { LANGS } from '../core/i18n.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
 import { cupDue, playerFixture, playerTeam, seasonOver } from '../engine/league/season.ts';
 import type { GameState } from '../engine/league/types.ts';
 import type { StringKey } from './i18n/strings.ts';
 import { NewsTicker } from './components/NewsTicker.tsx';
 import { compName, roundKey } from './competitions.ts';
-import { TEXT_SCALE, TEXT_SIZES, THEMES, useSettings, useT } from './i18n/index.ts';
+import { TEXT_SCALE, useSettings, useT } from './i18n/index.ts';
 import { ArenaScreen } from './screens/arena/ArenaScreen.tsx';
 import { ReportView } from './screens/arena/ReportView.tsx';
 import { InboxScreen } from './screens/game/InboxScreen.tsx';
@@ -25,6 +24,7 @@ import { ReputationChip } from './components/Reputation.tsx';
 import { DashboardScreen } from './screens/game/DashboardScreen.tsx';
 import { useFirstStepsTracker } from './tutorial/FirstSteps.tsx';
 import { FxLayer } from './fx/FxLayer.tsx';
+import { Embers } from './fx/Embers.tsx';
 import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
 import { FacilitiesScreen } from './screens/game/FacilitiesScreen.tsx';
@@ -33,6 +33,7 @@ import { StaffScreen } from './screens/game/StaffScreen.tsx';
 import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
 import { useGame } from './store/gameStore.ts';
 import { NavBar } from './components/NavBar.tsx';
+import { SettingsMenu } from './components/SettingsMenu.tsx';
 import { HelpScreen } from './screens/HelpScreen.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { LiveMatch } from './screens/arena/LiveMatch.tsx';
@@ -41,6 +42,7 @@ import { TutorialOverlay } from './tutorial/TutorialOverlay.tsx';
 import { RollingMoney } from './components/common.tsx';
 import { centreOf, fxLayer } from './fx/FxLayer.tsx';
 import { Celebrations } from './fx/Celebrations.tsx';
+import { play, unlockAudio } from './sound/sfx.ts';
 
 /** The treasury in the top bar: rolls to its new value; coins fly in when money comes, a red tick when it goes. */
 /** Top-bar status in a midweek: the player's competition and round, or just "midweek". */
@@ -63,6 +65,7 @@ function BalanceChip({ balance, worldSeed }: { balance: number; worldSeed: strin
     const d = balance - p.v;
     setDelta({ v: d, n: Date.now() });
     const to = centreOf(ref.current);
+    if (d > 0) play('coin');
     if (d > 0 && to) fxLayer()?.coins({ x: window.innerWidth / 2, y: window.innerHeight * 0.45 }, to, Math.min(14, 4 + Math.round(Math.log10(d + 1) * 2.5)));
   }, [balance, worldSeed]);
   return (
@@ -121,7 +124,7 @@ function ContinueButton() {
 
 export function App() {
   const { t } = useT();
-  const { lang, theme, textSize, effects, setLang, setTheme, setTextSize, setEffects } = useSettings();
+  const { lang, theme, textSize, effects } = useSettings();
   const { ready, game, screen, viewing, saveError, replaying, intro, launch } = useGame();
   useFirstStepsTracker();
   const { init, setScreen, viewReport } = useGame.getState();
@@ -131,6 +134,21 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+  // Sound: the audio starts with the first gesture; every button answers with a soft click.
+  useEffect(() => {
+    const down = () => unlockAudio();
+    const click = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement | null)?.closest('button, [role=menuitem], select, a');
+      if (!el || (el as HTMLButtonElement).disabled) return;
+      play(el.matches('.nav-tab[aria-haspopup], .settings-btn') ? 'open' : 'click');
+    };
+    window.addEventListener('pointerdown', down, true);
+    window.addEventListener('click', click, true);
+    return () => {
+      window.removeEventListener('pointerdown', down, true);
+      window.removeEventListener('click', click, true);
+    };
+  }, []);
   useEffect(() => {
     document.documentElement.dataset.effects = effects;
   }, [effects]);
@@ -211,42 +229,10 @@ export function App() {
           }}
         />
         {!launch && <ContinueButton />}
-        <div className="seg" role="radiogroup" aria-label={t('lang.title')} title={t('lang.title')}>
-          {LANGS.map((l) => (
-            <button key={l} className={l === lang ? 'on' : ''} onClick={() => setLang(l)} role="radio" aria-checked={l === lang}>
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <button
-          className="btn small ghost text-size-btn"
-          title={`${t('text.size')} : ${t(`text.${textSize}`)}`}
-          aria-label={t('text.size')}
-          onClick={() => setTextSize(TEXT_SIZES[(TEXT_SIZES.indexOf(textSize) + 1) % TEXT_SIZES.length]!)}
-        >
-          <span style={{ fontSize: '0.8em' }}>A</span>
-          <span style={{ fontSize: '1.15em' }}>A</span>
-          <i className={`size-dots s-${textSize}`} aria-hidden="true" />
-        </button>
-        <button
-          className={`btn small ghost fx-btn ${effects === 'full' ? 'on' : ''}`}
-          title={t(effects === 'full' ? 'effects.on' : 'effects.off')}
-          aria-label={t('effects.title')}
-          aria-pressed={effects === 'full'}
-          onClick={() => setEffects(effects === 'full' ? 'reduced' : 'full')}
-        >
-          ✨
-        </button>
+        <SettingsMenu />
         <button className={`btn small ghost help-btn ${screen === 'help' ? 'active' : ''}`} data-tip="help-btn" title={t('help.btn')} aria-label={t('help.btn')} onClick={() => setScreen('help')}>
           ?
         </button>
-        <div className="seg theme-seg" role="radiogroup" aria-label={t('theme.switch')}>
-          {THEMES.map((th) => (
-            <button key={th} className={th === theme ? 'on' : ''} onClick={() => setTheme(th)} role="radio" aria-checked={th === theme} title={t(`theme.${th}`)}>
-              <i className={`swatch ${th}`} />
-            </button>
-          ))}
-        </div>
       </header>
       <div className="under-bar">
         {game && !launch && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && screen !== 'help' && <SeasonRibbon game={game} />}
@@ -265,6 +251,7 @@ export function App() {
       {game && !newGameOpen && <IntroModal />}
       {game && !newGameOpen && !launch && <WeekRecap />}
       {game && !launch && !newGameOpen && <NewsTicker />}
+      <Embers />
       <FxLayer />
       <Celebrations />
       <TutorialOverlay active={!!game && !newGameOpen && !launch && ready && !viewing && !intro} />

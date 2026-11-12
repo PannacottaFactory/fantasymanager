@@ -15,7 +15,8 @@ import { playerTeam, standings, teamById } from '../../../engine/league/season.t
 import type { GameState } from '../../../engine/league/types.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { Crest, Gold, LevelBadge, Attr, RollingMoney } from '../../components/common.tsx';
+import { Bar, Crest, Gold, LevelBadge, Attr, RollingMoney } from '../../components/common.tsx';
+import { SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
 import { useT } from '../../i18n/index.ts';
 import { levelOf, maxLevelOf } from '../../../engine/progression/levels.ts';
 import { divName } from '../../competitions.ts';
@@ -24,6 +25,8 @@ import { useGame, type Screen } from '../../store/gameStore.ts';
 import { BoardCard, NextMatch, wording } from './InboxScreen.tsx';
 import { FormDots } from './LeagueScreen.tsx';
 import { NewsIcon, newsText } from './NewsScreen.tsx';
+import { bestiaryTiers, ownedSpecies, seenSpecies } from '../../../engine/team/record.ts';
+import { SPECIES_IDS } from '../../../data/species.ts';
 
 function Card({ title, to, link, children, className = '' }: { title: string; to?: Screen; link?: string; children: ReactNode; className?: string }) {
   return (
@@ -352,6 +355,50 @@ function Ambitions({ game }: { game: GameState }) {
   );
 }
 
+/** The bestiary in a glance: species met / owned, the next reward, the latest discoveries. */
+function Bestiary({ game }: { game: GameState }) {
+  const { t, money } = useT();
+  const seen = seenSpecies(game);
+  const owned = ownedSpecies(game);
+  const total = SPECIES_IDS.length;
+  const b = game.bestiary;
+  const latest = Object.keys(b?.seen ?? {}).slice(-8).reverse();
+  const next = (list: 'seen' | 'owned', n: number) => bestiaryTiers(list).find((x) => x.n > n);
+  const ns = next('seen', seen.size);
+  const no = next('owned', owned.size);
+  return (
+    <section className="panel dash-card dash-bestiary">
+      <div className="dash-card-head">
+        <h3>{t('bestiary.title')}</h3>
+        <button className="link" onClick={() => useGame.getState().openBestiary()}>
+          {t('bestiary.open')} →
+        </button>
+      </div>
+      <div className="dash-bst-row">
+        <UiIcon name="bestiary-seen" />
+        <span>{t('bestiary.seen')}</span>
+        <b>{seen.size}<small className="faint">/{total}</small></b>
+      </div>
+      <Bar value={seen.size} max={total} color="var(--accent)" thin />
+      {ns && <small className="muted">{t('bestiary.nextTier', { n: ns.n })} · <span className="gold-text">{money(ns.gold)}</span></small>}
+      <div className="dash-bst-row">
+        <UiIcon name="bestiary-owned" />
+        <span>{t('bestiary.owned')}</span>
+        <b>{owned.size}<small className="faint">/{total}</small></b>
+      </div>
+      <Bar value={owned.size} max={total} color="var(--gold)" thin />
+      {no && <small className="muted">{t('bestiary.nextTier', { n: no.n })} · <span className="gold-text">{money(no.gold)}</span></small>}
+      {latest.length > 0 && (
+        <div className="dash-bst-latest" title={t('bestiary.latest')}>
+          {latest.map((id) => (
+            <SpeciesIcon key={id} id={id} size="1.5em" />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function DashboardScreen() {
   const game = useGame((s) => s.game)!;
   return (
@@ -371,6 +418,7 @@ export function DashboardScreen() {
         <Results game={game} />
         <Messages game={game} />
         <News game={game} />
+        <Bestiary game={game} />
       </div>
     </div>
   );

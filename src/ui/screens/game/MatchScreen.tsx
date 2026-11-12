@@ -1,14 +1,12 @@
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { divisionOf } from '../../../engine/league/divisions.ts';
 import { compDef, compName, divName, roundKey } from '../../competitions.ts';
 import { CompIcon, DivIcon } from '../../icons/Icon.tsx';
 import { isInjured } from '../../../engine/creature/derived.ts';
-import { aiPrepare, lastMatchday, playerPrepare, playerTeam, standings, teamById } from '../../../engine/league/season.ts';
+import { aiPrepare, lastMatchday, playerPrepare, playerTeam, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Team } from '../../../engine/model.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
-import { managerName } from '../../../engine/team/identity.ts';
 import { Bar, Crest } from '../../components/common.tsx';
 import { issueText } from '../../components/TeamEditor.tsx';
 import { fatigueColor } from '../../format.ts';
@@ -16,7 +14,9 @@ import { useT } from '../../i18n/index.ts';
 import { useGame, type MatchFlow } from '../../store/gameStore.ts';
 import { LiveMatch } from '../arena/LiveMatch.tsx';
 import { ReportView } from '../arena/ReportView.tsx';
-import { RoleLabel } from '../../icons/Icon.tsx';
+import { RoleLabel, UiIcon } from '../../icons/Icon.tsx';
+import { Versus } from './Versus.tsx';
+import { arenaActive, arenaFor } from '../../../engine/league/arena.ts';
 
 function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
   const { t } = useT();
@@ -70,8 +70,6 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
   const mine = playerTeam(game);
   const home = f.home === game.playerTeamId;
   const opp = aiPrepare(teamById(game, home ? f.away : f.home), undefined, game.difficulty ?? 'normal', playerPrepare(mine));
-  const oppTable = standings(game, divisionOf(game, opp.id));
-  const posOf = (id: string) => oppTable.findIndex((r) => r.teamId === id) + 1;
   const title =
     f.competition
       ? t('match.cup', { comp: compName(t, f.tournamentId), round: t(roundKey(f.round ?? 0, f.tournamentId ? (game.tournaments.find((x) => x.id === f.tournamentId)?.rounds ?? 1) : game.cup.rounds)) })
@@ -80,66 +78,58 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
 
   return (
     <div className="stack">
-      <section className="panel">
-        <div className="matchbar">
-          <div>
-            <h4>
-              <span className={`comp-badge big def-${f.competition ? compDef(f.tournamentId) : 'league'}`}>
-                {f.competition ? <CompIcon def={compDef(f.tournamentId)} /> : <DivIcon d={f.division ?? 0} />} {title}
-              </span>
-            </h4>
-            <h2>
-              <span className="home-text">{mine.name}</span> <span className="muted">{t('common.vs')}</span> <span className="away-text">{opp.name}</span>
-            </h2>
-            <div className="muted" style={{ fontSize: '0.857rem' }}>
-              {home ? t('common.home') : t('common.away')} · {divName(t, divisionOf(game, opp.id))} · {t('match.position', { pos: tr.ordinal(posOf(opp.id)), pts: oppTable[posOf(opp.id) - 1]?.points ?? 0 })}
-              {opp.identity && DEFAULT_CONFIG.identity.difficulties[game.difficulty ?? 'normal'].identities && (
-                <span title={t(`manager.${opp.identity.manager}.desc`)}> · {t('match.manager', { name: managerName(opp), m: t(`manager.${opp.identity.manager}`) })}</span>
-              )}
-            </div>
-          </div>
-          <span className="spacer" />
-          <label className="row" style={{ fontSize: '0.929rem' }}>
-            <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
-            {t('match.manageBreaks')}
-          </label>
+      <Versus
+        game={game}
+        mine={mine}
+        opp={opp}
+        home={home}
+        arena={arenaFor(game, f)}
+        showArena={arenaActive(game, f.matchday)}
+        title={
+          <span className={`comp-badge big def-${f.competition ? compDef(f.tournamentId) : 'league'}`}>
+            {f.competition ? <CompIcon def={compDef(f.tournamentId)} /> : <DivIcon d={f.division ?? 0} />} {title}
+          </span>
+        }
+      />
+      {issues.length > 0 && (
+        <div className="remark bad">
+          <span className="ico">!</span>
+          <span className="grow">
+            {t('match.problems')} {issues.map((i) => issueText(tr, mine, i)).join(' ')}
+          </span>
+          <button className="btn small" onClick={repair}>
+            {t('match.fix')}
+          </button>
         </div>
-        {issues.length > 0 && (
-          <div className="remark bad" style={{ marginTop: 10 }}>
-            <span className="ico">!</span>
-            <span className="grow">
-              {t('match.problems')} {issues.map((i) => issueText(tr, mine, i)).join(' ')}
-            </span>
-            <button className="btn small" onClick={repair}>
-              {t('match.fix')}
-            </button>
-          </div>
-        )}
-      </section>
-      <div className="two-cols">
-        <LineupCard team={mine} title={t('match.lineup')} side={0} />
-        <LineupCard team={opp} title={t('match.opponent')} side={1} />
-      </div>
+      )}
       <section className="match-cta" data-tip="prematch">
         <button className="cta-tactics" onClick={() => setScreen('tactics')}>
-          <span className="cta-tactics-icon">✎</span>
+          <span className="cta-tactics-icon"><UiIcon name="nav-tactics" size="1.2em" /></span>
           <span className="cta-text">
             <b>{t('match.editTactics')}</b>
             <small>{t('match.editTacticsSub')}</small>
           </span>
         </button>
         <button className="cta-live" disabled={issues.length > 0} onClick={playLive}>
-          <span className="cta-icon">⚔</span>
+          <span className="cta-icon"><UiIcon name="versus" size="1.3em" /></span>
           <span className="cta-text">
             <b>{t('match.playLive').replace(' ⚔', '')}</b>
             <small>{t('match.liveSub')}</small>
           </span>
         </button>
         <button className="cta-sim" disabled={issues.length > 0} onClick={simulate}>
-          <b>⏩ {t('match.simulate')}</b>
+          <b><UiIcon name="simulate" /> {t('match.simulate')}</b>
           <small>{t('match.simulateSub')}</small>
         </button>
       </section>
+      <label className="row manage-breaks">
+        <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
+        {t('match.manageBreaks')}
+      </label>
+      <div className="two-cols">
+        <LineupCard team={mine} title={t('match.lineup')} side={0} />
+        <LineupCard team={opp} title={t('match.opponent')} side={1} />
+      </div>
     </div>
   );
 }
