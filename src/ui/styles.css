@@ -2807,7 +2807,10 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 /* Compact cards so both lines and the bench fit in view. */
 .fighter { padding: 4px 6px; gap: 6px; }
 .fighter .top { font-size: 0.893rem; }
-.fighter .bars { grid-template-columns: minmax(0, 1fr) auto minmax(0, 0.5fr) auto; gap: 0 6px; margin-top: 1px; }
+.fighter .bars { grid-template-columns: auto auto minmax(0, 1fr); gap: 0 6px; margin-top: 1px; }
+/* Health bar with the stamina just under it, small. */
+.fighter .bars .vital { display: grid; gap: 2px; min-width: 0; }
+.fighter .bars .vital .bar.thin { height: 3px; opacity: 0.9; }
 .fighter .bars > span { font-size: 0.714rem; white-space: nowrap; }
 .fighter .skills { margin-top: 2px; }
 .fighter.line-back { margin-inline-start: 0; }

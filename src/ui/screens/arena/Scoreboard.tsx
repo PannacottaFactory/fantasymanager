@@ -221,15 +221,18 @@ function FighterCard({ c, r, side, fx, acting, lunge, cast, focus, onSelect, ent
           </span>
         </div>
         {c.state !== 'bench' && (
+          // Morale and health first, the health bar last: on the side facing the commentary (mirrored for the opponent).
           <div className="bars">
-            <Bar value={c.hp} max={c.maxHp} color={hpColor(c.hp / c.maxHp)} title={t('bar.health', { v: c.hp, max: c.maxHp })} ghost />
-            <span className="mono">
-              {c.hp}/{c.maxHp}
-            </span>
-            <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" thin ghost title={t('bar.stamina', { v: c.stamina, max: c.maxStamina })} />
             <span title={t('col.morale')} style={{ color: moraleColor(c.morale) }}>
               {t(moraleKey(c.morale))}
             </span>
+            <span className="mono">
+              {c.hp}/{c.maxHp}
+            </span>
+            <div className="vital">
+              <Bar value={c.hp} max={c.maxHp} color={hpColor(c.hp / c.maxHp)} title={t('bar.health', { v: c.hp, max: c.maxHp })} ghost />
+              <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" thin ghost title={t('bar.stamina', { v: c.stamina, max: c.maxStamina })} />
+            </div>
           </div>
         )}
         {c.state === 'active' && <SkillRow c={c} r={r} cast={cast} />}
