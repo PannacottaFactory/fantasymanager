@@ -80,6 +80,7 @@ export function BreakPanel({ combat, onResume }: Props) {
     <Modal
       title={t('break.title', { n: combat.round })}
       onClose={resume}
+      locked
       wide
       actions={
         <>

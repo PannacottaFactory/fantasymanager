@@ -134,23 +134,28 @@ export function TraitChip({ id }: { id: string }) {
   );
 }
 
-export function Modal({ title, onClose, children, actions, wide, className }: { title: ReactNode; onClose: () => void; children: ReactNode; actions?: ReactNode; wide?: boolean; className?: string }) {
+/** `locked`: only the dialog's own buttons close it (no click outside, no Escape, no ✕) — for windows whose closing
+ *  is an action, like the break panel. */
+export function Modal({ title, onClose, children, actions, wide, className, locked }: { title: ReactNode; onClose: () => void; children: ReactNode; actions?: ReactNode; wide?: boolean; className?: string; locked?: boolean }) {
   const { t } = useT();
   useEffect(() => {
+    if (locked) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [onClose, locked]);
   return (
-    <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="overlay" onMouseDown={(e) => !locked && e.target === e.currentTarget && onClose()}>
       <div className={`dialog ${wide ? 'wide' : ''} ${className ?? ''}`} role="dialog" aria-modal="true">
         <div className="dialog-head">
           <h2>{title}</h2>
           <span className="spacer" />
           {actions}
-          <button className="btn small ghost" onClick={onClose} aria-label={t('common.close')}>
-            ✕
-          </button>
+          {!locked && (
+            <button className="btn small ghost" onClick={onClose} aria-label={t('common.close')}>
+              ✕
+            </button>
+          )}
         </div>
         {children}
       </div>
