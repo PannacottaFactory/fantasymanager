@@ -296,6 +296,14 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
     case 'arenaIntro':
       return { title: t('msg.arenaIntro.title'), body: t('msg.arenaIntro.body'), tone: 'info' };
     case 'medal':
+      if (m.more?.length) {
+        const names = [m.name, ...m.more.map((x) => x.name)];
+        return {
+          title: t('msg.medal.titleMany', { n: names.length, medal: medalName(tr, m.family, m.tier) }),
+          body: t('msg.medal.bodyMany', { names: names.join(', '), desc: medalDesc(tr, m.family, DEFAULT_CONFIG.collection.medals[m.family][m.tier - 1] ?? 0) }),
+          tone: 'good',
+        };
+      }
       return {
         title: t('msg.medal.title', { name: m.name, medal: medalName(tr, m.family, m.tier) }),
         body: t('msg.medal.body', { name: m.name, desc: medalDesc(tr, m.family, DEFAULT_CONFIG.collection.medals[m.family][m.tier - 1] ?? 0) }),
@@ -355,6 +363,18 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
           <span className="faint">{t('offer.closed')}</span>
         )}
         {error && <div className="answer bad">{error}</div>}
+      </div>
+    );
+  }
+  if (m.kind === 'medal' && m.more?.length) {
+    const who = [{ creatureId: m.creatureId, name: m.name }, ...m.more].filter((x) => locate(game, x.creatureId));
+    return (
+      <div className="row wrap" style={{ gap: 6 }}>
+        {who.map((x) => (
+          <button key={x.creatureId} className="btn small ghost" onClick={() => openSheet(x.creatureId)}>
+            {x.name}
+          </button>
+        ))}
       </div>
     );
   }
@@ -598,6 +618,17 @@ export function InboxScreen() {
         <div className="jr-heading">
           <h2>{t('inbox.title')}</h2>
           <span className={totalUnread > 0 ? 'jr-sub on' : 'jr-sub'}>{totalUnread > 0 ? t('inbox.unread', { n: totalUnread }) : t('inbox.allRead')}</span>
+          {totalUnread > 0 && (
+            <button
+              className="btn small ghost jr-readall"
+              onClick={() => {
+                markAllRead();
+                setFresh(new Set());
+              }}
+            >
+              {t('inbox.markAllRead')}
+            </button>
+          )}
         </div>
         <div className="jr-folder-list">
           {folder(null)}

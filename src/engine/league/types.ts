@@ -107,7 +107,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
   | { kind: 'relation'; a: string; b: string; bond: 'friends' | 'rivals' }
   | { kind: 'ambition'; ambition: AmbitionId }
-  | { kind: 'medal'; creatureId: string; name: string; family: MedalFamily; tier: number }
+  | { kind: 'medal'; creatureId: string; name: string; family: MedalFamily; tier: number; /** Other creatures that won the same medal that week. */ more?: { creatureId: string; name: string }[] }
   | { kind: 'bestiary'; seen: string[]; owned: string[]; rewards: BestiaryReward[] }
   | { kind: 'arenaIntro' }
 );

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { newGame, playMatchday, seasonOver } from '../src/engine/league/season.ts';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
-import { emptyRecord, medalsOf, ownedSpecies, seenSpecies, updateBestiary } from '../src/engine/team/record.ts';
+import { awardTrophy, emptyRecord, medalsOf, ownedSpecies, seenSpecies, updateBestiary } from '../src/engine/team/record.ts';
 
 describe('creature records & bestiary', () => {
   it('a season fills records, medals, trophies and the bestiary without changing results', () => {
@@ -31,6 +31,18 @@ describe('creature records & bestiary', () => {
     let h = newGame({ seed: 'record-world', teamName: 'Me', lang: 'en' });
     while (!seasonOver(h)) h = playMatchday(h);
     expect(h.fixtures.map((f) => f.result?.score)).toEqual(g.fixtures.map((f) => f.result?.score));
+  });
+
+  it('the same medal won by several creatures the same week is one message', () => {
+    const g = newGame({ seed: 'medals-together', teamName: 'Me', lang: 'en' });
+    const squad = g.teams.find((t) => t.id === g.playerTeamId)!.creatures;
+    const before = g.inbox.length;
+    awardTrophy(g, g.playerTeamId, { def: 'preseason' });
+    const medals = g.inbox.slice(before).filter((m) => m.kind === 'medal');
+    expect(medals).toHaveLength(1);
+    const m = medals[0]!;
+    if (m.kind !== 'medal') throw new Error('not a medal');
+    expect(new Set([m.creatureId, ...(m.more ?? []).map((x) => x.creatureId)]).size).toBe(squad.length);
   });
 
   it('medal tiers follow the thresholds', () => {

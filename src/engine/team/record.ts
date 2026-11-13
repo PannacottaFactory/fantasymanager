@@ -8,7 +8,7 @@ import { SPECIES } from '../../data/species.ts';
 import type { MatchResult, Side } from '../combat/types.ts';
 import { earn } from '../economy/finance.ts';
 import type { Bestiary, BestiaryReward, GameState } from '../league/types.ts';
-import { pushMessage } from '../league/messages.ts';
+import { currentWeek, pushMessage } from '../league/messages.ts';
 import type { Creature, CreatureRecord, Team } from '../model.ts';
 import type { CreatureMatchStats } from '../report/report.ts';
 
@@ -65,6 +65,23 @@ export function recordMatch(c: Creature, st: CreatureMatchStats, p: { starter: b
   return newMedals(before, medalsOf(r, cfg));
 }
 
+/**
+ * A medal for one of the player's creatures: joins this week's message for the same medal when there is one
+ * (« three creatures reach … ») instead of a message each.
+ */
+function pushMedal(state: GameState, c: Creature, family: MedalFamily, tier: number) {
+  const week = currentWeek(state);
+  for (let i = state.inbox.length - 1; i >= 0; i--) {
+    const m = state.inbox[i]!;
+    if (m.season !== state.season || m.matchday !== week) break;
+    if (m.kind === 'medal' && m.family === family && m.tier === tier && !m.read) {
+      if (m.creatureId !== c.id && !m.more?.some((x) => x.creatureId === c.id)) (m.more ??= []).push({ creatureId: c.id, name: c.name });
+      return;
+    }
+  }
+  pushMessage(state, { kind: 'medal', creatureId: c.id, name: c.name, family, tier });
+}
+
 /** Records one match for a side's creatures (mutates). For the player's team, new medals become inbox messages. */
 export function recordSide(state: GameState, team: Team, result: MatchResult, side: Side, stats: CreatureMatchStats[], mvp: string | null, cfg: GameConfig = DEFAULT_CONFIG) {
   const won = result.outcome.winner === side;
@@ -73,7 +90,7 @@ export function recordSide(state: GameState, team: Team, result: MatchResult, si
     const c = team.creatures.find((x) => x.id === st.id);
     if (!c) continue;
     const medals = recordMatch(c, st, { starter: !!result.roster[c.id]?.starter, won, mvp: mvp === c.id, season: state.season }, cfg);
-    if (team.id === state.playerTeamId) for (const [family, tier] of medals) pushMessage(state, { kind: 'medal', creatureId: c.id, name: c.name, family, tier });
+    if (team.id === state.playerTeamId) for (const [family, tier] of medals) pushMedal(state, c, family, tier);
   }
 }
 
@@ -86,7 +103,7 @@ export function awardTrophy(state: GameState, teamId: string, trophy: { def: str
     const before = medalsOf(r, cfg);
     r.trophies.push({ season: state.season, ...trophy });
     if (teamId !== state.playerTeamId) continue;
-    for (const [family, tier] of newMedals(before, medalsOf(r, cfg))) pushMessage(state, { kind: 'medal', creatureId: c.id, name: c.name, family, tier });
+    for (const [family, tier] of newMedals(before, medalsOf(r, cfg))) pushMedal(state, c, family, tier);
   }
 }
 

@@ -2620,6 +2620,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .jr-heading h2 { font-size: 1.3rem; margin: 0; }
 .jr-sub { font-size: 0.786rem; color: var(--faint); }
 .jr-sub.on { color: var(--accent); font-weight: 600; }
+.jr-readall { display: block; margin-top: 6px; }
 .jr-folder-list { display: flex; flex-direction: column; gap: 2px; }
 .jr-folder { --cat: var(--accent); display: flex; align-items: center; gap: 9px; width: 100%; padding: 7px 8px; border: 0; border-radius: 8px;
   background: none; color: var(--muted); font: inherit; font-size: 0.929rem; text-align: left; cursor: pointer; transition: background 0.15s, color 0.15s; }
