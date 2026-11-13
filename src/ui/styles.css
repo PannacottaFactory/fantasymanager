@@ -1618,6 +1618,8 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .start-links { margin: 0; font-size: 0.857rem; }
 .crest-editor { gap: 12px; }
 .crest-emblems { grid-template-columns: repeat(auto-fill, minmax(28px, 1fr)); gap: 3px; }
+/* Many emblems: three rows in view, the rest scrolls. */
+.crest-emblems { max-height: 98px; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; }
 .crest-emblem { height: 28px; }
 .crest-emblem svg { width: 18px; height: 18px; }
 .swatch-btn { width: 18px; height: 18px; }

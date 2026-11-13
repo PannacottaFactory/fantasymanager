@@ -18,6 +18,14 @@ export const CREST_EMBLEMS = [
   'snake', 'raven', 'fox-head', 'horse-head', 'unicorn', 'owl', 'scorpion', 'hydra',
   'skull-crossed-bones', 'crossed-swords', 'battle-axe', 'spartan-helmet', 'crown', 'fleur-de-lys', 'tower-flag', 'castle',
   'sun', 'evil-moon', 'flame', 'lightning-helix', 'snowflake-1', 'oak', 'rose', 'trident',
+  'bull-horns', 'ram', 'goat', 'rabbit', 'spider-alt', 'bee', 'butterfly', 'beetle-shell',
+  'crab', 'octopus', 'whale-tail', 'shark-jaws', 'tortoise', 'frog', 'swan', 'rooster',
+  'cat', 'hound', 'elephant-head', 'pegasus', 'sea-dragon', 'wyvern', 'tiger-head', 'mermaid',
+  'centaur', 'minotaur', 'harpy', 'stag-head', 'anchor', 'key', 'hourglass', 'anvil',
+  'war-axe', 'bow-arrow', 'mailed-fist', 'horseshoe', 'harp', 'chalice-drops', 'scroll-unfurled', 'lantern-flame',
+  'all-seeing-eye', 'pentacle', 'ankh', 'pine-tree', 'mushroom', 'wheat', 'lotus', 'tornado',
+  'wave-crest', 'volcano', 'crystal-growth', 'crowned-skull', 'death-skull', 'claw-slashes', 'fangs', 'dragon-spiral',
+  'winged-sword', 'heart-wings', 'visored-helm', 'spider-web', 'cauldron', 'castle-ruins', 'comet-spark', 'skull-staff',
 ] as const;
 
 /** Heraldic tinctures, then a few more. */

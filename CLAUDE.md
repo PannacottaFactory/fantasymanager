@@ -358,7 +358,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   The ribbon is a row of week tiles (number inside; green win / red defeat, « KO » corner; next match filled in the accent
   colour; cup / tournament matches = diamonds in their colour on top), the W–L record on the left, the next match in words
   on the right (hidden below 1100 px).
-- **Crests** (`data/crest.ts`, `engine/team/crest.ts`, `ui/components/TeamCrest.tsx`): `Team.crest` = emblem (32 game-icons,
+- **Crests** (`data/crest.ts`, `engine/team/crest.ts`, `ui/components/TeamCrest.tsx`): `Team.crest` = emblem (96 game-icons, the picker scrolls;
   `CREST_ICONS`) + two field colours + pattern (plain, pale, fess, bend, quarterly, chevron) + emblem colour; chosen in
   the new-game screen (`CrestEditor`, `NewGameOptions.crest`), AI stables get `defaultCrest(id)`. Shown in the top bar,
   home hero, league tables, pre-match, calendar, continue card.
