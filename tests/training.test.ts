@@ -25,8 +25,14 @@ function youngster(g: GameState): Creature {
   return c;
 }
 
+/** A week in which every creature of the player played a decent match (XP comes from matches only). */
+function week(g: GameState) {
+  for (const c of playerTeam(g).creatures) (c.growth ??= { ability: 0, pool: 0, season: 0 }).matchXp = 10;
+  weeklyTraining(g, new Set());
+}
+
 function train(g: GameState, weeks: number) {
-  for (let i = 0; i < weeks; i++) weeklyTraining(g, new Set());
+  for (let i = 0; i < weeks; i++) week(g);
 }
 
 describe('training', () => {
@@ -60,7 +66,7 @@ describe('training', () => {
       const lv = levelOf(c);
       const before = sum();
       const expected = nextLevelPoints(c)!;
-      weeklyTraining(g, new Set());
+      week(g);
       if (levelOf(c) === lv) expect(sum()).toBe(before);
       else {
         ups++;
@@ -77,16 +83,27 @@ describe('training', () => {
     expect(nextLevelPoints(c)).toBeNull();
   });
 
-  it('rest gives no growth but recovers fatigue', () => {
+  it('XP comes from matches only: a week without a match brings nothing', () => {
     const g = game();
     const c = youngster(g);
-    Object.assign(g, setPlan(g, [c.id], { program: 'rest' }));
+    const a = c.ability + (c.growth?.ability ?? 0);
+    weeklyTraining(g, new Set());
+    const after = playerTeam(g).creatures.find((x) => x.id === c.id)!;
+    expect(after.ability + (after.growth?.ability ?? 0)).toBe(a);
+  });
+
+  it('training touches neither fatigue nor morale; an old « rest » plan follows the role', () => {
+    const g = game();
+    const c = youngster(g);
+    Object.assign(g, setPlan(g, [c.id], { program: 'rest' as never }));
     const me = () => playerTeam(g).creatures.find((x) => x.id === c.id)!;
     me().condition.fatigue = 60;
+    me().condition.morale = 55;
     const ability = me().ability;
     train(g, 2);
-    expect(me().ability).toBe(ability);
-    expect(me().condition.fatigue).toBeLessThan(60);
+    expect(me().ability).toBeGreaterThan(ability);
+    expect(me().condition.fatigue).toBe(60);
+    expect(me().condition.morale).toBe(55);
   });
 
   it('is deterministic over a few weeks of a season', () => {
@@ -205,15 +222,19 @@ describe('levels and experience', () => {
 
   it('level-ups give the player points to place, which raise an attribute', async () => {
     const { newGame, playMatchday, playerTeam } = await import('../src/engine/league/season.ts');
-    const { spendFreePoint } = await import('../src/engine/progression/training.ts');
+    const { spendFreePoint, programFocus } = await import('../src/engine/progression/training.ts');
     let g = newGame({ seed: 'levels', teamName: 'Me', lang: 'en' });
     for (let i = 0; i < 18 && !g.inbox.some((m) => m.kind === 'levelUp'); i++) g = playMatchday(g);
     const up = g.inbox.find((m) => m.kind === 'levelUp');
     expect(up).toBeDefined();
     if (!up || up.kind !== 'levelUp') return;
     const c = playerTeam(g).creatures.find((x) => x.id === up.creatureId)!;
-    expect(c.growth!.freePoints).toBeGreaterThan(0);
-    const key = (Object.keys(c.attributes) as (keyof typeof c.attributes)[]).find((k) => c.attributes[k] < 15)!;
+    expect(c.growth!.freePoints).toBeGreaterThanOrEqual(2);
+    // Points go to the attributes of the creature's program only.
+    const focus = programFocus(g, c);
+    const outside = (Object.keys(c.attributes) as (keyof typeof c.attributes)[]).find((k) => !focus.includes(k));
+    if (outside) expect(spendFreePoint(g, c.id, outside)).toBe(g);
+    const key = focus.find((k) => c.attributes[k] < 15)!;
     const next = spendFreePoint(g, c.id, key);
     const after = playerTeam(next).creatures.find((x) => x.id === c.id)!;
     expect(after.attributes[key]).toBe(c.attributes[key] + 1);

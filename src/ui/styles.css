@@ -2947,3 +2947,107 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .slot-actions .btn.primary { padding-top: 5px; padding-bottom: 5px; }
 .slots { margin-bottom: 6px; }
 .slots { margin-bottom: 18px; }
+
+/* ——— Training sessions: tokens, a glowing call to action, two roulettes (squad cards, then attribute slots) ——— */
+.gold-tag { background: color-mix(in srgb, var(--gold) 22%, transparent); border-color: color-mix(in srgb, var(--gold) 60%, transparent); color: var(--gold); }
+.session { position: relative; overflow: hidden; }
+.session::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.4s;
+  background: radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 60%); }
+.session.ready::before { opacity: 1; }
+.sess-head { position: relative; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.sess-emblem { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex: none; border-radius: 50%; color: #1a1408;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gold) 60%, #fff), var(--gold) 55%, color-mix(in srgb, var(--gold) 70%, #000));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent), 0 6px 16px rgb(0 0 0 / 0.35); }
+.sess-titles { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.sess-titles h2 { margin: 0; }
+.sess-titles .muted { font-size: 0.857rem; }
+.sess-tokens { display: inline-flex; align-items: center; gap: 5px; flex: none; }
+.sess-tokens i { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border));
+  background: var(--panel-2); transition: background 0.3s, box-shadow 0.3s; }
+.sess-tokens i.on { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gold) 55%, #fff), var(--gold)); border-color: var(--gold);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--gold) 55%, transparent); }
+.sess-tokens b { margin-left: 4px; font-size: 0.857rem; color: var(--gold); font-variant-numeric: tabular-nums; }
+.session-stage { position: relative; display: grid; gap: 14px; justify-items: center; padding: 18px 14px; border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel-2) 85%, #000), var(--panel-2)); border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), inset 0 -20px 40px rgb(0 0 0 / 0.18); }
+.session.ready .session-stage { border-color: color-mix(in srgb, var(--gold) 40%, var(--border)); }
+.sess-coach { font-size: 0.786rem; }
+/* The call to action: gold, with a light sweeping across. */
+.session-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px; border-radius: 999px; cursor: pointer;
+  font: 700 1.071rem var(--font-title); letter-spacing: 0.03em; color: #1a1408; border: 1px solid color-mix(in srgb, var(--gold) 80%, #fff);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 70%, #fff), var(--gold) 55%, color-mix(in srgb, var(--gold) 75%, #000));
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--gold) 30%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.5); transition: transform 0.15s, box-shadow 0.15s; }
+.session-go::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent); animation: sess-sweep 2.8s ease-in-out infinite; }
+@keyframes sess-sweep { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+.session-go:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 28px color-mix(in srgb, var(--gold) 40%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.5); }
+.session-go:active:not(:disabled) { transform: scale(0.98); }
+.session-go:disabled { cursor: default; color: var(--muted); background: var(--panel); border-color: var(--border); box-shadow: none; font-family: inherit; font-weight: 600; }
+.session-go:disabled::after { display: none; }
+/* Roulette 1: the squad as small cards; the drawn one stays lit, the others fade. */
+.reel-show { display: grid; gap: 14px; justify-items: center; width: 100%; }
+.reel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 6px; width: 100%; max-width: 860px; }
+.reel-card { display: flex; align-items: center; gap: 7px; padding: 6px 9px; border-radius: 10px; min-width: 0;
+  background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--border); color: var(--muted); font-weight: 600; font-size: 0.857rem;
+  transition: transform 0.08s, background 0.08s, border-color 0.08s, opacity 0.4s, filter 0.4s; }
+.reel-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reel-card.lit { color: var(--text); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 22%, var(--panel)); transform: scale(1.05);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--gold) 40%, transparent); }
+.reel-grid.settled .reel-card:not(.win) { opacity: 0.3; filter: grayscale(0.8); transform: scale(0.96); }
+.reel-card.win { color: #1a1408; border-color: var(--gold); transform: scale(1.08); z-index: 1;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 70%, #fff), var(--gold)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent), 0 0 26px color-mix(in srgb, var(--gold) 60%, transparent);
+  animation: reel-win 0.5s ease both; }
+@keyframes reel-win { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1.08); } }
+/* Roulette 2: the program's attributes as slots with their value; the winner pops a « +1 ». */
+.reel-slot { display: grid; gap: 8px; justify-items: center; width: 100%; max-width: 860px; animation: grow-pop 0.35s ease both; }
+.reel-cat { display: flex; align-items: center; gap: 7px; font-weight: 700; }
+.reel-odds { font-weight: 600; font-size: 0.786rem; padding: 1px 8px; border-radius: 999px; color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, transparent); border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); }
+.reel-attrs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.reel-attr { position: relative; display: inline-flex; align-items: baseline; gap: 7px; padding: 6px 12px; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--border); color: var(--muted); font-size: 0.857rem; font-weight: 600;
+  transition: transform 0.08s, background 0.08s, border-color 0.08s; }
+.ra-val { font-size: 1rem; color: var(--text); font-variant-numeric: tabular-nums; }
+.reel-attr.lit { border-color: var(--gold); color: var(--text); background: color-mix(in srgb, var(--gold) 20%, var(--panel)); transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 40%, transparent); }
+.reel-attr.win { border-color: var(--good); color: var(--text); background: color-mix(in srgb, var(--good) 22%, var(--panel)); transform: scale(1.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent), 0 0 24px color-mix(in srgb, var(--good) 45%, transparent); animation: reel-win 0.5s ease both; }
+.reel-attr.win .ra-val { color: var(--good); }
+.ra-plus { position: absolute; top: -0.4rem; right: -0.5rem; padding: 1px 6px; border-radius: 999px; font: 800 0.786rem var(--font-title); font-style: normal;
+  background: var(--good); color: #0d1a08; animation: ra-float 1.1s ease-out both; }
+@keyframes ra-float { 0% { opacity: 0; transform: translateY(8px) scale(0.6); } 40% { opacity: 1; transform: translateY(-6px) scale(1.15); } 100% { transform: translateY(-2px) scale(1); } }
+.reel-show.jackpot .ra-plus { background: var(--gold); color: #1a1408; }
+/* The result card. */
+.reel-outcome { min-height: 0.5rem; }
+.sess-result { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 12px; animation: grow-pop 0.4s ease both;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--good) 14%, var(--panel)), var(--panel)); border: 1px solid color-mix(in srgb, var(--good) 45%, var(--border)); }
+.reel-show.jackpot .sess-result { background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 20%, var(--panel)), var(--panel)); border-color: var(--gold); }
+.sr-text { display: grid; line-height: 1.25; }
+.sr-who { font: 700 1.071rem var(--font-title); }
+.sr-gain { color: var(--muted); }
+.sr-gain b { color: var(--text); font-variant-numeric: tabular-nums; }
+.sr-gain .sr-to { color: var(--good); font-size: 1.143rem; }
+.sr-badge { margin-left: 6px; padding: 4px 10px; border-radius: 999px; font: 800 1rem var(--font-title); background: var(--good); color: #0d1a08; }
+.sr-badge.jackpot { background: var(--gold); color: #1a1408; font-size: 0.857rem; }
+.session-log { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
+.session-log-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--panel-2); color: inherit; font: inherit; font-size: 0.857rem; cursor: pointer; }
+.session-log-chip b { color: var(--good); }
+.session-log-chip.jackpot b { color: var(--gold); }
+:root[data-effects='reduced'] .session-go::after, :root[data-effects='reduced'] .reel-card.win, :root[data-effects='reduced'] .reel-attr.win,
+:root[data-effects='reduced'] .ra-plus, :root[data-effects='reduced'] .reel-slot, :root[data-effects='reduced'] .sess-result { animation: none; }
+.dash-session .btn { justify-self: start; align-self: flex-start; }
+/* Staff: what each coach does. */
+.coach-impact { display: grid; gap: 2px; font-size: 0.857rem; padding: 6px 8px; border-radius: 8px; background: color-mix(in srgb, var(--panel) 70%, transparent); }
+.coach-effect { display: grid; gap: 1px; font-size: 0.857rem; line-height: 1.3; }
+
+.next-ability { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+.stage-mark { display: inline-block; font-size: 0.786rem; line-height: 1; cursor: help; }
+.stage-mark.young { color: var(--good); }
+.stage-mark.prime { color: var(--gold); }
+.stage-mark.declining { color: var(--muted); }
+.coach-impact b { font-family: inherit; font-size: 0.929rem; font-weight: 700; letter-spacing: normal; text-transform: none; font-variant: normal; }
+.sr-who.link { justify-self: start; padding: 0; text-align: left; color: var(--text); text-decoration: underline dotted color-mix(in srgb, var(--text) 40%, transparent); text-underline-offset: 3px; }
+.sr-who.link:hover { color: var(--gold); }
+.sr-crest { padding: 0; border: 0; background: none; cursor: pointer; transition: transform 0.15s; }
+.sr-crest:hover { transform: scale(1.08); }

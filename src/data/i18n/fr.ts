@@ -338,6 +338,7 @@ export const FR_EFFECTS: Record<string, { name: string; noun: string; descriptio
   shielded: { name: 'Bouclier', noun: 'le bouclier', description: 'Une barrière absorbe les dégâts reçus.' },
   fortified: { name: 'Fortifié', noun: 'la fortification', description: 'Subit moins de dégâts.' },
   rallied: { name: 'Galvanisé', noun: 'l’élan', description: 'Gonflé à bloc : frappe plus fort et plus juste.' },
+  avenging: { name: 'Vengeur', noun: 'la vengeance', description: 'Un ami est tombé : frappe plus fort pour le venger.' },
   enraged: { name: 'Enragé', noun: 'la rage', description: 'Fureur aveugle : gros dégâts, garde médiocre, ignore les ordres.' },
   evasive: { name: 'Insaisissable', noun: 'l’agilité', description: 'Bondit partout, difficile à atteindre.' },
   regenerating: { name: 'Régénération', noun: 'la régénération', description: 'Récupère des points de vie à chaque round.' },

@@ -8,6 +8,7 @@ import { attrClass, initials } from '../format.ts';
 import { effectsOn, useT } from '../i18n/index.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
 import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.ts';
+import { lifeStage } from '../../engine/progression/training.ts';
 import { potentialLevelRange } from '../../engine/economy/scouting.ts';
 import type { Creature } from '../../engine/model.ts';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
@@ -214,6 +215,22 @@ export function XpTrack({ c }: { c: Creature }) {
         {next && <span className="xp-amount">{t('xp.amount', { xp, per })}</span>}
       </div>
     </div>
+  );
+}
+
+const STAGE_KEY = { young: 'cr.developing', prime: 'cr.prime', declining: 'cr.declining' } as const;
+const STAGE_SYMBOL = { young: '▲', prime: '◆', declining: '▼' } as const;
+
+/** Life stage as one symbol (▲ developing, ◆ prime, ▼ declining); the stage and its XP multiplier on hover. */
+export function StageMark({ c }: { c: Creature }) {
+  const { t, lang } = useT();
+  const st = lifeStage(c);
+  const m = DEFAULT_CONFIG.training.stage[st];
+  const mult = lang === 'fr' ? String(m).replace('.', ',') : String(m);
+  return (
+    <span className={`stage-mark ${st}`} title={`${t(STAGE_KEY[st])} — ${m > 0 ? t('stage.xp', { m: mult }) : t('stage.none')}`}>
+      {STAGE_SYMBOL[st]}
+    </span>
   );
 }
 

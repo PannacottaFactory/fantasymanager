@@ -38,6 +38,8 @@ export interface Combatant {
   roleFactor: number;
   /** The role is one of the species' natural roles. */
   naturalRole: boolean;
+  /** Bonds with stablemates in this match: friend or rival (from the creatures' relations). */
+  bonds: Record<string, 'friend' | 'rival'>;
   /** Hidden ability 1–200 (used by AI "strongest" target and ratings). */
   ability: number;
   injuryProneness: number;
@@ -182,7 +184,7 @@ export type MatchEvent =
   | { type: 'cleanse'; round: number; actor: string; target: string; ability: string; removed: string[] }
   | { type: 'effectTick'; round: number; target: string; effect: string; amount: number; hp: number }
   | { type: 'effectExpired'; round: number; target: string; effect: string }
-  | { type: 'enrage'; round: number; actor: string; reason: 'lowHp' | 'allyKo' }
+  | { type: 'enrage'; round: number; actor: string; reason: 'lowHp' | 'allyKo' | 'friendKo'; friend?: string }
   | { type: 'exhausted'; round: number; actor: string }
   | { type: 'moraleShift'; round: number; side: Side; reason: 'leader'; actor: string }
   | { type: 'ko'; round: number; target: string; by?: string }

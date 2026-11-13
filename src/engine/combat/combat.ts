@@ -151,7 +151,8 @@ export class Combat {
       comboOn: (attacker, target) => {
         const set = this.hitThisRound.get(target.id);
         if (!set) return false;
-        for (const id of set) if (id !== attacker.id && this.byId.get(id)?.side === attacker.side) return true;
+        // A rival's hit never counts as teamwork.
+        for (const id of set) if (id !== attacker.id && this.byId.get(id)?.side === attacker.side && attacker.bonds[id] !== 'rival') return true;
         return false;
       },
       behind: (c) => Math.max(0, this.teamHealth(other(c.side)) - this.teamHealth(c.side)),
@@ -332,6 +333,7 @@ export class Combat {
 
   // ——— Setup ———
 
+
   private addCombatant(
     cr: Creature,
     side: Side,
@@ -365,6 +367,7 @@ export class Combat {
       favorites: [],
       roleFactor: clamp(1 + (roleFit({ ...cr, attributes: attrs }, role) - 10) * rf.perPoint, rf.min, rf.max),
       naturalRole: species.roles.includes(role),
+      bonds: bondsOf(cr.relations ?? {}, this.cfg),
       ability: cr.ability,
       injuryProneness: cr.hidden.injuryProneness,
       preFatigue: cr.condition.fatigue,
@@ -798,7 +801,8 @@ export class Combat {
     }
 
     const combo = this.ai.comboOn(actor, target);
-    let p = hitChance(actor, target, ability, { flank, combo, orders }, cfg);
+    const friendCombo = [...(this.hitThisRound.get(target.id) ?? [])].some((id) => actor.bonds[id] === 'friend');
+    let p = hitChance(actor, target, ability, { flank, combo, orders, friendCombo }, cfg);
     const arenaHit = kind === 'ranged' ? (this.arena?.rangedHit ?? 0) : kind === 'melee' ? (this.arena?.meleeHit ?? 0) : 0;
     if (arenaHit) p = clamp(p + arenaHit, cfg.combat.hit.min, cfg.combat.hit.max);
     const ambush = hasEffectFlag(actor, 'hidden');
@@ -973,6 +977,10 @@ export class Combat {
       if (ally.traits.some((t) => TRAITS[t]?.combat?.enrageOnAllyKo) && !hasEffect(ally, 'enraged')) {
         this.addEffect(ally, 'enraged', cfg.combat.rage.duration, undefined, true);
         this.emit({ type: 'enrage', round: this.round, actor: ally.id, reason: 'allyKo' });
+      } else if (ally.bonds[target.id] === 'friend' && !hasEffect(ally, 'avenging') && !hasEffect(ally, 'enraged')) {
+        // A friend has fallen: the other fights on to avenge it.
+        this.addEffect(ally, 'avenging', cfg.combat.bonds.avengeRounds, undefined, true);
+        this.emit({ type: 'enrage', round: this.round, actor: ally.id, reason: 'friendKo', friend: target.id });
       }
     }
     for (const enemy of this.active(other(target.side))) this.changeMorale(enemy, m.enemyKo);
@@ -1064,4 +1072,15 @@ export function abilityDef(id: string): AbilityDef {
   const a = ABILITIES[id];
   if (!a) throw new Error(`Unknown ability ${id}`);
   return a;
+}
+
+/** Friends and rivals of a creature (its relations past the thresholds of `club.relations`). */
+function bondsOf(relations: Record<string, number>, cfg: GameConfig): Record<string, 'friend' | 'rival'> {
+  const r = cfg.club.relations;
+  const out: Record<string, 'friend' | 'rival'> = {};
+  for (const [id, v] of Object.entries(relations)) {
+    if (v >= r.friend) out[id] = 'friend';
+    else if (v <= r.rival) out[id] = 'rival';
+  }
+  return out;
 }

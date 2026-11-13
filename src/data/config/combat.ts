@@ -193,6 +193,12 @@ export const COMBAT_CONFIG = {
     elementAwareness: 1,
   },
   rage: { duration: 3 },
+  /**
+   * Bonds between two creatures of a stable (relations, see club.relations: friends ≥ friend, rivals ≤ rival): a friend
+   * knocked out makes the other « avenging » (effect, `avengeRounds`); a friend who already hit the target this round
+   * adds `friendCombo` to the chance to hit; a rival's hit never counts as teamwork.
+   */
+  bonds: { avengeRounds: 4, friendCombo: 0.04 },
   injury: {
     /** Chance of injury when knocked out (before modifiers). */
     onKo: 0.09,
@@ -203,8 +209,8 @@ export const COMBAT_CONFIG = {
   },
   postMatch: {
     /** Fatigue (0–100) gained = (1 − staminaFraction) × this + base. */
-    fatigueBase: 10,
-    fatigueFromStamina: 50,
+    fatigueBase: 12,
+    fatigueFromStamina: 52,
   },
 };
 

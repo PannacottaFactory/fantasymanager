@@ -19,6 +19,7 @@ import { arenaFor } from './arena.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
 import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
 import { alignPotential, levelOf, matchXp } from '../progression/levels.ts';
+import { afterMatchSessions } from '../progression/sessions.ts';
 import { INJURIES } from '../../data/injuries.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
@@ -377,6 +378,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
       const injuryFactor = injuryWeeksFactor(next, teamId, cfg);
       const fx = applyMatchEffects(team, result, side, injuryFactor, cfg);
       recordSide(next, team, result, side, fx.report.creatures, fx.report.mvp, cfg);
+      afterMatchSessions(next, team, fixture.id, cfg);
       for (const inj of fx.injuries) {
         const c = team.creatures.find((x) => x.id === inj.creatureId)!;
         if (inj.weeks >= cfg.club.news.starInjuryWeeks && isStar(next, c.id)) addNews(next, { kind: 'starInjury', name: c.name, team: team.name, weeks: inj.weeks }, cfg);

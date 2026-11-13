@@ -44,6 +44,8 @@ interface Props {
   deltas?: Partial<Record<AttributeKey, number>>;
   /** Own creatures with free points: places one on an attribute (undefined = not allowed). */
   onSpendPoint?: (k: AttributeKey) => void;
+  /** Attributes the free points can go to (the creature's training program); the « + » shows only on those. */
+  pointKeys?: AttributeKey[];
   /** 0–100: below 100, attributes are shown as estimated ranges and private details are hidden. */
   knowledge?: number;
   /** Own creatures: gives it a new name. */
@@ -60,7 +62,7 @@ function StatTile({ label, value, title, big }: { label: string; value: ReactNod
   );
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, onRename }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, pointKeys, onRename }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
@@ -151,7 +153,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                       {/* A slot on every row while points are left, so the values stay aligned. */}
                       {freePoints > 0 && (
                         <span className="plus-slot">
-                          {creature.attributes[k] < attributeCeiling(creature, k) && (
+                          {creature.attributes[k] < attributeCeiling(creature, k) && (!pointKeys || pointKeys.includes(k)) && (
                             <button
                               className="plus-btn"
                               title={t('lvl.raise', { attr: attributeText(k, lang).name })}

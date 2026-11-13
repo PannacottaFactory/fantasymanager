@@ -62,7 +62,7 @@ export interface Mark {
 const EFFECT_MARK: Record<string, MarkKind> = {
   burning: 'burn', poisoned: 'poison', bleeding: 'bleed', stunned: 'stun', slowed: 'slow', weakened: 'weaken',
   terrified: 'fear', exposed: 'expose', shielded: 'shield', fortified: 'stone', stoneform: 'stone', rallied: 'rally',
-  enraged: 'rage', bloodlust: 'rage', frenzied: 'rage', evasive: 'evasive', incorporeal: 'evasive', chilled: 'chill',
+  enraged: 'rage', avenging: 'rage', bloodlust: 'rage', frenzied: 'rage', evasive: 'evasive', incorporeal: 'evasive', chilled: 'chill',
   frozen: 'freeze', hexed: 'curse', frailty: 'curse', blighted: 'curse', jinxed: 'curse', regenerating: 'regen',
   trollblood: 'regen', regrowth: 'regen', sapped: 'sapped', thorned: 'thornsUp', thornhide: 'thornsUp',
   'rune-ward': 'shield', silenced: 'silence', provoking: 'taunt', camouflaged: 'camo', corroded: 'corrode',

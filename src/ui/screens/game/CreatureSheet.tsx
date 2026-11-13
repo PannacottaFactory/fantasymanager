@@ -18,8 +18,8 @@ import { Knowledge, Gold, Money } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
-import { planOf, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
-import { IntensitySelect, ProgramSelect } from './TrainingScreen.tsx';
+import { programCategory, programFocus, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
+import { ProgramSelect } from './TrainingScreen.tsx';
 import { CreatureRecordPanel } from '../../components/CreatureRecord.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
 
@@ -231,14 +231,13 @@ function RelationsRow({ team, creature }: { team: Team; creature: Creature }) {
 /** Training plan of an own creature, on one line (the ▲ next to the attributes show what it brought). */
 function TrainingRow({ game, creature }: { game: GameState; creature: Creature }) {
   const { t } = useT();
-  const plan = planOf(game, creature.id);
+  const program = programCategory(game, creature);
   const update = useGame.getState().update;
   const gain = creature.growth?.season ?? 0;
   return (
     <div className="row wrap training-row">
       <b>{t('cr.training')}</b>
-      <ProgramSelect value={plan.program} onChange={(program) => update((g) => setPlan(g, [creature.id], { program }))} />
-      <IntensitySelect value={plan.intensity} onChange={(intensity) => update((g) => setPlan(g, [creature.id], { intensity }))} />
+      <ProgramSelect value={program} onChange={(program) => update((g) => setPlan(g, [creature.id], { program }))} />
       <span className="spacer" />
       <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: '0.857rem' }}>
         {t('cr.seasonGain', { n: gain > 0 ? `+${gain}` : gain })}
@@ -305,6 +304,7 @@ function Sheet({ id }: { id: string }) {
       knowledge={k}
       deltas={own ? seasonDeltas(creature) : undefined}
       onSpendPoint={own ? (k) => update((g) => spendFreePoint(g, id, k)) : undefined}
+      pointKeys={own ? programFocus(game, creature) : undefined}
       favorites={favorites}
       onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
       onRename={own ? (name) => update((g) => renameCreature(g, id, name)) : undefined}

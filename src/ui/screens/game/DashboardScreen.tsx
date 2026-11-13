@@ -2,6 +2,7 @@
  * Dashboard: the stable at a glance — next match, board, table position, squad status, best creatures,
  * money, recent results, messages and news. Every card leads to the screen that deals with it.
  */
+import { SessionCard } from './TrainingSession.tsx';
 import { weekText } from '../../season.ts';
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { ReputationLine } from '../../components/Reputation.tsx';
@@ -411,6 +412,7 @@ export function DashboardScreen() {
       <Ambitions game={game} />
       <BoardCard game={game} />
       <div className="dash-grid">
+        <SessionCard game={game} />
         <SquadStatus game={game} />
         <MiniTable game={game} />
         <Money game={game} />

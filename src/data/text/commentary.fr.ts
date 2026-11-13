@@ -298,6 +298,8 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['lowHp', 'Du sang dans les yeux — {a} devient berserk !'],
     ['allyKo', 'Voyant tomber un allié, {a} hurle de rage !'],
     ['allyKo', '{a} veut se venger — la rage prend le dessus !'],
+    ['friendKo', '{friend} s’écroule — {a}, compagnon de toujours, jure vengeance !'],
+    ['friendKo', '{a} voit {friend} tomber et se bat désormais pour deux !'],
   ],
   exhausted: [
     ['', '{a} est épuisé{aE}.'],

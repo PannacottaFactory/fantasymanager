@@ -49,6 +49,10 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'rallied', name: 'Rallied', kind: 'mods', beneficial: true, defaultDuration: 3,
     mods: { damageMult: 1.12, hitBonus: 0.05 }, moralePerRound: 4, description: 'Fired up: hits harder and truer.',
   },
+  avenging: {
+    id: 'avenging', name: 'Avenging', kind: 'mods', beneficial: true, defaultDuration: 4,
+    mods: { damageMult: 1.1 }, description: 'A friend has fallen: hits harder to avenge it.',
+  },
   enraged: {
     id: 'enraged', name: 'Enraged', kind: 'mods', beneficial: true, defaultDuration: 3,
     mods: { damageMult: 1.3, mitigation: -0.1, critBonus: 0.05 },

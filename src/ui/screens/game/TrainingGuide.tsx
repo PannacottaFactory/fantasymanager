@@ -59,7 +59,6 @@ export function TrainingGuide() {
       <ul className="guide-lines">
         <li>{t('guide.xp')}</li>
         <li>{t('guide.program')}</li>
-        <li>{t('guide.intensity')}</li>
         <li>{t('guide.potential')}</li>
       </ul>
     </details>

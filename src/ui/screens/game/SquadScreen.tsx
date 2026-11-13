@@ -4,7 +4,8 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import { isStarter } from '../../../engine/team/edit.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, Seg, Stars, TraitChip } from '../../components/common.tsx';
+import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, Seg, StageMark, Stars, TraitChip } from '../../components/common.tsx';
+import { lifeStage } from '../../../engine/progression/training.ts';
 import { CreatureCard } from '../../components/CreatureCard.tsx';
 import { useState } from 'react';
 import { maxLevelOf } from '../../../engine/progression/levels.ts';
@@ -67,6 +68,7 @@ export function SquadScreen() {
       ),
     },
     { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
+    { key: 'stage', label: t('col.stageShort'), title: t('col.stage.title'), sort: (c) => ['young', 'prime', 'declining'].indexOf(lifeStage(c)), render: (c) => <StageMark c={c} /> },
     {
       key: 'level',
       label: t('col.level'),

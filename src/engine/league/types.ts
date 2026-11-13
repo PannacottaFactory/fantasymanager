@@ -8,6 +8,7 @@ import type { DifficultyId } from '../../data/config/identity.ts';
 import type { MedalFamily } from '../../data/config/collection.ts';
 import type { MatchMethod, MatchResult, MatchSetup, Side } from '../combat/types.ts';
 import type { Creature, Team } from '../model.ts';
+import type { SessionState } from '../progression/sessions.ts';
 
 export interface FixtureResult {
   /** 0 = home team won, 1 = away team won. */
@@ -323,6 +324,8 @@ export interface GameState {
   ambitions?: Partial<Record<AmbitionId, number>>;
   /** The player's bestiary: species met in a match / owned, with the season of the first time. */
   bestiary?: Bestiary;
+  /** The player's training sessions (earned by playing matches). */
+  sessions?: SessionState;
 }
 
 export interface Bestiary {

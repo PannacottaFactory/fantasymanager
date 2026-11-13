@@ -16,7 +16,7 @@ import { fatigueColor, moraleColor, moraleKey } from '../format.ts';
 import { useT } from '../i18n/index.ts';
 import { RoleLabel, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { Medal } from './CreatureRecord.tsx';
-import { Stars } from './common.tsx';
+import { StageMark, Stars } from './common.tsx';
 
 export type Selection = 'starter' | 'bench' | 'reserve';
 
@@ -73,7 +73,7 @@ export function CreatureCard({ c, selection, onOpen, forSale }: { c: Creature; s
       <span className="ccard-body">
         <b className="ccard-name">{c.name}</b>
         <span className="ccard-species">
-          {speciesName(c.speciesId, lang)} · {t('card.age', { n: c.age })}
+          {speciesName(c.speciesId, lang)} · {t('card.age', { n: c.age })} <StageMark c={c} />
         </span>
         <span className="ccard-row">
           <RoleLabel role={bestRole(c)} />

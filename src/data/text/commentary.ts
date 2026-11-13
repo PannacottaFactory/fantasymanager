@@ -295,6 +295,8 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['lowHp', 'Blood in its eyes — {a} goes berserk!'],
     ['allyKo', 'Seeing its ally fall, {a} howls with fury!'],
     ['allyKo', '{a} wants revenge — rage takes over!'],
+    ['friendKo', '{friend} falls — and {a}, an old friend, swears revenge!'],
+    ['friendKo', '{a} sees {friend} go down and fights on for two!'],
   ],
   exhausted: [
     ['', '{a} is exhausted.'],

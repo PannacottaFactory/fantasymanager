@@ -93,7 +93,7 @@ function SkillRow({ c, r, cast }: { c: CombatantView; r: RosterEntry; cast: Card
 /** Status effects drawn on the card itself (passives that last the whole match are left out). */
 const AURA: Record<string, string> = {
   burning: 'burn', poisoned: 'poison', bleeding: 'bleed', chilled: 'chill', frozen: 'frozen', stunned: 'stun',
-  shielded: 'shield', fortified: 'stone', enraged: 'rage', frenzied: 'rage', terrified: 'fear', evasive: 'evasive',
+  shielded: 'shield', fortified: 'stone', enraged: 'rage', avenging: 'rage', frenzied: 'rage', terrified: 'fear', evasive: 'evasive',
   regenerating: 'regen', rallied: 'rally', hexed: 'curse', frailty: 'curse', blighted: 'curse', jinxed: 'curse', sapped: 'sapped',
 };
 function auras(c: CombatantView): string[] {

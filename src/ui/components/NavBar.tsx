@@ -179,7 +179,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         const active = e.items.some((i) => i.id === screen);
         const current = e.items.find((i) => i.id === screen);
         const total = e.items.reduce((s, i) => s + (badges[i.id] ?? 0), 0);
-        const gold = e.items.some((i) => i.id === 'squad' && badges.squad);
+        const gold = e.items.some((i) => (i.id === 'squad' || i.id === 'training') && badges[i.id]);
         return (
           <div key={e.label} className="nav-group">
             <button
@@ -215,7 +215,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
                       <b>{t(i.label)}</b>
                       <small>{t(`nav.hint.${i.id}` as StringKey)}</small>
                     </span>
-                    {badge(badges[i.id], i.id === 'squad')}
+                    {badge(badges[i.id], i.id === 'squad' || i.id === 'training')}
                   </button>
                 ))}
               </div>

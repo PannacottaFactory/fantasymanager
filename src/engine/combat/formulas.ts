@@ -149,6 +149,8 @@ export function defenseSkill(c: Combatant, kind: AttackKind): number {
 export interface HitContext {
   flank: boolean;
   combo: boolean;
+  /** A friend already hit the target this round. */
+  friendCombo?: boolean;
   orders: TeamOrders;
 }
 
@@ -168,6 +170,7 @@ export function hitChance(
   // Reaching the back line past a standing front line: easy for a skilled skirmisher, hard for anyone else.
   if (ctx.flank) p -= attacker.role === 'skirmisher' ? h.flankPenalty * (2 - attacker.roleFactor) : h.reachPenalty;
   if (ctx.combo) p += attacker.attrs.teamwork * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
+  if (ctx.friendCombo) p += cfg.combat.bonds.friendCombo;
   p += effectMod(attacker, 'hitBonus') - effectMod(defender, 'dodgeBonus');
   if (ctx.orders.risk === 'high') p += cfg.combat.orders.riskHigh.hitBonus;
   if (ctx.orders.risk === 'low') p += cfg.combat.orders.riskLow.hitBonus;

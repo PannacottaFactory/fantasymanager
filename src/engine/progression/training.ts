@@ -6,7 +6,7 @@ import { clamp } from '../../core/math.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
 import { ATTRIBUTE_CATEGORIES, ATTRIBUTE_KEYS, type AttributeCategory, type AttributeKey } from '../../data/attributes.ts';
 import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/config/index.ts';
-import type { IntensityId, ProgramId } from '../../data/config/training.ts';
+import type { ProgramId } from '../../data/config/training.ts';
 import { ROLES } from '../../data/roles.ts';
 import { SPECIES, SPECIES_IDS } from '../../data/species.ts';
 import { makeId } from '../../core/ids.ts';
@@ -14,7 +14,7 @@ import { ageAbilityFactor, generateCreature } from '../creature/generate.ts';
 import { generateName } from '../creature/names.ts';
 import { bestRole, getSpecies } from '../creature/derived.ts';
 import { clubOf, spend } from '../economy/finance.ts';
-import { injuryWeeksFactor, trainingFactor } from '../club/facilities.ts';
+import { trainingFactor } from '../club/facilities.ts';
 import { transfer } from '../economy/market.ts';
 import { askingWage, roundTo } from '../economy/value.ts';
 import { pushMessage } from '../league/messages.ts';
@@ -22,14 +22,38 @@ import { levelOf, maxLevelOf, unlockLevel, xpPerAbility } from './levels.ts';
 import type { Coach, GameState, TrainingPlan } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
 
-export const DEFAULT_PLAN: TrainingPlan = { program: 'balanced', intensity: 'normal' };
+/** Training follows the creature's role by default. Intensity is no longer chosen: always normal. */
+export const DEFAULT_PLAN: TrainingPlan = { program: 'role', intensity: 'normal' };
 
 const CATEGORY_OF = {} as Record<AttributeKey, AttributeCategory>;
 for (const cat of Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]) for (const k of ATTRIBUTE_CATEGORIES[cat]) CATEGORY_OF[k] = cat;
 
-export function planOf(state: GameState, creatureId: string): TrainingPlan {
-  return state.training[creatureId] ?? DEFAULT_PLAN;
+/** The three programs the player chooses from (one per attribute category). */
+export const isFocusProgram = (p: ProgramId): p is AttributeCategory => p === 'physical' || p === 'combat' || p === 'mental';
+
+/** Default program: the attribute category of its role (its role in the line-up, or its best one): `training.roleProgram`. */
+export function defaultProgram(c: Creature, team?: Team, cfg: GameConfig = DEFAULT_CONFIG): AttributeCategory {
+  const slot = team?.tactic.lineup.find((s) => s.creatureId === c.id);
+  return cfg.training.roleProgram[slot?.role ?? bestRole(c)];
 }
+
+/**
+ * A creature's training plan. Programs are physical, combat or mental; with none chosen (or an old one: role,
+ * balanced, rest), the category its role needs most.
+ */
+export function planOf(state: GameState, creatureId: string): TrainingPlan {
+  const plan = state.training[creatureId];
+  if (plan && isFocusProgram(plan.program)) return plan;
+  const team = state.teams.find((t) => t.creatures.some((x) => x.id === creatureId));
+  const c = team?.creatures.find((x) => x.id === creatureId) ?? state.freeAgents.find((x) => x.id === creatureId);
+  return { program: c ? defaultProgram(c, team) : 'physical', intensity: 'normal' };
+}
+
+/** The attribute category a creature trains. */
+export const programCategory = (state: GameState, c: Creature): AttributeCategory => {
+  const p = planOf(state, c.id).program;
+  return isFocusProgram(p) ? p : 'physical';
+};
 
 export type LifeStage = 'young' | 'prime' | 'declining';
 export function lifeStage(c: Creature): LifeStage {
@@ -180,7 +204,7 @@ function shiftAbility(
 }
 
 /** Records an attribute change of one of the player's creatures (kept short). */
-function progressLogger(c: Creature, season: number, matchday: number, cfg: GameConfig) {
+export function progressLogger(c: Creature, season: number, matchday: number, cfg: GameConfig) {
   return (k: AttributeKey, d: number) => {
     const g = growthOf(c);
     const recent = (g.recent ??= []);
@@ -218,32 +242,22 @@ export function weeklyTraining(state: GameState, _played: Set<string>, cfg: Game
   for (const team of state.teams) {
     const isPlayer = team.id === state.playerTeamId;
     for (const c of team.creatures) {
-      const plan = isPlayer ? planOf(state, c.id) : DEFAULT_PLAN;
-      const injured = c.condition.injuries.some((i) => i.weeksLeft > 0);
+      const category = isPlayer ? programCategory(state, c) : defaultProgram(c, team, cfg);
       const g = growthOf(c);
       const fromMatch = g.matchXp ?? 0;
       g.matchXp = 0;
-      const resting = plan.program === 'rest' || injured;
-      if (plan.program === 'rest') c.condition.fatigue = clamp(c.condition.fatigue - t.restRecovery, 0, 100);
-      if (resting && !fromMatch) continue;
-      if (isPlayer) g.seasonStart ??= { ...c.attributes };
-      const intensity = t.intensity[(resting ? 'normal' : plan.intensity) as IntensityId];
-      if (!resting) {
-        c.condition.fatigue = clamp(c.condition.fatigue + intensity.fatigue, 0, 100);
-        c.condition.morale = clamp(c.condition.morale + intensity.morale, 0, 100);
+      // XP comes from matches only; training touches neither fatigue nor morale.
+      if (!fromMatch) {
+        if (isPlayer) recordAbility(c, state.season, state.matchday, cfg);
+        continue;
       }
+      if (isPlayer) g.seasonStart ??= { ...c.attributes };
       const stage = lifeStage(c);
       const gap = c.potential - c.ability;
       if (gap > 0 && t.stage[stage] > 0) {
-        const prof = t.professionalism.base + (c.hidden.professionalism / 20) * t.professionalism.range;
-        const avgCoach = (['physical', 'combat', 'mental'] as AttributeCategory[]).reduce((s, d) => s + coachFactor(state, team.id, d, cfg), 0) / 3;
-        // Training XP (none while resting or injured) + match XP, both slowed by age, up to the potential.
-        const training = resting ? 0 : Math.max(t.minWeekly, gap * t.gapRate) * prof * intensity.growth * avgCoach * trainingFactor(state, team.id, cfg) * t.xp.trainingShare;
-        const matches = fromMatch / xpPerAbility(cfg);
-        const gain = Math.min(gap, (training + matches) * t.stage[stage]);
-        const weights = programWeights(c, team, resting ? 'balanced' : plan.program, cfg);
-        // Coaches: each attribute grows with the coach of its domain.
-        for (const k of ATTRIBUTE_KEYS) weights[k] *= coachFactor(state, team.id, CATEGORY_OF[k], cfg);
+        // Match XP × life stage × the coach of the creature's program × the training ground, up to the potential.
+        const gain = Math.min(gap, (fromMatch / xpPerAbility(cfg)) * t.stage[stage] * coachFactor(state, team.id, category, cfg) * trainingFactor(state, team.id, cfg));
+        const weights = programWeights(c, team, category, cfg);
         const record = isPlayer ? progressLogger(c, state.season, state.matchday, cfg) : undefined;
         const gains: Partial<Record<AttributeKey, number>> = {};
         const log = record && ((k: AttributeKey, d: number) => {
@@ -256,25 +270,19 @@ export function weeklyTraining(state: GameState, _played: Set<string>, cfg: Game
         if (after > before) levelUp(state, c, before, after, isPlayer, weights, rng, cfg, gains);
       }
       if (isPlayer) recordAbility(c, state.season, state.matchday, cfg);
-      if (resting) continue;
-      // Hard training can hurt.
-      if (intensity.injury > 0 && rng.chance(intensity.injury * (c.hidden.injuryProneness / 10))) {
-        const weeks = Math.max(1, Math.round(rng.int(1, 3) * injuryWeeksFactor(state, team.id, cfg)));
-        c.condition.injuries.push({ injuryId: 'sprained-limb', weeksLeft: weeks });
-        if (isPlayer) pushMessage(state, { kind: 'injury', creatureId: c.id, name: c.name, injuryId: 'sprained-limb', weeks });
-      }
     }
   }
 }
 
 /**
- * A creature gained one or more levels: abilities may unlock; the player gets a point to place by hand per level,
- * AI stables place theirs straight away (by their program).
+ * A creature gained one or more levels: abilities may unlock; the player gets `levels.freePoints` points to place by
+ * hand per level (in the attributes of the creature's program), AI stables place theirs straight away (by their program).
  */
 function levelUp(state: GameState, c: Creature, before: number, after: number, isPlayer: boolean, weights: Record<AttributeKey, number>, rng: Rng, cfg: GameConfig, gains: Partial<Record<AttributeKey, number>> = {}) {
   const g = growthOf(c);
+  const points = (after - before) * cfg.training.levels.freePoints;
   if (isPlayer) {
-    g.freePoints = (g.freePoints ?? 0) + (after - before);
+    g.freePoints = (g.freePoints ?? 0) + points;
     const list = (Object.entries(gains) as [AttributeKey, number][]).filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1]).map(([k, d]) => ({ k, d }));
     pushMessage(state, { kind: 'levelUp', creatureId: c.id, name: c.name, level: after, points: g.freePoints, gains: list });
     for (const a of getSpecies(c).abilities) {
@@ -283,18 +291,27 @@ function levelUp(state: GameState, c: Creature, before: number, after: number, i
     }
     return;
   }
-  for (let i = before; i < after; i++) {
+  for (let i = 0; i < points; i++) {
     const open = ATTRIBUTE_KEYS.filter((k) => c.attributes[k] < attributeCap(c, k, cfg) && weights[k] > 0);
     if (open.length) c.attributes[rng.weighted(open, (k) => weights[k])]++;
   }
 }
 
-/** Places one of the player's free attribute points (only below the species cap). */
+/**
+ * Attributes the player's free points can go to: those of the creature's training program (physical, combat or
+ * mental), or every attribute when those are all at their ceiling.
+ */
+export function programFocus(state: GameState, c: Creature, cfg: GameConfig = DEFAULT_CONFIG): AttributeKey[] {
+  const keys = [...ATTRIBUTE_CATEGORIES[programCategory(state, c)]];
+  return keys.some((k) => c.attributes[k] < attributeCap(c, k, cfg)) ? keys : [...ATTRIBUTE_KEYS];
+}
+
+/** Places one of the player's free attribute points (in the program's attributes, below the species cap). */
 export function spendFreePoint(state: GameState, creatureId: string, key: AttributeKey, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const next = structuredClone(state);
   const team = next.teams.find((t) => t.id === next.playerTeamId)!;
   const c = team.creatures.find((x) => x.id === creatureId);
-  if (!c?.growth?.freePoints || c.attributes[key] >= attributeCap(c, key, cfg)) return state;
+  if (!c?.growth?.freePoints || c.attributes[key] >= attributeCap(c, key, cfg) || !programFocus(next, c, cfg).includes(key)) return state;
   c.attributes[key]++;
   c.growth.freePoints--;
   progressLogger(c, next.season, next.matchday, cfg)(key, 1);

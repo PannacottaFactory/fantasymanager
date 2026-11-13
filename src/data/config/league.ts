@@ -55,7 +55,7 @@ export const LEAGUE_CONFIG = {
   legs: 2,
   week: {
     /** Fatigue (0–100) recovered each week: base + recovery attribute × perRecovery. */
-    fatigueRecovery: 22,
+    fatigueRecovery: 20,
     fatigueRecoveryPerAttr: 0.6,
     /** Morale drifts back towards this value each week, by this fraction of the gap. */
     moraleBaseline: 60,

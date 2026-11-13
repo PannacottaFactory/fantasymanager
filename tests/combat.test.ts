@@ -252,3 +252,25 @@ describe('favourite abilities (builds)', () => {
     for (const e of spends) if (e.type === 'spend') expect(e.stamina).toBeGreaterThanOrEqual(0);
   });
 });
+
+describe('bonds between stablemates', () => {
+  it('a friend knocked out makes the other « avenging », with a commentary line naming both', async () => {
+    const { Commentator } = await import('../src/engine/commentary/commentator.ts');
+    let found = false;
+    for (let s = 0; s < 40 && !found; s++) {
+      const setup0 = setup(`bonds${s}`, 'novice', 'elite');
+      // Everyone on our side is friends with everyone.
+      const team = setup0.teams[0];
+      for (const a of team.creatures) for (const b of team.creatures) if (a.id !== b.id) a.relations = { ...a.relations, [b.id]: 100 };
+      const r = simulateMatch(setup0);
+      const e = r.events.find((x) => x.type === 'enrage' && x.reason === 'friendKo');
+      if (!e) continue;
+      found = true;
+      for (const lang of ['en', 'fr'] as const) {
+        const lines = new Commentator(r.seed, r.roster, [r.teams[0].name, r.teams[1].name], DEFAULT_CONFIG, lang).narrateAll(r.events);
+        for (const l of lines) expect(l.text).not.toMatch(/\{[a-zA-Z]+\}/);
+      }
+    }
+    expect(found).toBe(true);
+  });
+});

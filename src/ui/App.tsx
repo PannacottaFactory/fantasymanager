@@ -1,4 +1,5 @@
 import { weekText } from './season.ts';
+import { sessionsReady } from './screens/game/TrainingSession.tsx';
 import { StableCrest } from './components/TeamCrest.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
@@ -222,7 +223,7 @@ export function App() {
         <NavBar
           screen={newGameOpen || launch ? null : screen}
           hasGame={!!game}
-          badges={{ inbox: unread, squad: game ? playerTeam(game).creatures.reduce((s, c) => s + (c.growth?.freePoints ?? 0), 0) : 0 }}
+          badges={{ inbox: unread, squad: game ? playerTeam(game).creatures.reduce((s, c) => s + (c.growth?.freePoints ?? 0), 0) : 0, training: game ? sessionsReady(game) : 0 }}
           onSelect={(id) => {
             setNewGameOpen(false);
             setScreen(id);

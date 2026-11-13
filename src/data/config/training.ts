@@ -1,4 +1,6 @@
 /** Training, coaches, ageing and youth intake balancing (phase 4). */
+import type { AttributeCategory } from '../attributes.ts';
+import type { RoleId } from '../schema.ts';
 export const TRAINING_CONFIG = {
   /** Weekly ability gain = (potential − ability) × gapRate × modifiers (before the end of the prime). */
   gapRate: 0.03,
@@ -15,14 +17,16 @@ export const TRAINING_CONFIG = {
    * starts). Short steps at the bottom, long ones at the top: a modest creature still climbs 3–4 levels in its career,
    * a new stable sits around levels 1–4, the elite reach 8–10 and level 10 stays rare.
    */
-  levels: { max: 10, steps: [28, 40, 50, 60, 72, 86, 102, 120, 142, 168], top: 200, xpPerLevel: 100, xpPerAbility: 6.25 },
+  /** freePoints: attribute points the player places by hand per level gained (AI places them by program). */
+  levels: { max: 10, steps: [28, 40, 50, 60, 72, 86, 102, 120, 142, 168], top: 200, xpPerLevel: 100, xpPerAbility: 6.25, freePoints: 2 },
   /**
    * Experience. Training gives `trainingShare` of the former weekly gain; a match gives
    * played + starter + (rating − 5) × perRatingPoint + win (× life stage, up to the potential). No KO bonus: it would
    * favour strikers over healers and tanks; the rating already rewards every role.
    */
   // Match XP is converted into aptitude at `levels.xpPerAbility` XP per point (the growth speed does not depend on the level).
-  xp: { trainingShare: 0.6, played: 3.75, starter: 1.25, perRatingPoint: 1.25, ko: 0, win: 1.25 },
+  // XP comes from matches only (training sessions raise attributes directly): the old training share is folded in.
+  xp: { played: 6, starter: 2, perRatingPoint: 2, ko: 0, win: 2 },
   /** Visual progression kept for the player's creatures. */
   progressLog: { recent: 16, history: 72 },
   /**
@@ -41,6 +45,14 @@ export const TRAINING_CONFIG = {
     combat: { physical: 0.4, combat: 2.4, mental: 0.3 },
     mental: { physical: 0.3, combat: 0.4, mental: 2.6 },
   },
+  /**
+   * Training sessions: each match played earns `byFacility[training ground level]` sessions (kept up to `maxStored`);
+   * a session draws a creature of the squad, then one attribute of its program (below its ceiling), which gains +1, or
+   * +2 with a chance of `jackpot.base + coach quality × jackpot.perQuality` (coach of that category). AI stables too.
+   */
+  sessions: { byFacility: [1, 1, 2, 2], maxStored: 3, jackpot: { base: 0.05, perQuality: 0.01 } },
+  /** Default training program of each role (the creature's role in the line-up, or its best one). */
+  roleProgram: { tank: 'physical', striker: 'combat', caster: 'combat', support: 'mental', skirmisher: 'physical' } as Record<RoleId, AttributeCategory>,
   /** Rest program: no growth, extra fatigue recovery. */
   restRecovery: 15,
   /** Attributes cannot exceed the species range at full potential by more than this. */
@@ -83,5 +95,6 @@ export const TRAINING_CONFIG = {
 export type TrainingConfig = typeof TRAINING_CONFIG;
 export type ProgramId = keyof typeof TRAINING_CONFIG.programs | 'role' | 'rest';
 export type IntensityId = keyof typeof TRAINING_CONFIG.intensity;
-export const PROGRAM_IDS: ProgramId[] = ['balanced', 'physical', 'combat', 'mental', 'role', 'rest'];
+/** Programs offered to the player: one per attribute category (old role / balanced / rest plans follow the role). */
+export const PROGRAM_IDS: ProgramId[] = ['physical', 'combat', 'mental'];
 export const INTENSITY_IDS: IntensityId[] = ['light', 'normal', 'intense'];
