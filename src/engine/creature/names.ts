@@ -22,19 +22,51 @@ export function generateName(rng: Rng, cultureId: string, lang: Lang = 'en'): st
   return name;
 }
 
-/** Stable name ("Iron Fangs", "Hounds of Skarn" / "Crocs de Fer", "Molosses de Skarn"). Same draws in every language. */
+/** Kinds of stable names, with their weights. */
+const TEAM_NAME_KINDS = [
+  ['adjective', 24],
+  ['place', 14],
+  ['order', 20],
+  ['orderPlace', 10],
+  ['standalone', 22],
+  ['figure', 10],
+] as const;
+
+/**
+ * Stable name: "Iron Fangs", "Hounds of Skarn", "Order of the Broken Tusk", "Legion of Skarn", "Gravewind",
+ * "Mother Gorza's Brood" (French: "Crocs de Fer", "Ordre de la Défense Brisée", "Couvée de Mère Gorza"…).
+ * Always the same draws whatever the kind and the language (indices are taken modulo each list).
+ */
 export function generateTeamName(rng: Rng, lang: Lang = 'en'): string {
-  const p = TEAM_NAME_PARTS;
-  const byPlace = !rng.chance(0.5);
-  const i = rng.int(0, p.adjectives.length - 1);
-  const j = rng.int(0, p.nouns.length - 1);
-  const k = rng.int(0, p.places.length - 1);
+  const kind = rng.weighted(TEAM_NAME_KINDS, (k) => k[1])[0];
+  const a = rng.int(0, 9999);
+  const b = rng.int(0, 9999);
+  const at = <T,>(list: readonly T[], n: number) => list[n % list.length]!;
   if (lang === 'fr') {
     const f = FR_TEAM_NAME_PARTS;
-    const [noun, gender] = f.nouns[j % f.nouns.length]!;
-    if (byPlace) return `${noun} ${f.places[k % f.places.length]}`;
-    const adj = f.adjectives[i % f.adjectives.length]!;
-    return `${noun} ${gender === 'f' ? adj[1] : adj[0]}`;
+    switch (kind) {
+      case 'adjective': {
+        const [noun, gender] = at(f.nouns, a);
+        const adj = at(f.adjectives, b);
+        return `${noun} ${gender === 'f' ? adj[1] : adj[0]}`;
+      }
+      case 'place': return `${at(f.nouns, a)[0]} ${at(f.places, b)}`;
+      case 'order': return `${at(f.orders, a)} ${at(f.emblems, b)}`;
+      case 'orderPlace': return `${at(f.orders, a)} ${at(f.places, b)}`;
+      case 'standalone': return at(f.standalone, a);
+      case 'figure': return `${at(f.troupes, a)} ${at(f.figures, b)}`;
+    }
   }
-  return byPlace ? `${p.nouns[j]} of ${p.places[k]}` : `${p.adjectives[i]} ${p.nouns[j]}`;
+  const p = TEAM_NAME_PARTS;
+  switch (kind) {
+    case 'adjective': return `${at(p.adjectives, b)} ${at(p.nouns, a)}`;
+    case 'place': return `${at(p.nouns, a)} of ${at(p.places, b)}`;
+    case 'order': return `${at(p.orders, a)} of ${at(p.emblems, b)}`;
+    case 'orderPlace': return `${at(p.orders, a)} of ${at(p.places, b)}`;
+    case 'standalone': return at(p.standalone, a);
+    case 'figure': {
+      const who = at(p.figures, b);
+      return `${who.charAt(0).toUpperCase()}${who.slice(1)}'s ${at(p.troupes, a)}`;
+    }
+  }
 }

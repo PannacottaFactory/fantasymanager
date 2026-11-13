@@ -627,6 +627,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 @keyframes tut-pulse { 50% { box-shadow: 0 0 0 4000px rgb(0 0 0 / 0.35), 0 0 4px color-mix(in srgb, var(--accent) 40%, transparent); } }
 .tutorial-bubble {
   position: fixed; pointer-events: auto; padding: 12px 14px; border-radius: var(--radius);
+  max-height: calc(100vh - 24px); overflow-y: auto;
   background: var(--panel); border: 1px solid var(--accent); box-shadow: var(--shadow); animation: fadein 0.2s ease-out;
 }
 .tutorial-body { font-size: 1rem; line-height: 1.45; color: var(--text); }

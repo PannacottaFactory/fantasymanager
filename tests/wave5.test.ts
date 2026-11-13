@@ -133,12 +133,16 @@ describe('arena conditions', () => {
   it('the weather changes element damage and is announced at the start', () => {
     const fire = (arena?: MatchSetup['arena']) => {
       let dmg = 0;
-      for (let s = 0; s < 12; s++) {
+      let hits = 0;
+      for (let s = 0; s < 20; s++) {
         const r = simulateMatch(setup(`fire${s}`, ['salamander'], arena));
         if (arena) expect(r.events[0]).toMatchObject({ type: 'matchStart', arena });
-        for (const e of r.events) if (e.type === 'attack' && e.hit && r.roster[e.actor]?.speciesId === 'salamander') dmg += e.damage;
+        for (const e of r.events) if (e.type === 'attack' && e.hit && r.roster[e.actor]?.speciesId === 'salamander') {
+          dmg += e.damage;
+          hits++;
+        }
       }
-      return dmg;
+      return dmg / hits; // per hit: totals depend on how long each match lasts
     };
     expect(fire('rain')).toBeLessThan(fire());
   });

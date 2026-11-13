@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { STEPS, useTutorial, type Placement, type TutorialStep } from './tutorial.ts';
@@ -20,18 +20,25 @@ function anchorRect(step: TutorialStep): DOMRect | null {
   return r.width > 0 && r.height > 0 ? r : null;
 }
 
-/** Where the bubble goes: the requested side if there is room, else below/above. */
-function bubbleStyle(r: DOMRect, placement: Placement): CSSProperties {
+interface Size {
+  w: number;
+  h: number;
+}
+
+/** Where the bubble goes: the requested side if there is room, else below/above — always kept inside the screen. */
+function bubbleStyle(r: DOMRect, placement: Placement, { w, h }: Size): CSSProperties {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const clampX = (x: number) => Math.max(GAP, Math.min(vw - BUBBLE_W - GAP, x));
-  if (placement === 'center') return { left: (vw - BUBBLE_W) / 2, top: Math.max(GAP, vh * 0.28) };
-  if (placement === 'right' && r.right + GAP + BUBBLE_W < vw) return { left: r.right + GAP, top: Math.max(GAP, Math.min(vh - 220, r.top + 20)) };
-  if (placement === 'left' && r.left - GAP - BUBBLE_W > 0) return { left: r.left - GAP - BUBBLE_W, top: Math.max(GAP, Math.min(vh - 220, r.top + 20)) };
-  const below = placement !== 'above' ? r.bottom + GAP + 200 < vh : r.top - GAP - 200 < 0;
-  return below
-    ? { left: clampX(r.left + r.width / 2 - BUBBLE_W / 2), top: Math.min(vh - 200, r.bottom + GAP) }
-    : { left: clampX(r.left + r.width / 2 - BUBBLE_W / 2), bottom: Math.max(GAP, vh - r.top + GAP) };
+  const clampX = (x: number) => Math.max(GAP, Math.min(vw - w - GAP, x));
+  const clampY = (y: number) => Math.max(GAP, Math.min(vh - h - GAP, y));
+  const centredX = clampX(r.left + r.width / 2 - w / 2);
+  if (placement === 'center') return { left: clampX((vw - w) / 2), top: clampY(vh * 0.28) };
+  if (placement === 'right' && r.right + GAP + w + GAP <= vw) return { left: r.right + GAP, top: clampY(r.top + 20) };
+  if (placement === 'left' && r.left - GAP - w - GAP >= 0) return { left: r.left - GAP - w, top: clampY(r.top + 20) };
+  const fitsBelow = r.bottom + GAP + h + GAP <= vh;
+  const fitsAbove = r.top - GAP - h - GAP >= 0;
+  const below = placement === 'above' ? !fitsAbove && (fitsBelow || vh - r.bottom > r.top) : fitsBelow || !fitsAbove && vh - r.bottom >= r.top;
+  return { left: centredX, top: clampY(below ? r.bottom + GAP : r.top - GAP - h) };
 }
 
 interface Found {
@@ -58,6 +65,26 @@ export function TutorialOverlay({ active }: { active: boolean }) {
   const { t } = useT();
   const { enabled, seen, markSeen, skip } = useTutorial();
   const [found, setFound] = useState<Found | null>(null);
+  const bubble = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState<Size>({ w: BUBBLE_W, h: 200 });
+  const [, setViewport] = useState(0);
+
+  // The bubble's real size (it grows with the text size and the language), measured after layout.
+  useLayoutEffect(() => {
+    const el = bubble.current;
+    if (!el) return;
+    const measure = () => setSize((s) => (s.w === el.offsetWidth && s.h === el.offsetHeight ? s : { w: el.offsetWidth, h: el.offsetHeight }));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [found?.step.id]);
+
+  useEffect(() => {
+    const onResize = () => setViewport((n) => n + 1);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Anchors are read from the DOM after it is painted, and again as screens change.
   useEffect(() => {
@@ -84,7 +111,7 @@ export function TutorialOverlay({ active }: { active: boolean }) {
       {placement !== 'center' && (
         <div className="tutorial-ring" style={{ left: rect.left - pad, top: rect.top - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }} />
       )}
-      <div className="tutorial-bubble" style={{ ...bubbleStyle(rect, placement), width: BUBBLE_W }}>
+      <div ref={bubble} className="tutorial-bubble" style={{ ...bubbleStyle(rect, placement, size), width: `min(${BUBBLE_W}px, calc(100vw - ${GAP * 2}px))` }}>
         <div className="row" style={{ gap: 8, marginBottom: 4 }}>
           <b className="grow">{t(`tut.${step.id}.title` as StringKey)}</b>
           <span className="faint mono" style={{ fontSize: '0.786rem' }}>

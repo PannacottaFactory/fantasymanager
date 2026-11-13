@@ -492,7 +492,7 @@ export const FR_SURNAMES: Record<string, string[]> = {
   seraph: ['de la Septième Lumière', 'Aile-d’Aube', 'le Miséricordieux', 'Qui Donne'],
 };
 
-/** French team-name material. Same list sizes as TEAM_NAME_PARTS so the RNG draws match. */
+/** French team-name material. Indices are taken modulo each list, so the lists may differ in size. */
 export const FR_TEAM_NAME_PARTS = {
   /** [noun, gender] — plural nouns. */
   nouns: [
@@ -507,4 +507,20 @@ export const FR_TEAM_NAME_PARTS = {
   ] as [string, string][],
   /** With their preposition ("de", "du", "des"). */
   places: ['de Sombrelande', 'de Karak Varn', 'de la Fange', 'de Chutebraise', 'de Grisport', 'des Pics Creux', 'de Salmarais', 'de Boisronce', 'du Vieux-Brannoc', 'de Skarn'],
+  orders: ['Ordre', 'Confrérie', 'Cour', 'Cercle', 'Pacte', 'Légion', 'Compagnie', 'Guilde', 'Serment', 'Ost', 'Cabale', 'Sororité'],
+  /** With their preposition ("de", "du", "des"). */
+  emblems: [
+    'de la Défense Brisée', 'de la Dernière Braise', 'des Cendres', 'des Ronces', 'des Abysses', 'de la Lune Pâle', 'de la Main Rouge',
+    'des Sept Cicatrices', 'de la Couronne Creuse', 'de la Lanterne Noire', 'du Serment de Fer', 'des Ossements', 'de l’Étoile qui Pleure',
+    'du Caniveau', 'de la Neuvième Porte', 'de la Clé Rouillée',
+  ],
+  standalone: [
+    'Lune de Sang', 'Neuvième Fosse', 'Ventsépulcre', 'Corne-de-Cendre', 'Dernière Lueur', 'Insoumis', 'Couronne-Creuse',
+    'Charognards', 'Verrenuit', 'Serment-de-Fer', 'Mande-Orages', 'Rois du Caniveau', 'Sombre-Garde', 'Guilde des Lanternes',
+    'Moelle-Rouille', 'Gibet qui Murmure', 'Treize Dents', 'Lie-de-Vin', 'Veille-Deuil', 'Vieille Fumée', 'Ménagerie de Minuit',
+    'Fléau-des-Rois', 'Enchaînés', 'Marée-Braise',
+  ],
+  /** With their preposition. */
+  figures: ['de Mère Gorza', 'du Baron Vex', 'de la Vieille Tamsin', 'de la Veuve Moëlle', 'du Capitaine Skarr', 'd’Oncle Brisk', 'de Dame Morne', 'de Hob le Borgne', 'de l’Ermite', 'du Docteur Plume'],
+  troupes: ['Couvée', 'Bouchers', 'Racaille', 'Ménagerie', 'Bêtes', 'Errants', 'Chenil', 'Cirque', 'Horde', 'Rebuts'],
 };

@@ -20,6 +20,11 @@ export const GENERATION_CONFIG = {
   ageSpanMax: 0.75,
   /** New creatures start this share below what their age allows (room to level up): uniform min–max. */
   headroom: { min: 0.1, max: 0.25 },
+  /**
+   * The player's starting squad: same strength, much less room to grow (the stars come later, from the market and
+   * the young prospects). Potential = ability + (drawn potential − ability) × room, capped at `max`.
+   */
+  startingSquad: { room: 0.35, max: 101 },
   /** Probability of having 0, 1, 2, 3 traits. */
   traitCountWeights: [0.15, 0.45, 0.3, 0.1],
   hidden: { mean: 10, sd: 4 },

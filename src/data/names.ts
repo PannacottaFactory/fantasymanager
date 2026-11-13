@@ -20,6 +20,21 @@ export const TEAM_NAME_PARTS = {
   adjectives: ['Iron', 'Crimson', 'Howling', 'Black', 'Ashen', 'Gilded', 'Rotting', 'Thundering', 'Silent', 'Burning', 'Frozen', 'Wild', 'Grim', 'Sunken'],
   nouns: ['Fangs', 'Wardens', 'Maws', 'Talons', 'Brutes', 'Sentinels', 'Ravagers', 'Hounds', 'Claws', 'Reavers', 'Horns', 'Serpents', 'Wyrms', 'Stalkers'],
   places: ['Duskmoor', 'Karak Varn', 'the Mire', 'Emberfall', 'Greyhaven', 'the Hollow Peaks', 'Saltmarsh', 'Thornwood', 'Old Brannoc', 'Skarn'],
+  /** "Order of the Broken Tusk" / "Legion of Skarn". */
+  orders: ['Order', 'Brotherhood', 'Court', 'Circle', 'Covenant', 'Legion', 'Company', 'Guild', 'Pact', 'Host', 'Coven', 'Sisterhood'],
+  emblems: [
+    'the Broken Tusk', 'the Last Ember', 'Ashes', 'Thorns', 'the Deep', 'the Pale Moon', 'the Red Hand', 'Seven Scars', 'the Hollow Crown',
+    'the Black Lantern', 'the Iron Vow', 'Bones', 'the Weeping Star', 'the Gutter', 'the Ninth Gate', 'the Rusted Key',
+  ],
+  /** Names that stand alone. */
+  standalone: [
+    'Bloodmoon', 'The Ninth Pit', 'Gravewind', 'Cinderhorn', 'Last Light', 'The Unbowed', 'Hollowcrown', 'The Bonepickers', 'Nightglass',
+    'Ironvow', 'Stormcallers', 'The Gutterkings', 'Grimhold', 'The Lantern Guild', 'Rustmarrow', 'Whispering Gallows', 'Thirteen Teeth',
+    'The Dregs', 'Mournwatch', 'Old Smoke', 'The Midnight Menagerie', 'Kingsbane', 'The Chained', 'Embertide',
+  ],
+  /** "Mother Gorza's Brood". */
+  figures: ['Mother Gorza', 'Baron Vex', 'Old Tamsin', 'the Widow Marrow', 'Captain Skarr', 'Uncle Brisk', 'Lady Morne', 'One-Eyed Hob', 'the Hermit', 'Doctor Quill'],
+  troupes: ['Brood', 'Butchers', 'Rabble', 'Menagerie', 'Beasts', 'Strays', 'Kennel', 'Circus', 'Horde', 'Rejects'],
 };
 
 /** Names of the managers of AI stables (the same in every language). */

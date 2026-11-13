@@ -69,6 +69,10 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
       const identity = isPlayer ? undefined : identities[nextIdentity++];
       const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: styleShare(identity, difficulty, cfg) } : undefined;
       const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured }, cfg);
+      if (isPlayer) {
+        const st = cfg.generation.startingSquad;
+        for (const c of team.creatures) c.potential = Math.max(c.ability, Math.min(st.max, Math.round(c.ability + (c.potential - c.ability) * st.room)));
+      }
       if (identity) {
         team.identity = identity;
         team.tactic = applyIdentity(team, team.tactic, difficulty, undefined, cfg);
