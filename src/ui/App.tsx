@@ -210,7 +210,7 @@ export function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <button className="brand" onClick={() => (game ? setNewGameOpen(true) : setScreen('dashboard'))} title={t('start.new')}>
+        <button className="brand" onClick={() => (game ? useGame.getState().openLaunch() : setScreen('dashboard'))} title={t('start.slots')}>
           <svg className="brand-icon" width="30" height="30" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
           <div>
             <h1>{t('app.title')}</h1>

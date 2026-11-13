@@ -18,7 +18,7 @@ resolves them. 100 % front-end, deployable on GitHub Pages.
 
 ## Stack
 TypeScript (strict) · Vite · React 19 + Zustand · Vitest · tsx (headless CLI) · ESLint (flat config).
-Saves use IndexedDB (`idb`, one autosave slot, `src/ui/store/saves.ts`); heavy sims will move to a Web Worker (phase 6).
+Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will move to a Web Worker (phase 6).
 
 ## Commands
 | | |
@@ -436,6 +436,12 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Sheet tour**: tips anchored inside the creature sheet (`sheet-tiles`, `sheet-roles`, `sheet-abilities`,
   `sheet-attrs` « the rest can wait »); while a window is open, only tips inside it show (scrolled into view).
 - Nav « Outils / Tools » groups the Encyclopedia and the « Arène d’essai / Test arena » (sandbox, no effect on the game).
+- **Save slots** (`ui/store/saves.ts`): 3 slots (`SLOTS`; the first keeps the old single autosave key `auto`), each with
+  a summary in the `meta` store (team, crest, season, week, division, rank, difficulty, saved at) so the start screen lists
+  them without loading games (old saves get one on first listing). The game autosaves into `useGame().slot` (remembered
+  in localStorage `fm.slot`); `loadSlot`, `deleteSlot`, `refreshSlots`, `openLaunch` (the brand button goes back to the
+  start screen). Start screen: three slot cards (in play / load / delete, empty = start here) and « Sauvegarder dans »
+  chips in the new-game form (default: first free slot; replacing a game asks first).
 - **Start & dashboard**: opening the app with a save shows the start screen (store `launch`) with two cards, « continue »
   and « new game » (difficulty as cards, seed under « more options »). In a game the landing screen is the dashboard
   (`DashboardScreen`, nav « Accueil »): hero (rank), next match, board, squad status tiles, mini table, treasury,

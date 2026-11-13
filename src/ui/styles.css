@@ -2864,3 +2864,39 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .ticker-tag { background: var(--accent); color: var(--accent-text); text-shadow: none; font: 700 0.714rem var(--font-title); letter-spacing: 0.1em;
   gap: 6px; padding: 0 16px 0 10px; clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
 .ticker-dot { width: 5px; height: 5px; background: var(--accent-text); box-shadow: none; }
+
+/* ——— Save slots (start screen) ——— */
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: min(1100px, 100%); margin: 2px auto 10px; }
+.slot-card { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 18px 14px 12px; border-radius: 12px; min-width: 0;
+  background: var(--panel); border: 1px solid var(--border); box-shadow: 0 6px 18px rgb(0 0 0 / 0.25); animation: fadein 0.45s ease-out both; }
+.slot-card:nth-child(2) { animation-delay: 0.05s; } .slot-card:nth-child(3) { animation-delay: 0.1s; }
+.slot-card.playing { border-color: color-mix(in srgb, var(--home) 70%, var(--border)); box-shadow: inset 0 3px 0 var(--home), 0 6px 18px rgb(0 0 0 / 0.25); }
+.slot-n { position: absolute; top: -10px; left: 12px; display: inline-flex; gap: 6px; align-items: center; padding: 1px 9px; border-radius: 999px;
+  font-size: 0.714rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: var(--panel-3); color: var(--muted); border: 1px solid var(--border); }
+.slot-n em { font-style: normal; color: var(--home); }
+.slot-main { display: flex; gap: 12px; align-items: center; min-width: 0; }
+.slot-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.slot-text b { font: 600 1.05rem var(--font-title); color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-text .muted { font-size: 0.786rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-text small { font-size: 0.714rem; }
+.slot-actions { display: flex; gap: 6px; align-items: center; margin-top: auto; }
+.slot-actions .btn.primary { flex: 1; }
+.slot-del { color: var(--faint); }
+.slot-del:hover { color: var(--bad); }
+.slot-card.empty { align-items: center; justify-content: center; text-align: center; gap: 4px; cursor: pointer; font: inherit; color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 55%, transparent); border: 1px dashed var(--border-strong); box-shadow: none; transition: border-color 0.15s, color 0.15s; }
+.slot-card.empty:hover { border-color: var(--accent); color: var(--text); }
+.slot-card.empty b { font-family: var(--font-title); font-weight: 600; }
+.slot-empty-ico { color: var(--accent); opacity: 0.7; }
+.slot-pick { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 0.857rem; }
+.slot-pick .chip { display: inline-flex; align-items: baseline; gap: 6px; cursor: pointer; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--panel-2); color: var(--text); font-weight: 700; }
+.slot-pick .chip small { font-weight: 400; color: var(--muted); max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.slot-pick .chip.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--panel-2)); }
+.slot-pick .chip.taken small { color: var(--warn); }
+@media (max-width: 800px) { .slots { grid-template-columns: minmax(0, 1fr); } }
+:root[data-effects='reduced'] .slot-card { animation: none; }
+.slot-card { padding: 14px 12px 10px; gap: 6px; }
+.slot-actions .btn.primary { padding-top: 5px; padding-bottom: 5px; }
+.slots { margin-bottom: 6px; }
+.slots { margin-bottom: 18px; }

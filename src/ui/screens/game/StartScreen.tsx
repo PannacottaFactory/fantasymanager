@@ -1,13 +1,10 @@
-import { weekText } from '../../season.ts';
-import { CrestEditor, StableCrest } from '../../components/TeamCrest.tsx';
+import { CrestEditor, CrestShield } from '../../components/TeamCrest.tsx';
 import { defaultCrest } from '../../../engine/team/crest.ts';
 import type { TeamCrest } from '../../../data/crest.ts';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DIFFICULTY_IDS, type DifficultyId } from '../../../data/config/identity.ts';
 import { Rng } from '../../../core/rng.ts';
 import { generateTeamName } from '../../../engine/creature/names.ts';
-import { divisionOf } from '../../../engine/league/divisions.ts';
-import { playerTeam, standings } from '../../../engine/league/season.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { randomSeed } from '../../format.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../../icons/gameIcons.ts';
@@ -15,6 +12,65 @@ import { divName } from '../../competitions.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { useTutorial } from '../../tutorial/tutorial.ts';
+import { SLOTS, type SlotId, type SlotMeta } from '../../store/saves.ts';
+import type { Translator } from '../../i18n/index.ts';
+
+function slotWeek(tr: Translator, m: SlotMeta): string {
+  const { t } = tr;
+  const w = m.week === 0 ? t('week.pre') : m.week > m.weeks ? t('week.over') : t('week.of', { d: m.week, n: m.weeks });
+  return t('start.seasonWeek', { s: m.season, w });
+}
+
+/** One save slot: the game in it (continue / load / delete) or a free place. */
+function SlotCard({ n, slot, meta, playing, onNew }: { n: number; slot: SlotId; meta: SlotMeta | null; playing: boolean; onNew: () => void }) {
+  const tr = useT();
+  const { t, lang } = tr;
+  const { loadSlot, deleteSlot, setScreen } = useGame.getState();
+  if (!meta)
+    return (
+      <button className="slot-card empty" onClick={onNew}>
+        <span className="slot-n">{t('start.slot', { n })}</span>
+        <span className="slot-empty-ico">
+          <UiIcon name="new-game" size="1.5em" />
+        </span>
+        <b>{t('start.empty')}</b>
+        <small className="muted">{t('start.emptyHint')}</small>
+      </button>
+    );
+  const date = meta.savedAt ? new Date(meta.savedAt).toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+  return (
+    <div className={`slot-card ${playing ? 'playing' : ''}`}>
+      <span className="slot-n">
+        {t('start.slot', { n })}
+        {playing && <em>{t('start.playing')}</em>}
+      </span>
+      <div className="slot-main">
+        <CrestShield crest={meta.crest ?? defaultCrest(meta.teamId)} size={44} title={meta.teamName} />
+        <div className="slot-text">
+          <b>{meta.teamName}</b>
+          <span className="muted">{slotWeek(tr, meta)}</span>
+          <span className="muted">
+            {divName(t, meta.division)} · {meta.position > 0 ? tr.ordinal(meta.position) : '—'} · {t(`diff.${meta.difficulty}`)}
+          </span>
+          {date && <small className="faint">{t('start.savedAt', { date })}</small>}
+        </div>
+      </div>
+      <div className="slot-actions">
+        <button className="btn primary" onClick={() => (playing ? setScreen('dashboard') : void loadSlot(slot))}>
+          {playing ? t('start.resume') : t('start.load')} ▶
+        </button>
+        <button
+          className="btn small ghost slot-del"
+          title={t('start.delete')}
+          aria-label={t('start.delete')}
+          onClick={() => window.confirm(t('start.deleteConfirm', { team: meta.teamName })) && void deleteSlot(slot)}
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
 
 
 /** Shown when no game is loaded, or from the "new game" button: continue the save, or start a new game. */
@@ -22,7 +78,16 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   const tr = useT();
   const { t, lang } = tr;
   const game = useGame((s) => s.game);
-  const { newGame, setScreen } = useGame.getState();
+  const slots = useGame((s) => s.slots);
+  const current = useGame((s) => s.slot);
+  const { newGame, setScreen, refreshSlots } = useGame.getState();
+  useEffect(() => {
+    void refreshSlots();
+  }, [refreshSlots]);
+  // Where the new game goes: the first free slot, otherwise the one in play.
+  const firstFree = slots ? SLOTS.find((x) => !slots[x]) : undefined;
+  const [target, setTarget] = useState<SlotId | null>(null);
+  const into = target ?? firstFree ?? current;
   const suggested = useMemo(() => generateTeamName(new Rng(randomSeed()), lang), [lang]);
   const [name, setName] = useState('');
   const [seed, setSeed] = useState(randomSeed);
@@ -33,15 +98,14 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   const [crest, setCrest] = useState<TeamCrest>(() => defaultCrest(randomSeed()));
 
   const start = () => {
-    if (game && !window.confirm(t('start.overwrite'))) return;
+    const taken = slots?.[into];
+    if (taken && !window.confirm(t('start.overwriteSlot', { team: taken.teamName, n: SLOTS.indexOf(into) + 1 }))) return;
     if (tips) tutorial.restart();
     else tutorial.setEnabled(false);
-    newGame(name.trim() || suggested, seed, difficulty, crest);
+    newGame(name.trim() || suggested, seed, difficulty, crest, into);
     onCreated?.();
   };
-
-  const saved = game ? playerTeam(game) : null;
-  const pos = game && saved ? standings(game, divisionOf(game, saved.id)).findIndex((r) => r.teamId === saved.id) + 1 : 0;
+  const anySaved = !!slots && SLOTS.some((x) => slots[x]);
 
   return (
     <div className="start">
@@ -58,20 +122,11 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
         <p className="start-tagline">{t('start.intro')}</p>
       </header>
 
-      {game && saved && !onCancel && (
-        <section className="panel start-card continue-card">
-          <div className="start-card-tag">{t('start.continueTag')}</div>
-          <StableCrest team={saved} size={48} />
-          <div className="grow">
-            <h2>{saved.name}</h2>
-            <div className="muted">
-              {t('dash.season', { s: game.season, w: weekText(t, game) })} · {divName(t, divisionOf(game, saved.id))} · {tr.ordinal(pos)} ·{' '}
-              {t(`diff.${game.difficulty ?? 'normal'}`)}
-            </div>
-          </div>
-          <button className="btn primary big-btn" onClick={() => setScreen('dashboard')}>
-            {t('start.resume')} ▶
-          </button>
+      {anySaved && !onCancel && (
+        <section className="slots" aria-label={t('start.slots')}>
+          {SLOTS.map((x, i) => (
+            <SlotCard key={x} n={i + 1} slot={x} meta={slots![x]} playing={!!game && x === current} onNew={() => setTarget(x)} />
+          ))}
         </section>
       )}
 
@@ -81,7 +136,25 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
           <h2 className="row" style={{ gap: 8 }}>
             <UiIcon name="new-game" size="1.1em" /> {t('start.new')}
           </h2>
-          {game && <span className="new-warning">{t('start.replaceWarning')}</span>}
+          {slots && (
+            <span className="slot-pick" role="radiogroup" aria-label={t('start.saveIn')}>
+              <span className="muted">{t('start.saveIn')}</span>
+              {SLOTS.map((x, i) => (
+                <button
+                  key={x}
+                  role="radio"
+                  aria-checked={x === into}
+                  className={`chip ${x === into ? 'on' : ''} ${slots[x] ? 'taken' : ''}`}
+                  title={slots[x] ? t('start.slotReplace', { team: slots[x]!.teamName }) : t('start.slotFree')}
+                  onClick={() => setTarget(x)}
+                >
+                  {i + 1}
+                  <small>{slots[x] ? slots[x]!.teamName : t('start.slotFree')}</small>
+                </button>
+              ))}
+            </span>
+          )}
+          {slots?.[into] && <span className="new-warning">{t('start.slotReplace', { team: slots[into]!.teamName })}</span>}
         </div>
         <div className="new-grid">
           <div className="new-col">
@@ -130,7 +203,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
               </label>
             )}
             <div className="row wrap start-actions" style={{ gap: 10 }}>
-              <button className={`btn ${game && !onCancel ? '' : 'primary'} big-btn`} onClick={start}>
+              <button className={`btn ${anySaved && !onCancel ? '' : 'primary'} big-btn`} onClick={start}>
                 {t('start.begin')}
               </button>
               {onCancel && (

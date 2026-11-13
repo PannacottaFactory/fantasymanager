@@ -13,7 +13,7 @@ import type { Team } from '../../engine/model.ts';
 import { repairTactic } from '../../engine/team/team.ts';
 import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
-import { loadGame, saveGame } from './saves.ts';
+import { currentSlot, deleteGame, listSlots, loadGame, saveGame, setCurrentSlot, type SlotId, type SlotMeta } from './saves.ts';
 import { completedWeek } from '../season.ts';
 
 export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
@@ -44,7 +44,7 @@ interface GameStore {
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
-  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest) => void;
+  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId) => void;
   setScreen: (s: Screen) => void;
   setPlayerTeam: (team: Team) => void;
   autoPick: () => void;
@@ -65,6 +65,17 @@ interface GameStore {
   sheet: string | null;
   /** Just opened with a saved game: the start screen offers to continue it or start a new one. */
   launch: boolean;
+  /** Back to the start screen (save slots, new game) from a game. */
+  openLaunch: () => void;
+  /** Save slot of the game in play (it autosaves there). */
+  slot: SlotId;
+  /** Summaries of the save slots (null until listed). */
+  slots: Record<SlotId, SlotMeta | null> | null;
+  refreshSlots: () => Promise<void>;
+  /** Loads the game saved in a slot and plays it. */
+  loadSlot: (slot: SlotId) => Promise<void>;
+  /** Deletes a slot (the game in play is closed if it was that one). */
+  deleteSlot: (slot: SlotId) => Promise<void>;
   /** Welcome window of a new game (not saved: shown once, right after the game is created). */
   intro: boolean;
   closeIntro: () => void;
@@ -87,7 +98,7 @@ export const useGame = create<GameStore>()((set, get) => {
   /** Replaces the game state and saves it (errors are surfaced, never thrown). */
   const commit = (game: GameState) => {
     set({ game });
-    saveGame(game).then(
+    saveGame(game, get().slot).then(
       () => get().saveError && set({ saveError: false }),
       () => set({ saveError: true }),
     );
@@ -114,16 +125,47 @@ export const useGame = create<GameStore>()((set, get) => {
     replaying: null,
     saveError: false,
     playerControls: true,
+    slot: currentSlot(),
+    slots: null,
 
     init: async () => {
-      const game = await loadGame();
-      set({ game, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game, weekStart: game });
+      const slot = currentSlot();
+      const game = await loadGame(slot);
+      set({ game, slot, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game, weekStart: game });
+      void get().refreshSlots();
     },
 
-    newGame: (teamName, seed, difficulty, crest) => {
+    newGame: (teamName, seed, difficulty, crest, slot) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest });
-      set({ match: null, viewing: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null });
+      const target = slot ?? get().slot;
+      setCurrentSlot(target);
+      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, sheet: null });
       commit(game);
+      void get().refreshSlots();
+    },
+
+    openLaunch: () => {
+      set({ launch: true, viewing: null, sheet: null });
+      void get().refreshSlots();
+    },
+    refreshSlots: async () => {
+      try {
+        set({ slots: await listSlots() });
+      } catch {
+        set({ slots: null });
+      }
+    },
+    loadSlot: async (slot) => {
+      // Leaving the game in play: it is already saved in its own slot.
+      const game = await loadGame(slot);
+      if (!game) return;
+      setCurrentSlot(slot);
+      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, sheet: null });
+    },
+    deleteSlot: async (slot) => {
+      await deleteGame(slot);
+      if (slot === get().slot) set({ game: null, match: null, viewing: null, replaying: null, recap: null, sheet: null, weekStart: null });
+      await get().refreshSlots();
     },
 
     setScreen: (screen) => set({ screen, viewing: null, launch: false }),
