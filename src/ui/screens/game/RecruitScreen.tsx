@@ -5,7 +5,7 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { recallScout, sendScout } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { locate, signingBonus, transferOffers } from '../../../engine/economy/market.ts';
-import { estimatedValue, knowledgeOf, overallRange, potentialLevel } from '../../../engine/economy/scouting.ts';
+import { estimatedBestRole, estimatedValue, knowledgeOf, overallRange, potentialLevel } from '../../../engine/economy/scouting.ts';
 import { askingWage } from '../../../engine/economy/value.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -16,7 +16,7 @@ import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
-import { SpeciesIcon } from '../../icons/Icon.tsx';
+import { RoleLabel, SpeciesIcon } from '../../icons/Icon.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
 
 type Tab = 'free' | 'stables' | 'scouts';
@@ -29,7 +29,7 @@ const readView = (): View => {
     return 'cards';
   }
 };
-const CARD_SORTS = ['value', 'ovr', 'pot', 'age', 'wage'] as const;
+const CARD_SORTS = ['value', 'ovr', 'pot', 'role', 'age', 'wage'] as const;
 
 interface Row {
   c: Creature;
@@ -79,6 +79,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
   ];
   if (!free) cols.push({ key: 'team', label: t('col.team'), sort: (r) => r.team ?? '', render: (r) => <span className="muted">{r.team}</span> });
   cols.push(
+    { key: 'role', label: t('col.bestRole'), sort: (r) => estimatedBestRole(r.c, r.k), render: (r) => <RoleLabel role={estimatedBestRole(r.c, r.k)} /> },
     { key: 'age', label: t('col.age'), num: true, sort: (r) => r.c.age, render: (r) => r.c.age },
     {
       key: 'ovr',
@@ -209,6 +210,9 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
                 </span>
               </div>
               <div className="rc-mid">
+                <span className="rc-role" title={t('col.bestRole')}>
+                  <RoleLabel role={estimatedBestRole(r.c, r.k)} />
+                </span>
                 <PotentialStars c={r.c} k={r.k} />
                 <span className="rc-known" title={t('col.known.title')}>
                   {scouting && <UiIcon name="scout" />}

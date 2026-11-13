@@ -59,7 +59,7 @@ export function TrainingScreen() {
   const game = useGame((s) => s.game)!;
   const { update, openSheet, setScreen } = useGame.getState();
   const team = playerTeam(game);
-  const [allProgram, setAllProgram] = useState<ProgramId>('balanced');
+  const [allProgram, setAllProgram] = useState<ProgramId>('role');
   const [allIntensity, setAllIntensity] = useState<IntensityId>('normal');
   const staff = game.staff[team.id] ?? {};
 

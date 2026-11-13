@@ -8,7 +8,8 @@ import { clamp } from '../../core/math.ts';
 import { hashString } from '../../core/rng.ts';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '../../data/attributes.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
-import { overallRating } from '../creature/derived.ts';
+import { bestRole, overallRating } from '../creature/derived.ts';
+import type { RoleId } from '../../data/schema.ts';
 import type { GameState } from '../league/types.ts';
 import type { Creature } from '../model.ts';
 import { creatureValue, roundTo } from './value.ts';
@@ -92,6 +93,14 @@ export function allAttributeRanges(c: Creature, knowledge: number, cfg: GameConf
   const out = {} as Record<AttributeKey, Range>;
   for (const k of ATTRIBUTE_KEYS) out[k] = attributeRange(c, k, knowledge, cfg);
   return out;
+}
+
+/** Best role as the player can judge it: from the middle of each attribute range (the truth at full knowledge). */
+export function estimatedBestRole(c: Creature, knowledge: number, cfg: GameConfig = DEFAULT_CONFIG): RoleId {
+  const ranges = allAttributeRanges(c, knowledge, cfg);
+  const attributes = { ...c.attributes };
+  for (const k of ATTRIBUTE_KEYS) attributes[k] = (ranges[k].low + ranges[k].high) / 2;
+  return bestRole({ ...c, attributes });
 }
 
 /** Raises knowledge of a creature (never lowers it). Mutates. */
