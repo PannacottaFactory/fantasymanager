@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
+import { ELEMENTS } from '../../../data/elements.ts';
+import { SPECIES } from '../../../data/species.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { recallScout, sendScout } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
@@ -132,6 +134,13 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
 }
 
 /** Compact cards: crest, species, overall, potential, price, knowledge and the action — sorted like the table. */
+/** Colour of a species' first / second element (card art). */
+function colorOf(speciesId: string, i: 0 | 1): string {
+  const els = SPECIES[speciesId]?.elements ?? [];
+  const e = els[i] ?? els[0];
+  return e ? ELEMENTS[e].color : '#8a7a62';
+}
+
 function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Column<Row>[]; free: boolean; game: GameState }) {
   const tr = useT();
   const { t, lang } = tr;
@@ -169,53 +178,69 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
           const o = overallRange(r.c, r.k);
           const scouting = game.scouting.missions.some((m) => m.targetId === r.c.id);
           return (
-            <div key={r.c.id} className="recruit-card" onClick={() => openSheet(r.c.id)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && openSheet(r.c.id)}>
+            <div
+              key={r.c.id}
+              className="recruit-card"
+              style={{ '--c1': colorOf(r.c.speciesId, 0), '--c2': colorOf(r.c.speciesId, 1) } as CSSProperties}
+              onClick={() => openSheet(r.c.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && openSheet(r.c.id)}
+            >
               {isNew(game, r) && <NewBadge />}
-              <div className="rc-head">
-                <Crest speciesId={r.c.speciesId} name={r.c.name} size={30} />
+              <div className="rc-top">
+                <span className="rc-medal">
+                  <SpeciesIcon id={r.c.speciesId} size="1.9em" />
+                </span>
                 <div className="rc-who">
                   <b title={r.c.name}>{r.c.name}</b>
-                  <span className="faint">
-                    <SpeciesIcon id={r.c.speciesId} size="1em" /> {speciesName(r.c.speciesId, lang)} <ElementDots speciesId={r.c.speciesId} /> · {t('sheet.age', { age: r.c.age })}
+                  <span className="rc-species">
+                    <span className="ellipsis">{speciesName(r.c.speciesId, lang)}</span>
+                    <span className="rc-dots">
+                      <ElementDots speciesId={r.c.speciesId} />
+                    </span>
+                    <span className="rc-age">· {t('sheet.age', { age: r.c.age })}</span>
                   </span>
+                  {!free && r.team && <span className="rc-team">{r.team}</span>}
                 </div>
                 <span className="rc-ovr" title={t('col.ovr.title')}>
-                  {o.low === o.high ? o.low : `${o.low}–${o.high}`}
+                  <b>{o.low === o.high ? o.low : `${o.low}–${o.high}`}</b>
+                  <small>{t('col.ovr')}</small>
                 </span>
               </div>
-              {!free && r.team && <div className="faint rc-team">{r.team}</div>}
-              <div className="rc-row">
+              <div className="rc-mid">
                 <PotentialStars c={r.c} k={r.k} />
-                <span title={t('col.known.title')} className="row" style={{ gap: 4 }}>
+                <span className="rc-known" title={t('col.known.title')}>
                   {scouting && <UiIcon name="scout" />}
+                  <small>{t('col.known')}</small>
                   <Knowledge k={r.k} />
                 </span>
-                <span className="spacer" />
-                <button
-                  className="btn small rc-act"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openSheet(r.c.id);
-                  }}
-                >
-                  {free ? t('act.sign') : t('act.offer')}
-                </button>
               </div>
-              <div className="rc-row rc-money">
+              <div className={`rc-stats ${free ? 'three' : ''}`}>
                 <span title={t('col.value.title')}>
-                  <Money v={estimatedValue(r.c, r.k)} compact />
+                  <small>{t('col.value')}</small>
+                  <b><Money v={estimatedValue(r.c, r.k)} compact /></b>
                 </span>
                 {free && (
-                  <span className="faint" title={t('col.bonus.title')}>
-                    {t('col.bonus')} <Money v={signingBonus(r.c)} compact />
+                  <span title={t('col.bonus.title')}>
+                    <small>{t('col.bonus')}</small>
+                    <b><Money v={signingBonus(r.c)} compact /></b>
                   </span>
                 )}
-                <span className="spacer" />
-                <span className="faint" title={t('col.wage.title')}>
-                  <Money v={askingWage(r.c, rep)} />
-                  {t('recruit.perWeek')}
+                <span title={t('col.wage.title')}>
+                  <small>{t('col.wage')}{t('recruit.perWeek')}</small>
+                  <b><Money v={askingWage(r.c, rep)} compact /></b>
                 </span>
               </div>
+              <button
+                className="btn rc-act"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openSheet(r.c.id);
+                }}
+              >
+                {free ? t('act.sign') : t('act.offer')}
+              </button>
             </div>
           );
         })}

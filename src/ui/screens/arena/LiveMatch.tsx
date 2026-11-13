@@ -10,7 +10,7 @@ import { SPECIES } from '../../../data/species.ts';
 import { Bar, Seg, useCountUp } from '../../components/common.tsx';
 import { hpColor } from '../../format.ts';
 import { CreatureModal } from './CreatureModal.tsx';
-import { useT } from '../../i18n/index.ts';
+import { effectsOn, useT } from '../../i18n/index.ts';
 import { BreakPanel } from './BreakPanel.tsx';
 import { addEventFx, emptyFx, lineTone, reducedMotion, type FxBatch, type LineTone } from './matchFx.ts';
 import { Projectiles } from './Projectiles.tsx';
@@ -304,11 +304,46 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
     );
   };
   const m = DEFAULT_CONFIG.match;
+  // The line-ups deal in during the first second only (so later card animations are left alone).
+  const [dealing, setDealing] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setDealing(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+  // Title cards (display only): start of the fight, back from each break, the final round, the break, the result.
+  const stage: { key: string; title: string; sub?: string; tone?: string; long?: boolean } | null =
+    speed === 'instant' || !effectsOn()
+      ? null
+      : ended && outcome
+        ? {
+            key: 'end',
+            title: outcome.winner === 0 ? t('live.victory') : t('live.defeat'),
+            sub: outcome.method === 'ko' ? t('live.byKo', { n: outcome.rounds }) : t('live.onPoints', { a: Math.round(outcome.score[0]), b: Math.round(outcome.score[1]) }),
+            tone: outcome.winner === 0 ? 'win' : 'loss',
+            long: true,
+          }
+        : atBreak
+          ? { key: `break-${view.round}`, title: t('live.stage.break'), sub: t('live.stage.breakSub', { n: view.round }), tone: 'break' }
+          : view.round === 1
+            ? { key: 'r1', title: t('live.round', { n: 1 }), sub: t('live.stage.first') }
+            : view.round === m.maxRounds
+              ? { key: 'last', title: t('live.stage.last'), sub: t('live.round', { n: view.round }), tone: 'last' }
+              : (m.breakRounds as readonly number[]).includes(view.round - 1)
+                ? { key: `r${view.round}`, title: t('live.round', { n: view.round }), sub: t('live.stage.after') }
+                : null;
 
   return (
     <>
       <Projectiles shots={fx.shots} bursts={fx.bursts} flight={FLIGHT[speed]} />
-      <div className="live">
+      <div className={`live ${dealing ? 'dealing' : ''}`}>
+        {stage && (
+          <div key={stage.key} className={`stage-card ${stage.tone ?? ''} ${stage.long ? 'long' : ''}`} aria-hidden="true">
+            <span className="stage-rule" />
+            <b>{stage.title}</b>
+            {stage.sub && <small>{stage.sub}</small>}
+            <span className="stage-rule" />
+          </div>
+        )}
         <Scoreboard side={0} name={setup.teams[0].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} />
         <section className="panel">
           <div className="round-banner">

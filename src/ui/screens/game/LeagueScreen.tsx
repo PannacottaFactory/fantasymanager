@@ -13,7 +13,7 @@ import { registerTournament, registrationState, tournamentDef, tournamentPrize }
 import type { Fixture, GameState, Tournament } from '../../../engine/league/types.ts';
 import { compName, divName, roundKey } from '../../competitions.ts';
 import { CompIcon, DivIcon, UiIcon } from '../../icons/Icon.tsx';
-import { byWeek, itemLabel, playerSeason } from '../../season.ts';
+import { byWeek, itemLabel, playerSeason, type SeasonItem } from '../../season.ts';
 import { ReputationLine } from '../../components/Reputation.tsx';
 import { Gold, Money, Seg } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
@@ -197,21 +197,19 @@ function Standings({ game, division }: { game: GameState; division: number }) {
               const moved = prevPos(r.teamId) ? prevPos(r.teamId) - (i + 1) : 0;
               return (
                 <tr key={r.teamId} className={`${r.teamId === game.playerTeamId ? 'mine' : ''} ${zone}`}>
-                  <td className="num">
-                    <span className="pos-badge">{i + 1}</span>
-                  </td>
+                  <td className="num pos">{i + 1}</td>
                   <td className={`moved ${moved > 0 ? 'good-text' : moved < 0 ? 'bad-text' : 'faint'}`}>{moved > 0 ? `▲${moved}` : moved < 0 ? `▼${-moved}` : '·'}</td>
                   <td>
                     <span className="team-cell">
-                      <StableCrest team={teamById(game, r.teamId)} size={18} /> {teamById(game, r.teamId).name}
+                      <StableCrest team={teamById(game, r.teamId)} size={22} /> <span className="ellipsis">{teamById(game, r.teamId).name}</span>
                     </span>
                   </td>
                   <td className="num">{r.played}</td>
-                  <td className="num">{r.koWins}</td>
-                  <td className="num">{r.pointsWins}</td>
-                  <td className="num">{r.pointsLosses}</td>
-                  <td className="num">{r.koLosses}</td>
-                  <td className="num">{diff > 0 ? `+${diff}` : diff}</td>
+                  <td className="num sub">{r.koWins}</td>
+                  <td className="num sub">{r.pointsWins}</td>
+                  <td className="num sub">{r.pointsLosses}</td>
+                  <td className="num sub">{r.koLosses}</td>
+                  <td className={`num sub ${diff > 0 ? 'good-text' : diff < 0 ? 'bad-text' : ''}`}>{diff > 0 ? `+${diff}` : diff}</td>
                   <td>
                     <FormDots form={r.form} />
                   </td>
@@ -239,9 +237,27 @@ function FixtureRow({ game, f }: { game: GameState; f: Fixture }) {
   const cls = (side: 0 | 1) => (r ? (r.winner === side ? 'winner' : 'loser') : '');
   return (
     <tr className={mine ? 'mine' : ''}>
-      <td className={`right ${cls(0)}`}>{teamById(game, f.home).name}</td>
-      <td className="score">{r ? `${r.score[0]} – ${r.score[1]}` : <span className="faint">{t('league.upcoming')}</span>}</td>
-      <td className={cls(1)}>{teamById(game, f.away).name}</td>
+      <td className={`right ${cls(0)}`}>
+        <span className="fx-team home">
+          <span className="ellipsis">{teamById(game, f.home).name}</span> <StableCrest team={teamById(game, f.home)} size={20} />
+        </span>
+      </td>
+      <td className="score">
+        {r ? (
+          <span className="score-pill">
+            {r.score[0]}
+            <i>–</i>
+            {r.score[1]}
+          </span>
+        ) : (
+          <span className="score-pill todo">{t('league.upcoming')}</span>
+        )}
+      </td>
+      <td className={cls(1)}>
+        <span className="fx-team">
+          <StableCrest team={teamById(game, f.away)} size={20} /> <span className="ellipsis">{teamById(game, f.away).name}</span>
+        </span>
+      </td>
       <td className="faint" style={{ fontSize: '0.857rem' }}>
         {r ? (r.method === 'ko' ? t('league.koRound', { n: r.rounds }) : t('league.pts')) : ''}
       </td>
@@ -469,114 +485,127 @@ function CompCard({ game, v }: { game: GameState; v: CompView }) {
   );
 }
 
-function CompRow({ game, v }: { game: GameState; v: CompView }) {
+/** Where the player stands in a competition (for grouping): still in, can register, or the rest. */
+function compGroup(game: GameState, v: CompView): 'alive' | 'entry' | 'other' {
+  const me = game.playerTeamId;
+  if (!v.winner && v.entrants.includes(me) && v.alive.includes(me)) return 'alive';
+  const reg = v.tournament ? registrationState(game, v.tournament) : null;
+  if (!v.winner && (reg === 'ok' || reg === 'money' || reg === 'reputation')) return 'entry';
+  return 'other';
+}
+
+/** One competition on one line: name + where it stands, status, your tie or the field, trophy, actions. */
+function CompLine({ game, v }: { game: GameState; v: CompView }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const c = useCompInfo(game, v);
+  const oppId = (() => {
+    const tie = v.fixtures.find((f) => !f.result && f.round === v.round && (f.home === c.me || f.away === c.me));
+    return tie ? (tie.home === c.me ? tie.away : tie.home) : undefined;
+  })();
   return (
-    <>
-      <tr className={`comp-row comp-${c.status.tone} def-${v.def}`}>
-        <td>
-          <span className="comp-row-name">
-            <span className="comp-icon-sm">
-              <CompIcon def={v.def} />
+    <div className={`cl comp-${c.status.tone} def-${v.def}`}>
+      <div className="cl-main">
+        <span className="cl-icon">
+          <CompIcon def={v.def} />
+        </span>
+        <span className="cl-name">
+          <b title={c.desc}>{c.name}</b>
+          <small className="faint">
+            {v.winner ? c.field : c.nextRound ? `${c.nextRound} · ${c.nextWhen}` : c.desc}
+          </small>
+        </span>
+      </div>
+      <div className="cl-status">
+        <span className={`comp-chip ${c.status.tone}`} title={c.status.text}>
+          {c.status.text}
+        </span>
+      </div>
+      <div className="cl-info">
+        {oppId ? (
+          <span className="cl-opp">
+            <small className="faint">{t('comp.col.match')}</small>
+            <span className="team-cell">
+              <StableCrest team={teamById(game, oppId)} size={18} /> <span className="ellipsis">{teamById(game, oppId).name}</span>
             </span>
-            <b>{c.name}</b>
           </span>
-          <span className="comp-row-desc faint">
-            <Gold>{c.desc}</Gold>
+        ) : v.def === 'champions' && !c.inIt && !v.winner ? (
+          <small className="faint">{t('comp.req.champions')}</small>
+        ) : !v.winner ? (
+          <span className="cl-field">
+            <span>{c.field}</span>
+            {c.favText && <small className="faint">{c.favText}</small>}
           </span>
-        </td>
-        <td>
-          <span className={`comp-chip ${c.status.tone}`}>{c.status.text}</span>
-          {v.def === 'champions' && !c.inIt && <span className="faint comp-req">{t('comp.req.champions')}</span>}
-        </td>
-        <td>
-          {v.winner ? (
-            <b className="gold">{c.field}</b>
-          ) : (
-            <>
-              <span>{c.field}</span>
-              {c.favText && (
-                <span className="comp-sub faint" title={t('comp.favourite.title')}>
-                  {c.favText}
-                </span>
-              )}
-            </>
-          )}
-        </td>
-        <td>
-          {c.nextRound ? (
-            <>
-              <span>{c.nextRound}</span>
-              <span className="comp-sub faint">
-                {c.nextWhen} · {c.roundText}
-              </span>
-            </>
-          ) : (
-            <span className="faint">—</span>
-          )}
-        </td>
-        <td>{c.opp ?? <span className="faint">—</span>}</td>
-        <td className="num">
-          <Money v={v.trophy} />
-        </td>
-        <td className="right">
-          <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
-            {c.registerButton}
-            {v.fixtures.length > 0 && (
-              <button className="link" onClick={() => setOpen((x) => !x)}>
-                {open ? t('comp.hideBracket') : t('comp.bracket')}
-              </button>
-            )}
-          </span>
-          {c.note && (
-            <div className="muted" style={{ fontSize: '0.786rem' }}>
-              {c.note}
-            </div>
-          )}
-        </td>
-      </tr>
+        ) : null}
+      </div>
+      <div className="cl-prize" title={t('comp.col.trophy')}>
+        <Money v={v.trophy} />
+      </div>
+      <div className="cl-act">
+        {c.registerButton}
+        {v.fixtures.length > 0 && (
+          <button className="btn small ghost" onClick={() => setOpen((x) => !x)}>
+            {open ? t('comp.hideBracket') : t('comp.bracket')}
+          </button>
+        )}
+      </div>
+      {c.note && <div className="cl-note muted">{c.note}</div>}
       {open && (
-        <tr className="comp-row-bracket">
-          <td colSpan={7}>
-            <Bracket game={game} v={v} />
-          </td>
-        </tr>
+        <div className="cl-bracket">
+          <Bracket game={game} v={v} />
+        </div>
       )}
-    </>
+    </div>
   );
 }
 
 function CompTable({ game, list }: { game: GameState; list: CompView[] }) {
   const { t } = useT();
+  const groups = (['alive', 'entry', 'other'] as const).map((g) => ({ g, items: list.filter((v) => compGroup(game, v) === g) })).filter((x) => x.items.length);
   return (
-    <section className="panel">
-      <div className="table-wrap">
-        <table className="data comp-list">
-          <thead>
-            <tr>
-              <th>{t('comp.col.name')}</th>
-              <th>{t('comp.col.status')}</th>
-              <th>{t('comp.col.field')}</th>
-              <th>{t('comp.col.next')}</th>
-              <th>{t('comp.col.match')}</th>
-              <th className="num">{t('comp.col.trophy')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((v) => (
-              <CompRow key={v.id} game={game} v={v} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <section className="panel comp-lines">
+      {groups.map(({ g, items }) => (
+        <div key={g} className={`cl-group cl-${g}`}>
+          <h4 className="cl-group-head">
+            {t(`comp.group.${g}` as StringKey)} <span className="faint">{items.length}</span>
+          </h4>
+          {items.map((v) => (
+            <CompLine key={v.id} game={game} v={v} />
+          ))}
+        </div>
+      ))}
     </section>
   );
 }
 
-/** The season as a calendar: a tile per week, results of the past weeks, opponents of the coming ones. */
+/** One match of the season in a cell: competition icon, opponent, result or « next ». */
+function SeasonCell({ game, x, next }: { game: GameState; x: SeasonItem; next: boolean }) {
+  const { t } = useT();
+  const opp = x.oppId ? teamById(game, x.oppId) : null;
+  return (
+    <div className={`sm def-${x.def} ${x.played ? x.outcome : x.maybe ? 'maybe' : 'todo'} ${next ? 'next' : ''}`} title={itemLabel(t, x)}>
+      <span className="sm-comp">{x.league ? <DivIcon d={x.division ?? 0} /> : <CompIcon def={x.def} />}</span>
+      {x.league ? null : <span className="sm-round">{t(roundKey(x.round ?? 0, x.rounds ?? 1))}</span>}
+      {opp ? (
+        <span className="sm-opp">
+          <StableCrest team={opp} size={18} />
+          <span className="ellipsis">{opp.name}</span>
+        </span>
+      ) : (
+        <span className="sm-opp faint">{x.maybe ? t('cal.ifThrough') : t('cal.tbd')}</span>
+      )}
+      {x.played && x.score ? (
+        <span className={`sm-res ${x.outcome}`}>
+          {t(x.outcome === 'win' ? 'cal.w' : 'cal.l')} {x.score[0]}–{x.score[1]}
+        </span>
+      ) : next ? (
+        <span className="sm-res next">{t('cal.next')}</span>
+      ) : null}
+    </div>
+  );
+}
+
+/** The season: the matches coming next as a chain of cards, then every week (league | cups & tournaments). */
 function Schedule({ game }: { game: GameState }) {
   const { t } = useT();
   const items = playerSeason(game);
@@ -584,61 +613,65 @@ function Schedule({ game }: { game: GameState }) {
   const n = lastMatchday(game);
   const next = items.find((x) => !x.played && !x.maybe);
   const current = next ? next.week : n + 1;
+  const coming = items.filter((x) => !x.played).slice(0, 5);
+  const weekName = (w: number) => (w === 0 ? t('cal.before') : t('cal.week', { d: w }));
   return (
     <section className="panel schedule">
       <div className="panel-head">
-        <h3>{t('cal.title')}</h3>
-        <span className="spacer" />
-        <span className="cal-legend faint">
-          <i className="cal-dot win" /> {t('recap.win')} <i className="cal-dot loss" /> {t('recap.loss')} <i className="cal-dot todo" /> {t('ribbon.toPlay')}
-        </span>
+        <h3 className="grow">{t('cal.title')}</h3>
       </div>
-      <p className="muted" style={{ marginTop: 0, fontSize: '0.857rem' }}>
-        {t('cal.intro')}
-      </p>
-      <div className="cal-grid">
+      {coming.length > 0 && (
+        <ol className="chain">
+          {coming.map((x, i) => {
+            const opp = x.oppId ? teamById(game, x.oppId) : null;
+            return (
+              <li key={i} className={`chain-card def-${x.def} ${x === next ? 'next' : ''} ${x.maybe ? 'maybe' : ''}`}>
+                <span className="chain-when">
+                  {weekName(x.week)}
+                  {x === next && <b>{t('cal.next')}</b>}
+                </span>
+                <span className="chain-comp">
+                  {x.league ? <DivIcon d={x.division ?? 0} /> : <CompIcon def={x.def} />}
+                  <span className="ellipsis">{itemLabel(t, x)}</span>
+                </span>
+                <span className="chain-opp">
+                  {opp ? <StableCrest team={opp} size={34} /> : <span className="chain-unknown">?</span>}
+                  <span className="ellipsis">{opp ? opp.name : x.maybe ? t('cal.ifThrough') : t('cal.tbd')}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+      <p className="muted cal-intro">{t('cal.intro')}</p>
+      <div className="season-table" role="table">
+        <div className="st-row st-head" role="row">
+          <span role="columnheader" />
+          <span role="columnheader">{t('cal.matchday')}</span>
+          <span role="columnheader">{t('cal.comp')}</span>
+        </div>
         {Array.from({ length: n + 1 }, (_, w) => {
           const list = weeks.get(w) ?? [];
+          const league = list.filter((x) => x.league);
+          const comps = list.filter((x) => !x.league);
           const when = w < current ? 'past' : w === current ? 'now' : 'later';
+          const two = list.filter((x) => !x.maybe).length > 1;
           return (
-            <div key={w} className={`cal-tile ${when} ${list.length > 1 ? 'double' : ''}`}>
-              <div className="cal-tile-head">
-                <b>{w === 0 ? t('cal.before') : t('cal.week', { d: w })}</b>
-                {when === 'now' && <span className="cal-now">{t('cal.thisWeek')}</span>}
-                {list.length > 1 && when !== 'past' && <span className="cal-double">{t('cal.double')}</span>}
-              </div>
-              {list.length === 0 && <div className="faint cal-empty">—</div>}
-              {list.map((x, i) => {
-                const opp = x.oppId ? teamById(game, x.oppId) : null;
-                return (
-                  <div
-                    key={i}
-                    className={`cal-chip def-${x.def} ${x.played ? x.outcome : x.maybe ? 'maybe' : 'todo'} ${x === next ? 'next' : ''}`}
-                    title={`${itemLabel(t, x)}${x.opp ? ` · ${t('common.vs')} ${x.opp}` : ''}`}
-                  >
-                    <span className="cal-chip-comp">
-                      {x.league ? <DivIcon d={x.division ?? 0} /> : <CompIcon def={x.def} />}
-                      <small>{x.league ? t('cal.league') : itemLabel(t, x)}</small>
-                    </span>
-                    <span className="cal-chip-opp">
-                      {opp ? (
-                        <>
-                          <StableCrest team={opp} size={16} /> <span className="ellipsis">{opp.name}</span>
-                        </>
-                      ) : (
-                        <span className="faint">{x.maybe ? t('cal.ifThrough') : t('cal.tbd')}</span>
-                      )}
-                    </span>
-                    {x.played && x.score ? (
-                      <span className={`cal-res ${x.outcome}`}>
-                        {t(x.outcome === 'win' ? 'cal.w' : 'cal.l')} {x.score[0]}–{x.score[1]}
-                      </span>
-                    ) : x === next ? (
-                      <span className="cal-res next">{t('cal.next')}</span>
-                    ) : null}
-                  </div>
-                );
-              })}
+            <div key={w} className={`st-row ${when}`} role="row">
+              <span className="st-week" role="cell">
+                {w === 0 ? <small>{t('cal.before')}</small> : <b>{w}</b>}
+                {two && when !== 'past' && <i title={t('cal.double')}>×2</i>}
+              </span>
+              <span className="st-cell" role="cell">
+                {league.map((x, i) => (
+                  <SeasonCell key={i} game={game} x={x} next={x === next} />
+                ))}
+              </span>
+              <span className="st-cell" role="cell">
+                {comps.map((x, i) => (
+                  <SeasonCell key={i} game={game} x={x} next={x === next} />
+                ))}
+              </span>
             </div>
           );
         })}
@@ -737,15 +770,22 @@ function Honours({ game }: { game: GameState }) {
   const any = tiles.some((x) => x.n > 0);
   return (
     <div className="stack">
-      <section className="panel">
-        <h3>{t('honours.title')}</h3>
-        {!any && <p className="muted">{t('honours.empty')}</p>}
+      <section className="panel trophy-cabinet">
+        <div className="panel-head">
+          <h3 className="grow">{t('honours.title')}</h3>
+          <span className="muted">
+            {tiles.filter((x) => x.n > 0).length} / {tiles.length}
+          </span>
+        </div>
+        {!any && <p className="muted" style={{ marginTop: 0 }}>{t('honours.empty')}</p>}
         <div className="trophy-grid">
           {tiles.map((x) => (
             <div key={x.key} className={`trophy-tile ${x.n ? 'won' : ''}`} title={x.name}>
-              <span className="trophy-icon">{x.icon}</span>
+              <span className="trophy-medal">
+                <span className="trophy-icon">{x.icon}</span>
+                {x.n > 0 && <b className="trophy-n">×{x.n}</b>}
+              </span>
               <span className="trophy-name">{x.name}</span>
-              <b className="trophy-n">{x.n ? `×${x.n}` : '—'}</b>
             </div>
           ))}
         </div>
@@ -817,18 +857,28 @@ export function LeagueScreen() {
   }, [asked]);
   const [division, setDivision] = useState(playerDivision(game));
   return (
-    <div className="stack">
-      <div style={{ alignSelf: 'start' }}>
-        <Seg
-          value={tab}
-          onChange={setTab}
-          options={[
-            { value: 'table', label: <span className="tab-label"><DivIcon d={playerDivision(game)} /> {t('league.tab.table')}</span> },
-            { value: 'comps', label: <span className="tab-label"><UiIcon name="competitions" /> {t('league.tab.comps')}</span> },
-            { value: 'honours', label: <span className="tab-label"><UiIcon name="honours" /> {t('league.tab.honours')}</span> },
-          ]}
-        />
-      </div>
+    <div className="stack league">
+      <section className="panel page-head">
+        <h2 className="page-title">
+          <UiIcon name="nav-league" /> {t('nav.league')}
+        </h2>
+        <span className="muted page-sub">
+          {divName(t, playerDivision(game))} · {t('honours.season')} {game.season}
+        </span>
+        <nav className="page-tabs" role="tablist">
+          {(
+            [
+              ['table', <DivIcon key="i" d={playerDivision(game)} />, t('league.tab.table')],
+              ['comps', <UiIcon key="i" name="competitions" />, t('league.tab.comps')],
+              ['honours', <UiIcon key="i" name="honours" />, t('league.tab.honours')],
+            ] as const
+          ).map(([id, icon, label]) => (
+            <button key={id} role="tab" aria-selected={tab === id} className={`page-tab ${tab === id ? 'on' : ''}`} onClick={() => setTab(id)}>
+              {icon} {label}
+            </button>
+          ))}
+        </nav>
+      </section>
       {tab === 'table' && (
         <div className="league-layout">
           <div className="stack">

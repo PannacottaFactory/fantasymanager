@@ -42,7 +42,7 @@ function Side({ game, team, side, home }: { game: GameState; team: Team; side: 0
   return (
     <div className={`vs-side vs-${side === 0 ? 'home' : 'away'}`}>
       <div className="vs-crest">
-        <StableCrest team={team} size={104} />
+        <StableCrest team={team} size={72} />
       </div>
       <div className="vs-info">
         <h2 className="vs-name">{team.name}</h2>
@@ -72,7 +72,7 @@ function StarCard({ c, side, own }: { c?: Creature; side: 0 | 1; own: boolean })
   return (
     <div className={`vs-star vs-star-${side === 0 ? 'home' : 'away'}`}>
       <span className="vs-star-icon">
-        <SpeciesIcon id={c.speciesId} size="2.6em" />
+        <SpeciesIcon id={c.speciesId} size="1.9em" />
       </span>
       <span className="vs-star-text">
         <b>{c.name}</b>

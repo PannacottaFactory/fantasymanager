@@ -291,7 +291,6 @@ function Sheet({ id }: { id: string }) {
         </div>
       )}
       {own && <RelationsRow team={team!} creature={creature} />}
-      <CreatureRecordPanel creature={creature} />
       {own && <ContractPanel game={game} creature={creature} />}
       {!own && team && <BidPanel key={id} game={game} creature={creature} team={team} />}
       {!own && !team && <SignPanel key={id} game={game} creature={creature} />}
@@ -311,6 +310,7 @@ function Sheet({ id }: { id: string }) {
       onRename={own ? (name) => update((g) => renameCreature(g, id, name)) : undefined}
       extra={own ? undefined : extra}
       footer={footer}
+      aside={<CreatureRecordPanel creature={creature} />}
     />
   );
 }

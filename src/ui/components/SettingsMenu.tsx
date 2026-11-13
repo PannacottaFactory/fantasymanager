@@ -35,39 +35,59 @@ export function SettingsMenu() {
       </button>
       {open && (
         <div className="settings-pop" role="dialog" aria-label={t('settings.title')}>
-          <div className="settings-row">
-            <span>{t('settings.lang')}</span>
-            <div className="seg" role="radiogroup">
+          <div className="settings-head">
+            <UiIcon name="settings" size="1.1em" />
+            <b>{t('settings.title')}</b>
+          </div>
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.lang')}</span>
+            <div className="opt-seg" role="radiogroup">
               {LANGS.map((l) => (
                 <button key={l} className={l === lang ? 'on' : ''} onClick={() => setLang(l)} role="radio" aria-checked={l === lang}>
-                  {l.toUpperCase()}
+                  {l === 'fr' ? 'Français' : 'English'}
                 </button>
               ))}
             </div>
           </div>
-          <div className="settings-row">
-            <span>{t('settings.text')}</span>
-            <div className="seg" role="radiogroup">
-              {TEXT_SIZES.map((s) => (
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.text')}</span>
+            <div className="opt-seg text-sizes" role="radiogroup">
+              {TEXT_SIZES.map((s, i) => (
                 <button key={s} className={s === textSize ? 'on' : ''} onClick={() => setTextSize(s)} role="radio" aria-checked={s === textSize} title={t(`text.${s}` as StringKey)}>
-                  {t(`text.short.${s}` as StringKey)}
+                  <span className="ts-a" style={{ fontSize: `${0.9 + i * 0.22}rem` }}>A</span>
+                  <small>{t(`text.short.${s}` as StringKey)}</small>
                 </button>
               ))}
             </div>
           </div>
-          <div className="settings-row">
-            <span>{t('settings.effects')}</span>
-            <div className="seg" role="radiogroup">
-              {(['full', 'reduced'] as const).map((v) => (
-                <button key={v} className={v === effects ? 'on' : ''} onClick={() => setEffects(v)} role="radio" aria-checked={v === effects}>
-                  {t(v === 'full' ? 'settings.on' : 'settings.off')}
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.theme')}</span>
+            <div className="opt-seg themes" role="radiogroup">
+              {THEMES.map((th) => (
+                <button key={th} className={th === theme ? 'on' : ''} onClick={() => setTheme(th)} role="radio" aria-checked={th === theme} title={t(`theme.${th}` as StringKey)}>
+                  <i className={`theme-chip ${th}`}><i /></i>
+                  <small>{t(`theme.short.${th}` as StringKey)}</small>
                 </button>
               ))}
             </div>
           </div>
-          <div className="settings-row">
-            <span>{t('settings.sound')}</span>
-            <span className="row" style={{ gap: 6 }}>
+          <div className="settings-sep" />
+          <div className="settings-line">
+            <span className="settings-label">{t('settings.effects')}</span>
+            <button
+              className={`opt-switch ${effects === 'full' ? 'on' : ''}`}
+              role="switch"
+              aria-checked={effects === 'full'}
+              aria-label={t('settings.effects')}
+              onClick={() => setEffects(effects === 'full' ? 'reduced' : 'full')}
+            >
+              <i />
+              <span>{t(effects === 'full' ? 'settings.on' : 'settings.off')}</span>
+            </button>
+          </div>
+          <div className="settings-line">
+            <span className="settings-label">{t('settings.sound')}</span>
+            <span className="volume-row">
               <button
                 className="btn small ghost"
                 title={t(volume > 0 ? 'settings.mute' : 'settings.unmute')}
@@ -91,22 +111,14 @@ export function SettingsMenu() {
                 max={100}
                 step={5}
                 value={Math.round(volume * 100)}
+                style={{ ['--v' as string]: `${Math.round(volume * 100)}%` }}
                 aria-label={t('settings.sound')}
                 onChange={(e) => setVolume(Number(e.target.value) / 100)}
                 onPointerUp={() => play('coin')}
                 onKeyUp={() => play('coin')}
               />
+              <span className="volume-val">{Math.round(volume * 100)}</span>
             </span>
-          </div>
-          <div className="settings-row">
-            <span>{t('settings.theme')}</span>
-            <div className="seg theme-seg" role="radiogroup">
-              {THEMES.map((th) => (
-                <button key={th} className={th === theme ? 'on' : ''} onClick={() => setTheme(th)} role="radio" aria-checked={th === theme} title={t(`theme.${th}` as StringKey)}>
-                  <i className={`swatch ${th}`} />
-                </button>
-              ))}
-            </div>
           </div>
         </div>
       )}

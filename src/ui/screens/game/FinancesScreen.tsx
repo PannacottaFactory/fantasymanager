@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
 import { creatureValue } from '../../../engine/economy/value.ts';
@@ -7,10 +7,11 @@ import type { ExpenseKind, IncomeKind, LedgerEntry } from '../../../engine/leagu
 import type { Creature } from '../../../engine/model.ts';
 import { getSpecies } from '../../../engine/creature/derived.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
-import { Crest, Gold, Money, RollingMoney, useCountUp } from '../../components/common.tsx';
+import { Crest, Gold, Money, RollingMoney, Seg, useCountUp } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
+import { UiIcon } from '../../icons/Icon.tsx';
 import { useGame } from '../../store/gameStore.ts';
 
 const INCOME: IncomeKind[] = ['tickets', 'sponsor', 'prizes', 'sales'];
@@ -23,52 +24,61 @@ function totals(entries: LedgerEntry[]) {
     for (const k of INCOME) income[k] = (income[k] ?? 0) + (e.income[k] ?? 0);
     for (const k of EXPENSE) expense[k] = (expense[k] ?? 0) + (e.expense[k] ?? 0);
   }
-  return { income, expense };
-}
-
-/** Income / expense table for a set of weeks. */
-function Breakdown({ title, entries }: { title: string; entries: LedgerEntry[] }) {
-  const tr = useT();
-  const { t } = tr;
-  const { income, expense } = totals(entries);
   const inc = INCOME.reduce((s, k) => s + (income[k] ?? 0), 0);
   const exp = EXPENSE.reduce((s, k) => s + (expense[k] ?? 0), 0);
-  const line = (label: string, v: number, sign: 1 | -1) =>
-    v ? (
-      <tr key={label}>
-        <td>{label}</td>
-        <td className={`num mono ${sign < 0 ? 'bad-text' : 'good-text'}`}>{sign < 0 ? '−' : '+'}
-          <Money v={Math.abs(v)} /></td>
-      </tr>
-    ) : null;
+  return { income, expense, inc, exp };
+}
+
+/** A signed amount in the gain / loss colour. */
+function Signed({ v }: { v: number }) {
   return (
-    <div>
-      <h4 style={{ marginBottom: 6 }}>{title}</h4>
-      {entries.length === 0 ? (
-        <div className="faint">{t('fin.empty')}</div>
-      ) : (
-        <table className="data ledger">
-          <tbody>
-            <tr className="ledger-head">
-              <td className="good-text">{t('fin.income')}</td>
-              <td className="num mono good-text">+<Money v={inc} /></td>
-            </tr>
-            {INCOME.map((k) => line(t(`inc.${k}` as StringKey), income[k] ?? 0, 1))}
-            <tr className="ledger-head">
-              <td className="bad-text">{t('fin.expense')}</td>
-              <td className="num mono bad-text">−<Money v={exp} /></td>
-            </tr>
-            {EXPENSE.map((k) => line(t(`exp.${k}` as StringKey), expense[k] ?? 0, -1))}
-            <tr className="ledger-total">
-              <td>{t('fin.net')}</td>
-              <td className={`num mono ${inc - exp >= 0 ? 'good-text' : 'bad-text'}`}>
-                {inc - exp >= 0 ? '+' : ''}
-                <Money v={inc - exp} />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      )}
+    <span className={v >= 0 ? 'good-text' : 'bad-text'}>
+      {v >= 0 ? '+' : '−'}
+      <Money v={Math.abs(v)} />
+    </span>
+  );
+}
+
+/** Income and expenses of a period as proportional bars (one scale for both sides), then the net. */
+function Flows({ entries }: { entries: LedgerEntry[] }) {
+  const { t } = useT();
+  if (!entries.length) return <div className="faint">{t('fin.noPrev')}</div>;
+  const { income, expense, inc, exp } = totals(entries);
+  const max = Math.max(1, ...INCOME.map((k) => income[k] ?? 0), ...EXPENSE.map((k) => expense[k] ?? 0));
+  const side = (kind: 'in' | 'out', title: string, total: number, rows: [string, number][]) => (
+    <div className={`flow-side ${kind}`}>
+      <div className="flow-head">
+        <span>{title}</span>
+        <b>
+          {kind === 'in' ? '+' : '−'}
+          <Money v={total} />
+        </b>
+      </div>
+      {rows
+        .filter(([, v]) => v > 0)
+        .map(([label, v]) => (
+          <div key={label} className="flow-row">
+            <span className="flow-label">{label}</span>
+            <span className="flow-bar">
+              <i style={{ width: `${Math.max(2, (v / max) * 100)}%` }} />
+            </span>
+            <span className="flow-val">
+              <Money v={v} />
+            </span>
+          </div>
+        ))}
+    </div>
+  );
+  return (
+    <div className="flows">
+      {side('in', t('fin.income'), inc, INCOME.map((k) => [t(`inc.${k}` as StringKey), income[k] ?? 0]))}
+      {side('out', t('fin.expense'), exp, EXPENSE.map((k) => [t(`exp.${k}` as StringKey), expense[k] ?? 0]))}
+      <div className="flow-net">
+        <span>{t('fin.net')}</span>
+        <b>
+          <Signed v={inc - exp} />
+        </b>
+      </div>
     </div>
   );
 }
@@ -78,8 +88,17 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
   const tr = useT();
   const { t, money } = tr;
   const [hover, setHover] = useState<number | null>(null);
-  const W = 640;
-  const H = 220;
+  // Drawn at its real size, so the labels keep the text size whatever the width.
+  const box = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(640);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setW(Math.max(280, Math.round(el.clientWidth))));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const H = 200;
   const pad = { l: 64, r: 16, t: 14, b: 26 };
   const points = [{ matchday: 0, balance: start }, ...entries.map((e) => ({ matchday: e.matchday, balance: e.balance }))];
   const last = DEFAULT_CONFIG.league.teams * 2 - 2;
@@ -89,20 +108,23 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
   const span = hi - lo || 1;
   lo -= span * 0.08;
   hi += span * 0.08;
-  const x = (md: number) => pad.l + (md / last) * (W - pad.l - pad.r);
-  const y = (v: number) => pad.t + (1 - (v - lo) / (hi - lo)) * (H - pad.t - pad.b);
   const step = niceStep((hi - lo) / 4);
   const ticks: number[] = [];
   for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) ticks.push(v);
   // Room on the left for the longest money label, so it never spills out of the frame.
-  pad.l = Math.max(64, 16 + 8 * Math.max(...ticks.map((v) => money(v, true).length)));
+  pad.l = Math.max(56, 14 + 7.5 * Math.max(...ticks.map((v) => money(v, true).length)));
+  const x = (md: number) => pad.l + (md / last) * (W - pad.l - pad.r);
+  const y = (v: number) => pad.t + (1 - (v - lo) / (hi - lo)) * (H - pad.t - pad.b);
   const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(p.matchday).toFixed(1)},${y(p.balance).toFixed(1)}`).join(' ');
   const h = hover !== null ? points[hover] : null;
+  const end = points[points.length - 1]!;
 
   return (
-    <div className="chart-wrap">
+    <div className="chart-wrap" ref={box}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
+        width={W}
+        height={H}
         className="chart"
         role="img"
         aria-label={t('fin.chart')}
@@ -136,20 +158,31 @@ function BalanceChart({ entries, start }: { entries: LedgerEntry[]; start: numbe
             <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
           </linearGradient>
         </defs>
-        {points.length > 1 && <path d={`${path} L${x(points[points.length - 1]!.matchday).toFixed(1)},${y(Math.max(lo, 0)).toFixed(1)} L${x(points[0]!.matchday).toFixed(1)},${y(Math.max(lo, 0)).toFixed(1)} Z`} fill="url(#fin-area)" className="area" />}
+        {points.length > 1 && (
+          <path
+            d={`${path} L${x(end.matchday).toFixed(1)},${y(Math.max(lo, 0)).toFixed(1)} L${x(points[0]!.matchday).toFixed(1)},${y(Math.max(lo, 0)).toFixed(1)} Z`}
+            fill="url(#fin-area)"
+            className="area"
+          />
+        )}
         <path d={path} className="line draw" pathLength={1} />
+        {points.map((p, i) => (
+          <circle key={i} cx={x(p.matchday)} cy={y(p.balance)} r={2.5} className="pt" />
+        ))}
         {h && (
           <>
             <line x1={x(h.matchday)} x2={x(h.matchday)} y1={pad.t} y2={H - pad.b} className="crosshair" />
             <circle cx={x(h.matchday)} cy={y(h.balance)} r={5} className="dot" />
           </>
         )}
-        {!h && points.length > 1 && <circle cx={x(points[points.length - 1]!.matchday)} cy={y(points[points.length - 1]!.balance)} r={4} className="dot" />}
+        {!h && points.length > 1 && <circle cx={x(end.matchday)} cy={y(end.balance)} r={4.5} className="dot" />}
       </svg>
       {h && (
         <div className="chart-tip" style={{ left: `${(x(h.matchday) / W) * 100}%` }}>
           <div className="faint">{h.matchday === 0 ? t('fin.start') : t('fin.matchday', { d: h.matchday })}</div>
-          <b className="mono"><Money v={h.balance} /></b>
+          <b className="mono">
+            <Money v={h.balance} />
+          </b>
         </div>
       )}
     </div>
@@ -177,6 +210,10 @@ export function FinancesScreen() {
   const wages = team.creatures.reduce((s, c) => s + (c.contract?.wage ?? 0), 0);
   const bill = weeklyBill(game, team.id);
   const prizes = DEFAULT_CONFIG.economy.income.seasonPrize;
+  const reputation = useCountUp(club.reputation, 900);
+  const [period, setPeriod] = useState<'week' | 'season' | 'prev'>('season');
+  const seasonSum = totals(season);
+  const weekNet = lastWeek.length ? lastWeek[0]!.balance - (season.length > 1 ? season[season.length - 2]!.balance : start) : null;
 
   const cols: Column<Creature>[] = [
     {
@@ -210,45 +247,92 @@ export function FinancesScreen() {
     },
   ];
 
-  const reputation = useCountUp(club.reputation, 900);
+  const detail = t('fin.weekly.detail', { w: money(wages), u: money(bill - wages) });
   return (
-    <div className="stack">
-      <section className="panel">
-        <div className="fin-tiles" data-tip="finances">
-          <div className="tile">
-            <span className="muted">{t('fin.balance')}</span>
-            <b className={club.balance < 0 ? 'bad-text' : ''}><RollingMoney v={club.balance} /></b>
+    <div className="stack fin">
+      <section className="panel fin-hero" data-tip="finances">
+        <h2 className="fin-title">
+          <UiIcon name="nav-finances" /> {t('fin.title')}
+        </h2>
+        <div className="kpis">
+          <div className="kpi">
+            <span className="kpi-label">{t('fin.balance')}</span>
+            <b className={`kpi-value ${club.balance < 0 ? 'bad-text' : 'gold-text'}`}>
+              <RollingMoney v={club.balance} />
+            </b>
+            {weekNet !== null && (
+              <span className="kpi-sub">
+                <Signed v={weekNet} /> {t('fin.lastWeekDelta')}
+              </span>
+            )}
           </div>
-          <div className="tile" title={t('fin.reputation.title')}>
-            <span className="muted">{t('fin.reputation')}</span>
-            <b>{reputation}/100</b>
+          <div className="kpi">
+            <span className="kpi-label">{t('fin.seasonNet')}</span>
+            <b className="kpi-value">
+              <Signed v={seasonSum.inc - seasonSum.exp} />
+            </b>
+            <span className="kpi-sub">
+              <Gold>{t('fin.inOut', { i: money(seasonSum.inc), o: money(seasonSum.exp) })}</Gold>
+            </span>
           </div>
-          <div className="tile">
-            <span className="muted">{t('fin.weekly')}</span>
-            <b><Money v={bill} /></b>
-            <span className="faint" style={{ fontSize: '0.857rem' }}>
-              <Gold>{t('fin.weekly.detail', { w: money(wages), u: money(bill - wages) })}</Gold>
+          <div className="kpi">
+            <span className="kpi-label">{t('fin.weekly')}</span>
+            <b className="kpi-value">
+              <Money v={bill} />
+            </b>
+            <span className="kpi-split" title={detail}>
+              <i style={{ width: `${(wages / Math.max(1, bill)) * 100}%` }} />
+            </span>
+            <span className="kpi-sub">
+              <Gold>{detail}</Gold>
+            </span>
+          </div>
+          <div className="kpi" title={t('fin.reputation.title')}>
+            <span className="kpi-label">{t('fin.reputation')}</span>
+            <b className="kpi-value">
+              {reputation}
+              <small>/100</small>
+            </b>
+            <span className="kpi-split rep">
+              <i style={{ width: `${club.reputation}%` }} />
             </span>
           </div>
         </div>
         {club.balance < 0 && <div className="answer bad">{t('fin.negative')}</div>}
       </section>
-      <div className="league-grid">
+      <div className="fin-grid">
         <section className="panel">
-          <h3 style={{ marginBottom: 8 }}>{t('fin.chart')}</h3>
+          <div className="panel-head">
+            <h3>{t('fin.chart')}</h3>
+          </div>
           <BalanceChart entries={season} start={start} />
-          <p className="faint" style={{ fontSize: '0.857rem', marginBottom: 0 }}>
+          <p className="faint fin-note">
             <Gold>{t('fin.prizes', { first: money(prizes[0]!), last: money(prizes[prizes.length - 1]!) })}</Gold>
           </p>
         </section>
-        <section className="panel fin-breakdowns">
-          <Breakdown title={t('fin.lastWeek')} entries={lastWeek} />
-          <Breakdown title={t('fin.season', { s: game.season })} entries={season} />
-          {prev.length > 0 && <Breakdown title={t('fin.prevSeason', { s: game.season - 1 })} entries={prev} />}
+        <section className="panel">
+          <div className="panel-head">
+            <h3 className="grow">{t('fin.flows')}</h3>
+            <Seg
+              value={period}
+              onChange={setPeriod}
+              options={[
+                { value: 'week' as const, label: t('fin.lastWeek') },
+                { value: 'season' as const, label: t('fin.season', { s: game.season }) },
+                ...(prev.length ? [{ value: 'prev' as const, label: t('fin.prevSeason', { s: game.season - 1 }) }] : []),
+              ]}
+            />
+          </div>
+          <Flows entries={period === 'week' ? lastWeek : period === 'season' ? season : prev} />
         </section>
       </div>
       <section className="panel">
-        <h3 style={{ marginBottom: 8 }}>{t('fin.wages')}</h3>
+        <div className="panel-head">
+          <h3 className="grow">{t('fin.wages')}</h3>
+          <span className="muted">
+            <Gold>{t('fin.wageTotal', { n: team.creatures.length, w: money(wages) })}</Gold>
+          </span>
+        </div>
         <SortableTable rows={team.creatures} columns={cols} rowKey={(c) => c.id} initialSort={{ key: 'wage', dir: -1 }} />
       </section>
     </div>

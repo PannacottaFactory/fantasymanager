@@ -32,6 +32,12 @@ export function Projectiles({ shots, bursts, flight }: { shots: Shot[]; bursts: 
     const fx = engine.current;
     if (!fx || !effectsOn()) return;
     for (const x of shots) fx.launch(x, flight);
+    // A critical blow: a short camera punch on the arena and a jolt of the target.
+    const crit = shots.find((x) => x.crit && !x.miss && !x.ko);
+    if (crit) {
+      const timer = window.setTimeout(() => critPunch(crit.to), flight);
+      timers.current.add(timer);
+    }
   }, [shots, flight]);
   useEffect(() => {
     if (bursts.some((b) => b.kind === 'ko')) {
@@ -74,4 +80,21 @@ function koStamp(id: string) {
     arena.classList.add('ko-shake');
     window.setTimeout(() => arena.classList.remove('ko-shake'), 500);
   }
+}
+
+/** Restarts a CSS animation class on an element for `ms`. */
+function pulseClass(el: HTMLElement, cls: string, ms: number) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+  window.setTimeout(() => el.classList.remove(cls), ms);
+}
+
+/** A critical hit: the arena punches in a hair, its edges flash, the target jolts. */
+function critPunch(id: string) {
+  const card = document.querySelector<HTMLElement>(`[data-cid="${CSS.escape(id)}"]`);
+  const arena = card?.closest<HTMLElement>('.live');
+  if (!card || !arena) return;
+  pulseClass(arena, 'crit-punch', 450);
+  pulseClass(card, 'crit-jolt', 450);
 }

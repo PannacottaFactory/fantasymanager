@@ -45,20 +45,18 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
 
   return (
     <div className="start">
-      {!onCancel && (
-        <header className="start-hero">
-          <div className="start-title-row">
-            <svg className="start-logo" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
-            <h1 className="start-title">{t('app.title')}</h1>
-          </div>
-          <div className="start-ornament" aria-hidden="true">
-            <i />
-            <b>◆</b>
-            <i />
-          </div>
-          <p className="start-tagline">{t('start.intro')}</p>
-        </header>
-      )}
+      <header className="start-hero">
+        <div className="start-title-row">
+          <svg className="start-logo" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
+          <h1 className="start-title">{t('app.title')}</h1>
+        </div>
+        <div className="start-ornament" aria-hidden="true">
+          <i />
+          <b>◆</b>
+          <i />
+        </div>
+        <p className="start-tagline">{t('start.intro')}</p>
+      </header>
 
       {game && saved && !onCancel && (
         <section className="panel start-card continue-card">

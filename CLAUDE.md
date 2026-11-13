@@ -434,6 +434,23 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   (`ui/fx/Embers.tsx`, CSS animation, dark themes with effects on, z-index −1: only between the boxes — panels, top bar
   and ribbon stay fully opaque), panels with gradient + soft depth shadow, the first
   panel of a screen lit with a gilded top edge, smoother screen transition, gradient primary buttons, tabular numbers.
+  **Refinement** (last section of `styles.css`, « less, but better »): numbers in the body font with tabular figures
+  (`--font-mono` = body font), one flat panel material (no sheen, no heading glow / rule), nested tiles filled instead of
+  framed, quiet card links, dashboard cards of a row share their height. `UI_THEME=dark npm run ui:check …` picks the theme.
+  Settings menu: labelled blocks, « A » sizes, theme cards, switch for effects, styled volume. Finances: KPI strip, chart drawn
+  at its real width (ResizeObserver), « Recettes et dépenses » as bars with a period switch. League: page header with
+  `.page-tab` tabs, zone bars instead of rank badges, fixtures with crests + score pill, season as a two-column agenda
+  (`.agenda`), honours as medallions. Tactics: « Laisser l'assistant choisir » sweeps, sparkles and lights the rows.
+  **Live staging** (display only, effects on, not at instant speed): title cards (`.stage-card`: round 1, after each
+  break, final round, break, result), crit punch
+  (`.live.crit-punch` + `.crit-jolt`), line-ups deal in during the first second (`.live.dealing`).
+  Creature sheet fits one screen (1440×900): `Modal className="sheet-dialog"`, `.sheet-cols.three` = attributes, traits,
+  roles, record (`aside`) | abilities | management (`footer`); one column below 1250 px. Competitions list: `CompLine`
+  rows grouped by `compGroup` (still in / registration / the rest), description as the name's tooltip. Season tab:
+  `.chain` (next 5 matches) + `.season-table` (week | league | cups). The « Fantasy Manager » title always shows (top
+  bar and start screen, also when coming back from a game). Recruit cards: element medallion (`--c1/--c2`), rating box,
+  potential + knowledge, figures in `.rc-stats`, full-width button. Sheet sections are `.sheet-box.sec-<id>` with a colour
+  each (physical, combat, mental, traits, roles, abilities).
   No emojis in the UI: game-icons everywhere (`UI_ICONS`: help-*, fac-*, scout, stamina, power, injury, tip…).
 - [x] **Wave 5** (+10 → 77 species, 27 abilities, 11 effects): runic golem (rune ward: passive shield of 14 % HP that
   comes back at every break, `EffectDef.rechargeAtBreak`), spell eater + lamia (silence: no spells nor heals,

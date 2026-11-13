@@ -1,4 +1,4 @@
-/* global console, process, document */
+/* global console, process, document, localStorage */
 /**
  * Visual check of the game in a real (headless) browser: starts a game, plays a few weeks, visits the main
  * screens, opens every creature sheet of the squad and a few others, and saves screenshots + console / page errors.
@@ -14,6 +14,10 @@ mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// Optional theme for the screenshots: UI_THEME=dark|night|parchment.
+if (process.env.UI_THEME) {
+  await page.addInitScript((t) => localStorage.setItem('ui.theme', t), process.env.UI_THEME);
+}
 const errors = [];
 page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`));
 page.on('pageerror', (e) => errors.push(`page: ${e.message}\n${e.stack ?? ''}`));
@@ -147,7 +151,7 @@ if (await alive('squad')) {
   // Top bar at several widths and text sizes: tab names must stay visible.
   for (const [w, size] of [[1920, 'large'], [1440, 'large'], [1280, 'xlarge'], [1024, 'large']]) {
     await page.locator('.settings-btn').click();
-    await page.locator('.settings-row').nth(1).locator('button').nth(size === 'xlarge' ? 2 : 1).click();
+    await page.locator('.settings-block').nth(1).locator('button').nth(size === 'xlarge' ? 2 : 1).click();
     await page.keyboard.press('Escape');
     await page.setViewportSize({ width: w, height: 900 });
     await wait(400);

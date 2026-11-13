@@ -38,6 +38,8 @@ interface Props {
   extra?: ReactNode;
   /** Content at the bottom of the sheet (management: training, contract…). */
   footer?: ReactNode;
+  /** Shown under the abilities (the creature's record). */
+  aside?: ReactNode;
   /** Attribute changes to show next to the values (own creatures: since the season started). */
   deltas?: Partial<Record<AttributeKey, number>>;
   /** Own creatures with free points: places one on an attribute (undefined = not allowed). */
@@ -58,7 +60,7 @@ function StatTile({ label, value, title, big }: { label: string; value: ReactNod
   );
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, knowledge = 100, deltas, onSpendPoint, onRename }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, onRename }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
@@ -78,8 +80,9 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         </span>
       }
       onClose={onClose}
+      className="sheet-dialog"
     >
-      <div className="stack">
+      <div className="sheet">
         <div className="sheet-head">
           <div className="sheet-sub">
             <span title={spText.description}>
@@ -124,10 +127,12 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             </div>
           </div>
         )}
+        <div className={`sheet-cols ${footer ? 'three' : ''}`}>
+        <div className="sheet-col">
         <div className="attr-grid" data-tip="sheet-attrs">
           {(Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).map((cat) => (
-            <div key={cat}>
-              <h4 style={{ marginBottom: 6 }}>{categoryName(cat, lang)}</h4>
+            <div key={cat} className={`sheet-box sec-${cat}`}>
+              <h4 className="sheet-box-title">{categoryName(cat, lang)}</h4>
               <div className="attr-list">
                 {ATTRIBUTE_CATEGORIES[cat].map((k) => (
                   <span key={k} style={{ display: 'contents' }}>
@@ -154,13 +159,13 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           ))}
         </div>
 
-        <div className="attr-grid">
-          <div>
-            <h4 style={{ marginBottom: 6 }}>{t('cr.traits')}</h4>
+        <div className="sheet-traits">
+          <div className="sheet-box sec-traits">
+            <h4 className="sheet-box-title">{t('cr.traits')}</h4>
             {!traitsKnown(knowledge) && <span className="faint">{t('cr.traitsUnknown')}</span>}
             {traitsKnown(knowledge) && creature.traits.length === 0 && <span className="faint">{t('cr.noTraits')}</span>}
             {(traitsKnown(knowledge) ? creature.traits : []).map((x) => (
-              <div key={x} style={{ marginBottom: 4 }}>
+              <div key={x} className="trait-line">
                 <TraitChip id={x} />{' '}
                 <span className="muted" style={{ fontSize: '0.857rem' }}>
                   {traitText(x, lang).description}
@@ -169,11 +174,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             ))}
           </div>
           {known && (
-            <div style={{ gridColumn: 'span 2' }} data-tip="sheet-roles">
-              <h4 style={{ marginBottom: 6 }}>{t('cr.roleFit')}</h4>
+            <div className="sheet-box sec-roles" data-tip="sheet-roles">
+              <h4 className="sheet-box-title">{t('cr.roleFit')}</h4>
               {ROLE_IDS.map((r) => (
-                <div key={r} className="row" style={{ fontSize: '0.857rem', marginBottom: 3 }} title={roleText(r, lang).description}>
-                  <span style={{ width: 140 }}>
+                <div key={r} className="row role-line" title={roleText(r, lang).description}>
+                  <span className="role-name">
                     <RoleLabel role={r} />
                   </span>
                   <span className="grow">
@@ -188,11 +193,13 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           )}
         </div>
 
-        <div>
-          <div className="row" style={{ marginBottom: 6, gap: 10 }}>
-            <h4 style={{ margin: 0 }}>{t('cr.abilities')}</h4>
+        {showHidden && <HiddenBlock creature={creature} />}
+        </div>
+        <div className="sheet-col">
+          <div className="sheet-box-head sec-abilities">
+            <h4 className="sheet-box-title">{t('cr.abilities')}</h4>
             {onToggleFavorite && (
-              <span className="muted" style={{ fontSize: '0.857rem' }}>
+              <span className="muted fav-hint">
                 {t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}
               </span>
             )}
@@ -219,30 +226,36 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               </span>
             </div>
           ))}
+          {aside}
         </div>
-        {footer}
-
-        {showHidden && (
-          <details>
-            <summary className="muted" style={{ cursor: 'pointer' }}>
-              {t('cr.hidden')}
-            </summary>
-            <dl className="kv" style={{ marginTop: 6 }}>
-              <dt>{t('cr.currentAbility')}</dt>
-              <dd>{creature.ability} / 200</dd>
-              <dt>{t('cr.potential')}</dt>
-              <dd>{creature.potential} / 200</dd>
-              {(Object.keys(creature.hidden) as (keyof HiddenAttributes)[]).map((k) => (
-                <span key={k} style={{ display: 'contents' }}>
-                  <dt>{t(`hidden.${k}`)}</dt>
-                  <dd>{creature.hidden[k]}</dd>
-                </span>
-              ))}
-            </dl>
-          </details>
-        )}
+        {footer && <div className="sheet-col sheet-manage">{footer}</div>}
+        </div>
       </div>
     </Modal>
+  );
+}
+
+/** Hidden numbers (sandbox and debugging): aptitude, potential, personality. */
+function HiddenBlock({ creature }: { creature: Creature }) {
+  const { t } = useT();
+  return (
+    <details>
+      <summary className="muted" style={{ cursor: 'pointer' }}>
+        {t('cr.hidden')}
+      </summary>
+      <dl className="kv" style={{ marginTop: 6 }}>
+        <dt>{t('cr.currentAbility')}</dt>
+        <dd>{creature.ability} / 200</dd>
+        <dt>{t('cr.potential')}</dt>
+        <dd>{creature.potential} / 200</dd>
+        {(Object.keys(creature.hidden) as (keyof HiddenAttributes)[]).map((k) => (
+          <span key={k} style={{ display: 'contents' }}>
+            <dt>{t(`hidden.${k}`)}</dt>
+            <dd>{creature.hidden[k]}</dd>
+          </span>
+        ))}
+      </dl>
+    </details>
   );
 }
 

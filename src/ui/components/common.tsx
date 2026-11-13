@@ -134,7 +134,7 @@ export function TraitChip({ id }: { id: string }) {
   );
 }
 
-export function Modal({ title, onClose, children, actions, wide }: { title: ReactNode; onClose: () => void; children: ReactNode; actions?: ReactNode; wide?: boolean }) {
+export function Modal({ title, onClose, children, actions, wide, className }: { title: ReactNode; onClose: () => void; children: ReactNode; actions?: ReactNode; wide?: boolean; className?: string }) {
   const { t } = useT();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -143,7 +143,7 @@ export function Modal({ title, onClose, children, actions, wide }: { title: Reac
   }, [onClose]);
   return (
     <div className="overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={`dialog ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true">
+      <div className={`dialog ${wide ? 'wide' : ''} ${className ?? ''}`} role="dialog" aria-modal="true">
         <div className="dialog-head">
           <h2>{title}</h2>
           <span className="spacer" />
