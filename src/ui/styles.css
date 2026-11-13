@@ -749,7 +749,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .ana-bar i { display: block; height: 100%; border-radius: 4px; }
 
 /* ——— Creature progression ——— */
-.attr-cell { display: inline-flex; align-items: center; gap: 4px; }
+.attr-cell { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; }
 .attr-delta { font-size: 0.714rem; font-weight: 600; }
 .attr-delta.up { color: var(--good); }
 .attr-delta.down { color: var(--bad); }
@@ -790,10 +790,19 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .xp-bar { width: 52px; height: 6px; border-radius: 3px; background: var(--panel-2); overflow: hidden; }
 .xp-bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
 .xp-bar i.max { background: var(--good); }
+/* « + » to place a point: a small gold key, the cross drawn (always centred). */
+.plus-slot { display: inline-grid; place-items: center; width: 1.2rem; flex: none; margin-left: 2px; }
 .plus-btn {
-  width: 1.2rem; height: 1.2rem; line-height: 1; padding: 0; border-radius: 50%; cursor: pointer;
-  border: 1px solid var(--good); background: color-mix(in srgb, var(--good) 20%, transparent); color: var(--good); font-weight: 700;
+  display: grid; place-items: center; width: 1.15rem; height: 1.15rem; padding: 0; cursor: pointer;
+  border-radius: 5px; border: 1px solid color-mix(in srgb, var(--gold) 75%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 30%, var(--panel)), color-mix(in srgb, var(--gold) 12%, var(--panel)));
+  color: var(--gold); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
+  transition: background 0.15s, color 0.15s, transform 0.12s;
 }
+.plus-btn svg { width: 0.6rem; height: 0.6rem; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; fill: none; }
+.plus-btn:hover { background: var(--gold); color: #1a1408; transform: scale(1.12); }
+.plus-btn:active { transform: scale(0.94); }
+.plus-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 .free-points { margin: 4px 0; }
 
 .error-panel { border-left: 4px solid var(--bad); }
@@ -1735,7 +1744,9 @@ table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: v
 .points-banner.in-sheet { margin: 4px 0; }
 .pb-icon { display: grid; place-items: center; min-width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: #1a1408; font: 900 1.143rem var(--font-mono); }
 .pb-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.plus-btn { animation: point-pulse 1.6s ease-in-out infinite; }
+.plus-btn { animation: plus-glow 2.2s ease-in-out infinite; }
+@keyframes plus-glow { 50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent); } }
+.plus-btn:hover { animation: none; }
 :root[data-effects='reduced'] .point-chip, :root[data-effects='reduced'] .plus-btn, :root[data-effects='reduced'] .badge.gold-badge { animation: none; }
 
 /* ——— Navigation on a row of its own (not enough room beside the title and buttons): names stay visible ——— */

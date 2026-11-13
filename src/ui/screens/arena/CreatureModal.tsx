@@ -141,16 +141,28 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                     </span>
                     <span className="attr-cell">
                       {known ? <Attr v={creature.attributes[k]} /> : <AttrRange r={attributeRange(creature, k, knowledge)} />}
-                      {freePoints > 0 && creature.attributes[k] < attributeCeiling(creature, k) && (
-                        <button className="plus-btn" title={t('lvl.raise', { attr: attributeText(k, lang).name })} onClick={() => onSpendPoint!(k)}>
-                          +
-                        </button>
-                      )}
                       {known && deltas?.[k] ? (
                         <span className={`attr-delta ${deltas[k]! > 0 ? 'up' : 'down'}`} title={t('cr.sinceSeason')}>
                           {deltas[k]! > 0 ? `+${deltas[k]}` : `−${-deltas[k]!}`}
                         </span>
                       ) : null}
+                      {/* A slot on every row while points are left, so the values stay aligned. */}
+                      {freePoints > 0 && (
+                        <span className="plus-slot">
+                          {creature.attributes[k] < attributeCeiling(creature, k) && (
+                            <button
+                              className="plus-btn"
+                              title={t('lvl.raise', { attr: attributeText(k, lang).name })}
+                              aria-label={t('lvl.raise', { attr: attributeText(k, lang).name })}
+                              onClick={() => onSpendPoint!(k)}
+                            >
+                              <svg viewBox="0 0 10 10" aria-hidden="true">
+                                <path d="M5 1.6v6.8M1.6 5h6.8" />
+                              </svg>
+                            </button>
+                          )}
+                        </span>
+                      )}
                     </span>
                   </span>
                 ))}
