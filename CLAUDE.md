@@ -174,7 +174,7 @@ tests/       Vitest
   attributes, AI and prices. Max level = level of the potential. Abilities unlock by level (`unlockLevel(minAbility)`,
   `isUnlocked`, used by `getAbilities`). XP per week = training share of the former gain (none while resting /
   injured) + match XP (`matchXp`: played, starter, rating above 5, win — no KO bonus so healers and tanks are not penalised; stored in `growth.matchXp` by the match
-  effects), × life stage, capped by the potential. XP feeds the attribute pool by program; each level gained gives
+  effects), × life stage, capped by the potential. XP feeds the attribute pool by program, **held until the level-up** (RPG-like: all the points land at once, listed in the `levelUp` message `gains`; the potential IS the max level: reaching it jumps the aptitude to the potential, the last level-up gives everything left; new creatures are settled by `alignPotential` (trained up to the potential, or a full level still to gain — never at the max level below it); ageing losses at once — `shiftAbility`); the sheet shows `XpTrack` (level → next, thin blue XP bar `--xp-color`, how it works in the tooltip); each level gained gives
   the player a free point (`growth.freePoints`, `spendFreePoint`, + buttons in the sheet; AI places it by program)
   and `levelUp` / `abilityUnlocked` messages. New creatures start 10–25 % below what their age allows
   (`generation.headroom`) so they can level up; the league starts weaker (~92) and settles at the same plateau.

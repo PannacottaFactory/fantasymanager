@@ -18,7 +18,7 @@ import { awardTrophy, initBestiary, recordSide, updateBestiary } from '../team/r
 import { arenaFor } from './arena.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
 import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
-import { levelOf, matchXp } from '../progression/levels.ts';
+import { alignPotential, levelOf, matchXp } from '../progression/levels.ts';
 import { INJURIES } from '../../data/injuries.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
@@ -71,7 +71,10 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
       const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured }, cfg);
       if (isPlayer) {
         const st = cfg.generation.startingSquad;
-        for (const c of team.creatures) c.potential = Math.max(c.ability, Math.min(st.max, Math.round(c.ability + (c.potential - c.ability) * st.room)));
+        for (const c of team.creatures) {
+          const p = Math.max(c.ability, Math.min(st.max, Math.round(c.ability + (c.potential - c.ability) * st.room)));
+          c.potential = alignPotential(c.ability, p, cfg, st.max);
+        }
       }
       if (identity) {
         team.identity = identity;

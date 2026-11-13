@@ -18,7 +18,7 @@ import { injuryWeeksFactor, trainingFactor } from '../club/facilities.ts';
 import { transfer } from '../economy/market.ts';
 import { askingWage, roundTo } from '../economy/value.ts';
 import { pushMessage } from '../league/messages.ts';
-import { levelOf, unlockLevel, xpPerAbility } from './levels.ts';
+import { levelOf, maxLevelOf, unlockLevel, xpPerAbility } from './levels.ts';
 import type { Coach, GameState, TrainingPlan } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
 
@@ -122,7 +122,9 @@ function growthOf(c: Creature) {
 
 /**
  * Ability change turned into whole attribute points: gains (or losses) pile up in one pool and each
- * full point goes to an attribute drawn by weight, so progress shows up regularly. Returns points changed.
+ * full point goes to an attribute drawn by weight. Gains are held while the XP bar fills and all land at the
+ * level-up (like a role-playing game). The potential is the maximum level: reaching that level brings the creature
+ * straight to its potential (the last level-up gives everything left). Losses (ageing) land at once. Returns points changed.
  */
 function shiftAbility(
   c: Creature,
@@ -134,14 +136,22 @@ function shiftAbility(
 ): number {
   if (!amount) return 0;
   const g = growthOf(c);
+  const levelBefore = levelOf(c, cfg);
   const next = c.ability + g.ability + amount;
   c.ability = clamp(Math.floor(next), cfg.generation.minAbility, cfg.generation.maxAbility);
   g.ability = next - Math.floor(next);
+  // The potential is the maximum level: reaching that level is reaching the potential, all the rest comes at once.
+  if (amount > 0 && levelOf(c, cfg) >= maxLevelOf(c, cfg) && c.ability < c.potential) {
+    amount += c.potential - c.ability - g.ability;
+    c.ability = c.potential;
+    g.ability = 0;
+  }
   let total = 0;
   for (const k of ATTRIBUTE_KEYS) total += slope(c, k, cfg);
   g.pool = (g.pool ?? 0) + amount * total;
   let whole = 0;
-  while (g.pool >= 1) {
+  const hold = amount > 0 && levelOf(c, cfg) === levelBefore && levelBefore < maxLevelOf(c, cfg);
+  while (!hold && g.pool >= 1) {
     const open = ATTRIBUTE_KEYS.filter((k) => c.attributes[k] < attributeCap(c, k, cfg) && weights[k] > 0);
     if (!open.length) {
       g.pool = 0;
@@ -234,11 +244,16 @@ export function weeklyTraining(state: GameState, _played: Set<string>, cfg: Game
         const weights = programWeights(c, team, resting ? 'balanced' : plan.program, cfg);
         // Coaches: each attribute grows with the coach of its domain.
         for (const k of ATTRIBUTE_KEYS) weights[k] *= coachFactor(state, team.id, CATEGORY_OF[k], cfg);
-        const log = isPlayer ? progressLogger(c, state.season, state.matchday, cfg) : undefined;
+        const record = isPlayer ? progressLogger(c, state.season, state.matchday, cfg) : undefined;
+        const gains: Partial<Record<AttributeKey, number>> = {};
+        const log = record && ((k: AttributeKey, d: number) => {
+          gains[k] = (gains[k] ?? 0) + d;
+          record(k, d);
+        });
         const before = levelOf(c, cfg);
         shiftAbility(c, gain, weights, rng, cfg, log);
         const after = levelOf(c, cfg);
-        if (after > before) levelUp(state, c, before, after, isPlayer, weights, rng, cfg);
+        if (after > before) levelUp(state, c, before, after, isPlayer, weights, rng, cfg, gains);
       }
       if (isPlayer) recordAbility(c, state.season, state.matchday, cfg);
       if (resting) continue;
@@ -256,11 +271,12 @@ export function weeklyTraining(state: GameState, _played: Set<string>, cfg: Game
  * A creature gained one or more levels: abilities may unlock; the player gets a point to place by hand per level,
  * AI stables place theirs straight away (by their program).
  */
-function levelUp(state: GameState, c: Creature, before: number, after: number, isPlayer: boolean, weights: Record<AttributeKey, number>, rng: Rng, cfg: GameConfig) {
+function levelUp(state: GameState, c: Creature, before: number, after: number, isPlayer: boolean, weights: Record<AttributeKey, number>, rng: Rng, cfg: GameConfig, gains: Partial<Record<AttributeKey, number>> = {}) {
   const g = growthOf(c);
   if (isPlayer) {
     g.freePoints = (g.freePoints ?? 0) + (after - before);
-    pushMessage(state, { kind: 'levelUp', creatureId: c.id, name: c.name, level: after, points: g.freePoints });
+    const list = (Object.entries(gains) as [AttributeKey, number][]).filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1]).map(([k, d]) => ({ k, d }));
+    pushMessage(state, { kind: 'levelUp', creatureId: c.id, name: c.name, level: after, points: g.freePoints, gains: list });
     for (const a of getSpecies(c).abilities) {
       const at = unlockLevel(a.minAbility, cfg);
       if (at > before && at <= after) pushMessage(state, { kind: 'abilityUnlocked', creatureId: c.id, name: c.name, abilityId: a.id, ability: at });
@@ -283,6 +299,23 @@ export function spendFreePoint(state: GameState, creatureId: string, key: Attrib
   c.growth.freePoints--;
   progressLogger(c, next.season, next.matchday, cfg)(key, 1);
   return next;
+}
+
+/**
+ * Attribute points this creature will receive at its next level-up (those already earned and held, plus the rest of
+ * the level), not counting the free point. Null at its maximum level.
+ */
+export function nextLevelPoints(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): { held: number; total: number } | null {
+  const lv = levelOf(c, cfg);
+  if (lv >= maxLevelOf(c, cfg)) return null;
+  let slopes = 0;
+  for (const k of ATTRIBUTE_KEYS) slopes += slope(c, k, cfg);
+  const g = c.growth;
+  const pool = Math.max(0, g?.pool ?? 0);
+  // The last level-up goes straight to the potential.
+  const next = lv + 1 >= maxLevelOf(c, cfg) ? c.potential : (cfg.training.levels.steps[lv] ?? cfg.training.levels.top);
+  const rest = Math.max(0, next - c.ability - (g?.ability ?? 0)) * slopes;
+  return { held: Math.floor(pool), total: Math.floor(pool + rest) };
 }
 
 /** Highest value an attribute of this creature can reach (species range at full potential, + headroom). */

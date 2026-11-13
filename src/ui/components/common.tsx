@@ -194,6 +194,29 @@ export function LevelBadge({ c, compact }: { c: Creature; compact?: boolean }) {
   );
 }
 
+/**
+ * The XP track of an own creature (sheet): level → next level and the thin blue XP bar filling (how it works in the
+ * tooltip).
+ */
+export function XpTrack({ c }: { c: Creature }) {
+  const { t } = useT();
+  const lv = levelOf(c);
+  const per = DEFAULT_CONFIG.training.levels.xpPerLevel;
+  const xp = xpInLevel(c);
+  const next = lv < maxLevelOf(c);
+  return (
+    <div className="xp-track" title={next ? t('xp.how') : t('xp.done')}>
+      <div className="xp-track-head">
+        <b>{next ? t('xp.track', { n: lv, next: lv + 1 }) : t('xp.trackMax', { n: lv })}</b>
+        <span className={`xp-big ${next ? '' : 'max'}`}>
+          <i style={{ width: next ? `${(100 * xp) / per}%` : '100%' }} />
+        </span>
+        {next && <span className="xp-amount">{t('xp.amount', { xp, per })}</span>}
+      </div>
+    </div>
+  );
+}
+
 /** Amounts as `money()` writes them: digits (thin-space or comma groups, optional "k"), a no-break space, po / gp. */
 const MONEY_RE = /([−+-]?\d[\d\u202f,.]*(?:\u202fk)?\u00a0(?:po|gp))/;
 

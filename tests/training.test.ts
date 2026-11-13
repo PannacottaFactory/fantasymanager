@@ -49,6 +49,34 @@ describe('training', () => {
     );
   });
 
+  it('attribute points are held while the XP bar fills and all land at the level-up', async () => {
+    const { levelOf, maxLevelOf } = await import('../src/engine/progression/levels.ts');
+    const { nextLevelPoints } = await import('../src/engine/progression/training.ts');
+    const g = game('rpg');
+    const c = youngster(g);
+    const sum = () => Object.values(c.attributes).reduce((s, v) => s + v, 0);
+    let ups = 0;
+    for (let w = 0; w < 400 && levelOf(c) < maxLevelOf(c); w++) {
+      const lv = levelOf(c);
+      const before = sum();
+      const expected = nextLevelPoints(c)!;
+      weeklyTraining(g, new Set());
+      if (levelOf(c) === lv) expect(sum()).toBe(before);
+      else {
+        ups++;
+        // Everything held lands at once (at least what was announced as already earned).
+        expect(sum() - before).toBeGreaterThanOrEqual(expected.held);
+        expect(sum()).toBeGreaterThan(before);
+        expect(g.inbox.some((m) => m.kind === 'levelUp' && m.creatureId === c.id && (m.gains?.length ?? 0) > 0)).toBe(true);
+      }
+    }
+    expect(ups).toBeGreaterThan(0);
+    // The potential is the maximum level: reaching it means reaching the potential.
+    expect(levelOf(c)).toBe(maxLevelOf(c));
+    expect(c.ability).toBe(c.potential);
+    expect(nextLevelPoints(c)).toBeNull();
+  });
+
   it('rest gives no growth but recovers fatigue', () => {
     const g = game();
     const c = youngster(g);

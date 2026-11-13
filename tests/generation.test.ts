@@ -109,3 +109,18 @@ describe('teams', () => {
     expect(t.lineup.map((s) => s.creatureId)).not.toContain(star.id);
   });
 });
+
+describe('potential = maximum level', () => {
+  it('no new creature sits at its maximum level below its potential (trained to it, or a full level to go)', async () => {
+    const { levelOf, maxLevelOf } = await import('../src/engine/progression/levels.ts');
+    const { newGame } = await import('../src/engine/league/season.ts');
+    const rng = new Rng('align');
+    const made = ['novice', 'regional', 'professional', 'elite', 'legendary'].flatMap((q) =>
+      Array.from({ length: 200 }, () => generateCreature(rng, { quality: q as 'novice' })),
+    );
+    const game = newGame({ seed: 'align', teamName: 'Me', lang: 'en' });
+    for (const c of [...made, ...game.teams.flatMap((t) => t.creatures)]) {
+      if (levelOf(c) >= maxLevelOf(c)) expect(c.ability).toBe(c.potential);
+    }
+  });
+});

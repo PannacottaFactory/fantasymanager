@@ -231,7 +231,17 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
     case 'levelUp':
       return {
         title: t('msg.levelUp.title', { name: m.name, n: m.level }),
-        body: t('msg.levelUp.body', { name: m.name, n: m.level, p: m.points }),
+        body: [
+          m.gains?.length
+            ? t('msg.levelUp.gains', {
+                list: m.gains.map((g) => `+${g.d} ${attributeText(g.k, tr.lang).name}`).join(', '),
+                n: m.gains.reduce((s, g) => s + g.d, 0),
+              })
+            : '',
+          t('msg.levelUp.body', { name: m.name, n: m.level, p: m.points }),
+        ]
+          .filter(Boolean)
+          .join('\n'),
         tone: 'good',
       };
     case 'abilityUnlocked':

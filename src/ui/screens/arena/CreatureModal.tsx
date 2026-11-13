@@ -16,7 +16,7 @@ import {
 } from '../../../engine/text/localize.ts';
 import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
 import { AbilityCard } from '../../components/AbilityCard.tsx';
-import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, PotentialStars, TraitChip, LevelBadge } from '../../components/common.tsx';
+import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, PotentialStars, TraitChip, LevelBadge, XpTrack } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { fatigueColor, moraleColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -110,6 +110,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
             {known && <StatTile label={t('col.morale')} value={<span style={{ color: moraleColor(creature.condition.morale) }}>{t(moraleKey(creature.condition.morale))}</span>} title={t('sheet.moraleTip', { v: creature.condition.morale })} />}
             {known && <StatTile label={t('col.fatigue')} value={<span style={{ color: fatigueColor(creature.condition.fatigue) }}>{creature.condition.fatigue} %</span>} />}
           </div>
+          {onSpendPoint && <XpTrack c={creature} />}
           {known && injuries.length > 0 && (
             <div className="bad-text" style={{ fontSize: '0.929rem' }}>
               <UiIcon name="injury" /> {injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}

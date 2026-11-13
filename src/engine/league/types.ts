@@ -88,7 +88,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
     }
   /** `ability` = level at which it unlocked. */
   | { kind: 'abilityUnlocked'; creatureId: string; name: string; abilityId: string; ability: number }
-  | { kind: 'levelUp'; creatureId: string; name: string; level: number; points: number }
+  | { kind: 'levelUp'; creatureId: string; name: string; level: number; points: number; gains?: { k: AttributeKey; d: number }[] }
   | { kind: 'coachHired'; name: string; domain: AttributeCategory; quality: number }
   // ——— Phase 5: divisions, cup, club ———
   /** Cup messages; with `tournament` (a tournament id), they are about that tournament. */

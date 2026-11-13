@@ -17,6 +17,20 @@ export function levelOfAbility(ability: number, cfg: GameConfig = DEFAULT_CONFIG
 
 export const levelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => levelOfAbility(c.ability, cfg);
 
+/**
+ * The potential is the maximum level, so a creature never sits at that level below its potential. A new creature
+ * whose aptitude and potential fall in the same level is settled to the nearest of the two coherent states: already
+ * trained to its potential (potential = aptitude), or one full level still to gain (potential = start of the next
+ * level). `cap` bounds the potential (the next level is skipped if it goes past it).
+ */
+export function alignPotential(ability: number, potential: number, cfg: GameConfig = DEFAULT_CONFIG, cap = cfg.generation.maxAbility): number {
+  const lv = levelOfAbility(ability, cfg);
+  if (ability >= potential || levelOfAbility(potential, cfg) > lv) return potential;
+  const next = cfg.training.levels.steps[lv];
+  if (next === undefined || next > cap) return ability;
+  return potential - ability < next - potential ? ability : next;
+}
+
 /** Highest level this creature can reach (its potential). */
 export const maxLevelOf = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) => levelOfAbility(c.potential, cfg);
 

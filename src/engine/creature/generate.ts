@@ -9,6 +9,7 @@ import { TRAITS } from '../../data/traits.ts';
 import type { SpeciesDef } from '../../data/schema.ts';
 import type { Creature, HiddenAttributes } from '../model.ts';
 import { generateName } from './names.ts';
+import { alignPotential } from '../progression/levels.ts';
 
 export interface GenerateCreatureOptions {
   speciesId?: string;
@@ -92,7 +93,7 @@ export function generateCreature(
   const species = opts.speciesId ? SPECIES[opts.speciesId] : pickSpecies(rng);
   if (!species) throw new Error(`Unknown species ${opts.speciesId}`);
   const quality = g.qualities[opts.quality ?? 'professional'];
-  const potential = clamp(
+  const drawn = clamp(
     Math.round(opts.potential ?? rng.normal(quality.potentialMean, quality.potentialSd)),
     g.minAbility,
     g.maxAbility,
@@ -101,7 +102,9 @@ export function generateCreature(
   const age = opts.age ?? rng.int(lc.minAge, Math.round(lc.minAge + (lc.maxAge - lc.minAge) * g.ageSpanMax));
   // Room to grow: a new creature is a little below what its age allows, so it can still level up.
   const room = 1 - rng.range(g.headroom.min, g.headroom.max);
-  const ability = clamp(Math.round(potential * ageAbilityFactor(species, age, cfg) * room), g.minAbility, potential);
+  const ability = clamp(Math.round(drawn * ageAbilityFactor(species, age, cfg) * room), g.minAbility, drawn);
+  // More or less trained before: either up to its potential, or with at least one full level still to gain.
+  const potential = alignPotential(ability, drawn, cfg);
   const c = g.condition;
   return {
     id: makeId(rng, 'cr'),
