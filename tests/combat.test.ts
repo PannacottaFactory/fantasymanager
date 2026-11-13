@@ -131,6 +131,37 @@ describe('combat rules', () => {
     expect(c.active(0).length).toBe(standing);
   });
 
+  it('a substitute can come on in another role and line, and replays keep it', () => {
+    const s = setup(6);
+    const c = new Combat(s);
+    c.advance();
+    const out = c.active(0)[0]!;
+    const inc = c.bench(0)[0]!;
+    const role = inc.role === 'tank' ? 'caster' : 'tank';
+    const line = out.line === 'front' ? 'back' : 'front';
+    const factor = inc.roleFactor;
+    expect(c.applyBreakDecision(0, { substitutions: [{ outId: out.id, inId: inc.id, role, line }] })).toEqual([]);
+    expect(inc.role).toBe(role);
+    expect(inc.line).toBe(line);
+    expect(c.getRoster()[inc.id]!.role).toBe(role);
+    expect(inc.roleFactor).not.toBe(factor);
+    c.resume();
+    while (c.phase !== 'ended') {
+      c.advance();
+      if (c.phase === 'break') c.resume();
+    }
+    const r = c.result();
+    const again = new Combat(s);
+    while (again.phase !== 'ended') {
+      again.advance();
+      if (again.phase === 'break') {
+        for (const d of r.decisions.filter((x) => x.round === again.round)) again.applyBreakDecision(d.side, d.decision);
+        again.resume();
+      }
+    }
+    expect(JSON.stringify(again.result().events)).toBe(JSON.stringify(r.events));
+  });
+
   it('cannot advance during a break', () => {
     const c = new Combat(setup(5));
     c.advance();

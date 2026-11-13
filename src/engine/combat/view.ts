@@ -180,7 +180,7 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
       if (out && out.state === 'active') out.state = 'withdrawn';
       if (inc) {
         inc.state = 'active';
-        if (out) inc.line = out.line;
+        inc.line = e.line;
       }
       view.subsUsed[e.side]++;
       break;

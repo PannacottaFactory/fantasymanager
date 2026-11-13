@@ -171,7 +171,7 @@ const en = {
   'ro.spell': 'Spell damage ×{v}',
   'ro.heal': 'Healing ×{v}',
   'ro.mitigation': 'Armour {v} %',
-  'ro.scaling': 'Bonuses grow with role fit (×{min} to ×{max}); costs do not. Outside the roles natural to its species, a creature deals and heals ×{off}.',
+  'ro.scaling': 'Bonuses grow with role fit (×{min} to ×{max}); costs do not. In a role natural to its species a creature gets the whole bonus; in any other role only {off} % of it (the costs stay whole), and no other penalty.',
   'ro.fit': 'Role fit is computed from',
   'ro.line': 'Usual line',
   'ro.front': 'front',
@@ -239,7 +239,7 @@ const en = {
     'Damage = power × ({base} + {per} × the attacker’s stat), ±{variance} % at random, then multiplied by the element, role, orders, morale and fatigue, and reduced by the target’s armour (toughness, size, effects, orders; between {minM} % and {maxM} %). Critical hits ×{crit} (chance from technique and composure). Area attacks deal full damage to each target.',
   'ru.cover.title': 'Lines and cover',
   'ru.cover.body':
-    'Melee attackers can reach the enemy back line while its front line stands, but with difficulty: −{reach} % to hit. Skirmishers only lose about {flank} % (less the better they fit the role); flyers, charges and dives reach it freely. Once the front line is empty, everyone can.\nCover: the creatures standing in a front line shield their back line from ranged attacks and spells — the more of them the better, and a tank counts one and a half: one creature −{one} %, a lone tank −{tank} %, two −{two} %, three −{three} %, four −{four} % (never more than {max} %). Melee strikes ignore cover.',
+    'Each side has a front line and a back line. While at least one creature stands in the enemy front line, the back line is harder to get at — in two different ways depending on the attack.\nMelee past the front line (reach): a melee attack aimed at a back-line creature loses {reach} points of chance to hit (a creature that would hit {base} % of the time only hits {ex} %). Skirmishers lose only {flankMin} to {flankMax} points ({flank} × (2 − role fit factor): the better suited to the role, the smaller the loss). Flyers, charges and dives, and abilities that reach any target, lose nothing. Area attacks are not affected. If a front-line tank intercepts the blow, it is no longer a reach strike.\nCover (ranged attacks and spells): they hit the back line normally, but deal less damage — the damage is reduced by a share that depends on how many creatures still stand in front (a tank counts {tw}): one creature −{one} %, a lone tank −{tank} %, two −{two} %, three −{three} %, four −{four} %, never more than {max} %. Knocked-out or fled creatures no longer cover. Melee strikes ignore cover (they pay the reach penalty instead).\nOnce the front line is empty, there is neither reach penalty nor cover: the back line is exposed to everything.',
   'ru.guard.title': 'Tanks and guarding',
   'ru.guard.body':
     'A tank in the front line may throw itself in front of a physical single-target blow aimed at an ally: {passive} % chance (+ anticipation and teamwork), {active} % when it chose to guard that round, at most {max} %. Guarding also reduces the damage it takes by {gm} % for the round.',
@@ -431,7 +431,7 @@ const fr: Record<EncKey, string> = {
   'ro.spell': 'Dégâts des sorts ×{v}',
   'ro.heal': 'Soins ×{v}',
   'ro.mitigation': 'Armure {v} %',
-  'ro.scaling': 'Les bonus grandissent avec l’aptitude au rôle (×{min} à ×{max}) ; pas les coûts. Hors des rôles naturels de son espèce, une créature inflige et soigne ×{off}.',
+  'ro.scaling': 'Les bonus grandissent avec l’aptitude au rôle (×{min} à ×{max}) ; pas les coûts. Dans un rôle naturel de son espèce, une créature a tout le bonus ; dans un autre rôle, seulement {off} % (les coûts restent entiers), sans autre malus.',
   'ro.fit': 'L’aptitude au rôle se calcule avec',
   'ro.line': 'Ligne habituelle',
   'ro.front': 'avant',
@@ -496,7 +496,7 @@ const fr: Record<EncKey, string> = {
     'Dégâts = puissance × ({base} + {per} × la caractéristique de l’attaquant), ±{variance} % au hasard, puis multipliés par l’élément, le rôle, les consignes, le moral et la fatigue, et réduits par l’armure de la cible (robustesse, taille, effets, consignes ; entre {minM} % et {maxM} %). Coups critiques ×{crit} (chance selon technique et sang-froid). Les attaques de zone infligent leurs dégâts complets à chaque cible.',
   'ru.cover.title': 'Lignes et couverture',
   'ru.cover.body':
-    'Au corps à corps, on peut atteindre la deuxième ligne adverse alors que sa première ligne tient, mais difficilement : −{reach} % pour toucher. Les tirailleurs ne perdent qu’environ {flank} % (moins s’ils sont faits pour ce rôle) ; volants, charges et plongeons l’atteignent librement. Une fois la première ligne vide, tout le monde le peut.\nCouverture : les créatures debout en première ligne protègent leur deuxième ligne des tirs et des sorts — d’autant mieux qu’elles sont nombreuses, et un tank compte pour une et demie : une créature −{one} %, un tank seul −{tank} %, deux −{two} %, trois −{three} %, quatre −{four} % (jamais plus de {max} %). Les coups au corps à corps ignorent la couverture.',
+    'Chaque camp a une première et une deuxième ligne. Tant qu’au moins une créature tient debout dans la première ligne adverse, la deuxième ligne est plus difficile à atteindre — de deux façons différentes selon l’attaque.\nCorps à corps par-dessus la première ligne (allonge) : une attaque au corps à corps visant une créature de deuxième ligne perd {reach} points de chance de toucher (une créature qui toucherait {base} % du temps ne touche plus que {ex} %). Les tirailleurs ne perdent que {flankMin} à {flankMax} points ({flank} × (2 − facteur d’adéquation au rôle) : mieux ils sont faits pour ce rôle, moins ils perdent). Volants, charges et plongeons, ainsi que les capacités qui atteignent n’importe quelle cible, ne perdent rien. Les attaques de zone ne sont pas concernées. Si un tank de première ligne intercepte le coup, ce n’est plus une attaque à l’allonge.\nCouverture (tirs et sorts) : ils atteignent la deuxième ligne normalement, mais font moins de dégâts — les dégâts sont réduits d’une part qui dépend du nombre de créatures encore debout devant (un tank compte pour {tw}) : une créature −{one} %, un tank seul −{tank} %, deux −{two} %, trois −{three} %, quatre −{four} %, jamais plus de {max} %. Les créatures K.O. ou en fuite ne couvrent plus. Les coups au corps à corps ignorent la couverture (ils subissent le malus d’allonge à la place).\nUne fois la première ligne vide, ni malus d’allonge ni couverture : la deuxième ligne est exposée à tout.',
   'ru.guard.title': 'Tanks et garde',
   'ru.guard.body':
     'Un tank en première ligne peut se jeter devant un coup physique à cible unique visant un allié : {passive} % de chances (+ anticipation et esprit d’équipe), {active} % s’il s’est mis en garde ce round, {max} % au plus. La garde réduit aussi de {gm} % les dégâts qu’il subit pendant le round.',

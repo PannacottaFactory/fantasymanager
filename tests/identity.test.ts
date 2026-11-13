@@ -88,13 +88,19 @@ describe('levers', () => {
     expect(coverMult('melee', back, 3, cfg)).toBe(1);
   });
 
-  it('a creature outside its natural roles deals less damage', () => {
+  it('outside its natural roles a creature gets a smaller role bonus, no penalty', () => {
     const g = newGame({ seed: 'roles', teamName: 'Me', lang: 'en' });
     const t = g.teams[0]!;
     const c = new Combat({ seed: 1, teams: [t, g.teams[1]!] });
     const a = c.active(0)[0]!;
-    const natural = roleDamageFactor({ ...a, naturalRole: true }, 'melee', DEFAULT_CONFIG);
-    expect(roleDamageFactor({ ...a, naturalRole: false }, 'melee', DEFAULT_CONFIG)).toBeCloseTo(natural * DEFAULT_CONFIG.combat.roleFit.offRole);
+    const striker = { ...a, role: 'striker' as const };
+    const natural = roleDamageFactor({ ...striker, naturalRole: true }, 'melee', DEFAULT_CONFIG);
+    const off = roleDamageFactor({ ...striker, naturalRole: false }, 'melee', DEFAULT_CONFIG);
+    expect(natural).toBeGreaterThan(off);
+    expect(off - 1).toBeCloseTo((natural - 1) * DEFAULT_CONFIG.combat.roleFit.offRoleBonus);
+    // The role's costs stay: an off-role support still deals less.
+    const support = { ...a, role: 'support' as const, naturalRole: false };
+    expect(roleDamageFactor(support, 'melee', DEFAULT_CONFIG)).toBe(DEFAULT_CONFIG.combat.roles.support.melee);
   });
 
   it('break decisions come back to the starting orders, not to "balanced"', () => {

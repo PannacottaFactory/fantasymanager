@@ -106,7 +106,7 @@ tests/       Vitest
   score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
 - **Live match dressing** (stays textual, columns kept): each fighter column = « Première ligne » block (cards with a shield
   edge facing the opponent) · rampart showing the back line's cover (`coverPoints` / `coverReduction`, bar = share of the
-  max, « Plus de rempart » when the front falls) · « Ligne arrière » block (cards a step back) · bench strip (compact quiet
+  max, « Plus de couverture » when the front falls) · « Ligne arrière » block (cards a step back) · bench strip (compact quiet
   rows, always visible; creatures taken off go there). KO creatures stay in their line until the next break, then are
   carried to the bench (still KO, struck through; `retired` set in `LiveMatch`, display only). Cover label / wall colour
   goes red → amber → green with its strength. Guard = a thin golden arc on the side facing the opponent, card stays still
@@ -181,8 +181,8 @@ tests/       Vitest
   Attributes are capped by the species range at full potential (+2). Ageing uses the same mechanism, negative.
 - **Roles** (`cfg.combat.roles`): each role has a bonus and a cost (tank +armour −damage, striker +melee −armour,
   caster +spells −armour, support +healing −damage, skirmisher +ranged/+melee −armour). Bonuses scale with
-  `roleFactor` (role fit, 0.78–1.2); outside the species' natural roles (`Combatant.naturalRole`) damage and healing
-  ×`roleFit.offRole` (0.8). Tank interceptions and the skirmisher flank penalty also use `roleFactor`.
+  `roleFactor` (role fit, 0.78–1.2); outside the species' natural roles (`Combatant.naturalRole`) the role gives only `roleFit.offRoleBonus` (half) of its bonus (costs stay whole), no other penalty
+  (`roleFit.offRole` ×0.8 removed). Tank interceptions and the skirmisher flank penalty also use `roleFactor`.
 - **Cover** (`cfg.combat.cover`, `coverPoints` / `coverReduction`): every creature standing in the front line shields
   the back line from ranged attacks and spells (a tank counts 1.5), with diminishing returns: 1 → −11 %, lone tank −15 %,
   2 → −18 %, 3 → −24 %, 4 → −27 %, max 36 % (melee ignores it).
@@ -428,7 +428,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   bench light blue, reserve grey.
   Rows follow the team order (lineup, bench, reserve); the top / bottom third of a row = insert there (`insertInGroup`,
   accent line), the middle = `dropOnto`. The dragged copy hangs just below the pointer.
-- **Break panel** (`Modal locked`: only « Reprendre le combat » closes it — no click outside, Escape or ✕): under the table, a card per substitute (level, species, role / off-role, health, stamina, morale,
+- **Break panel** (`Modal locked`: only « Reprendre le combat » closes it — no click outside, Escape or ✕). A substitute may come on in any role and line (`SubstitutionDecision.role / line`, default: its best role, the line of the creature it replaces; role fit / off-role follow, `substitution` event carries both, roster role updated): under the table, a card per substitute (level, species, role / off-role, health, stamina, morale,
   pre-match fatigue, element advantage / vulnerability against the opponents still standing, abilities, « comes on for »).
 - **KO**: `fxCanvas.knockout` (dust, chunks, red flash, two shockwaves, embers) + `koStamp` in Projectiles (« K.O. » stamp
   on the card, short shake of `.live`). Health lost trails in white (`.bar > i.ghost`).

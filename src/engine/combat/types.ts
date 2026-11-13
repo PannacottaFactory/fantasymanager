@@ -88,6 +88,10 @@ export interface MatchSetup {
 export interface SubstitutionDecision {
   outId: string;
   inId: string;
+  /** Role the substitute plays (default: the one it was given on the bench, its best role). */
+  role?: RoleId;
+  /** Line it takes (default: the line of the creature it replaces). */
+  line?: Line;
 }
 
 export interface BreakDecision {
@@ -187,7 +191,7 @@ export type MatchEvent =
   | { type: 'injury'; round: number; target: string; injuryId: string; weeks: number }
   | { type: 'roundEnd'; round: number; snapshot: CombatantSnapshot[] }
   | { type: 'break'; round: number; index: number }
-  | { type: 'substitution'; round: number; side: Side; outId: string; inId: string }
+  | { type: 'substitution'; round: number; side: Side; outId: string; inId: string; role: RoleId; line: Line }
   | { type: 'ordersChanged'; round: number; side: Side; orders: TeamOrders }
   | { type: 'matchEnd'; round: number; winner: Side; method: MatchMethod; score: [number, number] };
 

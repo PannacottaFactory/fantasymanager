@@ -237,12 +237,13 @@ export class Combat {
       }
       out.replaced = true;
       inc.state = 'active';
-      inc.line = out.line;
+      inc.line = sub.line ?? out.line;
+      if (sub.role && sub.role !== inc.role) this.setRole(inc, sub.role);
       inc.enteredRound = this.round + 1;
       for (const p of SPECIES[inc.speciesId]?.passives ?? []) this.addEffect(inc, p, 999, undefined, true);
       st.subsUsed++;
       (applied.substitutions ??= []).push(sub);
-      this.emit({ type: 'substitution', round: this.round, side, outId: out.id, inId: inc.id });
+      this.emit({ type: 'substitution', round: this.round, side, outId: out.id, inId: inc.id, role: inc.role, line: inc.line });
     }
     if (d.orders) {
       const changed = JSON.stringify(d.orders) !== JSON.stringify(st.orders);
@@ -317,6 +318,16 @@ export class Combat {
         : {}),
       cooldowns: Object.fromEntries(Object.entries(c.cooldowns).filter(([, v]) => v > 0)),
     }));
+  }
+
+  /** A substitute brought on in another role: role fit and natural role follow. */
+  private setRole(c: Combatant, role: Combatant['role']) {
+    const rf = this.cfg.combat.roleFit;
+    c.role = role;
+    c.roleFactor = clamp(1 + (roleFit({ attributes: c.attrs } as Creature, role) - 10) * rf.perPoint, rf.min, rf.max);
+    c.naturalRole = SPECIES[c.speciesId]?.roles.includes(role) ?? false;
+    const entry = this.roster[c.id];
+    if (entry) entry.role = role;
   }
 
   // ——— Setup ———

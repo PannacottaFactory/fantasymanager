@@ -153,11 +153,12 @@ export const COMBAT_CONFIG = {
    * striker melee damage, caster spell damage, support healing, skirmisher strikes on the back line.
    * factor = 1 + (fit − 10) × perPoint, clamped.
    */
-  roleFit: { perPoint: 0.022, min: 0.78, max: 1.2, offRole: 0.8 },
+  /** offRoleBonus: share of the role's bonus kept outside the species' natural roles (costs stay whole). */
+  roleFit: { perPoint: 0.022, min: 0.78, max: 1.2, offRoleBonus: 0.5 },
   /**
    * What each role does to a creature: damage multipliers per attack kind, healing multiplier and flat armour.
    * Bonuses (> 1, or armour > 0) grow with role fit; penalties do not. Outside the roles natural to its
-   * species, a creature also deals and heals `roleFit.offRole` times as much.
+   * species, a creature gets only `roleFit.offRoleBonus` of the role's bonuses (its costs still apply).
    */
   roles: {
     tank: { melee: 0.88, ranged: 0.88, spell: 0.88, heal: 1, mitigation: 0.03 },

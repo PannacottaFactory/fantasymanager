@@ -2548,6 +2548,16 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .sheet-box .attr-list { gap: 0 6px; }
 .sheet-box .attr-list .attr-name, .sheet-box .attr-list .attr-cell { padding: 1px 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent); }
 .sheet-box .attr-list .attr-cell { text-align: right; }
+/* A « +1 » next to a value never pushes the cell out of its box: the name gives way (ellipsis, full name in the tooltip). */
+.attr-list { grid-template-columns: minmax(0, 1fr) auto; }
+.attr-list .attr-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attr-cell { white-space: nowrap; }
+.attr-cell > * { flex: none; }
+.sheet-box .attr-list { column-gap: 4px; }
+.sheet-box .attr-cell { gap: 3px; }
+.sheet-box .attr-delta { font-size: 0.643rem; letter-spacing: -0.02em; }
+.sheet-box .plus-slot { margin-left: 1px; }
+.attr-grid > .sheet-box { padding-left: 8px; padding-right: 7px; }
 .sheet-traits { gap: 8px; }
 .trait-line { display: flex; align-items: baseline; gap: 8px; font-size: 0.857rem; }
 .trait-line + .trait-line { margin-top: 4px; }

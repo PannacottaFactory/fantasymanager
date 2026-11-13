@@ -616,7 +616,7 @@ export function RoleEntry({ id, go }: { id: RoleId; go: (l: Link) => void }) {
         ]}
       />
       <List title={e('ro.bonus')} items={lines} />
-      <p className="muted">{e('ro.scaling', { min: mult(rf.min), max: mult(rf.max), off: mult(rf.offRole) })}</p>
+      <p className="muted">{e('ro.scaling', { min: mult(rf.min), max: mult(rf.max), off: Math.round(rf.offRoleBonus * 100) })}</p>
       <List
         title={e('sp.roles')}
         items={[
@@ -817,7 +817,9 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     cover: {
       one: p(coverReduction(1, cfg)), tank: p(coverReduction(c.cover.tankWeight, cfg)), two: p(coverReduction(2, cfg)),
       three: p(coverReduction(3, cfg)), four: p(coverReduction(4, cfg)), max: p(c.cover.max),
-      reach: p(c.hit.reachPenalty), flank: p(c.hit.flankPenalty),
+      reach: p(c.hit.reachPenalty), flank: p(c.hit.flankPenalty), base: p(c.hit.base), ex: p(c.hit.base - c.hit.reachPenalty),
+      flankMin: p(c.hit.flankPenalty * (2 - c.roleFit.max)), flankMax: p(c.hit.flankPenalty * (2 - c.roleFit.min)),
+      tw: num(c.cover.tankWeight),
     },
     guard: { passive: p(c.guard.passiveBase), active: p(c.guard.activeBase), max: p(c.guard.max), gm: p(c.guard.guardMitigation) },
     orders: {

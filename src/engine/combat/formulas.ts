@@ -214,27 +214,30 @@ export interface DamageContext {
   solo: boolean;
 }
 
-/** A role bonus grows with role fit; a penalty does not. */
-function scaled(v: number, c: Combatant): number {
-  return v > 1 ? 1 + (v - 1) * c.roleFactor : v;
+/** Share of a role's bonus this creature gets: all of it in a role natural to its species, less in another. */
+function bonusShare(c: Combatant, cfg: GameConfig): number {
+  return c.roleFactor * (c.naturalRole === false ? cfg.combat.roleFit.offRoleBonus : 1);
 }
 
-/** Role effect on damage of this kind, including the off-role penalty. */
+/** A role bonus grows with role fit (smaller outside the species' natural roles); a penalty stays as it is. */
+function scaled(v: number, c: Combatant, cfg: GameConfig): number {
+  return v > 1 ? 1 + (v - 1) * bonusShare(c, cfg) : v;
+}
+
+/** Role effect on damage of this kind (a smaller bonus outside the species' natural roles). */
 export function roleDamageFactor(c: Combatant, kind: AttackKind, cfg: GameConfig): number {
-  const off = c.naturalRole === false ? cfg.combat.roleFit.offRole : 1;
-  return scaled(cfg.combat.roles[c.role][kind], c) * off;
+  return scaled(cfg.combat.roles[c.role][kind], c, cfg);
 }
 
-/** Role effect on healing given, including the off-role penalty. */
+/** Role effect on healing given (a smaller bonus outside the species' natural roles). */
 export function roleHealFactor(c: Combatant, cfg: GameConfig): number {
-  const off = c.naturalRole === false ? cfg.combat.roleFit.offRole : 1;
-  return scaled(cfg.combat.roles[c.role].heal, c) * off;
+  return scaled(cfg.combat.roles[c.role].heal, c, cfg);
 }
 
-/** Role armour (a tank's bonus grows with its fit). */
+/** Role armour (a tank's bonus grows with its fit, smaller outside the species' natural roles). */
 export function roleMitigation(c: Combatant, cfg: GameConfig): number {
   const m = cfg.combat.roles[c.role].mitigation;
-  return m > 0 ? m * c.roleFactor : m;
+  return m > 0 ? m * bonusShare(c, cfg) : m;
 }
 
 export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageContext, cfg: GameConfig): number {

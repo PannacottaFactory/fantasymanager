@@ -14,6 +14,9 @@ import { Bar, Crest, ElementDots, Modal } from '../../components/common.tsx';
 import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
+import { ROLE_IDS } from '../../../data/roles.ts';
+import { SPECIES } from '../../../data/species.ts';
+import type { Line, RoleId } from '../../../data/schema.ts';
 
 const TARGETS: TargetPriority[] = ['nearest', 'weakest', 'strongest', 'casters', 'threat'];
 
@@ -64,7 +67,8 @@ export function BreakPanel({ combat, onResume }: Props) {
       if (free && subs.length < subsLeft) setSubs([...subs, { outId: id, inId: free.id }]);
     }
   };
-  const setIn = (outId: string, inId: string) => setSubs(subs.map((s) => (s.outId === outId ? { ...s, inId } : s)));
+  const setIn = (outId: string, inId: string) => setSubs(subs.map((s) => (s.outId === outId ? { outId, inId } : s)));
+  const patchSub = (outId: string, p: Partial<SubstitutionDecision>) => setSubs(subs.map((s) => (s.outId === outId ? { ...s, ...p } : s)));
   const resume = () => {
     const stanceChanges = Object.entries(stances)
       .filter(([id, st]) => combat.get(id).stance !== st && !outIds.has(id))
@@ -187,6 +191,26 @@ export function BreakPanel({ combat, onResume }: Props) {
                               ))}
                           </select>
                         )}
+                        {sub && (() => {
+                          const inc = combat.get(sub.inId);
+                          const natural = SPECIES[inc.speciesId]?.roles ?? [];
+                          return (
+                            <>
+                              <select className="compact" title={t('break.subRole.title')} value={sub.role ?? inc.role} onChange={(e) => patchSub(c.id, { role: e.target.value as RoleId })}>
+                                {ROLE_IDS.map((r) => (
+                                  <option key={r} value={r}>
+                                    {roleText(r, lang).name}
+                                    {natural.includes(r) ? '' : ` (${t('break.offRole')})`}
+                                  </option>
+                                ))}
+                              </select>
+                              <select className="compact" title={t('break.subLine.title')} value={sub.line ?? c.line} onChange={(e) => patchSub(c.id, { line: e.target.value as Line })}>
+                                <option value="front">{t('line.front')}</option>
+                                <option value="back">{t('line.back')}</option>
+                              </select>
+                            </>
+                          );
+                        })()}
                       </span>
                     </td>
                   </tr>
@@ -210,6 +234,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                     foes={combat.active(1)}
                     cfg={cfg}
                     replacing={sub?.outId ?? null}
+                    role={sub?.role ?? b.role}
                     options={mine.filter((m) => !outIds.has(m.id) || subs.find((x) => x.outId === m.id)?.inId === b.id)}
                     canAdd={!!sub || subs.length < subsLeft}
                     onPick={(outId) => {
@@ -243,6 +268,7 @@ function BenchCard({
   foes,
   cfg,
   replacing,
+  role,
   options,
   canAdd,
   onPick,
@@ -251,6 +277,7 @@ function BenchCard({
   foes: Combatant[];
   cfg: Combat['cfg'];
   replacing: string | null;
+  role: RoleId;
   options: Combatant[];
   canAdd: boolean;
   onPick: (outId: string | null) => void;
@@ -270,8 +297,8 @@ function BenchCard({
         <ElementDots speciesId={c.speciesId} />
         <span className="muted">{speciesName(c.speciesId, lang)}</span>
         <span className="spacer" />
-        <RoleLabel role={c.role} />
-        {!c.naturalRole && <span className="tag bad" title={t('break.offRole.title')}>{t('break.offRole')}</span>}
+        <RoleLabel role={role} />
+        {!SPECIES[c.speciesId]?.roles.includes(role) && <span className="tag bad" title={t('break.offRole.title')}>{t('break.offRole')}</span>}
       </div>
       <div className="bc-stats">
         <span className="muted">{t('col.health')}</span>
