@@ -104,6 +104,30 @@ tests/       Vitest
   messages that matter (level-up, ability, signing, trophies, death), worded by `wording()` from the inbox. Live match:
   status auras on cards (`AURA` in Scoreboard), KO dust + grey fall, revive light, crit label, victory confetti,
   score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
+- **Live match dressing** (stays textual, columns kept): each fighter column = « Première ligne » block (cards with a shield
+  edge facing the opponent) · rampart showing the back line's cover (`coverPoints` / `coverReduction`, bar = share of the
+  max, « Plus de rempart » when the front falls) · « Ligne arrière » block (cards a step back) · bench strip (compact quiet
+  rows, always visible; creatures taken off go there). KO creatures stay in their line until the next break, then are
+  carried to the bench (still KO, struck through; `retired` set in `LiveMatch`, display only). Cover label / wall colour
+  goes red → amber → green with its strength. Guard = a thin golden arc on the side facing the opponent, card stays still
+  (`lunge: 'still'`). Hesitation = a swirl above the head. « Conseil de l'assistant » at the break has the Tactics
+  flourish (glow + sweep, sparkles, orders and rows light up). Centre: score band (judges' % live
+  on each side, round title, team health, `RoundTrack` = 20 pips with the breaks), chronicle with round chapters, a margin
+  icon per tone (`TONE_ICON`) for lines that matter, big moments (importance 2) larger on a tinted band, lines inked in.
+  `node scripts/live-check.mjs <outDir> <url> <shots> <everyMs> [speed]` screenshots a live match.
+- **Animation motifs** (`ui/screens/arena/motifs.ts`, display only): every ability gets a motif from its id / kind / target
+  (exceptions in `BY_ID`): bite, claw, blade, blunt, charge, sting, lash, sweep, quake, arrow, rock, spit, volley, orb,
+  bolt (lightning), beam, breath (cone), storm (falls from the sky), wave, heal, song (notes), blessing, shout (sound
+  waves), curse (sigil), gaze, cloud, snare. `fxCanvas.ts` draws the flight (`drawMotif`, `motifTrail`) and the impact
+  (`impactMotif`, + element sparks on physical motifs); multi-strikes are staggered (`Shot.seq`); charges lunge further
+  (`FxBatch.lunge`). **Marks** (`matchFx.ts` `Mark`, drawn by `ui/screens/arena/fxMarks.ts`): every status applied /
+  ticking / wearing off and one-off reactions have their own animation (burn flames, poison bubbles by doses, blood drops,
+  snowflakes, frost crystals + thaw shatter, orbiting stun stars, hex shield + break, sigils, silence sign, taunt rings,
+  stamina / life streams between cards, thorns, cleanse, guard, rest, metamorphosis vortex, sacrifice, flee, « ? »,
+  gold motes from the creature going off to the one coming on (the card slides in, `.fighter.sub-in`), execution, ambush, pack). A new event or effect ⇒ give it a mark.
+- **Fixed canvases** (`.fx-canvas`, FxLayer) must never sit under an ancestor keeping a `transform` / `filter`: screen
+  transitions use `animation-fill-mode: backwards` (with `both`, Chrome keeps an identity matrix + `blur(0)` that captures
+  fixed children and shifted every particle effect ~185 px down).
 - **Projectiles**: `ui/screens/arena/Projectiles.tsx` draws shots, element particles and impacts between cards
   (`data-cid`); target reactions & health drop land when the projectile arrives (`FLIGHT` per speed).
 - **Pyramid** (save v6 — older saves need a new game): 4 divisions of 10 — 0 Grand Arena, 1 Royal League, 2 Barony
@@ -367,8 +391,19 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Potential** is written « n★ » (`<Stars n>`, 1–10 = highest level reachable: `maxLevelOf` for own creatures,
   `potentialLevel(c, knowledge)` estimate for others; coach quality /2). Squad has a one-line hint on how creatures
   grow with a link to Training; Training shows species icon + element dots.
-- **News ticker** (`ui/components/NewsTicker.tsx`): TV-style band at the bottom (next match, last result, leaders, cup,
-  infirmary, latest news), loops, pauses on hover, static when effects are off. Inbox is named « Journal ».
+- **Journal** (`InboxScreen`): three panes — folders by category (game-icons, unread badge) · messages grouped by week
+  (sticky week headings, icon per kind `messageIcon`, preview line, score pill, unread dot kept for the visit) · reading
+  pane (category tag, title, body as paragraphs / list, big score with crests for results, actions: report, watch again,
+  offers…); ↑ ↓ browse; fills the viewport height. Board and next match live on the dashboard only.
+- **Pre-match** compact: each side of the face-off holds its star card, the last meeting sits under « VS », the arena
+  condition beside the title; actions in one row with « manage breaks »; line-up cards with a one-line header — both
+  line-ups fit at 1440×900.
+- **Flash info** (`ui/components/NewsTicker.tsx`): TV-style band at the bottom, red « FLASH INFO » tag with a blinking
+  dot; every item = category badge (match, league, cups, finances, squad, market, club, news — colour tokens `--tk-*`) +
+  icon + text coloured by tone (gains green, losses / alerts red, warnings amber): next match + arena forecast, last
+  result, streaks, position + gap to promotion, leaders, Shadow Cup and every tournament, treasury, last week's net and
+  income, wage bill, injured / tired, points to place, expiring contracts, offers received, free agents (new), board,
+  reputation, works, next ambition, bestiary, latest news. Loops, pauses on hover, static when effects are off. Inbox is named « Journal ».
 - **Top-bar button** says what it does: « Prochain match » (opens the pre-match screen), « Retour au match »,
   « Semaine suivante », « Saison suivante ». Pre-match screen: big « Jouer le match en direct » card + « Simuler ».
 - Approach ascendancy is a cycle (cautious > aggressive > balanced > cautious): the verdict says so, never « best ».
@@ -426,7 +461,8 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - **Creature cards** (`ui/components/CreatureCard.tsx`): Squad shows cards by default (Cards / Table switch, localStorage
   `fm.squadView`), grouped Starters / Bench / Reserves; art in the element colours, frame metal by level (bronze 1–3,
   silver 4–6, gold 7–9, legend 10 with a shine), rating, level + XP, points to place, condition bars, best medals.
-- **Sound** (`ui/sound/sfx.ts`): every sound is synthesised with Web Audio (no files); volume in the settings menu
+- **Sound** (`ui/sound/sfx.ts`) — **switched off for now** (`SOUND_ENABLED = false`: `play` / `unlockAudio` do nothing, the volume
+  setting is hidden; flip it to bring them back): every sound is synthesised with Web Audio (no files); volume in the settings menu
   (`useSettings().volume`, `fm.volume`, 0 = off, default 0.5); the context starts on the first gesture. Hooks: button
   clicks (App), coins (treasury), toasts (Celebrations), level-ups (GrowthReel), hits / KO + crowd (Projectiles),
   whistle / victory / defeat (LiveMatch), clash (Versus). Throttled (4 sounds / 120 ms). Never affects the game.

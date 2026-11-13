@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -13,22 +13,79 @@ import { abilityText, attributeText, categoryName, injuryText, speciesName } fro
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { BadgeIcon } from '../../icons/Icon.tsx';
+import { BadgeIcon, UiIcon } from '../../icons/Icon.tsx';
+import { StableCrest } from '../../components/TeamCrest.tsx';
 import { medalDesc, medalName } from '../../components/CreatureRecord.tsx';
 import { levelOfAbility, totalXpOfAbility } from '../../../engine/progression/levels.ts';
 
 /** Message families: each has a colour and a symbol in the inbox. */
 export type MessageCategory = 'match' | 'medical' | 'market' | 'club' | 'squad' | 'competition' | 'scouting';
 
-const CATEGORY_STYLE: Record<MessageCategory, { color: string; glyph: string }> = {
-  match: { color: 'var(--accent)', glyph: '⚔' },
-  medical: { color: 'var(--bad)', glyph: '✚' },
-  market: { color: 'var(--warn)', glyph: '⚖' },
-  club: { color: 'var(--info)', glyph: '♜' },
-  squad: { color: 'var(--good)', glyph: '❦' },
-  competition: { color: 'color-mix(in srgb, var(--info) 55%, var(--bad))', glyph: '♛' },
-  scouting: { color: 'color-mix(in srgb, var(--info) 50%, var(--good))', glyph: '◉' },
+const CATEGORY_STYLE: Record<MessageCategory, { color: string; icon: string }> = {
+  match: { color: 'var(--accent)', icon: 'versus' },
+  medical: { color: 'var(--bad)', icon: 'injury' },
+  market: { color: 'var(--warn)', icon: 'nav-finances' },
+  club: { color: 'var(--info)', icon: 'nav-club' },
+  squad: { color: 'var(--good)', icon: 'nav-squad' },
+  competition: { color: 'color-mix(in srgb, var(--info) 55%, var(--bad))', icon: 'nav-competitions' },
+  scouting: { color: 'color-mix(in srgb, var(--info) 50%, var(--good))', icon: 'scout' },
 };
+
+/** A game-icon per kind of message (the category's icon otherwise). */
+function messageIcon(m: InboxMessage): string {
+  switch (m.kind) {
+    case 'death':
+      return 'memorial';
+    case 'recovered':
+      return 'fac-infirmary';
+    case 'tired':
+      return 'stamina';
+    case 'offerReceived':
+    case 'offerExpired':
+    case 'transferIn':
+    case 'transferOut':
+    case 'marketNews':
+    case 'emergencySigning':
+      return 'nav-recruit';
+    case 'trainingReport':
+      return 'nav-training';
+    case 'levelUp':
+      return 'power';
+    case 'abilityUnlocked':
+      return 'kind-spell';
+    case 'coachHired':
+      return 'nav-staff';
+    case 'medal':
+      return `medal-${m.family}`;
+    case 'bestiary':
+      return 'bestiary';
+    case 'arenaIntro':
+      return 'arena-clear';
+    case 'promoted':
+      return 'news-promotion';
+    case 'relegated':
+      return 'news-relegation';
+    case 'retired':
+      return 'news-retirement';
+    case 'seasonEnd':
+    case 'seasonPrize':
+    case 'cupWon':
+      return 'honours';
+    case 'ambition':
+      return 'help-goal';
+    case 'boardObjective':
+    case 'boardVerdict':
+    case 'boardWarning':
+      return 'board';
+    case 'facilityDone':
+      return 'nav-facilities';
+    case 'relation':
+    case 'friendLeft':
+      return 'nav-stable';
+    default:
+      return CATEGORY_STYLE[messageCategory(m)].icon;
+  }
+}
 
 export function messageCategory(m: InboxMessage): MessageCategory {
   switch (m.kind) {
@@ -272,7 +329,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
     const open = game.offers.some((o) => o.id === m.offerId);
     const c = locate(game, m.creatureId)?.creature;
     return (
-      <div className="stack" style={{ gap: 6, marginTop: 4 }}>
+      <div className="stack" style={{ gap: 8 }}>
         <div className="muted"><Gold>{t('msg.offerReceived.body', { fee: money(m.fee), value: c ? money(estimatedValue(c, knowledgeOf(game, c.id))) : '?' })}</Gold></div>
         {open ? (
           <div className="row" style={{ gap: 6 }}>
@@ -304,31 +361,31 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
   const sheetId = m.kind === 'scoutReport' && m.target === 'creature' ? m.targetId : m.kind === 'transferIn' || m.kind === 'medal' ? m.creatureId : null;
   if (sheetId && locate(game, sheetId))
     return (
-      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => openSheet(sheetId)}>
+      <button className="btn small ghost" onClick={() => openSheet(sheetId)}>
         {t('msg.openSheet')}
       </button>
     );
   if (m.kind === 'arenaIntro')
     return (
-      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => useGame.getState().openEncyclopedia('rules', 'arena')}>
+      <button className="btn small ghost" onClick={() => useGame.getState().openEncyclopedia('rules', 'arena')}>
         {t('arena.open')}
       </button>
     );
   if (m.kind === 'bestiary')
     return (
-      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => useGame.getState().openBestiary()}>
+      <button className="btn small ghost" onClick={() => useGame.getState().openBestiary()}>
         {t('bestiary.open')}
       </button>
     );
   if (m.kind === 'youthIntake')
     return (
-      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen('recruit')}>
+      <button className="btn small ghost" onClick={() => setScreen('recruit')}>
         {t('msg.openRecruit')}
       </button>
     );
   if (m.kind === 'scoutReport' || m.kind === 'contractExpiring')
     return (
-      <button className="btn small ghost" style={{ marginTop: 6 }} onClick={() => setScreen(m.kind === 'scoutReport' ? 'recruit' : 'finances')}>
+      <button className="btn small ghost" onClick={() => setScreen(m.kind === 'scoutReport' ? 'recruit' : 'finances')}>
         {m.kind === 'scoutReport' ? t('msg.openRecruit') : t('nav.finances')}
       </button>
     );
@@ -392,92 +449,237 @@ export function NextMatch({ game }: { game: GameState }) {
   );
 }
 
+/** Body text of a message: plain lines become paragraphs, « • » lines a list. */
+function MessageBody({ text, list }: { text: string; list?: boolean }) {
+  const blocks: { list: boolean; lines: string[] }[] = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const bullet = !!list || line.startsWith('• ');
+    const last = blocks.at(-1);
+    if (last && bullet && last.list) last.lines.push(line.replace(/^• /, ''));
+    else blocks.push({ list: bullet, lines: [line.replace(/^• /, '')] });
+  }
+  return (
+    <div className="jr-text">
+      {blocks.map((b, i) =>
+        b.list ? (
+          <ul key={i}>
+            {b.lines.map((l, j) => (
+              <li key={j}>
+                <Gold>{l}</Gold>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          b.lines.map((l, j) => (
+            <p key={`${i}-${j}`}>
+              <Gold>{l}</Gold>
+            </p>
+          ))
+        ),
+      )}
+    </div>
+  );
+}
+
+/** Big score of a match result, from the player's side, with both crests. */
+function ResultBoard({ game, m }: { game: GameState; m: Extract<InboxMessage, { kind: 'matchResult' }> }) {
+  const { t } = useT();
+  const f = game.fixtures.find((x) => x.id === m.fixtureId);
+  const me = teamById(game, game.playerTeamId);
+  const oppId = f ? (f.home === game.playerTeamId ? f.away : f.home) : null;
+  const opp = oppId ? teamById(game, oppId) : { id: m.opponent, name: m.opponent };
+  return (
+    <div className={`jr-score ${m.won ? 'won' : 'lost'}`}>
+      <span className="jr-team">
+        <StableCrest team={me} size={52} />
+        <b>{me.name}</b>
+      </span>
+      <span className="jr-points">
+        <span className="jr-digits">
+          <b>{m.score[0]}</b>
+          <i>–</i>
+          <b>{m.score[1]}</b>
+        </span>
+        <small>{m.method === 'ko' ? t('inbox.method.ko', { n: m.rounds }) : t('inbox.method.points')}</small>
+      </span>
+      <span className="jr-team away">
+        <StableCrest team={opp} size={52} />
+        <b>{opp.name}</b>
+      </span>
+    </div>
+  );
+}
+
+function weekLabel(tr: Translator, m: InboxMessage): string {
+  return m.matchday > 0 ? tr.t('inbox.week', { season: m.season, d: m.matchday }) : tr.t('inbox.weekZero', { season: m.season });
+}
+
 export function InboxScreen() {
   const tr = useT();
   const { t } = tr;
   const game = useGame((s) => s.game)!;
   const { reportOf, watchAgain, markAllRead } = useGame.getState();
   const [filter, setFilter] = useState<MessageCategory | null>(null);
-  const all = [...game.inbox].reverse();
+  const all = useMemo(() => [...game.inbox].reverse(), [game.inbox]);
+  // Unread on arrival: the marks stay for this visit until the message is opened (the save marks them read).
+  const [fresh, setFresh] = useState(() => new Set(game.inbox.filter((m) => !m.read).map((m) => m.id)));
   const counts = new Map<MessageCategory, number>();
-  for (const m of all) counts.set(messageCategory(m), (counts.get(messageCategory(m)) ?? 0) + 1);
+  const unreadCounts = new Map<MessageCategory, number>();
+  for (const m of all) {
+    const c = messageCategory(m);
+    counts.set(c, (counts.get(c) ?? 0) + 1);
+    if (fresh.has(m.id)) unreadCounts.set(c, (unreadCounts.get(c) ?? 0) + 1);
+  }
   const messages = filter ? all.filter((m) => messageCategory(m) === filter) : all;
-  // Unread markers are shown once, then cleared.
-  const unread = new Set(game.inbox.filter((m) => !m.read).map((m) => m.id));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = messages.find((m) => m.id === selectedId) ?? messages[0];
+  const listRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const id = setTimeout(markAllRead, 1500);
     return () => clearTimeout(id);
   }, [game.inbox.length, markAllRead]);
+  useEffect(() => {
+    listRef.current?.querySelector('.jr-row.on')?.scrollIntoView({ block: 'nearest' });
+  }, [selected?.id]);
+
+  const pick = (id: string) => {
+    setSelectedId(id);
+    if (fresh.has(id)) setFresh((s) => new Set([...s].filter((x) => x !== id)));
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const i = messages.findIndex((m) => m.id === selected?.id);
+    const next = messages[Math.max(0, Math.min(messages.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+    if (next) pick(next.id);
+  };
+
+  // The list, grouped by week (newest first).
+  const groups: { key: string; label: string; items: InboxMessage[] }[] = [];
+  for (const m of messages) {
+    const key = `${m.season}-${m.matchday}`;
+    const last = groups.at(-1);
+    if (last?.key === key) last.items.push(m);
+    else groups.push({ key, label: weekLabel(tr, m), items: [m] });
+  }
+  const totalUnread = fresh.size;
+  const folder = (c: MessageCategory | null) => {
+    const n = c ? (counts.get(c) ?? 0) : all.length;
+    const u = c ? (unreadCounts.get(c) ?? 0) : totalUnread;
+    return (
+      <button
+        key={c ?? 'all'}
+        className={`jr-folder ${filter === c ? 'on' : ''}`}
+        style={c ? ({ '--cat': CATEGORY_STYLE[c].color } as CSSProperties) : undefined}
+        onClick={() => {
+          setFilter(c);
+          setSelectedId(null);
+        }}
+      >
+        <span className="jr-folder-ico">
+          <UiIcon name={c ? CATEGORY_STYLE[c].icon : 'nav-inbox'} />
+        </span>
+        <span className="jr-folder-name">{t(c ? (`inbox.cat.${c}` as StringKey) : 'inbox.cat.all')}</span>
+        {u > 0 ? <span className="jr-badge">{u}</span> : <span className="jr-count">{n}</span>}
+      </button>
+    );
+  };
+
+  const w = selected ? wording(tr, selected, game.cup.rounds) : null;
+  const cat = selected ? messageCategory(selected) : null;
+  const recorded = selected?.kind === 'matchResult' && !!game.matchHistory?.some((x) => x.fixtureId === selected.fixtureId);
+  const canReport = selected?.kind === 'matchResult' && (game.lastMatch?.fixtureId === selected.fixtureId || recorded);
 
   return (
-    <div className="stack narrow" data-tip="inbox">
-      <BoardCard game={game} />
-      <NextMatch game={game} />
-      <section className="panel">
-        <h2 style={{ marginBottom: 10 }}>{t('inbox.title')}</h2>
-        {all.length > 0 && (
-          <div className="msg-filters">
-            <button className={`chip ${filter === null ? 'on' : ''}`} onClick={() => setFilter(null)}>
-              {t('inbox.cat.all')} <span className="faint">{all.length}</span>
-            </button>
-            {(Object.keys(CATEGORY_STYLE) as MessageCategory[])
-              .filter((c) => counts.has(c))
-              .map((c) => (
+    <div className="journal" data-tip="inbox">
+      <nav className="panel jr-folders" aria-label={t('inbox.title')}>
+        <div className="jr-heading">
+          <h2>{t('inbox.title')}</h2>
+          <span className={totalUnread > 0 ? 'jr-sub on' : 'jr-sub'}>{totalUnread > 0 ? t('inbox.unread', { n: totalUnread }) : t('inbox.allRead')}</span>
+        </div>
+        <div className="jr-folder-list">
+          {folder(null)}
+          {(Object.keys(CATEGORY_STYLE) as MessageCategory[]).filter((c) => counts.has(c)).map((c) => folder(c))}
+        </div>
+      </nav>
+      <div className="panel jr-list" ref={listRef} tabIndex={0} onKeyDown={onKey} role="listbox" aria-label={t('inbox.title')}>
+        {messages.length === 0 && <div className="muted jr-empty">{t('inbox.empty')}</div>}
+        {groups.map((g) => (
+          <div key={g.key} className="jr-group">
+            <div className="jr-week">{g.label}</div>
+            {g.items.map((m) => {
+              const mw = wording(tr, m, game.cup.rounds);
+              const c = messageCategory(m);
+              const preview = (mw.body.split('\n')[0] ?? '').replace(/^• /, '');
+              return (
                 <button
-                  key={c}
-                  className={`chip ${filter === c ? 'on' : ''}`}
+                  key={m.id}
+                  role="option"
+                  aria-selected={m.id === selected?.id}
+                  className={`jr-row ${mw.tone} ${m.id === selected?.id ? 'on' : ''} ${fresh.has(m.id) ? 'unread' : ''}`}
                   style={{ '--cat': CATEGORY_STYLE[c].color } as CSSProperties}
-                  onClick={() => setFilter(filter === c ? null : c)}
+                  onClick={() => pick(m.id)}
                 >
-                  <span className="cat-glyph">{CATEGORY_STYLE[c].glyph}</span> {t(`inbox.cat.${c}` as StringKey)} <span className="faint">{counts.get(c)}</span>
+                  <span className="jr-ico">
+                    <UiIcon name={messageIcon(m)} />
+                  </span>
+                  <span className="jr-row-text">
+                    <b>{mw.title}</b>
+                    {preview && <small>{preview}</small>}
+                  </span>
+                  {m.kind === 'matchResult' && (
+                    <span className={`jr-pill ${m.won ? 'won' : 'lost'}`}>
+                      {m.score[0]}–{m.score[1]}
+                    </span>
+                  )}
                 </button>
-              ))}
+              );
+            })}
           </div>
+        ))}
+      </div>
+      <article className="panel jr-reader" key={selected?.id}>
+        {selected && w && cat ? (
+          <>
+            <header className="jr-reader-head" style={{ '--cat': CATEGORY_STYLE[cat].color } as CSSProperties}>
+              <span className="jr-big-ico">
+                <UiIcon name={messageIcon(selected)} size="1.9rem" />
+              </span>
+              <span className="jr-reader-meta">
+                <span className="jr-tags">
+                  <span className="jr-cat">
+                    <UiIcon name={CATEGORY_STYLE[cat].icon} /> {t(`inbox.cat.${cat}` as StringKey)}
+                  </span>
+                  <span className="faint">{weekLabel(tr, selected)}</span>
+                </span>
+                <h3 className={`jr-title ${w.tone}`}>
+                  <Gold>{w.title}</Gold>
+                </h3>
+              </span>
+            </header>
+            {selected.kind === 'matchResult' && <ResultBoard game={game} m={selected} />}
+            {w.body && selected.kind !== 'matchResult' && <MessageBody text={w.body} list={selected.kind === 'marketNews'} />}
+            <div className="jr-actions">
+              <MessageActions game={game} m={selected} />
+              {selected.kind === 'matchResult' && canReport && (
+                <button className="btn" onClick={() => reportOf(selected.fixtureId)}>
+                  {t('msg.report')}
+                </button>
+              )}
+              {selected.kind === 'matchResult' && recorded && (
+                <button className="btn primary" onClick={() => watchAgain(selected.fixtureId)}>
+                  <UiIcon name="versus" /> {t('msg.watchAgain')}
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <div className="muted jr-empty">{t('inbox.pick')}</div>
         )}
-        {messages.length === 0 && <div className="muted">{t('inbox.empty')}</div>}
-        <ul className="inbox">
-          {messages.map((m) => {
-            const w = wording(tr, m, game.cup.rounds);
-            const recorded = m.kind === 'matchResult' && !!game.matchHistory?.some((x) => x.fixtureId === m.fixtureId);
-            const canReport = m.kind === 'matchResult' && (game.lastMatch?.fixtureId === m.fixtureId || recorded);
-            const cat = messageCategory(m);
-            return (
-              <li
-                key={m.id}
-                className={`msg ${w.tone} ${unread.has(m.id) ? 'unread' : ''}`}
-                style={{ '--cat': CATEGORY_STYLE[cat].color } as CSSProperties}
-              >
-                <div className="msg-head">
-                  <span className="msg-cat" title={t(`inbox.cat.${cat}` as StringKey)}>
-                    {CATEGORY_STYLE[cat].glyph}
-                  </span>
-                  <b className="msg-title"><Gold>{w.title}</Gold></b>
-                  <span className="spacer" />
-                  <span className="faint mono" style={{ fontSize: '0.786rem' }}>
-                    {t('inbox.matchday', { season: m.season, d: m.matchday })}
-                  </span>
-                </div>
-                {w.body && <div className="muted msg-body"><Gold>{w.body}</Gold></div>}
-                <MessageActions game={game} m={m} />
-                {m.kind === 'matchResult' && (canReport || recorded) && (
-                  <span className="row" style={{ gap: 6, marginTop: 6 }}>
-                    {canReport && (
-                      <button className="btn small" onClick={() => reportOf(m.fixtureId)}>
-                        {t('msg.report')}
-                      </button>
-                    )}
-                    {recorded && (
-                      <button className="btn small" onClick={() => watchAgain(m.fixtureId)}>
-                        ▶ {t('msg.watchAgain')}
-                      </button>
-                    )}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+        <span className="jr-keys faint">{t('inbox.keys')}</span>
+      </article>
     </div>
   );
 }

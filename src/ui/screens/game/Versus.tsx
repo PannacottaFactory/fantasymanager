@@ -31,7 +31,7 @@ function publicStar(team: Team): Creature | undefined {
   return pool.slice().sort((a, b) => score(b) - score(a))[0];
 }
 
-function Side({ game, team, side, home }: { game: GameState; team: Team; side: 0 | 1; home: boolean }) {
+function Side({ game, team, side, home, star }: { game: GameState; team: Team; side: 0 | 1; home: boolean; star: React.ReactNode }) {
   const tr = useT();
   const { t } = tr;
   const d = divisionOf(game, team.id);
@@ -42,7 +42,7 @@ function Side({ game, team, side, home }: { game: GameState; team: Team; side: 0
   return (
     <div className={`vs-side vs-${side === 0 ? 'home' : 'away'}`}>
       <div className="vs-crest">
-        <StableCrest team={team} size={72} />
+        <StableCrest team={team} size={60} />
       </div>
       <div className="vs-info">
         <h2 className="vs-name">{team.name}</h2>
@@ -60,6 +60,7 @@ function Side({ game, team, side, home }: { game: GameState; team: Team; side: 0
           </span>
         )}
       </div>
+      {star}
     </div>
   );
 }
@@ -70,7 +71,7 @@ function StarCard({ c, side, own }: { c?: Creature; side: 0 | 1; own: boolean })
   if (!c) return <div className="vs-star empty" />;
   const r = c.record;
   return (
-    <div className={`vs-star vs-star-${side === 0 ? 'home' : 'away'}`}>
+    <div className={`vs-star vs-star-${side === 0 ? 'home' : 'away'}`} title={t('vs.duel')}>
       <span className="vs-star-icon">
         <SpeciesIcon id={c.speciesId} size="1.9em" />
       </span>
@@ -125,29 +126,24 @@ export function Versus({ game, mine, opp, home, title, arena, showArena }: {
   return (
     <section className="versus" style={{ '--vs-home': c1, '--vs-away': c2 } as CSSProperties}>
       <div className="vs-bg" aria-hidden="true" />
-      <div className="vs-title">{title}</div>
+      <div className="vs-title">
+        {title}
+        {showArena && (
+          <div className="vs-arena" title={t('arena.condHint')}>
+            <ArenaConditionCard id={arena} compact />
+          </div>
+        )}
+      </div>
       <div className="vs-stage">
-        <Side game={game} team={mine} side={0} home={home} />
-        <div className="vs-mid" aria-hidden="true">
-          <span className="vs-swords">
+        <Side game={game} team={mine} side={0} home={home} star={<StarCard c={myStar} side={0} own />} />
+        <div className="vs-mid">
+          <span className="vs-swords" aria-hidden="true">
             <UiIcon name="versus" size="2.4em" />
           </span>
-          <span className="vs-word">VS</span>
+          <span className="vs-word" aria-hidden="true">VS</span>
+          {lastText && <small className={`vs-last ${lastText.won ? 'good-text' : 'bad-text'}`}>{lastText.text}</small>}
         </div>
-        <Side game={game} team={opp} side={1} home={!home} />
-      </div>
-      {showArena && (
-        <div className="vs-arena" title={t('arena.condHint')}>
-          <ArenaConditionCard id={arena} compact />
-        </div>
-      )}
-      <div className="vs-duel">
-        <StarCard c={myStar} side={0} own />
-        <span className="vs-duel-label">
-          <UiIcon name="medal-mvp" /> {t('vs.duel')}
-          {lastText && <small className={lastText.won ? 'good-text' : 'bad-text'}>{lastText.text}</small>}
-        </span>
-        <StarCard c={theirStar} side={1} own={false} />
+        <Side game={game} team={opp} side={1} home={!home} star={<StarCard c={theirStar} side={1} own={false} />} />
       </div>
     </section>
   );

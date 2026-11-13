@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { fxLayer } from '../../fx/FxLayer.tsx';
 import type { TargetPriority } from '../../../data/schema.ts';
 import type { Combat } from '../../../engine/combat/combat.ts';
 import { aiBreakDecision, DEFAULT_AI_STYLE, readTarget } from '../../../engine/combat/decisions.ts';
@@ -35,11 +36,26 @@ export function BreakPanel({ combat, onResume }: Props) {
 
   const outIds = new Set(subs.map((s) => s.outId));
   const inIds = new Set(subs.map((s) => s.inId));
+  const adviceBtn = useRef<HTMLButtonElement>(null);
+  const body = useRef<HTMLDivElement>(null);
   const suggest = () => {
     // The assistant reads the visible line-up (target) but, like you, cannot see the opponent's approach.
     const d = aiBreakDecision(combat, side, DEFAULT_AI_STYLE);
     setSubs(d.substitutions ?? []);
     setOrders({ ...(d.orders ?? orders), target: readTarget(combat, side) });
+    // Flourish (display only): the button glows and sweeps, sparkles, the orders and rows light up.
+    const r = adviceBtn.current?.getBoundingClientRect();
+    if (r) fxLayer()?.sparkle(r.left + r.width / 2, r.top + r.height / 2, true);
+    for (const [el, cls, ms] of [
+      [adviceBtn.current, 'cast', 1000],
+      [body.current, 'auto-picked', 1300],
+    ] as const) {
+      if (!el) continue;
+      el.classList.remove(cls);
+      void el.offsetWidth;
+      el.classList.add(cls);
+      window.setTimeout(() => el.classList.remove(cls), ms);
+    }
   };
   const toggleOut = (id: string) => {
     if (outIds.has(id)) setSubs(subs.filter((s) => s.outId !== id));
@@ -67,7 +83,7 @@ export function BreakPanel({ combat, onResume }: Props) {
       wide
       actions={
         <>
-          <button className="btn small" onClick={suggest} title={t('break.advice.title')}>
+          <button ref={adviceBtn} className="btn small assistant-btn" onClick={suggest} title={t('break.advice.title')}>
             {t('break.advice')}
           </button>
           <button className="btn primary" onClick={resume} data-tip="break">
@@ -76,7 +92,7 @@ export function BreakPanel({ combat, onResume }: Props) {
         </>
       }
     >
-      <div className="stack">
+      <div className="stack" ref={body}>
         <div className="row muted" style={{ fontSize: '0.929rem' }}>
           {t('break.teamHealth')} <b className="home-text">{Math.round(ours * 100)} %</b> {t('common.vs')} <b className="away-text">{Math.round(theirs * 100)} %</b>
           <span className="spacer" />

@@ -7,7 +7,7 @@ import { LANGS } from '../../core/i18n.ts';
 import { TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { UiIcon } from '../icons/Icon.tsx';
-import { play } from '../sound/sfx.ts';
+import { play, SOUND_ENABLED } from '../sound/sfx.ts';
 
 export function SettingsMenu() {
   const { t } = useT();
@@ -85,6 +85,7 @@ export function SettingsMenu() {
               <span>{t(effects === 'full' ? 'settings.on' : 'settings.off')}</span>
             </button>
           </div>
+          {SOUND_ENABLED && (
           <div className="settings-line">
             <span className="settings-label">{t('settings.sound')}</span>
             <span className="volume-row">
@@ -120,6 +121,7 @@ export function SettingsMenu() {
               <span className="volume-val">{Math.round(volume * 100)}</span>
             </span>
           </div>
+          )}
         </div>
       )}
     </div>

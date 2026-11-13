@@ -11,9 +11,11 @@ import { Bar, Crest } from '../../components/common.tsx';
 import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { reducedMotion, type CardFx, type FxBatch } from './matchFx.ts';
-import { RoleLabel, SpeciesIcon } from '../../icons/Icon.tsx';
+import { RoleLabel, SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
+import { coverPoints, coverReduction } from '../../../engine/combat/formulas.ts';
 
 const ORDER: Record<string, number> = { active: 0, ko: 1, fled: 1, withdrawn: 2, bench: 3 };
+const byState = (a: CombatantView, b: CombatantView) => ORDER[a.state]! - ORDER[b.state]!;
 
 
 /** Highlight requested by hovering a commentary line. */
@@ -23,11 +25,15 @@ export interface Focus {
 }
 
 interface CardProps {
+  /** Just came on as a substitute (slides in with a golden edge). */
+  entering?: boolean;
   c: CombatantView;
   r: RosterEntry;
   side: Side;
   fx?: CardFx;
   acting: number | null;
+  /** How far the actor moves: a charge lunges far, a self buff stays put. */
+  lunge: FxBatch['lunge'];
   /** Ability just used by this creature (its chip pulses). */
   cast: { ability: string; nonce: number } | null;
   focus: 'actor' | 'target' | null;
@@ -97,7 +103,7 @@ function auras(c: CombatantView): string[] {
   return [...out];
 }
 
-function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProps) {
+function FighterCard({ c, r, side, fx, acting, lunge, cast, focus, onSelect, entering }: CardProps) {
   const { t, lang } = useT();
   const ref = useRef<HTMLDivElement>(null);
   const down = c.state === 'ko' || c.state === 'fled' || c.state === 'withdrawn';
@@ -106,11 +112,25 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || acting === null || reducedMotion() || !el.animate) return;
+    if (!el || acting === null || reducedMotion() || !el.animate || lunge === 'still') return;
+    if (lunge === 'none') {
+      // Staying put: the card swells a little (buff, guard, rest, rage).
+      el.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.035)', offset: 0.4 }, { transform: 'scale(1)' }], { duration: 420, easing: 'ease-out' });
+      return;
+    }
+    const d = lunge === 'big' ? 34 : 16;
     el.animate(
-      [{ transform: 'translateX(0)' }, { transform: `translateX(${16 * dir}px) scale(1.02)`, offset: 0.35 }, { transform: 'translateX(0)' }],
-      { duration: 380, easing: 'ease-out' },
+      lunge === 'big'
+        ? [
+            { transform: 'translateX(0)' },
+            { transform: `translateX(${-6 * dir}px) scale(0.98)`, offset: 0.2 },
+            { transform: `translateX(${d * dir}px) scale(1.04)`, offset: 0.45 },
+            { transform: 'translateX(0)' },
+          ]
+        : [{ transform: 'translateX(0)' }, { transform: `translateX(${d * dir}px) scale(1.02)`, offset: 0.35 }, { transform: 'translateX(0)' }],
+      { duration: lunge === 'big' ? 520 : 380, easing: 'ease-out' },
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [acting, dir]);
 
   useEffect(() => {
@@ -147,12 +167,14 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
 
   const cls = [
     'fighter',
+    `line-${c.line}`,
     down ? 'down' : '',
     c.state === 'ko' ? 'is-ko' : '',
     c.state === 'bench' ? 'bench' : '',
     acting !== null ? 'acting' : '',
     focus === 'actor' ? 'focus-actor' : '',
     focus === 'target' ? 'focus-target' : '',
+    entering ? 'sub-in' : '',
   ].join(' ');
 
   return (
@@ -189,7 +211,6 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
           <span className="tag">
             <RoleLabel role={r.role} short />
           </span>
-          {c.state === 'active' && <span className="tag">{c.line === 'front' ? t('tag.front') : t('tag.back')}</span>}
           {c.state === 'ko' && <span className="tag bad">{t('tag.ko')}</span>}
           {c.state === 'fled' && <span className="tag bad">{t('tag.fled')}</span>}
           {c.state === 'withdrawn' && <span className="tag">{t('tag.off')}</span>}
@@ -229,6 +250,8 @@ function FighterCard({ c, r, side, fx, acting, cast, focus, onSelect }: CardProp
 
 interface Props {
   side: Side;
+  /** Knocked-out creatures taken to the bench at a break (display only, they stay KO). */
+  retired: ReadonlySet<string>;
   name: string;
   roster: Record<string, RosterEntry>;
   view: MatchView;
@@ -237,14 +260,84 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
-export function Scoreboard({ side, name, roster, view, fx, focus, onSelect }: Props) {
-  const { t } = useT();
-  const mine = Object.values(view.creatures)
-    .filter((c) => c.side === side)
-    .sort((a, b) => ORDER[a.state]! - ORDER[b.state]! || (a.line === b.line ? 0 : a.line === 'front' ? -1 : 1));
-  const standing = mine.filter((c) => c.state === 'active').length;
+/** A substitute (or a creature taken off): one quiet line, still clickable. */
+function BenchRow({ c, r, fx, onSelect }: { c: CombatantView; r: RosterEntry; fx?: CardFx; onSelect: (id: string) => void }) {
+  const { t, lang } = useT();
   return (
-    <section className={`panel ${side === 0 ? 'side-home' : 'side-away mirror'}`} data-tip={side === 0 ? 'live-cards' : undefined}>
+    <div
+      className={`bench-row ${c.state === 'withdrawn' ? 'withdrawn' : ''} ${c.state === 'ko' || c.state === 'fled' ? 'fallen' : ''}`}
+      data-cid={c.id}
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect(c.id)}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onSelect(c.id))}
+    >
+      {fx && <span key={`flash${fx.nonce}`} className={`flash ${fx.kind}`} aria-hidden="true" />}
+      <Crest speciesId={r.speciesId} name={r.name} />
+      <span className="name" title={r.name}>{r.name}</span>
+      <span className="tag">
+        <RoleLabel role={r.role} short />
+      </span>
+      {c.state === 'withdrawn' && <span className="tag">{t('tag.off')}</span>}
+      {c.state === 'ko' && <span className="tag bad">{t('tag.ko')}</span>}
+      {c.state === 'fled' && <span className="tag bad">{t('tag.fled')}</span>}
+      <span className="spacer" />
+      {c.state === 'withdrawn' || c.state === 'ko' || c.state === 'fled' ? (
+        <span className="mono faint">{c.hp}/{c.maxHp}</span>
+      ) : (
+        <span className="faint species">
+          <SpeciesIcon id={r.speciesId} /> {speciesName(r.speciesId, lang)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function Scoreboard({ side, name, roster, view, fx, focus, onSelect, retired }: Props) {
+  const { t } = useT();
+  const mine = Object.values(view.creatures).filter((c) => c.side === side);
+  // Creatures in play stay in their line, even knocked out (they fell there); the bench keeps its own quiet strip.
+  const inPlay = mine.filter((c) => (c.state === 'active' || c.state === 'ko' || c.state === 'fled') && !retired.has(c.id));
+  const front = inPlay.filter((c) => c.line === 'front').sort(byState);
+  const back = inPlay.filter((c) => c.line === 'back').sort(byState);
+  // Available substitutes first, then those taken off, then the fallen carried off at a break.
+  const BENCH_ORDER: Record<string, number> = { bench: 0, withdrawn: 1, ko: 2, fled: 2 };
+  const bench = mine
+    .filter((c) => c.state === 'bench' || c.state === 'withdrawn' || retired.has(c.id))
+    .sort((a, b) => (BENCH_ORDER[a.state] ?? 3) - (BENCH_ORDER[b.state] ?? 3));
+  const standing = inPlay.filter((c) => c.state === 'active').length;
+  const frontUp = front.filter((c) => c.state === 'active');
+  const cover = coverReduction(coverPoints(frontUp.map((c) => ({ role: roster[c.id]?.role ?? '' })), DEFAULT_CONFIG), DEFAULT_CONFIG);
+  // Red when thin, amber, then green when the wall is solid.
+  const strength = cover / DEFAULT_CONFIG.combat.cover.max;
+  const coverColor = `hsl(${Math.round(4 + strength * 112)} 62% 54%)`;
+  const card = (c: CombatantView) => (
+    <FighterCard
+      key={c.id}
+      c={c}
+      r={roster[c.id]!}
+      side={side}
+      fx={fx.targets[c.id]}
+      acting={fx.actor?.id === c.id ? fx.actor.nonce : null}
+      lunge={fx.lunge}
+      entering={fx.marks.some((m) => m.kind === 'swapIn' && m.id === c.id)}
+      cast={fx.cast?.actor === c.id ? fx.cast : null}
+      onSelect={onSelect}
+      focus={focus?.actor === c.id ? 'actor' : focus?.target === c.id ? 'target' : null}
+    />
+  );
+  const block = (kind: 'front' | 'back', list: CombatantView[]) => (
+    <div className={`line-block ${kind}`}>
+      <div className="line-head">
+        <UiIcon name={kind === 'front' ? 'kind-melee' : 'kind-ranged'} />
+        <span>{t(kind === 'front' ? 'live.front' : 'live.back')}</span>
+        <span className="line-count">{list.filter((c) => c.state === 'active').length}</span>
+      </div>
+      {list.length ? list.map(card) : <div className="line-empty">{t('live.lineEmpty')}</div>}
+    </div>
+  );
+  return (
+    <section className={`panel fighters ${side === 0 ? 'side-home' : 'side-away mirror'}`} data-tip={side === 0 ? 'live-cards' : undefined}>
       <div className="panel-head" style={{ marginBottom: 6 }}>
         <h3 className={side === 0 ? 'home-text' : 'away-text'}>{name}</h3>
         <span className="spacer" />
@@ -253,19 +346,25 @@ export function Scoreboard({ side, name, roster, view, fx, focus, onSelect }: Pr
         </span>
       </div>
       <div className="scoreboard">
-        {mine.map((c) => (
-          <FighterCard
-            key={c.id}
-            c={c}
-            r={roster[c.id]!}
-            side={side}
-            fx={fx.targets[c.id]}
-            acting={fx.actor?.id === c.id ? fx.actor.nonce : null}
-            cast={fx.cast?.actor === c.id ? fx.cast : null}
-            onSelect={onSelect}
-            focus={focus?.actor === c.id ? 'actor' : focus?.target === c.id ? 'target' : null}
-          />
-        ))}
+        {block('front', front)}
+        <div className={`rampart ${cover > 0 ? '' : 'broken'}`} title={t('live.coverTip')} style={{ ['--rc' as string]: coverColor }}>
+          <span className="rampart-wall" aria-hidden="true">
+            <i style={{ width: `${Math.round((cover / DEFAULT_CONFIG.combat.cover.max) * 100)}%` }} />
+          </span>
+          <span className="rampart-label">{cover > 0 ? t('live.cover', { n: Math.round(cover * 100) }) : t('live.noCover')}</span>
+        </div>
+        {block('back', back)}
+        {bench.length > 0 && (
+          <div className="bench-block">
+            <div className="line-head">
+              <span>{t('live.bench')}</span>
+              <span className="line-count">{bench.filter((c) => c.state === 'bench').length}</span>
+            </div>
+            {bench.map((c) => (
+              <BenchRow key={c.id} c={c} r={roster[c.id]!} fx={fx.targets[c.id]} onSelect={onSelect} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

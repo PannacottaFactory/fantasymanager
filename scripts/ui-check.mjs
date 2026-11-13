@@ -34,6 +34,16 @@ const alive = async (where) => {
 
 /** Navigation by position: groups are Stable (0), Competitions (1), Club (2); single items by index in the bar. */
 const go = async (group, index) => {
+  // A window left open (week summary, message…) would swallow the click: note it and close it.
+  for (let i = 0; i < 3 && (await page.locator('.overlay').count()); i++) {
+    const title = await page.locator('.overlay .dialog-head').first().textContent().catch(() => '?');
+    console.log(`closing an open window before navigating: ${title?.trim().slice(0, 60)}`);
+    await shot(`open-window-${i}`);
+    const close = page.locator('.overlay .dialog-head .btn.ghost[aria-label]');
+    if (await close.count()) await close.last().click();
+    else await page.keyboard.press('Escape');
+    await wait(300);
+  }
   if (group === null) await page.locator('nav > button').nth(index).click();
   else {
     await page.locator('.nav-group').nth(group).locator('> button').click();
@@ -98,7 +108,15 @@ await page.locator('.topbar .btn.primary').first().click();
 await wait(1500);
 if (await page.locator('.versus').count()) await shot('00-prematch-late');
 await go(null, 0);
-await shot('01-inbox');
+await shot('01-home');
+await go(null, 1);
+await shot('01-journal');
+const matchMsg = page.locator('.jr-row .jr-pill');
+if (await matchMsg.count()) {
+  await matchMsg.first().click();
+  await wait(300);
+  await shot('01-journal-match');
+}
 
 // Every sheet of the squad.
 await go(0, 0);

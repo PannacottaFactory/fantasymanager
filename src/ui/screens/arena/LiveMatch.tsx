@@ -17,6 +17,32 @@ import { Projectiles } from './Projectiles.tsx';
 import { fxLayer } from '../../fx/FxLayer.tsx';
 import { Scoreboard, type Focus } from './Scoreboard.tsx';
 import { play } from '../../sound/sfx.ts';
+import { UiIcon } from '../../icons/Icon.tsx';
+
+/** Margin mark of a chronicle line, by its colour family. */
+const TONE_ICON: Partial<Record<LineTone, string>> = {
+  crit: 'power',
+  ko: 'news-quickKo',
+  heal: 'kind-heal',
+  buff: 'kind-buff',
+  debuff: 'kind-debuff',
+  dot: 'news-streak',
+  info: 'flag',
+};
+
+/** The 20 rounds as a row of pips: played, current, breaks marked between them. */
+function RoundTrack({ round, max, breaks, ended }: { round: number; max: number; breaks: readonly number[]; ended: boolean }) {
+  return (
+    <div className="round-track" aria-hidden="true">
+      {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+        <Fragment key={n}>
+          <i className={n < round || (ended && n <= round) ? 'done' : n === round ? 'now' : ''} />
+          {breaks.includes(n) && n < max && <b className={n < round ? 'done' : ''} />}
+        </Fragment>
+      ))}
+    </div>
+  );
+}
 
 type Speed = 'slow' | 'normal' | 'fast' | 'instant';
 const DELAY: Record<Speed, number> = {
@@ -114,6 +140,8 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   const [tick, setTick] = useState(0);
   const [fx, setFx] = useState<FxBatch>(emptyFx);
   const [focus, setFocus] = useState<Focus | null>(null);
+  /** The fallen are carried to the bench at each break, to make room (display only). */
+  const [retired, setRetired] = useState<ReadonlySet<string>>(() => new Set());
   /** Creature whose sheet is open (the match pauses meanwhile). */
   const [selected, setSelected] = useState<{
     id: string;
@@ -206,6 +234,10 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
       }
       const e = queue.shift()!;
       v = applyEvent(v, e);
+      if (e.type === 'break') {
+        const fallen = Object.values(v.creatures).filter((c) => c.state === 'ko' || c.state === 'fled').map((c) => c.id);
+        if (fallen.length) setRetired((s) => new Set([...s, ...fallen]));
+      }
       if (budget !== Infinity) addEventFx(batch, e, t('fx.miss'), t('fx.ko'), (id) => SPECIES[roster[id]?.speciesId ?? '']?.elements ?? []);
       const ls = commentator.narrate(e);
       const tone = lineTone(e);
@@ -334,7 +366,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
 
   return (
     <>
-      <Projectiles shots={fx.shots} bursts={fx.bursts} flight={FLIGHT[speed]} />
+      <Projectiles shots={fx.shots} bursts={fx.bursts} marks={fx.marks} flight={FLIGHT[speed]} />
       <div className={`live ${dealing ? 'dealing' : ''}`}>
         {stage && (
           <div key={stage.key} className={`stage-card ${stage.tone ?? ''} ${stage.long ? 'long' : ''}`} aria-hidden="true">
@@ -344,8 +376,13 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
             <span className="stage-rule" />
           </div>
         )}
-        <Scoreboard side={0} name={setup.teams[0].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} />
-        <section className="panel">
+        <Scoreboard side={0} name={setup.teams[0].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} retired={retired} />
+        <section className="panel chronicle">
+          <div className="scoreband">
+            <div className="sb-side home" title={t('live.judgesTip')}>
+              <b className="sb-pct">{ended && outcome ? scoreA : Math.round((1 - health(1)) * 100)}</b>
+              <small>{t('live.judges')}</small>
+            </div>
           <div className="round-banner">
             <div className={`big ${ended && outcome ? (outcome.winner === 0 ? 'win' : 'loss') : ''}`}>
               {ended && outcome
@@ -369,12 +406,18 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
                     list: m.breakRounds.join(', '),
                   })}
             </div>
-            <div className="health-duel" style={{ margin: '8px 0' }}>
+          </div>
+            <div className="sb-side away" title={t('live.judgesTip')}>
+              <b className="sb-pct">{ended && outcome ? scoreB : Math.round((1 - health(0)) * 100)}</b>
+              <small>{t('live.judges')}</small>
+            </div>
+            <div className="health-duel">
               <Bar value={health(0)} max={1} color="var(--home)" title={t('live.ourHealth')} ghost />
               <div style={{ transform: 'scaleX(-1)' }}>
                 <Bar value={health(1)} max={1} color="var(--away)" title={t('live.theirHealth')} ghost />
               </div>
             </div>
+            <RoundTrack round={view.round} max={m.maxRounds} breaks={m.breakRounds} ended={ended} />
           </div>
           <div className="row wrap" style={{ marginBottom: 8 }}>
             <span data-tip="live-speed" style={{ display: 'inline-flex' }}><Seg
@@ -401,16 +444,22 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
             {/* Newest first: the latest round on top, its newest line first, the round title above it. */}
             {roundsNewestFirst(lines).map((group) => (
               <div key={group.key}>
-                {group.round > 0 && <div className="round-sep">{t('live.round', { n: group.round })}</div>}
+                {group.round > 0 && (
+                  <div className="round-sep">
+                    <span>{t('live.round', { n: group.round })}</span>
+                  </div>
+                )}
                 {group.items.map(({ l, i }) => {
                   const hoverable = !!(l.actor || l.target);
+                  const icon = l.tone && l.importance > 0 ? TONE_ICON[l.tone] : undefined;
                   return (
                     <div
                       key={i}
                       className={`line i${l.importance} ${l.side === null ? '' : `s${l.side}`} ${hoverable ? 'hoverable' : ''} ${l.tone ? `t-${l.tone}` : ''}`}
                       onMouseEnter={hoverable ? () => setFocus({ actor: l.actor, target: l.target }) : undefined}
                     >
-                      {highlight(l.text)}
+                      <span className="line-mark" aria-hidden="true">{icon && <UiIcon name={icon} />}</span>
+                      <span className="line-text">{highlight(l.text)}</span>
                     </div>
                   );
                 })}
@@ -425,7 +474,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
             ))}
           </div>
         </section>
-        <Scoreboard side={1} name={setup.teams[1].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} />
+        <Scoreboard side={1} name={setup.teams[1].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} retired={retired} />
         {atBreak && <BreakPanel combat={session.combat} onResume={resumeFromBreak} />}
         {selected && <LiveSheet id={selected.id} setup={setup} view={view} roster={roster} onClose={closeSheet} />}
       </div>

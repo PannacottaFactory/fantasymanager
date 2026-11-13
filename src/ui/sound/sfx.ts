@@ -9,6 +9,9 @@ export type Sfx =
   | 'click' | 'open' | 'coin' | 'whoosh' | 'hit' | 'crit' | 'miss' | 'heal' | 'magic' | 'ko' | 'crowd' | 'whistle'
   | 'levelUp' | 'medal' | 'fanfare' | 'victory' | 'defeat' | 'sad' | 'clash' | 'discover';
 
+/** Sounds are switched off for now (too cheap): flip to true to bring them back with the volume setting. */
+export const SOUND_ENABLED = false;
+
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
@@ -44,6 +47,7 @@ function audio(): AudioContext | null {
 
 /** Called on the first user gesture: browsers only let audio start then. */
 export function unlockAudio() {
+  if (!SOUND_ENABLED) return;
   const a = audio();
   if (a && a.state === 'suspended') void a.resume();
 }
@@ -182,7 +186,7 @@ const SOUNDS: Record<Sfx, (a: AudioContext) => void> = {
 
 /** Plays a sound (nothing when muted, before the first click or when too many are already playing). */
 export function play(name: Sfx) {
-  if (volume() <= 0) return;
+  if (!SOUND_ENABLED || volume() <= 0) return;
   const a = audio();
   if (!a || !master || a.state !== 'running') return;
   const now = performance.now();

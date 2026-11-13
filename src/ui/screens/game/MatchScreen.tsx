@@ -23,9 +23,9 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
   const byId = new Map(team.creatures.map((c) => [c.id, c]));
   return (
     <section className={`panel ${side === 0 ? 'side-home' : 'side-away'}`}>
-      <h4 style={{ marginBottom: 4 }}>{title}</h4>
-      <h3 className={`row ${side === 0 ? 'home-text' : 'away-text'}`} style={{ marginBottom: 8, gap: 8 }}>
-        <StableCrest team={team} size={26} /> {team.name}
+      <h3 className={`row lineup-head ${side === 0 ? 'home-text' : 'away-text'}`}>
+        <StableCrest team={team} size={22} /> <span className="ellipsis">{team.name}</span>
+        <small className="faint">{title}</small>
       </h3>
       <div className="lineup">
         {team.tactic.lineup.map((s) => {
@@ -121,12 +121,12 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           <b><UiIcon name="simulate" /> {t('match.simulate')}</b>
           <small>{t('match.simulateSub')}</small>
         </button>
+        <label className="manage-breaks">
+          <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
+          {t('match.manageBreaks')}
+        </label>
       </section>
-      <label className="row manage-breaks">
-        <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
-        {t('match.manageBreaks')}
-      </label>
-      <div className="two-cols">
+      <div className="two-cols prematch-lineups">
         <LineupCard team={mine} title={t('match.lineup')} side={0} />
         <LineupCard team={opp} title={t('match.opponent')} side={1} />
       </div>
