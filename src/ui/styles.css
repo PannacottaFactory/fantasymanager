@@ -1657,6 +1657,11 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .dialog.wide { width: min(1240px, 100%); }
 .break-orders { align-items: flex-end; padding: 6px 0; }
 .break-hint { font-size: 0.786rem; align-self: center; cursor: help; }
+/* Substitute cell: who comes on, then its role and line on a second row, so the table never needs a side scroll. */
+.sub-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-width: 300px; }
+.sub-cell select { max-width: 190px; text-overflow: ellipsis; }
+.sub-role { display: flex; gap: 4px; flex-basis: 100%; }
+.sub-role select:first-child { flex: 1 1 auto; }
 
 .kind-icon { display: inline-flex; vertical-align: -0.12em; }
 .dom-icon { display: inline-flex; vertical-align: -0.15em; }

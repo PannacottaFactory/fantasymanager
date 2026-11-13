@@ -175,8 +175,8 @@ export function BreakPanel({ combat, onResume }: Props) {
                         </select>
                       )}
                     </td>
-                    <td>
-                      <span className="row" style={{ gap: 4 }}>
+                    <td className="sub-td">
+                      <span className="sub-cell">
                         <button className={`btn small ${sub ? 'active' : ''}`} disabled={!sub && (subs.length >= subsLeft || bench.length <= subs.length)} onClick={() => toggleOut(c.id)}>
                           {sub ? t('break.replacing') : t('break.replace')}
                         </button>
@@ -186,7 +186,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                               .filter((b) => b.id === sub.inId || !inIds.has(b.id))
                               .map((b) => (
                                 <option key={b.id} value={b.id}>
-                                  {b.name} ({speciesName(b.speciesId, lang)}, {roleText(b.role, lang).name})
+                                  {b.name} ({speciesName(b.speciesId, lang)})
                                 </option>
                               ))}
                           </select>
@@ -195,7 +195,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                           const inc = combat.get(sub.inId);
                           const natural = SPECIES[inc.speciesId]?.roles ?? [];
                           return (
-                            <>
+                            <span className="sub-role">
                               <select className="compact" title={t('break.subRole.title')} value={sub.role ?? inc.role} onChange={(e) => patchSub(c.id, { role: e.target.value as RoleId })}>
                                 {ROLE_IDS.map((r) => (
                                   <option key={r} value={r}>
@@ -208,7 +208,7 @@ export function BreakPanel({ combat, onResume }: Props) {
                                 <option value="front">{t('line.front')}</option>
                                 <option value="back">{t('line.back')}</option>
                               </select>
-                            </>
+                            </span>
                           );
                         })()}
                       </span>
