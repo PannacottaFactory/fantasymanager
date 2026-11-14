@@ -7,7 +7,7 @@ import { create } from 'zustand';
 import type { MatchResult, MatchSetup } from '../../engine/combat/types.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { replayMatch } from '../../engine/combat/simulate.ts';
-import { aiPrepare, fixtureSetup, newGame, playMatchday, playerFixture, seasonOver, startNextSeason, cupDue } from '../../engine/league/season.ts';
+import { aiPrepare, fixtureSetup, newGame, playMatchday, playerFixture, seasonOver, startNextSeason, cupDue, type StartingSquad } from '../../engine/league/season.ts';
 import type { GameState, MatchRecord } from '../../engine/league/types.ts';
 import type { Team } from '../../engine/model.ts';
 import { repairTactic } from '../../engine/team/team.ts';
@@ -49,7 +49,7 @@ interface GameStore {
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
-  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId, mode?: { career?: boolean; ironman?: boolean; managerName?: string }) => void;
+  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId, mode?: { career?: boolean; ironman?: boolean; managerName?: string; squad?: StartingSquad }) => void;
   setScreen: (s: Screen) => void;
   setPlayerTeam: (team: Team) => void;
   autoPick: () => void;
@@ -166,7 +166,7 @@ export const useGame = create<GameStore>()((set, get) => {
     },
 
     newGame: (teamName, seed, difficulty, crest, slot, mode) => {
-      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman, managerName: mode?.managerName });
+      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman, managerName: mode?.managerName, squad: mode?.squad });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
       set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, reveals: [], boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });

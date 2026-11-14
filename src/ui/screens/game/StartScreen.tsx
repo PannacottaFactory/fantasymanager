@@ -6,6 +6,7 @@ import { DIFFICULTY_IDS, type DifficultyId } from '../../../data/config/identity
 import { Rng } from '../../../core/rng.ts';
 import { generateTeamName } from '../../../engine/creature/names.ts';
 import { randomManagerName } from '../../../engine/team/identity.ts';
+import { STARTING_SQUADS, type StartingSquad } from '../../../engine/league/season.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { randomSeed } from '../../format.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../../icons/gameIcons.ts';
@@ -106,6 +107,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   const [tips, setTips] = useState(tutorial.enabled);
   const [difficulty, setDifficulty] = useState<DifficultyId>('normal');
   const [career, setCareer] = useState(false);
+  const [squad, setSquad] = useState<StartingSquad>('solid');
   const [ironman, setIronman] = useState(false);
   const [more, setMore] = useState(false);
   const [crest, setCrest] = useState<TeamCrest>(() => defaultCrest(randomSeed()));
@@ -115,7 +117,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
     if (taken && !window.confirm(t('start.overwriteSlot', { team: taken.teamName, n: SLOTS.indexOf(into) + 1 }))) return;
     if (tips) tutorial.restart();
     else tutorial.setEnabled(false);
-    newGame(name.trim() || suggested, seed, difficulty, crest, into, { career, ironman: career && ironman, managerName: manager.trim() || suggestedManager });
+    newGame(name.trim() || suggested, seed, difficulty, crest, into, { career, ironman: career && ironman, managerName: manager.trim() || suggestedManager, squad });
     onCreated?.();
   };
   const anySaved = !!slots && SLOTS.some((x) => slots[x]);
@@ -204,14 +206,25 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
               {t('start.difficulty')}
               <div className="diff-cards" role="radiogroup" aria-label={t('start.difficulty')}>
                 {DIFFICULTY_IDS.map((d) => (
-                  <button key={d} role="radio" aria-checked={d === difficulty} className={`diff-card ${d} ${d === difficulty ? 'on' : ''}`} onClick={() => setDifficulty(d)}>
+                  <button key={d} role="radio" aria-checked={d === difficulty} className={`diff-card ${d} ${d === difficulty ? 'on' : ''}`} title={t(`diff.${d}.desc`)} onClick={() => setDifficulty(d)}>
                     <span className="diff-icon">
                       <UiIcon name={`diff-${d}`} size="1.6em" />
                     </span>
                     <span className="diff-text">
                       <b>{t(`diff.${d}`)}</b>
-                      <span className="muted">{t(`diff.${d}.desc`)}</span>
+                      <span className="muted">{t(`diff.${d}.short`)}</span>
                     </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="field">
+              {t('start.squad')}
+              <div className="mode-cards squad-cards" role="radiogroup" aria-label={t('start.squad')}>
+                {STARTING_SQUADS.map((k) => (
+                  <button key={k} role="radio" aria-checked={k === squad} className={`mode-card ${k === squad ? 'on' : ''}`} title={t(`start.squad.${k}.desc`)} onClick={() => setSquad(k)}>
+                    <b>{t(`start.squad.${k}`)}</b>
+                    <span className="muted">{t(`start.squad.${k}.short`)}</span>
                   </button>
                 ))}
               </div>

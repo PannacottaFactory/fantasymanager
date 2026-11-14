@@ -24,7 +24,11 @@ export const GENERATION_CONFIG = {
    * The player's starting squad: same strength, much less room to grow (the stars come later, from the market and
    * the young prospects). Potential = ability + (drawn potential − ability) × room, capped at `max`.
    */
-  startingSquad: { room: 0.35, max: 101 },
+  /**
+   * The player's starting squad: mean potential by the choice made at new game (whatever the difficulty), little room
+   * to grow (potential = ability + gap × room, at most `max`). Solid ≈ a little above the Marches League's average.
+   */
+  startingSquad: { room: 0.35, max: 101, potential: { modest: 65, solid: 72, gifted: 80 } },
   /** Probability of having 0, 1, 2, 3 traits. */
   traitCountWeights: [0.15, 0.45, 0.3, 0.1],
   hidden: { mean: 10, sd: 4 },

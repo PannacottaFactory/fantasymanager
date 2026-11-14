@@ -54,10 +54,15 @@ export interface NewGameOptions {
   ironman?: boolean;
   /** The manager's name. */
   managerName?: string;
+  /** Strength of the starting squad (default: solid). */
+  squad?: StartingSquad;
 }
 
+export type StartingSquad = 'modest' | 'solid' | 'gifted';
+export const STARTING_SQUADS: StartingSquad[] = ['modest', 'solid', 'gifted'];
+
 /** Generates the stables of every division (the player's stable is the last slot of its division). */
-export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: GameConfig = DEFAULT_CONFIG, difficulty: DifficultyId = 'normal') {
+export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: GameConfig = DEFAULT_CONFIG, difficulty: DifficultyId = 'normal', squad: StartingSquad = 'solid') {
   const lc = cfg.league;
   const diff = cfg.identity.difficulties[difficulty];
   const world = new Rng(deriveSeed(seed, 'world'));
@@ -78,7 +83,7 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
       const rng = world.fork(isPlayer ? 'player' : `ai${d}-${i}`);
       const identity = isPlayer ? undefined : identities[nextIdentity++];
       const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: styleShare(identity, difficulty, cfg) } : undefined;
-      const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured, ...(isPlayer && diff.playerPotential ? { potentialMean: diff.playerPotential } : {}) }, cfg);
+      const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured, ...(isPlayer ? { potentialMean: cfg.generation.startingSquad.potential[squad] } : {}) }, cfg);
       if (isPlayer) {
         const st = cfg.generation.startingSquad;
         for (const c of team.creatures) {
@@ -117,7 +122,7 @@ export function seasonFixtures(worldSeed: string, season: number, divisions: str
 
 export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const difficulty = opts.difficulty ?? 'normal';
-  const { teams, divisions, qualities, playerId } = generateWorld(opts.seed, opts.teamName, opts.lang, cfg, difficulty);
+  const { teams, divisions, qualities, playerId } = generateWorld(opts.seed, opts.teamName, opts.lang, cfg, difficulty, opts.squad ?? 'solid');
   const state: GameState = {
     version: 6,
     worldSeed: opts.seed,

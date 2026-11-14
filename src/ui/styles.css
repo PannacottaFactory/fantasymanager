@@ -3606,3 +3606,9 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .career-card { display: flex; flex-direction: column; gap: 6px; padding-top: 12px; padding-bottom: 12px; }
 .career-card .board-seal { width: 2rem; height: 2rem; }
 .career-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; font-size: var(--fs-md); }
+.mode-cards.squad-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* New game: the three difficulties side by side, compact (the description is the tooltip). */
+.new-card .diff-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.new-card .diff-card { flex-direction: row; align-items: center; gap: 8px; padding: 6px 10px; }
+.new-card .diff-card .muted { display: block; -webkit-line-clamp: unset; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.new-card .diff-text { min-width: 0; }
