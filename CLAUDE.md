@@ -87,7 +87,8 @@ tests/       Vitest
   theme token sits in the three blocks at the top of `styles.css`. Fonts are bundled (`@fontsource/inter`, `@fontsource/spectral-sc` — titles —
   imported in `src/ui/main.tsx`, no Google Fonts). Font sizes / radii use the scale tokens (`--fs-*`, `--r-*`, `--sp-*`):
   never a raw rem size or px radius in a new rule. Loops only in the live match, the ribbon's next week, the tutorial
-  ring, the ticker and the embers. `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
+  ring, the ticker and the embers. Shared components (button, panel, chip / tag, tile, table, headings) are each defined
+  once (« Component: » blocks): screens may place or size them, never restyle them; a chip variant only sets colours. `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
   effects off) + `node scripts/style-diff.mjs <before> <after>` (pixel diff) check what a CSS change did.
 - UI: three themes — night (black, default), dark (brown) and parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed).

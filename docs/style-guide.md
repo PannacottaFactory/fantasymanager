@@ -112,5 +112,11 @@ yellow). Primary buttons use the accent; gold never fills a button.
   background (embers, grain, glows, vignette) **stays as it is**; loops on management screens play once (kept: live
   auras, the next-match week in the ribbon, the tutorial ring, the news ticker, the embers); every font size and radius
   now uses the scale tokens (40 sizes → 10, 20 radii → 3 + pill); numbers no longer use the title font.
-- Next: one component of each kind (buttons, chips, tiles, tables, panel titles) rewritten in one place, the old
-  scattered rules removed; gold audit (money / rewards only); live match review.
+- 2026-11-14: components defined once, near the top of `styles.css` (« Component: … » comments): button, panel
+  (`--panel-shadow` per theme; no gradient, glow or gilded edge; highlights by a left border), chip (one pill shape for
+  `.chip` and its 9 variants, which only set colours), tag, tile, table (headers no longer uppercase), headings and card
+  titles. Gold audit: the training button, the dashboard rank and the first-steps bar left the gold. Duplicate rules of
+  every screen family merged into one place each (228 repeated selectors → 21: the live match, `body`'s ambient
+  layers and a few others, each verified pixel-identical with `style-diff`).
+- Still to do: the live match (its rules are still layered; it needs a reproducible capture first), the 166 raw
+  colours (status / category colours written by hand in some screens).
