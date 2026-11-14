@@ -25,7 +25,7 @@ Verification: `node scripts/style-shots.mjs <dir>` takes 20 screens × 3 themes 
 | `--fs-md` | 0.857rem (12 px) | secondary text, hints, buttons « small » |
 | `--fs-body-sm` | 0.929rem (13 px) | dense lists, cards |
 | `--fs-base` | 1rem (14 px) | body, table cells, buttons |
-| `--fs-lg` | 1.143rem (16 px) | card and panel titles |
+| `--fs-lg` | 1.143rem (16 px) | `h2` inside a card, dialog titles |
 | `--fs-xl` | 1.429rem (20 px) | page titles, key figures in a card |
 | `--fs-2xl` | 1.714rem (24 px) | hero figures (rank, treasury, rating) |
 | `--fs-3xl` | 2.286rem (32 px) | score digits, stage titles |
@@ -94,7 +94,8 @@ yellow). Primary buttons use the accent; gold never fills a button.
 - **Tile**: `--panel-2`, radius `--r-md`, padding `--sp-3`; big figure `--fs-xl`, label `--fs-sm` muted.
 - **Table**: header `--fs-sm` muted uppercase-free, rows separated by a 1px `--border` line, hover `--panel-3`,
   numbers right-aligned.
-- **Panel title**: `h3` in the title font, `--fs-lg`, with an optional link « … → » on the right.
+- **Panel title**: `h3` in the title font at `--fs-base` (the small caps read larger), with an optional link « … → »
+  on the right; a screen's title is the first panel's `h2` at `--fs-xl`.
 - **Bar / gauge**: height 6px, radius `--r-sm`, track `--panel-3`.
 
 ## 7. Motion

@@ -151,10 +151,20 @@ body {
   font: var(--fs-base)/1.45 var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
+/* Component: headings and card titles (style guide § 2, § 6). Title font for titles only. */
 h1, h2, h3, h4 { font-family: var(--font-title); font-weight: 600; margin: 0; letter-spacing: 0.02em; }
 h2 { font-size: var(--fs-lg); }
-h3 { font-size: var(--fs-base); }
+h3 { font-size: var(--fs-base); letter-spacing: 0.04em; }
 h4 { font-size: var(--fs-body-sm); color: var(--muted); }
+/* A screen's title. */
+.panel-head h2, .screen-enter h2 { font-size: var(--fs-xl); letter-spacing: 0.04em; }
+.panel-head h2 { color: var(--text); }
+/* A card's title row: the title, then a quiet link « … → » on the right. */
+.dash-card-head { display: flex; align-items: baseline; gap: var(--sp-2); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--border); }
+.dash-card-head h3 { margin: 0; flex: 1; }
+.dash-card-head .link, .panel-head .link { text-decoration: none; color: var(--muted); }
+.dash-card-head .link { font-size: var(--fs-md); }
+.dash-card-head .link:hover, .panel-head .link:hover { color: var(--accent); text-decoration: underline; }
 button, select, input { font: inherit; color: inherit; }
 a { color: var(--accent); }
 .muted { color: var(--muted); }
@@ -228,7 +238,6 @@ label.field { display: flex; flex-direction: column; gap: 2px; font-size: var(--
   border-radius: var(--r-lg); padding: var(--sp-4); box-shadow: var(--panel-shadow);
 }
 .panel-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: var(--sp-3); }
-.panel-head h2 { color: var(--text); }
 /* The first panel of a screen (its header) is a panel like the others; children may sit at absolute positions. */
 .screen-enter > .stack > .panel:first-child, .screen-enter > .panel:first-child { position: relative; overflow: hidden; }
 .team-name-input { font-family: var(--font-title); font-size: var(--fs-base); font-weight: 600; background: transparent; border: 1px solid transparent; padding: 2px 4px; min-width: 200px; }
@@ -1037,9 +1046,6 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .dash-grid > :nth-child(2) { animation-delay: 0.05s; } .dash-grid > :nth-child(3) { animation-delay: 0.1s; }
 .dash-grid > :nth-child(4) { animation-delay: 0.15s; } .dash-grid > :nth-child(5) { animation-delay: 0.2s; }
 .dash-grid > :nth-child(6) { animation-delay: 0.25s; } .dash-grid > :nth-child(7) { animation-delay: 0.3s; }
-.dash-card-head { display: flex; align-items: baseline; gap: 8px; }
-.dash-card-head h3 { margin: 0; flex: 1; }
-.dash-card-head .link { font-size: var(--fs-md); }
 .dash-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .dash-tile.good b { color: var(--good); } .dash-tile.warn b { color: var(--warn); } .dash-tile.bad b { color: var(--bad); }
 .dash-tile.zero b { color: var(--faint); }
@@ -2109,9 +2115,7 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.25); position: relative; z-index: 20; }
 .season-ribbon { background: var(--panel); }
 /* The first panel of a screen is its header: lit from the top, with a gilded edge. */
-.panel-head h2, .screen-enter h2 { font-size: var(--fs-xl); letter-spacing: 0.04em; }
 .panel-head h2 .gicon { color: var(--accent); }
-h3 { letter-spacing: 0.04em; }
 .screen-enter { animation: screen-in-2 0.35s cubic-bezier(.2, .8, .2, 1) backwards; }
 @keyframes screen-in-2 { from { opacity: 0; transform: translateY(10px) scale(0.995); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
 .dialog { box-shadow: 0 24px 60px rgb(0 0 0 / 0.55), 0 0 0 1px var(--edge) inset; }
@@ -2215,12 +2219,9 @@ h3 { letter-spacing: 0.04em; }
 .dash-tiles { gap: 8px; }
 .fin-tiles > .tile { padding: 12px 16px; }
 /* Card links (« Effectif → »): quiet until hovered. */
-.dash-card-head .link, .panel-head .link { text-decoration: none; color: var(--muted); }
-.dash-card-head .link:hover, .panel-head .link:hover { color: var(--accent); text-decoration: underline; }
 /* Dashboard: cards of a row share their height; a little more air. */
 .dash-grid { gap: 14px; align-items: stretch; }
 .dash-card { gap: 10px; }
-.dash-card-head { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
 /* Tables: lighter separators, a little more height per row. */
 
 /* ——— Finances ——— */
