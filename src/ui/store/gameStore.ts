@@ -88,6 +88,10 @@ interface GameStore {
   /** After-match training window (not saved): opens when a match report is closed and sessions are waiting. */
   drill: boolean;
   closeDrill: () => void;
+  /** Scout reports waiting for their reveal window (inbox message ids, not saved), shown once nothing else is open. */
+  reveals: string[];
+  openReveal: (messageId: string) => void;
+  closeReveal: () => void;
   /** Tab to open on the League screen (consumed by it). */
   leagueTab: 'table' | 'comps' | 'honours' | null;
   openLeague: (tab: 'table' | 'comps' | 'honours') => void;
@@ -110,6 +114,10 @@ export const useGame = create<GameStore>()((set, get) => {
   /** Commits a state that may end the week: then shows its summary and starts a new week. */
   const advance = (prev: GameState, next: GameState): boolean => {
     commit(next);
+    // Scout reports that just came in get their reveal.
+    const known = new Set(prev.inbox.map((m) => m.id));
+    const fresh = next.inbox.filter((m) => !known.has(m.id) && m.kind === 'scoutReport' && m.target === 'creature' && m.verdict).map((m) => m.id);
+    if (fresh.length) set({ reveals: [...get().reveals, ...fresh] });
     if (completedWeek(next) <= completedWeek(prev)) return false;
     set({ recap: { before: get().weekStart ?? prev, after: next }, weekStart: next });
     return true;
@@ -143,7 +151,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
-      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, sheet: null });
+      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, reveals: [], sheet: null });
       commit(game);
       void get().refreshSlots();
     },
@@ -164,7 +172,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = await loadGame(slot);
       if (!game) return;
       setCurrentSlot(slot);
-      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, sheet: null });
+      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, reveals: [], sheet: null });
     },
     deleteSlot: async (slot) => {
       await deleteGame(slot);
@@ -279,6 +287,9 @@ export const useGame = create<GameStore>()((set, get) => {
     weekStart: null,
     recap: null,
     closeRecap: () => set({ recap: null }),
+    reveals: [],
+    openReveal: (id) => set({ reveals: [id, ...get().reveals.filter((x) => x !== id)] }),
+    closeReveal: () => set({ reveals: get().reveals.slice(1) }),
     drill: false,
     closeDrill: () => {
       const { game, recap } = get();
@@ -293,3 +304,6 @@ export const useGame = create<GameStore>()((set, get) => {
     openEncyclopedia: (tab, id) => set({ encTab: { tab, id }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null }),
   };
 });
+
+// Dev only: lets the headless checks (scripts/*.mjs) read the store.
+if (import.meta.env.DEV && typeof window !== 'undefined') Object.assign(window, { __fm: useGame });

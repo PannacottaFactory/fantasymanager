@@ -106,6 +106,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'emergencySigning':
       return 'market';
     case 'scoutReport':
+    case 'gemNoticed':
       return 'scouting';
     case 'youthIntake':
     case 'youthReleased':
@@ -182,12 +183,19 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
         body: m.toTeam ? t('msg.transferOut.sold', { team: m.toTeam, fee: tr.money(m.fee) }) : t('msg.transferOut.released'),
         tone: 'info',
       };
-    case 'scoutReport':
+    case 'scoutReport': {
+      if (m.target === 'team') return { title: t('msg.scoutReport.title', { name: m.name }), body: t('msg.scoutReport.team', { name: m.name }), tone: 'good' };
+      const verdict = m.verdict ? `${t(`scout.verdict.${m.verdict}`)} ` : '';
+      const quiet = m.quiet ? `
+${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       return {
-        title: t('msg.scoutReport.title', { name: m.name }),
-        body: m.target === 'creature' ? t('msg.scoutReport.creature', { name: m.name }) : t('msg.scoutReport.team', { name: m.name }),
-        tone: 'good',
+        title: m.verdict ? t('msg.scoutReport.titleVerdict', { name: m.name, verdict: t(`scout.verdict.${m.verdict}`) }) : t('msg.scoutReport.title', { name: m.name }),
+        body: `${verdict}${t('msg.scoutReport.creature', { name: m.name })}${quiet}`,
+        tone: m.verdict === 'below' ? 'info' : 'good',
       };
+    }
+    case 'gemNoticed':
+      return { title: t('msg.gemNoticed.title', { name: m.name }), body: t('msg.gemNoticed.body', { name: m.name, pct: Math.round((DEFAULT_CONFIG.economy.scouting.gem.hype - 1) * 100) }), tone: 'bad' };
     case 'contractExpiring':
       return { title: t('msg.contractExpiring.title'), body: t('msg.contractExpiring.body', { names: m.names.join(', ') }), tone: 'bad' };
     case 'contractLeft':
@@ -388,7 +396,20 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
       </div>
     );
   }
-  const sheetId = m.kind === 'scoutReport' && m.target === 'creature' ? m.targetId : m.kind === 'transferIn' || m.kind === 'medal' ? m.creatureId : null;
+  if (m.kind === 'scoutReport' && m.target === 'creature' && locate(game, m.targetId))
+    return (
+      <div className="row wrap" style={{ gap: 6 }}>
+        {m.verdict && (
+          <button className="btn small" onClick={() => useGame.getState().openReveal(m.id)}>
+            <UiIcon name="scout" /> {t('scout.reveal.again')}
+          </button>
+        )}
+        <button className="btn small ghost" onClick={() => openSheet(m.targetId)}>
+          {t('msg.openSheet')}
+        </button>
+      </div>
+    );
+  const sheetId = m.kind === 'gemNoticed' ? m.creatureId : m.kind === 'transferIn' || m.kind === 'medal' ? m.creatureId : null;
   if (sheetId && locate(game, sheetId))
     return (
       <button className="btn small ghost" onClick={() => openSheet(sheetId)}>

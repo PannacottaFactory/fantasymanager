@@ -15,7 +15,7 @@ import type { Creature, Team } from '../model.ts';
 import { autoTactic, repairTactic } from '../team/team.ts';
 import { favouredSpecies } from '../team/identity.ts';
 import { clubOf, earn, spend, weeklyBill } from './finance.ts';
-import { learn } from './scouting.ts';
+import { isOwn, knowledgeOf, learn, scoutVerdict } from './scouting.ts';
 import { askingWage, creatureValue, roundTo } from './value.ts';
 
 // ——— Lookups ———
@@ -277,7 +277,8 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
     // A stable looks harder at creatures that fit its style.
     const style = favouredSpecies(team, cfg);
     const focus = team.identity?.focus ?? 0.5;
-    const fit = (c: Creature) => c.ability + (style.includes(c.speciesId) ? styleBias * focus * 2 : 0);
+    // …and at the gems everyone is talking about.
+    const fit = (c: Creature) => c.ability + (style.includes(c.speciesId) ? styleBias * focus * 2 : 0) + (c.hype ? cfg.economy.scouting.gem.aiFit : 0);
     // Sign a free agent when short-handed, or a clear upgrade when rich.
     const need = team.creatures.length < target;
     const room = team.creatures.length <= target;
@@ -378,12 +379,30 @@ export function weeklyScouting(state: GameState, opponentsSeen: string[], cfg: G
     if (m.weeksLeft <= 0) done.push(m);
   }
   state.scouting.missions = state.scouting.missions.filter((m) => m.weeksLeft > 0);
+  // Gems found earlier: quiet weeks, then the world notices them, then the excitement fades.
+  const gems = (state.scouting.gems ??= []);
+  for (const g of gems) g.weeksLeft--;
+  for (const g of gems.filter((x) => x.weeksLeft <= 0)) {
+    const c = locate(state, g.creatureId)?.creature;
+    if (g.phase === 'quiet' && c && !isOwn(state, c.id)) {
+      c.hype = s.gem.hype;
+      g.phase = 'hyped';
+      g.weeksLeft = s.gem.hypeWeeks;
+      pushMessage(state, { kind: 'gemNoticed', creatureId: c.id, name: c.name });
+    } else if (c) delete c.hype;
+  }
+  state.scouting.gems = gems.filter((g) => g.weeksLeft > 0 && locate(state, g.creatureId) && !(g.phase === 'quiet' && isOwn(state, g.creatureId)));
   for (const m of done) {
     if (m.target === 'creature') {
       const c = locate(state, m.targetId)?.creature;
       if (!c) continue;
+      const before = knowledgeOf(state, c.id, cfg);
       learn(state, c.id, s.creatureKnowledge, cfg);
-      pushMessage(state, { kind: 'scoutReport', target: 'creature', targetId: c.id, name: c.name });
+      const verdict = scoutVerdict(state, c, knowledgeOf(state, c.id, cfg), cfg);
+      // A gem nobody else has spotted yet: a window before its price climbs.
+      const quiet = verdict === 'gem' && !c.hype && !state.scouting.gems.some((g) => g.creatureId === c.id) ? s.gem.quietWeeks : undefined;
+      if (quiet) state.scouting.gems.push({ creatureId: c.id, phase: 'quiet', weeksLeft: quiet });
+      pushMessage(state, { kind: 'scoutReport', target: 'creature', targetId: c.id, name: c.name, before, verdict, ...(quiet ? { quiet } : {}) });
     } else {
       const team = state.teams.find((x) => x.id === m.targetId);
       if (!team) continue;

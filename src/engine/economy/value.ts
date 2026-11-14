@@ -17,6 +17,8 @@ export function creatureValue(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): nu
   f *= 1 + (10 - sp.rarity) * v.rarityWeight;
   // Real combat strength of the species at equal ability (calibrated by sim:species).
   f *= sp.valueMult ?? 1;
+  // The market's interest in a gem the world has noticed.
+  f *= c.hype ?? 1;
   return roundTo(v.base * f, v.round);
 }
 

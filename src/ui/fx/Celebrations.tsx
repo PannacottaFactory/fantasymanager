@@ -24,7 +24,10 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'abilityUnlocked':
     case 'medal':
     case 'arenaIntro':
+    case 'gemNoticed':
       return 'small';
+    case 'scoutReport':
+      return m.target !== 'creature' || !m.verdict ? null : m.verdict === 'gem' ? 'big' : 'small';
     case 'bestiary':
       return m.rewards.length ? 'big' : m.owned.length ? 'small' : null;
     case 'transferIn':
@@ -57,6 +60,7 @@ interface Toast {
 }
 
 function creatureOf(m: InboxMessage): string | undefined {
+  if (m.kind === 'scoutReport') return m.target === 'creature' ? m.targetId : undefined;
   return 'creatureId' in m ? m.creatureId : undefined;
 }
 
@@ -119,7 +123,8 @@ export function Celebrations() {
   if (!game || !toasts.length) return null;
   const open = (m: InboxMessage) => {
     const id = creatureOf(m);
-    if (id && locate(game, id)) useGame.getState().openSheet(id);
+    if (m.kind === 'scoutReport' && m.verdict && id && locate(game, id)) useGame.getState().openReveal(m.id);
+    else if (id && locate(game, id)) useGame.getState().openSheet(id);
     else useGame.getState().setScreen('inbox');
   };
   return (

@@ -215,6 +215,16 @@ tests/       Vitest
   free agents 10; matches +20 up to 60; scouts 70/90). Ranges come from a fixed per-creature offset
   (`noise(id, key)`), always contain the truth and narrow monotonically — never show raw attributes,
   ability or potential of a creature the player does not own.
+- **Scouts** (`economy.scouting`): sent straight from every recruitment card / row (`ScoutSend` in `RecruitScreen.tsx`,
+  icon flies to the « Recruteurs » tab: `ui/fx/scoutFlight.ts`; refused when busy, own or already known ≥ 90 → `known`).
+  A creature report stores `before` (knowledge) + `verdict` from the estimates only (`scoutVerdict`: gem = potential ≥
+  squad's best-five max level + 1 and price ≤ 60 % of its value at that potential; star = +2 priced like it; good; below).
+  The store queues fresh reports in `reveals` (not saved); `ScoutReveal.tsx` stages them once no match / training / summary /
+  sheet is open: card flips, ranges narrow from `before` to 90 (stars, rating, five strongest points), scout's line
+  (`scout.line.<verdict>.<0-2>`), verdict stamp; « Revoir le rapport » in the Journal. **Gem window**: `scouting.gems`
+  (quiet `gem.quietWeeks` 3 → `gemNoticed` message, `Creature.hype` ×1.3 on its value and +25 aptitude in AI choices for
+  `hypeWeeks` 8 → removed); signed while quiet = never hyped. Cards show « Pépite · n sem. » / « Convoitée ».
+  `node scripts/scout-check.mjs <outDir> <url>` screenshots the whole flow (dev store on `window.__fm`).
 - **Play styles** (design only — never named in the game or the encyclopedia; teams mix them freely): each style
   must work through its own abilities and effects, with one readable rule and a counter. No team/synergy bonuses,
   no cross-effect combos. Mechanics: stacking effects (`EffectDef.maxStacks`, `AbilityEffectRef.stacks`; poison up to

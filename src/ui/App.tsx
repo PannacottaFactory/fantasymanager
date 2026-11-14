@@ -20,6 +20,7 @@ import { TacticsScreen } from './screens/game/TacticsScreen.tsx';
 import { GameSheet } from './screens/game/CreatureSheet.tsx';
 import { IntroModal } from './screens/game/IntroModal.tsx';
 import { WeekRecap } from './screens/game/WeekRecap.tsx';
+import { ScoutReveal } from './screens/game/ScoutReveal.tsx';
 import { SeasonRibbon } from './components/SeasonRibbon.tsx';
 import { ReputationChip } from './components/Reputation.tsx';
 import { DashboardScreen } from './screens/game/DashboardScreen.tsx';
@@ -252,6 +253,7 @@ export function App() {
       {game && !newGameOpen && <IntroModal />}
       {game && !newGameOpen && !launch && <AfterMatchTraining />}
       {game && !newGameOpen && !launch && <WeekRecap />}
+      {game && !newGameOpen && !launch && <ScoutReveal />}
       {game && !launch && !newGameOpen && <NewsTicker />}
       <Embers />
       <FxLayer />

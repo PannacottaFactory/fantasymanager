@@ -115,6 +115,18 @@ export const ECONOMY_CONFIG = {
     /** Mission length (weeks) and knowledge reached. */
     creatureWeeks: 2,
     creatureKnowledge: 90,
+    /**
+     * Scout verdicts, from the scout's estimates only. Reference = average maximum level of the player's best five.
+     * Gem: potential ≥ reference + 1 while costing ≤ `cheapRatio` of what it would be worth at its potential.
+     * Star: potential ≥ reference + `starLevels`, priced like it. Good: potential ≥ reference, or better now than the
+     * player's fifth best. Otherwise below.
+     */
+    verdict: { starLevels: 2, cheapRatio: 0.6 },
+    /**
+     * A gem the player alone knows stays cheap for `quietWeeks`; then the world notices it: value × `hype`, AI stables
+     * look harder at it (+`aiFit` aptitude points in their choices) for `hypeWeeks`.
+     */
+    gem: { quietWeeks: 3, hype: 1.3, aiFit: 25, hypeWeeks: 8 },
     teamWeeks: 3,
     teamKnowledge: 70,
     /** Starting knowledge (0–100) of league creatures and free agents. */

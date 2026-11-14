@@ -9,9 +9,10 @@ import { pushMessage } from '../league/messages.ts';
 import type { GameState } from '../league/types.ts';
 import { clubOf, spend } from './finance.ts';
 import { askingPrice, canAdd, canLose, isPlayerTeam, locate, remainingWeeks, renewalDemand, signingBonus, transfer } from './market.ts';
+import { isOwn, knowledgeOf } from './scouting.ts';
 import { askingWage, roundTo } from './value.ts';
 
-export type MarketError = 'notFound' | 'notAvailable' | 'squadFull' | 'squadMin' | 'noMoney' | 'closed' | 'busy' | 'refused';
+export type MarketError = 'notFound' | 'notAvailable' | 'squadFull' | 'squadMin' | 'noMoney' | 'closed' | 'busy' | 'refused' | 'known';
 
 export type BidOutcome =
   | { kind: 'accepted'; fee: number; wage: number }
@@ -157,6 +158,10 @@ export function sendScout(state: GameState, target: 'creature' | 'team', targetI
   const s = cfg.economy.scouting;
   if (state.scouting.missions.length >= s.scouts) return err(state, 'busy');
   if (state.scouting.missions.some((m) => m.targetId === targetId)) return err(state, 'busy');
+  if (target === 'creature') {
+    if (!locate(state, targetId) || isOwn(state, targetId)) return err(state, 'notFound');
+    if (knowledgeOf(state, targetId, cfg) >= s.creatureKnowledge) return err(state, 'known');
+  }
   const next = structuredClone(state);
   const weeks = target === 'creature' ? s.creatureWeeks : s.teamWeeks;
   next.scouting.missions.push({ id: `sc${next.nextId++}`, target, targetId, weeksLeft: weeks });

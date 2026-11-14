@@ -18,6 +18,60 @@ import { useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { RoleLabel, SpeciesIcon } from '../../icons/Icon.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
+import { flyScout } from '../../fx/scoutFlight.ts';
+
+const SC = DEFAULT_CONFIG.economy.scouting;
+
+/** Send a scout straight from a card or a row; shows the mission once it is out. */
+function ScoutSend({ game, c, wide }: { game: GameState; c: Creature; wide?: boolean }) {
+  const tr = useT();
+  const { t, money } = tr;
+  const mission = game.scouting.missions.find((m) => m.targetId === c.id);
+  if (mission)
+    return (
+      <span className="scout-mission" title={t('scout.onMission', { weeks: tr.weeks(mission.weeksLeft) })}>
+        <UiIcon name="scout" /> {tr.weeks(mission.weeksLeft)}
+      </span>
+    );
+  if (knowledgeOf(game, c.id) >= SC.creatureKnowledge) return null;
+  const busy = game.scouting.missions.length >= SC.scouts;
+  return (
+    <button
+      className={`btn small scout-send ${wide ? '' : 'icon-only'}`}
+      disabled={busy}
+      title={busy ? t('scout.send.busy', { max: SC.scouts }) : t('scout.send.title', { weeks: tr.weeks(SC.creatureWeeks), cost: money(DEFAULT_CONFIG.economy.expense.scoutPerWeek) })}
+      onClick={(e) => {
+        e.stopPropagation();
+        const button = e.currentTarget;
+        const o = useGame.getState().act((g) => sendScout(g, 'creature', c.id));
+        if (o?.kind === 'sent') flyScout(button, document.querySelector('[data-scout-tab]'));
+      }}
+    >
+      <UiIcon name="scout" />
+      {wide && <span>{t('scout.send')}</span>}
+    </button>
+  );
+}
+
+/** A gem the player alone knows about (quiet weeks left), or one the whole market now wants. */
+function GemBadge({ game, c }: { game: GameState; c: Creature }) {
+  const tr = useT();
+  const { t } = tr;
+  const gem = game.scouting.gems?.find((g) => g.creatureId === c.id);
+  if (gem?.phase === 'quiet')
+    return (
+      <span className="gem-badge" title={t('scout.badge.gem.title')}>
+        {t('scout.badge.gem', { weeks: tr.weeks(gem.weeksLeft) })}
+      </span>
+    );
+  if (c.hype)
+    return (
+      <span className="gem-badge hot" title={t('scout.badge.hyped.title', { pct: Math.round((c.hype - 1) * 100) })}>
+        {t('scout.badge.hyped')}
+      </span>
+    );
+  return null;
+}
 
 type Tab = 'free' | 'stables' | 'scouts';
 type View = 'cards' | 'table';
@@ -61,7 +115,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
           <button className="link" onClick={() => openSheet(r.c.id)}>
             {r.c.name}
           </button>
-          {game.scouting.missions.some((m) => m.targetId === r.c.id) && <span title={t('scout.onIt')}><UiIcon name="scout" /></span>}
+          <GemBadge game={game} c={r.c} />
           {isNew(game, r) && <NewBadge />}
         </span>
       ),
@@ -125,9 +179,12 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
       key: 'act',
       label: '',
       render: (r) => (
-        <button className="btn small" onClick={() => openSheet(r.c.id)}>
-          {free ? t('act.sign') : t('act.offer')}
-        </button>
+        <span className="row" style={{ gap: 6, justifyContent: 'flex-end' }}>
+          <ScoutSend game={game} c={r.c} />
+          <button className="btn small" onClick={() => openSheet(r.c.id)}>
+            {free ? t('act.sign') : t('act.offer')}
+          </button>
+        </span>
       ),
     },
   );
@@ -181,14 +238,17 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
           return (
             <div
               key={r.c.id}
-              className="recruit-card"
+              className={`recruit-card ${scouting ? 'scouting' : ''}`}
               style={{ '--c1': colorOf(r.c.speciesId, 0), '--c2': colorOf(r.c.speciesId, 1) } as CSSProperties}
               onClick={() => openSheet(r.c.id)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && openSheet(r.c.id)}
             >
-              {isNew(game, r) && <NewBadge />}
+              <span className="rc-badges">
+                {isNew(game, r) && <NewBadge />}
+                <GemBadge game={game} c={r.c} />
+              </span>
               <div className="rc-top">
                 <span className="rc-medal">
                   <SpeciesIcon id={r.c.speciesId} size="1.9em" />
@@ -215,7 +275,6 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
                 </span>
                 <PotentialStars c={r.c} k={r.k} />
                 <span className="rc-known" title={t('col.known.title')}>
-                  {scouting && <UiIcon name="scout" />}
                   <small>{t('col.known')}</small>
                   <Knowledge k={r.k} />
                 </span>
@@ -236,15 +295,18 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
                   <b><Money v={askingWage(r.c, rep)} compact /></b>
                 </span>
               </div>
-              <button
-                className="btn rc-act"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openSheet(r.c.id);
-                }}
-              >
-                {free ? t('act.sign') : t('act.offer')}
-              </button>
+              <div className={`rc-actions ${scouting ? 'on-mission' : ''}`}>
+                <button
+                  className="btn rc-act"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openSheet(r.c.id);
+                  }}
+                >
+                  {free ? t('act.sign') : t('act.offer')}
+                </button>
+                <ScoutSend game={game} c={r.c} wide />
+              </div>
             </div>
           );
         })}
@@ -347,7 +409,14 @@ export function RecruitScreen() {
             options={[
               { value: 'free', label: t('recruit.tab.free') },
               { value: 'stables', label: t('recruit.tab.stables') },
-              { value: 'scouts', label: `${t('recruit.tab.scouts')} (${game.scouting.missions.length})` },
+              {
+                value: 'scouts',
+                label: (
+                  <span data-scout-tab className="scout-tab">
+                    <UiIcon name="scout" /> {t('recruit.tab.scouts')} ({game.scouting.missions.length}/{SC.scouts})
+                  </span>
+                ),
+              },
             ]}
           />
           {tab === 'stables' && (

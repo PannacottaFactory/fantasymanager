@@ -70,7 +70,18 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'offerExpired'; name: string; fromTeam: string }
   | { kind: 'transferIn'; creatureId: string; name: string; fromTeam: string | null; fee: number; wage: number }
   | { kind: 'transferOut'; name: string; toTeam: string | null; fee: number }
-  | { kind: 'scoutReport'; target: 'creature' | 'team'; targetId: string; name: string }
+  | {
+      kind: 'scoutReport';
+      target: 'creature' | 'team';
+      targetId: string;
+      name: string;
+      /** Creature reports: knowledge before the report (the reveal narrows the ranges from there), verdict. */
+      before?: number;
+      verdict?: ScoutVerdict;
+      /** Gems: weeks before the world notices it. */
+      quiet?: number;
+    }
+  | { kind: 'gemNoticed'; creatureId: string; name: string }
   | { kind: 'contractExpiring'; names: string[] }
   | { kind: 'contractLeft'; names: string[] }
   | { kind: 'seasonPrize'; position: number; amount: number }
@@ -162,10 +173,21 @@ export interface ScoutMission {
   weeksLeft: number;
 }
 
+/** gem = high potential for its price; star = very high potential, priced like it; good; below the squad. */
+export type ScoutVerdict = 'gem' | 'star' | 'good' | 'below';
+
+/** A gem found by the player's scout: quiet for a few weeks, then noticed by everyone (hype), then forgotten. */
+export interface ScoutGem {
+  creatureId: string;
+  phase: 'quiet' | 'hyped';
+  weeksLeft: number;
+}
+
 export interface ScoutingState {
   /** 0–100 knowledge of each creature not in the player's stable. */
   knowledge: Record<string, number>;
   missions: ScoutMission[];
+  gems?: ScoutGem[];
 }
 
 /** Negotiation memory for the player's bids (per creature, per week). */

@@ -3,14 +3,14 @@
  * Attributes are shown as ranges that always contain the true value and narrow as knowledge grows.
  * The error of each estimate is a fixed, per-creature offset (no RNG draw), so the range never jumps around.
  */
-import { levelOfAbility } from '../progression/levels.ts';
+import { levelOfAbility, maxLevelOf } from '../progression/levels.ts';
 import { clamp } from '../../core/math.ts';
 import { hashString } from '../../core/rng.ts';
 import { ATTRIBUTE_KEYS, type AttributeKey } from '../../data/attributes.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
-import { bestRole, overallRating } from '../creature/derived.ts';
+import { bestRole, getSpecies, overallRating } from '../creature/derived.ts';
 import type { RoleId } from '../../data/schema.ts';
-import type { GameState } from '../league/types.ts';
+import type { GameState, ScoutVerdict } from '../league/types.ts';
 import type { Creature } from '../model.ts';
 import { creatureValue, roundTo } from './value.ts';
 
@@ -107,4 +107,27 @@ export function estimatedBestRole(c: Creature, knowledge: number, cfg: GameConfi
 export function learn(state: GameState, creatureId: string, to: number, cfg: GameConfig = DEFAULT_CONFIG) {
   const cur = knowledgeOf(state, creatureId, cfg);
   if (to > cur) state.scouting.knowledge[creatureId] = Math.round(to);
+}
+
+/**
+ * The scout's verdict on a creature, from what can be told at this knowledge only (never the hidden truth directly):
+ * its estimated maximum level against the player's best five, and its estimated price against what it would be worth
+ * at that potential.
+ */
+export function scoutVerdict(state: GameState, c: Creature, knowledge: number, cfg: GameConfig = DEFAULT_CONFIG): ScoutVerdict {
+  const v = cfg.economy.scouting.verdict;
+  const mine = state.teams.find((t) => t.id === state.playerTeamId)?.creatures ?? [];
+  const best = [...mine].sort((a, b) => overallRating(b) - overallRating(a) || a.id.localeCompare(b.id)).slice(0, 5);
+  const ref = best.length ? best.reduce((s, x) => s + maxLevelOf(x, cfg), 0) / best.length : 1;
+  const fifth = best.length ? overallRating(best[best.length - 1]!) : 0;
+  const pot = potentialLevel(c, knowledge, cfg);
+  // Price now against the price of the same creature once it has reached its (estimated) potential.
+  const estPotential = clamp(c.potential + noise(c.id, 'pot') * cfg.economy.scouting.potentialError * (1 - knowledge / 100), 10, 200);
+  const atPeak = creatureValue({ ...c, ability: Math.max(c.ability, estPotential), age: Math.min(c.age, getSpecies(c).lifeCurve.peakEnd) }, cfg);
+  const cheap = estimatedValue(c, knowledge, cfg) <= atPeak * v.cheapRatio;
+  if (pot >= ref + 1 && cheap) return 'gem';
+  if (pot >= ref + v.starLevels) return 'star';
+  const o = overallRange(c, knowledge, cfg);
+  if (pot >= Math.round(ref) || (o.low + o.high) / 2 >= fifth) return 'good';
+  return 'below';
 }

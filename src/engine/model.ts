@@ -62,6 +62,11 @@ export interface Creature {
   growth?: CreatureGrowth;
   /** Career record in league and cup matches (public: anyone can see it). */
   record?: CreatureRecord;
+  /**
+   * The market's interest once the world has noticed a gem the player's scout found first: value (and so price and
+   * wage demands) × this, AI stables chase it. Fades after `scouting.gem.hypeWeeks`.
+   */
+  hype?: number;
 }
 
 /** What a creature has done in its career (league, cup and tournament matches). */
