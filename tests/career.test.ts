@@ -22,6 +22,13 @@ describe('career mode', () => {
     expect(plain.manager).toMatchObject({ career: false, ironman: false });
   });
 
+  it('the manager has the name chosen at new game (trimmed, 30 characters at most)', () => {
+    const g = newGame({ seed: 'career', teamName: 'Test', lang: 'en', managerName: '  Aldric Vane  ' });
+    expect(g.manager!.name).toBe('Aldric Vane');
+    expect(newGame({ seed: 'career', teamName: 'Test', lang: 'en', managerName: 'x'.repeat(50) }).manager!.name).toHaveLength(30);
+    expect(newGame({ seed: 'career', teamName: 'Test', lang: 'en' }).manager!.name).toBeUndefined();
+  });
+
   it('takeOver moves the manager: the old stable gets an AI identity, the new one loses its own', () => {
     const g = game();
     const oldId = g.playerTeamId;
@@ -190,7 +197,10 @@ describe('career mode', () => {
     const a = run();
     const b = run();
     expect(a.manager).toEqual(b.manager);
-    expect(a.career?.at(-1)).toMatchObject({ teamId: a.playerTeamId, teamName: playerTeam(a).name });
+    const rec = a.career!.at(-1)!;
+    expect(rec).toMatchObject({ teamId: a.playerTeamId, teamName: playerTeam(a).name });
+    expect(rec.won! + rec.lost!).toBe(18);
+    expect(rec.objective).toBeDefined();
     if (!a.manager!.unemployed) {
       const next = startNextSeason(a);
       expect(next.manager!.trend?.length).toBe(1);

@@ -127,8 +127,14 @@ export function ManagerCard({ game }: { game: GameState }) {
         <span className="board-seal">
           <BadgeIcon name="board" />
         </span>
-        <b>{t('career.title')}</b>
+        <div className="career-who">
+          <b>{m.name ?? t('career.title')}</b>
+          {m.name && <small className="muted">{t('career.title')}</small>}
+        </div>
         {m.ironman && <span className="career-tag">{t('career.ironman')}</span>}
+        <button className="link" onClick={() => useGame.getState().setScreen('career')}>
+          {t('cs.open')} →
+        </button>
         <span className="spacer" />
         <span className="career-rep" title={t('career.reputation.title')}>
           <small>{t('career.reputation')}</small>

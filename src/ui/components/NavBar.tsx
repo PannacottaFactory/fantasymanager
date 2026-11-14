@@ -21,7 +21,7 @@ interface Group {
 const ICON: Partial<Record<Screen, string>> = {
   dashboard: 'nav-dashboard', inbox: 'nav-inbox', squad: 'nav-squad', tactics: 'nav-tactics', training: 'nav-training',
   league: 'nav-league', news: 'nav-news', recruit: 'nav-recruit', finances: 'nav-finances', staff: 'nav-staff',
-  facilities: 'nav-facilities', encyclopedia: 'nav-encyclopedia', arena: 'nav-arena',
+  facilities: 'nav-facilities', career: 'nav-career', encyclopedia: 'nav-encyclopedia', arena: 'nav-arena',
 };
 
 type Entry = Item | Group;
@@ -133,6 +133,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
         { id: 'finances', label: 'nav.finances', needsGame: true },
         { id: 'staff', label: 'nav.staff', needsGame: true },
         { id: 'facilities', label: 'nav.facilities', needsGame: true },
+        { id: 'career', label: 'nav.career', needsGame: true },
       ],
     },
     {

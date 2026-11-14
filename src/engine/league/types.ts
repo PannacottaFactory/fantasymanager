@@ -466,6 +466,8 @@ export interface ManagerJob {
 }
 
 export interface ManagerState {
+  /** The manager's name, chosen at new game (absent: unnamed). */
+  name?: string;
   /** Career mode: the board can sack the manager, other stables offer jobs. */
   career: boolean;
   /** One save, no going back (the UI keeps a single autosave). */
@@ -511,6 +513,11 @@ export interface SeasonRecord {
   cupWon: boolean;
   /** The board's objective was met (absent in old saves). */
   met?: boolean;
+  /** League wins and defeats (absent in old saves). */
+  won?: number;
+  lost?: number;
+  /** Board objective of that season. */
+  objective?: ObjectiveId;
   /** Tournaments won that season (tournament definition ids: preseason, division, champions, marches…). */
   trophies?: string[];
 }

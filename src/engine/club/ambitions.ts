@@ -100,9 +100,9 @@ export function checkAmbitions(s: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
 }
 
 /** Logs the season that just ended for the player (league position, cup). Mutates. */
-export function recordSeason(s: GameState, division: number, position: number, points: number, trophies: string[] = []) {
+export function recordSeason(s: GameState, division: number, position: number, points: number, trophies: string[] = [], extra: Partial<SeasonRecord> = {}) {
   s.career ??= [];
   if (s.career.some((r) => r.season === s.season)) return;
   const team = s.teams.find((t) => t.id === s.playerTeamId);
-  s.career.push({ season: s.season, teamId: s.playerTeamId, teamName: team?.name, division, position, points, cupWon: s.cup.winner === s.playerTeamId, trophies });
+  s.career.push({ season: s.season, teamId: s.playerTeamId, teamName: team?.name, division, position, points, cupWon: s.cup.winner === s.playerTeamId, trophies, ...extra });
 }

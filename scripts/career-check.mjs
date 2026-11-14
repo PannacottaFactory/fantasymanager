@@ -83,6 +83,11 @@ for (let i = 0; i < 4; i++) {
 }
 await page.locator('.career-card').scrollIntoViewIfNeeded();
 await page.locator('.career-card').screenshot({ path: `${out}/career-card.png` });
+await page.locator('.career-card .link').click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}/career-stats.png`, fullPage: true });
+await page.evaluate(() => window.__fm.getState().setScreen('dashboard'));
+await page.waitForTimeout(300);
 page.once('dialog', (d) => d.accept());
 await page.locator('.career-resign').click();
 await page.waitForTimeout(500);

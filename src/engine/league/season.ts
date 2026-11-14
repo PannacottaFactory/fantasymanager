@@ -52,6 +52,8 @@ export interface NewGameOptions {
   career?: boolean;
   /** Career mode only: a single save, no going back. */
   ironman?: boolean;
+  /** The manager's name. */
+  managerName?: string;
 }
 
 /** Generates the stables of every division (the player's stable is the last slot of its division). */
@@ -513,7 +515,8 @@ function endOfLeague(next: GameState, cfg: GameConfig) {
   pushMessage(next, { kind: 'seasonEnd', position: pos, champion: teamById(next, table[0]!.teamId).name, points: table[pos - 1]!.points });
   const me = next.playerTeamId;
   const trophies = [...(next.cup.winner === me ? ['shadow'] : []), ...next.tournaments.filter((t) => t.winner === me).map((t) => t.def)];
-  recordSeason(next, div, pos, table[pos - 1]!.points, trophies);
+  const row = table[pos - 1]!;
+  recordSeason(next, div, pos, row.points, trophies, { won: row.koWins + row.pointsWins, lost: row.koLosses + row.pointsLosses, objective: next.board.objective });
   const confidence = next.board.confidence;
   const met = boardVerdict(next, cfg);
   const record = next.career?.find((r) => r.season === next.season);

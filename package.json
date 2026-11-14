@@ -21,6 +21,7 @@
     "sim:ai": "tsx src/sim/ai.ts",
     "sim:board": "tsx src/sim/board.ts",
     "sim:career": "tsx src/sim/career.ts",
+    "sim:facility": "tsx src/sim/facility.ts",
     "sim:levers": "tsx src/sim/levers.ts",
     "ui:check": "node scripts/ui-check.mjs"
   },

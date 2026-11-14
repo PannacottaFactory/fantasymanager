@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { DIFFICULTY_IDS, type DifficultyId } from '../../../data/config/identity.ts';
 import { Rng } from '../../../core/rng.ts';
 import { generateTeamName } from '../../../engine/creature/names.ts';
+import { randomManagerName } from '../../../engine/team/identity.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { randomSeed } from '../../format.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../../icons/gameIcons.ts';
@@ -98,6 +99,8 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   };
   const suggested = useMemo(() => generateTeamName(new Rng(randomSeed()), lang), [lang]);
   const [name, setName] = useState('');
+  const suggestedManager = useMemo(() => randomManagerName(new Rng(randomSeed())), []);
+  const [manager, setManager] = useState('');
   const [seed, setSeed] = useState(randomSeed);
   const tutorial = useTutorial();
   const [tips, setTips] = useState(tutorial.enabled);
@@ -112,7 +115,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
     if (taken && !window.confirm(t('start.overwriteSlot', { team: taken.teamName, n: SLOTS.indexOf(into) + 1 }))) return;
     if (tips) tutorial.restart();
     else tutorial.setEnabled(false);
-    newGame(name.trim() || suggested, seed, difficulty, crest, into, { career, ironman: career && ironman });
+    newGame(name.trim() || suggested, seed, difficulty, crest, into, { career, ironman: career && ironman, managerName: manager.trim() || suggestedManager });
     onCreated?.();
   };
   const anySaved = !!slots && SLOTS.some((x) => slots[x]);
@@ -181,10 +184,16 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
         </div>
         <div className="new-grid">
           <div className="new-col">
-            <label className="field">
-              {t('start.teamName')}
-              <input type="text" value={name} placeholder={suggested} onChange={(e) => setName(e.target.value)} maxLength={40} />
-            </label>
+            <div className="name-row">
+              <label className="field">
+                {t('start.teamName')}
+                <input type="text" value={name} placeholder={suggested} onChange={(e) => setName(e.target.value)} maxLength={40} />
+              </label>
+              <label className="field">
+                {t('start.managerName')}
+                <input type="text" value={manager} placeholder={suggestedManager} onChange={(e) => setManager(e.target.value)} maxLength={30} />
+              </label>
+            </div>
             <div className="field">
               {t('crest.title')}
               <CrestEditor value={crest} onChange={setCrest} />

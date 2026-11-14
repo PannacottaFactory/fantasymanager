@@ -19,6 +19,11 @@ export function managerName(team: { id: string; identity?: { gen?: number } }): 
   return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
 }
 
+/** A manager's name drawn at random (suggestion at new game). */
+export function randomManagerName(rng: Rng): string {
+  return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
+}
+
 /** Distinct styles for as many stables as possible (then repeats), each with a manager temperament and a focus. */
 export function drawIdentities(rng: Rng, count: number): StableIdentity[] {
   const styles: PlayStyleId[] = [];

@@ -22,12 +22,16 @@ import { moodOf, objectiveMet, pickObjective } from './board.ts';
 export interface CareerOptions {
   career?: boolean;
   ironman?: boolean;
+  /** The manager's name (trimmed, at most 30 characters). */
+  managerName?: string;
 }
 
 /** The manager of a game started with the given options (first job = the player's stable). */
 export function initManager(state: GameState, opts: CareerOptions = {}, cfg: GameConfig = DEFAULT_CONFIG) {
   const team = state.teams.find((t) => t.id === state.playerTeamId)!;
+  const name = opts.managerName?.trim().slice(0, 30);
   state.manager = {
+    ...(name ? { name } : {}),
     career: !!opts.career,
     ironman: !!opts.career && !!opts.ironman,
     reputation: cfg.career.start,

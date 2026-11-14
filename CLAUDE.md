@@ -34,6 +34,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
 | `npm run sim:board -- --worlds 10 --seasons 2` | board, supporters & star requests over seasons on autopilot: weeks per mood / tier, ultimatums, tickets, requests per kind, per difficulty |
 | `npm run sim:career -- --worlds 8 --seasons 4` | career mode on autopilot: sackings (ultimatum / verdict), job offers, manager reputation & division per season (`--policy climb` takes offers) |
+| `npm run sim:facility -- --worlds 8 --seasons 2` | weight of the training ground: same worlds with the player's ground forced to 0–3 (sessions, attribute points, league points, position) |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 
@@ -258,6 +259,13 @@ tests/       Vitest
   /100 + bar + last change, Ironman tag, « à X depuis… », last-warning chip, offers waiting → Journal, stables managed,
   « Démissionner » → `resign(state)`: job `end: 'resigned'`, reputation −2, offers from stables within reach, never the
   one left). The board's rules window shows the career rules instead of « cannot dismiss you ».
+  **Manager name** (`manager.name`, `NewGameOptions.managerName`, 30 chars; new-game field beside the stable name,
+  placeholder `randomManagerName`, used when left empty) shown on the career card and the career page.
+  **Career page** (`screens/game/CareerScreen.tsx`, nav Club › « Carrière », icon `nav-career`, also from the career
+  card): hero (name, mode, difficulty, Ironman, current stable, reputation), tiles (seasons, league W–L + %, titles,
+  cups & tournaments, promotions / relegations, objectives met, highest league reached), stables managed (seasons
+  completed, trophies), reputation curve per season (career mode, one series, hover per point), season-by-season table
+  (`SeasonRecord.won / lost / objective / met`, trophies as icons, current season in italics). Works in free mode too.
   `sim:career -- --worlds 8 --seasons 4 [--policy climb]` measures sackings, offers, reputation (autopilot = AI line-up,
   free points & sessions used, best contracts renewed: without that the squad bleeds and sackings are wildly
   overstated) — normal ≈ 0.1–0.15 sackings / season, easy 0; the two weakest stables of a division get the objective

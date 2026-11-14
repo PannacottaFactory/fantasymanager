@@ -21,7 +21,7 @@ import type { InboxMessage } from '../../engine/league/types.ts';
 export const BOARD_NOTE_KINDS = new Set<InboxMessage['kind']>(['boardObjective', 'ultimatum', 'ultimatumOver', 'boardVerdict']);
 import { sessionPool, sessionState } from '../../engine/progression/sessions.ts';
 
-export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
+export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'career' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
 export interface MatchFlow {
   fixtureId: string;
@@ -49,7 +49,7 @@ interface GameStore {
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
-  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId, mode?: { career?: boolean; ironman?: boolean }) => void;
+  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId, mode?: { career?: boolean; ironman?: boolean; managerName?: string }) => void;
   setScreen: (s: Screen) => void;
   setPlayerTeam: (team: Team) => void;
   autoPick: () => void;
@@ -166,7 +166,7 @@ export const useGame = create<GameStore>()((set, get) => {
     },
 
     newGame: (teamName, seed, difficulty, crest, slot, mode) => {
-      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman });
+      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman, managerName: mode?.managerName });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
       set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, reveals: [], boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
