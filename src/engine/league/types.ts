@@ -133,6 +133,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'sacked'; team: string; reason: SackReason; reputation: number }
   | { kind: 'jobOffer'; offerId: string; teamId: string; team: string; division: number; reason: JobOfferReason; until: number }
   | { kind: 'newJob'; teamId: string; team: string; division: number; from: string }
+  | { kind: 'resigned'; team: string; reputation: number }
 );
 
 /** A transfer between two stables (null = free agent pool). */
@@ -460,8 +461,8 @@ export interface ManagerJob {
   from: { season: number; matchday: number };
   /** Absent for the current job. */
   to?: { season: number; matchday: number };
-  /** How it ended: sacked, or left for another stable. */
-  end?: 'sacked' | 'left';
+  /** How it ended: sacked, resigned, or left for another stable. */
+  end?: 'sacked' | 'left' | 'resigned';
 }
 
 export interface ManagerState {

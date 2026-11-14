@@ -87,6 +87,7 @@ function messageIcon(m: InboxMessage): string {
     case 'ultimatum':
     case 'ultimatumOver':
     case 'sacked':
+    case 'resigned':
     case 'jobOffer':
     case 'newJob':
       return 'board';
@@ -381,6 +382,8 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       };
     case 'newJob':
       return { title: t('msg.newJob.title', { team: m.team }), body: t('msg.newJob.body', { team: m.team, from: m.from, div: divName(t, m.division) }), tone: 'good' };
+    case 'resigned':
+      return { title: t('msg.resigned.title', { team: m.team }), body: t('msg.resigned.body', { team: m.team, rep: m.reputation }), tone: 'info' };
     case 'medal':
       if (m.more?.length) {
         const names = [m.name, ...m.more.map((x) => x.name)];

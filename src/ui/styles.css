@@ -3284,3 +3284,17 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .slot-opt.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--panel-2)); }
 .slot-opt.taken small { color: var(--warn); }
 .slot-opt.taken.on { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); background: color-mix(in srgb, var(--bad) 10%, var(--panel-2)); }
+
+/* ——— Career card (dashboard, career mode) ——— */
+.career-card { display: flex; flex-direction: column; gap: 8px; }
+.career-head { display: flex; align-items: center; gap: 10px; }
+.career-tag { font-size: 0.714rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 1px 8px; border-radius: 999px;
+  color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 50%, transparent); }
+.career-rep { display: inline-flex; align-items: baseline; gap: 6px; }
+.career-rep b { font-size: 1.4rem; color: var(--gold); }
+.career-bar { height: 6px; border-radius: 999px; background: var(--panel-2); overflow: hidden; }
+.career-bar > i { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 55%, transparent), var(--gold)); }
+.career-lines { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 0.857rem; }
+.link-chip { cursor: pointer; font: inherit; }
+.career-history ol { margin: 2px 0 0; padding-left: 1.2rem; font-size: 0.857rem; display: flex; flex-wrap: wrap; gap: 2px 22px; }
+.career-resign { align-self: flex-end; }

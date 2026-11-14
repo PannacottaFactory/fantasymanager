@@ -253,7 +253,11 @@ tests/       Vitest
   Ironman checkbox, `SlotMeta.career / ironman` on the slot cards). Every game autosaves into one slot anyway; **Ironman**
   closes the only way back: `playLive` saves the week already played (simulated) before the live match starts, so
   leaving it (closing the page) counts as played; finishing it live overwrites that save. UI `screens/game/Career.tsx`:
-  `JobCentre` (locked window while `unemployed`), `JobOfferActions` under `jobOffer` messages (take / decline).
+  `JobCentre` (locked window while `unemployed`, worded from the last `sacked` / `resigned` message), `JobOfferActions`
+  under `jobOffer` messages (take / decline; rescue offers get no toast), `ManagerCard` on the dashboard (reputation
+  /100 + bar + last change, Ironman tag, « à X depuis… », last-warning chip, offers waiting → Journal, stables managed,
+  « Démissionner » → `resign(state)`: job `end: 'resigned'`, reputation −2, offers from stables within reach, never the
+  one left). The board's rules window shows the career rules instead of « cannot dismiss you ».
   `sim:career -- --worlds 8 --seasons 4 [--policy climb]` measures sackings, offers, reputation (autopilot = AI line-up,
   free points & sessions used, best contracts renewed: without that the squad bleeds and sackings are wildly
   overstated) — normal ≈ 0.1–0.15 sackings / season, easy 0; the two weakest stables of a division get the objective

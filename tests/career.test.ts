@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
-import { acceptJob, declineJob, jobCandidates, lastWarning, requestSack, seasonOffers, seasonReputationDelta, takeOver, weeklyCareer } from '../src/engine/club/career.ts';
+import { acceptJob, declineJob, jobCandidates, lastWarning, requestSack, resign, seasonOffers, seasonReputationDelta, takeOver, weeklyCareer } from '../src/engine/club/career.ts';
 import { clubOf } from '../src/engine/economy/finance.ts';
 import { knowledgeOf } from '../src/engine/economy/scouting.ts';
 import { newGame, playMatchday, playerFixture, playerTeam, playCupRound, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
@@ -109,6 +109,20 @@ describe('career mode', () => {
     expect(playMatchday(state)).not.toBe(state);
     // The stable that sacked the manager never calls back.
     expect(jobCandidates(state).some((t) => t.id === g.playerTeamId)).toBe(false);
+  });
+
+  it('a manager may resign in career mode: the job ends, offers come, never from the stable left', () => {
+    expect(resign(game(false))).toEqual(game(false));
+    const g = game();
+    const next = resign(g);
+    const m = next.manager!;
+    expect(m.unemployed).toBe(true);
+    expect(m.jobs[0]!.end).toBe('resigned');
+    expect(m.reputation).toBe(C.start + C.resigned);
+    expect(m.offers.length).toBeGreaterThanOrEqual(1);
+    expect(m.offers.some((o) => o.teamId === g.playerTeamId)).toBe(false);
+    expect(next.inbox.some((x) => x.kind === 'resigned')).toBe(true);
+    expect(playMatchday(next)).toBe(next);
   });
 
   it('the board sacks a manager who misses the objective with a low confidence at the end of the season', () => {

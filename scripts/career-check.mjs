@@ -74,6 +74,22 @@ const after = await page.evaluate(() => {
 });
 console.log('after taking the job:', JSON.stringify(after));
 await page.screenshot({ path: `${out}/new-job.png` });
+// Career card on the dashboard, then a resignation (confirmed) opens the job window again.
+for (let i = 0; i < 4; i++) {
+  const btn = page.locator('.overlay .dialog .btn.primary, .overlay .dialog-head .btn.ghost').first();
+  if (!(await btn.count())) break;
+  await btn.click();
+  await page.waitForTimeout(300);
+}
+await page.locator('.career-card').scrollIntoViewIfNeeded();
+await page.locator('.career-card').screenshot({ path: `${out}/career-card.png` });
+page.once('dialog', (d) => d.accept());
+await page.locator('.career-resign').click();
+await page.waitForTimeout(500);
+console.log('after resigning: job window offers', await page.locator('.job-card').count());
+await page.screenshot({ path: `${out}/resigned.png` });
+await page.locator('.job-card .btn.primary').first().click();
+await page.waitForTimeout(500);
 // The start screen again, now with a saved game (slot cards on top), at every size.
 for (const [w, h] of sizes) {
   await page.setViewportSize({ width: w, height: h });

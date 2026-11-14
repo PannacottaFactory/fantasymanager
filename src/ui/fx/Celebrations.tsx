@@ -35,9 +35,11 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'transferIn':
     case 'ambition':
     case 'request':
-    case 'jobOffer':
     case 'newJob':
       return 'big';
+    case 'jobOffer':
+      // Out of a job, the offers are already in the job window.
+      return m.reason === 'rescue' ? null : 'big';
     case 'requestOutcome':
       return 'small';
     case 'promoted':

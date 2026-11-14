@@ -23,6 +23,8 @@ export const CAREER_CONFIG = {
   },
   /** Reputation lost when sacked. */
   sacked: -5,
+  /** Reputation lost when resigning (the manager then picks among `offers.rescue` stables within reach). */
+  resigned: -2,
   sack: {
     /** Missed ultimatums in the same job and season that cost it (the one before is a last warning); 0 = never. */
     ultimatumStrikes: 2,

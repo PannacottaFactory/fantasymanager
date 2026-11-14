@@ -202,7 +202,14 @@ function Rules({ game }: { game: GameState }) {
         ))}
       </div>
       <p className="muted board-rules-ult">{t('board.rules.ultimatum', { need: u.need, of: u.of, reward: u.reward, rep: u.reputation, weeks: tr.weeks(u.frozenWeeks) })}</p>
-      <p className="faint">{t('board.rules.noSack')}</p>
+      {game.manager?.career ? (
+        <>
+          <h4>{t('career.rules.title')}</h4>
+          <p className="muted">{t('career.rules.body', { grace: DEFAULT_CONFIG.career.sack.graceWeeks })}</p>
+        </>
+      ) : (
+        <p className="faint">{t('board.rules.noSack')}</p>
+      )}
     </div>
   );
 }

@@ -26,6 +26,7 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { useGame, type Screen } from '../../store/gameStore.ts';
 import { NextMatch, wording } from './InboxScreen.tsx';
 import { BoardCard } from './Board.tsx';
+import { ManagerCard } from './Career.tsx';
 import { FormDots } from './LeagueScreen.tsx';
 import { NewsIcon, newsText } from './NewsScreen.tsx';
 import { bestiaryTiers, ownedSpecies, seenSpecies } from '../../../engine/team/record.ts';
@@ -422,6 +423,7 @@ export function DashboardScreen() {
       </div>
       <Ambitions game={game} />
       <BoardCard game={game} />
+      <ManagerCard game={game} />
       <div className="dash-grid">
         <SessionCard game={game} />
         <SquadStatus game={game} />

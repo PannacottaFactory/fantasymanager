@@ -3,13 +3,14 @@
  * job). Zero game rules: everything comes from `engine/club/career.ts`.
  */
 import { useState } from 'react';
-import { acceptJob, declineJob } from '../../../engine/club/career.ts';
+import { acceptJob, declineJob, lastWarning, resign } from '../../../engine/club/career.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
 import type { GameState, InboxMessage, JobOffer } from '../../../engine/league/types.ts';
-import { standings } from '../../../engine/league/season.ts';
+import { lastMatchday, standings } from '../../../engine/league/season.ts';
 import { divName } from '../../competitions.ts';
 import { Modal, Money } from '../../components/common.tsx';
+import { BadgeIcon } from '../../icons/Icon.tsx';
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { useT } from '../../i18n/index.ts';
 import { BOARD_NOTE_KINDS, useGame } from '../../store/gameStore.ts';
@@ -86,16 +87,88 @@ export function JobCentre() {
   const [, refresh] = useState(0);
   const m = game?.manager;
   if (!game || !m?.unemployed || blocked) return null;
-  const sacked = [...game.inbox].reverse().find((x) => x.kind === 'sacked');
+  const why = [...game.inbox].reverse().find((x) => x.kind === 'sacked' || x.kind === 'resigned');
   return (
     <Modal title={t('job.centre.title')} onClose={() => refresh((n) => n + 1)} locked wide>
-      <p>{t('job.centre.body', { rep: m.reputation })}</p>
-      {sacked?.kind === 'sacked' && <p className="muted">{t(`msg.sacked.${sacked.reason}`, { team: sacked.team, rep: sacked.reputation })}</p>}
+      <p>
+        {why?.kind === 'sacked'
+          ? t(`msg.sacked.${why.reason}`, { team: why.team, rep: why.reputation })
+          : why?.kind === 'resigned'
+            ? t('msg.resigned.body', { team: why.team, rep: why.reputation })
+            : t('job.centre.body', { rep: m.reputation })}
+      </p>
       <div className="job-list">
         {m.offers.map((o) => (
           <OfferCard key={o.id} game={game} offer={o} canDecline={m.offers.length > 1} />
         ))}
       </div>
     </Modal>
+  );
+}
+
+/** Dashboard (career mode): the manager's reputation, warnings, offers waiting, stables managed, resignation. */
+export function ManagerCard({ game }: { game: GameState }) {
+  const { t } = useT();
+  const m = game.manager;
+  if (!m?.career) return null;
+  const trend = m.trend ?? [];
+  const delta = trend.length > 1 ? trend[trend.length - 1]! - trend[trend.length - 2]! : 0;
+  const job = m.jobs.at(-1);
+  const team = game.teams.find((x) => x.id === game.playerTeamId)!;
+  const offers = m.unemployed ? 0 : m.offers.length;
+  const onResign = () => {
+    if (!window.confirm(t('career.resign.confirm', { team: team.name }))) return;
+    useGame.getState().update((g) => resign(g));
+  };
+  const week = (w: number) => (w <= 1 ? t('week.pre') : t('week.of', { d: w, n: lastMatchday(game) }));
+  return (
+    <section className="panel career-card">
+      <div className="career-head">
+        <span className="board-seal">
+          <BadgeIcon name="board" />
+        </span>
+        <b>{t('career.title')}</b>
+        {m.ironman && <span className="career-tag">{t('career.ironman')}</span>}
+        <span className="spacer" />
+        <span className="career-rep" title={t('career.reputation.title')}>
+          <small>{t('career.reputation')}</small>
+          <b>{m.reputation}</b>
+          {delta !== 0 && <em className={delta > 0 ? 'good-text' : 'bad-text'}>{delta > 0 ? `▲${delta}` : `▼${-delta}`}</em>}
+        </span>
+      </div>
+      <div className="career-bar" title={t('career.reputation.title')}>
+        <i style={{ width: `${m.reputation}%` }} />
+      </div>
+      <div className="career-lines">
+        {job && <span className="muted">{t('career.since', { team: job.teamName, s: job.from.season, w: week(job.from.matchday) })}</span>}
+        {lastWarning(game) && <span className="board-chip bad">{t('career.warning')}</span>}
+        {offers > 0 && (
+          <button className="board-chip good link-chip" onClick={() => useGame.getState().setScreen('inbox')}>
+            {t('career.offers', { n: offers })} · {t('career.offers.open')} →
+          </button>
+        )}
+      </div>
+      {m.jobs.length > 1 && (
+        <div className="career-history">
+          <small className="muted">{t('career.history')}</small>
+          <ol>
+            {m.jobs.map((j, i) => (
+              <li key={`${j.teamId}-${i}`}>
+                <b>{j.teamName}</b>{' '}
+                <span className="muted">
+                  {!j.to ? t('career.fromSeason', { s: j.from.season }) : j.to.season === j.from.season ? t('career.season', { s: j.from.season }) : t('career.seasons', { a: j.from.season, b: j.to.season })} ·{' '}
+                  {j.end ? t(`career.end.${j.end}`) : t('career.now')}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {!m.unemployed && (
+        <button className="btn small ghost career-resign" onClick={onResign}>
+          {t('career.resign')}
+        </button>
+      )}
+    </section>
   );
 }

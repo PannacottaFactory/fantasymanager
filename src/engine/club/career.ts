@@ -79,13 +79,15 @@ function addOffer(state: GameState, team: Team, reason: JobOfferReason, until: n
   pushMessage(state, { kind: 'jobOffer', offerId: offer.id, teamId: team.id, team: team.name, division: divisionOf(state, team.id), reason, until });
 }
 
-/** Sacked: stables in trouble that would take the manager (at least one, whatever the reputation). */
+/** Out of a job: stables in trouble that would take the manager (at least one, whatever the reputation). */
 function rescueOffers(state: GameState, cfg: GameConfig) {
   const o = cfg.career.offers;
   const rep = managerReputation(state, cfg);
   const skip = burnt(state);
   const tables = divisionTables(state, cfg);
-  const pool = aiTeams(state).filter((t) => !skip.has(t.id));
+  // Never straight back to the stable just left.
+  const left = state.manager?.jobs.at(-1)?.teamId;
+  const pool = aiTeams(state).filter((t) => !skip.has(t.id) && t.id !== left);
   const byTrouble = (list: Team[]) =>
     [...list].sort((a, b) => trouble(state, tables, b.id) - trouble(state, tables, a.id) || clubOf(state, b.id).reputation - clubOf(state, a.id).reputation || a.id.localeCompare(b.id));
   let picks = byTrouble(pool.filter((t) => clubOf(state, t.id).reputation <= rep + o.reach)).slice(0, o.rescue);
@@ -112,6 +114,29 @@ export function sack(state: GameState, reason: SackReason, cfg: GameConfig = DEF
   m.offers = [];
   pushMessage(state, { kind: 'sacked', team: state.teams.find((t) => t.id === state.playerTeamId)!.name, reason, reputation: m.reputation });
   rescueOffers(state, cfg);
+}
+
+/**
+ * The manager resigns (career mode, pure): the job ends, reputation dips a little, stables within reach make offers
+ * (as after a sacking); no week is played before one is taken.
+ */
+export function resign(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): GameState {
+  const m0 = state.manager;
+  if (!m0?.career || m0.unemployed) return state;
+  const next: GameState = structuredClone(state);
+  const m = next.manager!;
+  const job = m.jobs[m.jobs.length - 1];
+  if (job) {
+    job.to = { season: next.season, matchday: next.matchday };
+    job.end = 'resigned';
+  }
+  m.unemployed = true;
+  delete m.pendingSack;
+  moveReputation(m, cfg.career.resigned, cfg);
+  m.offers = [];
+  pushMessage(next, { kind: 'resigned', team: next.teams.find((t) => t.id === next.playerTeamId)!.name, reputation: m.reputation });
+  rescueOffers(next, cfg);
+  return next;
 }
 
 /** The board asks for the manager's head (career mode only); handled at the end of the week. */
