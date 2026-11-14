@@ -80,7 +80,8 @@ Sizes below 0.6rem (corner glyphs, dots) stay as they are; `clamp()` sizes (star
 | Status | `--good`, `--bad`, `--warn`, `--info` | results, gains / losses, alerts; always with a word or icon, never colour alone |
 | Sides | `--home`, `--away` | the player vs the opponent (match, tables) |
 | Gauges | `--hp*`, `--stamina`, `--morale`, `--xp-color` | bars only |
-| Categories | `--tk-*`, `--comp`, `--viz-1..5` | competitions, news categories, charts (validated palette) |
+| Categories | `--tk-*`, `--comp`, `--tier`, `--viz-1..5`, `--rep`, `--role-*`, `--bench` | competitions, divisions, news categories, charts (validated palette), reputation, roles, the bench |
+| Ink on fills | `--on-gold`, `--on-good`, `--accent-text` | text on a gold, green or accent background |
 | Text | `--text`, `--muted`, `--faint` | three inks; labels and values never take a series colour |
 
 The accent and the gold are close hues: the accent is interaction (a muted brass), the gold is value (bright
@@ -118,5 +119,8 @@ yellow). Primary buttons use the accent; gold never fills a button.
   titles. Gold audit: the training button, the dashboard rank and the first-steps bar left the gold. Duplicate rules of
   every screen family merged into one place each (228 repeated selectors → 21: the live match, `body`'s ambient
   layers and a few others, each verified pixel-identical with `style-diff`).
-- Still to do: the live match (its rules are still layered; it needs a reproducible capture first), the 166 raw
-  colours (status / category colours written by hand in some screens).
+- 2026-11-14: the live match has reproducible captures (`style-shots`: the first break, round 5, the end; instant
+  speed, player controls) and its duplicate rules are merged too. Category tokens: `--rep` / `--rep-text` (reputation,
+  with a parchment variant), `--on-gold` / `--on-good` (ink on a gold or green fill), `--bench`, `--role-*`. Remaining raw
+  colours are deliberate: theme swatches, the effects palette of the live match, `#fff` / `#000` used in `color-mix`,
+  and per-class category variables (`--tier`, `--comp`, `--ac`, `--metal`).

@@ -22,6 +22,17 @@
   --r-md: 8px;
   --r-lg: 12px;
   --r-pill: 999px;
+  /* Category colours (style guide § 5): reputation, ink on gold / green, the bench, the five roles. */
+  --rep: #b48cf0;
+  --rep-text: #c8a8ff;
+  --on-gold: #1a1408;
+  --on-good: #0d1a08;
+  --bench: #6cb6e8;
+  --role-tank: #6e9fd0;
+  --role-striker: #d0594a;
+  --role-support: #7cb35a;
+  --role-caster: #8f7fd0;
+  --role-skirmisher: #d99a3a;
   --panel-shadow: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 8px 24px rgb(0 0 0 / 0.22);
   --bg: #14110e;
   --panel: #1d1914;
@@ -97,6 +108,8 @@
 }
 
 :root[data-theme='parchment'] {
+  --rep: #8a5fd0;
+  --rep-text: #6b3fb0;
   --panel-shadow: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 4px 14px rgb(90 60 20 / 0.12);
   --bg: #e9dcbf;
   --panel: #f4ead3;
@@ -664,11 +677,11 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .gicon { display: inline-block; vertical-align: -0.18em; flex: none; }
 .role-label { display: inline-flex; align-items: center; gap: 0.3em; white-space: nowrap; }
 .role-icon { color: var(--muted); }
-.role-icon.role-tank { color: #6e9fd0; }
-.role-icon.role-striker { color: #d0594a; }
-.role-icon.role-support { color: #7cb35a; }
-.role-icon.role-caster { color: #8f7fd0; }
-.role-icon.role-skirmisher { color: #d99a3a; }
+.role-icon.role-tank { color: var(--role-tank); }
+.role-icon.role-striker { color: var(--role-striker); }
+.role-icon.role-support { color: var(--role-support); }
+.role-icon.role-caster { color: var(--role-caster); }
+.role-icon.role-skirmisher { color: var(--role-skirmisher); }
 .crest-icon { color: rgb(16 12 8 / 0.82); }
 .species-icon { display: inline-flex; vertical-align: middle; filter: brightness(1.25) drop-shadow(0 1px 1px rgb(0 0 0 / 0.35)); }
 :root[data-theme="parchment"] .species-icon { filter: brightness(0.85); }
@@ -1138,10 +1151,10 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 .drag-hint { font-size: var(--fs-sm); margin: 0 0 4px; }
 table.data tbody.group { border-left: 3px solid var(--border-strong); border-left-width: 4px; }
 table.data tbody.grp-starter { border-left-color: var(--good); }
-table.data tbody.grp-bench { border-left-color: #6cb6e8; }
+table.data tbody.grp-bench { border-left-color: var(--bench); }
 table.data tbody.grp-reserve { border-left-color: color-mix(in srgb, var(--muted) 60%, transparent); }
 .grp-starter .group-title b { color: var(--good); }
-.grp-bench .group-title b { color: #6cb6e8; }
+.grp-bench .group-title b { color: var(--bench); }
 .warn-text { color: var(--warn, #d9a441); }
 table.data tr.group-head td { padding: 10px 8px 4px; border-bottom: 1px solid var(--border-strong); background: transparent; }
 table.data tbody.group + tbody.group tr.group-head td { padding-top: 16px; }
@@ -1248,7 +1261,7 @@ table.standings tr.top td { background: color-mix(in srgb, var(--good) 7%, trans
 table.standings tr.champ td { background: color-mix(in srgb, var(--gold) 9%, transparent); }
 table.standings tr.bottom td { background: color-mix(in srgb, var(--bad) 7%, transparent); }
 .pos-badge { display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: 50%; font-weight: 700; font-size: var(--fs-sm); background: var(--panel-2); }
-tr.champ .pos-badge { background: var(--gold); color: #1a1408; }
+tr.champ .pos-badge { background: var(--gold); color: var(--on-gold); }
 tr.top .pos-badge { background: color-mix(in srgb, var(--good) 70%, var(--panel)); color: #fff; }
 tr.bottom .pos-badge { background: color-mix(in srgb, var(--bad) 70%, var(--panel)); color: #fff; }
 td.moved { font-size: var(--fs-xs); width: 26px; }
@@ -1270,7 +1283,7 @@ td.moved { font-size: var(--fs-xs); width: 26px; }
 .comp-status { display: flex; flex-direction: column; gap: 3px; font-size: var(--fs-md); }
 .comp-chip { align-self: flex-start; font-size: var(--fs-sm); font-weight: 700; padding: 2px 10px; border-radius: var(--r-lg); border: 1px solid var(--border-strong); color: var(--muted); }
 .comp-chip.alive { color: var(--home); border-color: var(--home); background: color-mix(in srgb, var(--home) 12%, transparent); }
-.comp-chip.won { color: #1a1408; background: var(--gold); border-color: var(--gold); }
+.comp-chip.won { color: var(--on-gold); background: var(--gold); border-color: var(--gold); }
 .comp-chip.out { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 60%, transparent); }
 .comp-chip.open { color: var(--good); border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
 .comp-chip.locked::before { content: '🔒 '; }
@@ -1455,15 +1468,13 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 @media (max-width: 640px) { .recap { grid-template-columns: 1fr; } }
 
 /* ——— Reputation ——— */
-.rep-chip { border: 1px solid color-mix(in srgb, #b48cf0 50%, var(--border)); background: color-mix(in srgb, #b48cf0 10%, transparent); color: #c8a8ff; font: 700 var(--fs-md) var(--font-mono); cursor: pointer; }
-.rep-chip:hover { background: color-mix(in srgb, #b48cf0 20%, transparent); }
-:root[data-theme='parchment'] .rep-chip { color: #6b3fb0; }
+.rep-chip { border: 1px solid color-mix(in srgb, var(--rep) 50%, var(--border)); background: color-mix(in srgb, var(--rep) 10%, transparent); color: var(--rep-text); font: 700 var(--fs-md) var(--font-mono); cursor: pointer; }
+.rep-chip:hover { background: color-mix(in srgb, var(--rep) 20%, transparent); }
 .rep-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; font-size: var(--fs-md); }
-.rep-label { display: inline-flex; align-items: center; gap: 5px; color: #c8a8ff; white-space: nowrap; }
-:root[data-theme='parchment'] .rep-label { color: #6b3fb0; }
+.rep-label { display: inline-flex; align-items: center; gap: 5px; color: var(--rep-text); white-space: nowrap; }
 .rep-label b { font-family: var(--font-mono); font-size: var(--fs-base); }
 .rep-bar { position: relative; width: 140px; height: 6px; border-radius: var(--r-sm); background: var(--border); }
-.rep-bar i { position: absolute; inset: 0 auto 0 0; border-radius: var(--r-sm); background: linear-gradient(90deg, #7d5bc0, #c8a8ff); }
+.rep-bar i { position: absolute; inset: 0 auto 0 0; border-radius: var(--r-sm); background: linear-gradient(90deg, color-mix(in srgb, var(--rep) 70%, #000), var(--rep-text)); }
 .rep-bar em { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--gold); border-radius: 1px; }
 .rep-panel { padding-block: 8px; }
 .rep-panel .rep-line { margin: 0; }
@@ -1774,7 +1785,7 @@ table.data tr.ko-row td:first-child { color: var(--bad); text-decoration: line-t
 table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: var(--bad); }
 
 /* ——— Attribute points to place ——— */
-.badge.gold-badge { background: var(--gold); color: #1a1408; animation: point-pulse 1.6s ease-in-out 1; }
+.badge.gold-badge { background: var(--gold); color: var(--on-gold); animation: point-pulse 1.6s ease-in-out 1; }
 .point-chip { border: 1px solid var(--gold); background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); font: 800 var(--fs-sm) var(--font-mono); cursor: pointer; animation: point-pulse 1.6s ease-in-out 1; }
 .point-chip.wide { font-family: inherit; font-weight: 700; padding: 2px 10px; animation: none; }
 .point-chip:hover { background: color-mix(in srgb, var(--gold) 30%, transparent); }
@@ -1782,7 +1793,7 @@ table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: v
 .points-banner { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; margin-bottom: 10px; border-radius: var(--r-md);
   border: 1px solid color-mix(in srgb, var(--gold) 60%, var(--border)); background: linear-gradient(120deg, color-mix(in srgb, var(--gold) 14%, var(--panel)), var(--panel) 70%); }
 .points-banner.in-sheet { margin: 4px 0; }
-.pb-icon { display: grid; place-items: center; min-width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: #1a1408; font: 900 var(--fs-lg) var(--font-mono); }
+.pb-icon { display: grid; place-items: center; min-width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: var(--on-gold); font: 900 var(--fs-lg) var(--font-mono); }
 .pb-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .plus-btn {
   display: grid;
@@ -1800,7 +1811,7 @@ table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: v
   animation: plus-glow 2.2s ease-in-out 1;
 }
 @keyframes plus-glow { 50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent); } }
-.plus-btn:hover { background: var(--gold); color: #1a1408; transform: scale(1.12); animation: none; }
+.plus-btn:hover { background: var(--gold); color: var(--on-gold); transform: scale(1.12); animation: none; }
 :root[data-effects='reduced'] .point-chip, :root[data-effects='reduced'] .plus-btn, :root[data-effects='reduced'] .badge.gold-badge { animation: none; }
 
 /* ——— Navigation on a row of its own (not enough room beside the title and buttons): names stay visible ——— */
@@ -1886,7 +1897,7 @@ input.volume:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 
 /* Medals: a disc of the tier's metal with the family icon; locked ones are hollow with a progress ring. */
 .medal { --metal: var(--border-strong); position: relative; display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%;
-  color: #1a1408; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--metal) 55%, #fff), var(--metal) 55%, color-mix(in srgb, var(--metal) 65%, #000));
+  color: var(--on-gold); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--metal) 55%, #fff), var(--metal) 55%, color-mix(in srgb, var(--metal) 65%, #000));
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--metal) 60%, #000), 0 3px 8px rgb(0 0 0 / 0.35); }
 .medal.sm { width: 1.7rem; height: 1.7rem; }
 .medal.t-bronze { --metal: #c07a3e; }
@@ -1898,7 +1909,7 @@ input.volume:focus-visible { outline: 2px solid var(--accent); outline-offset: 3
 .medal.locked::before { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--panel); border: 1px dashed var(--border-strong); }
 .medal.locked > * { position: relative; }
 .medal-tier { position: absolute; right: -3px; bottom: -3px; min-width: 1rem; height: 1rem; padding: 0 3px; border-radius: var(--r-lg); display: grid; place-items: center;
-  font: 800 0.571rem var(--font-mono); font-style: normal; color: #fff; background: #1a1408; border: 1px solid var(--metal); }
+  font: 800 0.571rem var(--font-mono); font-style: normal; color: #fff; background: var(--on-gold); border: 1px solid var(--metal); }
 
 /* ——— Bestiary ——— */
 .enc-bestiary-tab { display: inline-flex; align-items: center; gap: 5px; border-color: color-mix(in srgb, var(--gold) 50%, var(--border)); }
@@ -1928,7 +1939,7 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
   background: linear-gradient(170deg, color-mix(in srgb, var(--gold) 12%, var(--panel-2)), var(--panel-2) 55%); }
 .bst-card.owned .bst-icon { background: radial-gradient(circle, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%); }
 .bst-badge { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 1.3rem; height: 1.3rem; border-radius: 50%;
-  background: var(--gold); color: #1a1408; }
+  background: var(--gold); color: var(--on-gold); }
 .bst-card.unknown { cursor: default; border-style: dashed; background: transparent; }
 .bst-card.unknown .bst-icon { background: none; }
 .bst-card.unknown .species-icon { color: var(--border-strong) !important; }
@@ -1984,7 +1995,7 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 .ccard-lvl i { display: block; width: 100%; height: 3px; margin-top: 3px; border-radius: var(--r-sm);
   background: linear-gradient(90deg, var(--xp-color) calc(var(--xp) * 100%), rgb(255 255 255 / 0.2) 0); }
 .ccard-points { position: absolute; top: 52px; right: 8px; z-index: 2; padding: 1px 7px; border-radius: var(--r-lg); font: 800 var(--fs-sm) var(--font-mono);
-  background: var(--gold); color: #1a1408; box-shadow: 0 0 10px var(--gold); animation: point-pulse 1.6s ease-in-out 1; }
+  background: var(--gold); color: var(--on-gold); box-shadow: 0 0 10px var(--gold); animation: point-pulse 1.6s ease-in-out 1; }
 .ccard-sel { position: absolute; bottom: 6px; left: 8px; z-index: 2; padding: 1px 8px; border-radius: var(--r-lg); font-size: var(--fs-xs); font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.06em; background: rgb(0 0 0 / 0.6); color: #ddd; }
 .ccard-sel.starter { background: color-mix(in srgb, var(--good) 80%, #000); color: #fff; }
@@ -3206,7 +3217,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
   background: radial-gradient(120% 70% at 50% -10%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 60%); }
 .session.ready::before { opacity: 1; }
 .sess-head { position: relative; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.sess-emblem { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex: none; border-radius: 50%; color: #1a1408;
+.sess-emblem { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex: none; border-radius: 50%; color: var(--on-gold);
   background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--gold) 60%, #fff), var(--gold) 55%, color-mix(in srgb, var(--gold) 70%, #000));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 22%, transparent), 0 6px 16px rgb(0 0 0 / 0.35); }
 .sess-titles { display: grid; gap: 2px; min-width: 0; flex: 1; }
@@ -3241,7 +3252,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .reel-card.lit { color: var(--text); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 22%, var(--panel)); transform: scale(1.05);
   box-shadow: 0 0 16px color-mix(in srgb, var(--gold) 40%, transparent); }
 .reel-grid.settled .reel-card:not(.win) { opacity: 0.3; filter: grayscale(0.8); transform: scale(0.96); }
-.reel-card.win { color: #1a1408; border-color: var(--gold); transform: scale(1.08); z-index: 1;
+.reel-card.win { color: var(--on-gold); border-color: var(--gold); transform: scale(1.08); z-index: 1;
   background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 70%, #fff), var(--gold)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 30%, transparent), 0 0 26px color-mix(in srgb, var(--gold) 60%, transparent);
   animation: reel-win 0.5s ease both; }
 @keyframes reel-win { 0% { transform: scale(1); } 45% { transform: scale(1.18); } 100% { transform: scale(1.08); } }
@@ -3261,9 +3272,9 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent), 0 0 24px color-mix(in srgb, var(--good) 45%, transparent); animation: reel-win 0.5s ease both; }
 .reel-attr.win .ra-val { color: var(--good); }
 .ra-plus { position: absolute; top: -0.4rem; right: -0.5rem; padding: 1px 6px; border-radius: var(--r-lg); font: 800 var(--fs-sm) var(--font-body); font-style: normal;
-  background: var(--good); color: #0d1a08; animation: ra-float 1.1s ease-out both; }
+  background: var(--good); color: var(--on-good); animation: ra-float 1.1s ease-out both; }
 @keyframes ra-float { 0% { opacity: 0; transform: translateY(8px) scale(0.6); } 40% { opacity: 1; transform: translateY(-6px) scale(1.15); } 100% { transform: translateY(-2px) scale(1); } }
-.reel-show.jackpot .ra-plus { background: var(--gold); color: #1a1408; }
+.reel-show.jackpot .ra-plus { background: var(--gold); color: var(--on-gold); }
 /* The result card. */
 .reel-outcome { min-height: 0.5rem; }
 .sess-result { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: var(--r-lg); animation: grow-pop 0.4s ease both;
@@ -3274,8 +3285,8 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .sr-gain { color: var(--muted); }
 .sr-gain b { color: var(--text); font-variant-numeric: tabular-nums; }
 .sr-gain .sr-to { color: var(--good); font-size: var(--fs-lg); }
-.sr-badge { margin-left: 6px; padding: 4px 10px; border-radius: var(--r-lg); font: 800 var(--fs-base) var(--font-title); background: var(--good); color: #0d1a08; }
-.sr-badge.jackpot { background: var(--gold); color: #1a1408; font-size: var(--fs-md); }
+.sr-badge { margin-left: 6px; padding: 4px 10px; border-radius: var(--r-lg); font: 800 var(--fs-base) var(--font-title); background: var(--good); color: var(--on-good); }
+.sr-badge.jackpot { background: var(--gold); color: var(--on-gold); font-size: var(--fs-md); }
 .session-log { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 12px; }
 .session-log-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--r-lg); border: 1px solid var(--border);
   background: var(--panel-2); color: inherit; font: inherit; font-size: var(--fs-md); cursor: pointer; }
