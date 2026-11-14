@@ -13,7 +13,7 @@ import {
   type SessionResult,
 } from '../../../engine/progression/sessions.ts';
 import { attributeText, categoryName } from '../../../engine/text/localize.ts';
-import { Crest } from '../../components/common.tsx';
+import { Crest, Modal } from '../../components/common.tsx';
 import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
@@ -243,5 +243,31 @@ export function SessionCard({ game }: { game: GameState }) {
         {t('sess.go')}
       </button>
     </section>
+  );
+}
+
+/** After every match: the training window (opened by `closeMatch` when sessions are waiting), before the week's summary. */
+export function AfterMatchTraining() {
+  const { t } = useT();
+  const drill = useGame((s) => s.drill);
+  const match = useGame((s) => s.match);
+  const game = useGame((s) => s.game);
+  if (!drill || match || !game) return null;
+  const close = () => useGame.getState().closeDrill();
+  const left = sessionsReady(game);
+  return (
+    <Modal
+      title={t('drill.title')}
+      onClose={close}
+      className="drill-dialog"
+      actions={
+        <button className={`btn ${left > 0 ? 'ghost' : 'primary'}`} onClick={close} autoFocus={left <= 0}>
+          {left > 0 ? t('drill.later') : t('drill.done')}
+        </button>
+      }
+    >
+      <p className="muted drill-intro">{t('drill.intro')}</p>
+      <TrainingSession />
+    </Modal>
   );
 }

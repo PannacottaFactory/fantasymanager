@@ -15,6 +15,7 @@ import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
 import { currentSlot, deleteGame, listSlots, loadGame, saveGame, setCurrentSlot, type SlotId, type SlotMeta } from './saves.ts';
 import { completedWeek } from '../season.ts';
+import { sessionPool, sessionState } from '../../engine/progression/sessions.ts';
 
 export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
@@ -84,6 +85,9 @@ interface GameStore {
   /** End-of-week summary to show: the week's first and last states. */
   recap: { before: GameState; after: GameState } | null;
   closeRecap: () => void;
+  /** After-match training window (not saved): opens when a match report is closed and sessions are waiting. */
+  drill: boolean;
+  closeDrill: () => void;
   /** Tab to open on the League screen (consumed by it). */
   leagueTab: 'table' | 'comps' | 'honours' | null;
   openLeague: (tab: 'table' | 'comps' | 'honours') => void;
@@ -139,7 +143,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
-      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, sheet: null });
+      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, sheet: null });
       commit(game);
       void get().refreshSlots();
     },
@@ -160,7 +164,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = await loadGame(slot);
       if (!game) return;
       setCurrentSlot(slot);
-      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, sheet: null });
+      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, sheet: null });
     },
     deleteSlot: async (slot) => {
       await deleteGame(slot);
@@ -177,8 +181,8 @@ export const useGame = create<GameStore>()((set, get) => {
     continueGame: () => {
       const g = get().game;
       if (!g) return;
-      // The summary of the week that just ended comes first.
-      if (get().recap) return;
+      // The after-match training and the summary of the week that just ended come first.
+      if (get().drill || get().recap) return;
       if (seasonOver(g)) {
         const next = startNextSeason(g);
         commit(next);
@@ -224,7 +228,12 @@ export const useGame = create<GameStore>()((set, get) => {
       set({ match: { ...match, phase: 'report', result } });
     },
 
-    closeMatch: () => set({ match: null, screen: 'league' }),
+    closeMatch: () => {
+      const g = get().game;
+      // Every match is followed by a training session (the window opens before the end-of-week summary).
+      const drill = !!g && sessionPool(g).length > 0 && sessionState(g).available > 0;
+      set({ match: null, screen: 'league', drill });
+    },
 
     markAllRead: () => {
       const g = get().game;
@@ -270,6 +279,13 @@ export const useGame = create<GameStore>()((set, get) => {
     weekStart: null,
     recap: null,
     closeRecap: () => set({ recap: null }),
+    drill: false,
+    closeDrill: () => {
+      const { game, recap } = get();
+      // The week's summary then shows the session's gains too (and the next week starts after them).
+      if (recap && game) set({ drill: false, recap: { ...recap, after: game }, weekStart: game });
+      else set({ drill: false });
+    },
     leagueTab: null,
     openLeague: (tab) => set({ leagueTab: tab, screen: 'league', viewing: null, launch: false }),
     encTab: null,

@@ -67,9 +67,25 @@ await wait(800);
 await shot('00-intro');
 await closeModal();
 
+/** After-match training window: spins the roulette once (screenshot of the first), then closes it. */
+let drills = 0;
+const closeDrill = async () => {
+  while (await page.locator('.drill-dialog').count()) {
+    drills++;
+    const spin = page.locator('.drill-dialog .session-go:not([disabled])');
+    if (await spin.count()) {
+      await spin.first().click();
+      await wait(drills === 1 ? 6500 : 300);
+      if (drills === 1) await shot('00-drill');
+    }
+    await page.locator('.drill-dialog .dialog-head .btn.ghost[aria-label]').first().click();
+    await wait(300);
+  }
+};
 /** Closes the end-of-week summary (screenshot of the first one). */
 let recaps = 0;
 const closeRecap = async () => {
+  await closeDrill();
   while (await page.locator('.recap').count()) {
     recaps++;
     if (recaps === 1) {
@@ -86,6 +102,12 @@ for (let w = 0; w < weeks; w++) {
   await closeRecap();
   await page.locator('.topbar .btn.primary').first().click();
   await wait(600);
+  // Closing the report opens the after-match training (then the week's summary): close them and go on.
+  if (await page.locator('.drill-dialog, .recap').count()) {
+    await closeRecap();
+    await page.locator('.topbar .btn.primary').first().click();
+    await wait(600);
+  }
   if (w === 0 && (await page.locator('.versus').count())) {
     await wait(900);
     await shot('00-prematch');
@@ -105,6 +127,11 @@ for (let w = 0; w < weeks; w++) {
 await closeRecap();
 // The next pre-match screen (arena conditions start after a few weeks).
 await page.locator('.topbar .btn.primary').first().click();
+await wait(600);
+if (await page.locator('.drill-dialog, .recap').count()) {
+  await closeRecap();
+  await page.locator('.topbar .btn.primary').first().click();
+}
 await wait(1500);
 if (await page.locator('.versus').count()) await shot('00-prematch-late');
 await go(null, 0);

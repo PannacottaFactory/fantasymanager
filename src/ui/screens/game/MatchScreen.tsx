@@ -7,7 +7,8 @@ import { aiPrepare, lastMatchday, playerPrepare, playerTeam, teamById } from '..
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Team } from '../../../engine/model.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
-import { Bar, Crest } from '../../components/common.tsx';
+import { useState } from 'react';
+import { Bar, Crest, Modal } from '../../components/common.tsx';
 import { issueText } from '../../components/TeamEditor.tsx';
 import { fatigueColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -75,6 +76,14 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
       ? t('match.cup', { comp: compName(t, f.tournamentId), round: t(roundKey(f.round ?? 0, f.tournamentId ? (game.tournaments.find((x) => x.id === f.tournamentId)?.rounds ?? 1) : game.cup.rounds)) })
       : `${divName(t, f.division ?? 0)} · ${t('match.matchday', { d: match.matchday, n: lastMatchday(game) })}`;
   const issues = validateTactic(mine, DEFAULT_CONFIG, true);
+  // A bench not full does not block the match, but the player is warned (and asked before kick-off).
+  const benchMax = DEFAULT_CONFIG.match.benchSize;
+  const benchN = mine.tactic.bench.length;
+  const benchShort = issues.length === 0 && benchN < benchMax;
+  const picked = new Set([...mine.tactic.lineup.map((s) => s.creatureId), ...mine.tactic.bench]);
+  const canFill = mine.creatures.some((c) => !picked.has(c.id) && !isInjured(c));
+  const [ask, setAsk] = useState<null | (() => void)>(null);
+  const launch = (go: () => void) => (benchShort ? setAsk(() => go) : go());
 
   return (
     <div className="stack">
@@ -102,6 +111,40 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           </button>
         </div>
       )}
+      {benchShort && (
+        <div className="remark warn">
+          <span className="ico">!</span>
+          <span className="grow">
+            {t('bench.short', { n: benchN, max: benchMax })} {!canFill && <span className="faint">{t('bench.noneLeft')}</span>}
+          </span>
+          {canFill && (
+            <button className="btn small" onClick={repair}>
+              {t('bench.fill')}
+            </button>
+          )}
+        </div>
+      )}
+      {ask && (
+        <Modal
+          title={t('bench.confirmTitle')}
+          onClose={() => setAsk(null)}
+          actions={
+            <>
+              {canFill && (
+                <button className="btn primary" onClick={() => { repair(); setAsk(null); }} autoFocus>
+                  {t('bench.fill')}
+                </button>
+              )}
+              <button className={`btn ${canFill ? '' : 'primary'}`} onClick={() => { const go = ask; setAsk(null); go(); }}>
+                {t('bench.playAnyway')}
+              </button>
+            </>
+          }
+        >
+          <p>{t('bench.confirm', { n: benchN, max: benchMax })}</p>
+          {!canFill && <p className="faint">{t('bench.noneLeft')}</p>}
+        </Modal>
+      )}
       <section className="match-cta" data-tip="prematch">
         <button className="cta-tactics" onClick={() => setScreen('tactics')}>
           <span className="cta-tactics-icon"><UiIcon name="nav-tactics" size="1.2em" /></span>
@@ -110,14 +153,14 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
             <small>{t('match.editTacticsSub')}</small>
           </span>
         </button>
-        <button className="cta-live" disabled={issues.length > 0} onClick={playLive}>
+        <button className="cta-live" disabled={issues.length > 0} onClick={() => launch(playLive)}>
           <span className="cta-icon"><UiIcon name="versus" size="1.3em" /></span>
           <span className="cta-text">
             <b>{t('match.playLive').replace(' ⚔', '')}</b>
             <small>{t('match.liveSub')}</small>
           </span>
         </button>
-        <button className="cta-sim" disabled={issues.length > 0} onClick={simulate}>
+        <button className="cta-sim" disabled={issues.length > 0} onClick={() => launch(simulate)}>
           <b><UiIcon name="simulate" /> {t('match.simulate')}</b>
           <small>{t('match.simulateSub')}</small>
         </button>

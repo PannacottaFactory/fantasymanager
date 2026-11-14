@@ -1,5 +1,5 @@
 import { weekText } from './season.ts';
-import { sessionsReady } from './screens/game/TrainingSession.tsx';
+import { AfterMatchTraining, sessionsReady } from './screens/game/TrainingSession.tsx';
 import { StableCrest } from './components/TeamCrest.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
@@ -250,6 +250,7 @@ export function App() {
         </ErrorBoundary>
       )}
       {game && !newGameOpen && <IntroModal />}
+      {game && !newGameOpen && !launch && <AfterMatchTraining />}
       {game && !newGameOpen && !launch && <WeekRecap />}
       {game && !launch && !newGameOpen && <NewsTicker />}
       <Embers />

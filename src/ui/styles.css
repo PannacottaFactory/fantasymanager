@@ -318,6 +318,12 @@ table.data tr.sep td { border-top: 2px solid var(--border-strong); }
 .remark.good .ico { color: var(--good); }
 .remark.bad .ico { color: var(--bad); }
 .remark.info .ico { color: var(--info); }
+.remark.warn .ico { color: var(--warn); }
+.remark.warn { align-items: center; box-shadow: inset 3px 0 0 var(--warn); }
+.drill-dialog { width: min(860px, 96vw); }
+.drill-dialog .session-stage > *, .drill-dialog .reel-slot, .drill-dialog .reel-attrs { max-width: 100%; min-width: 0; }
+.drill-dialog .reel-show { width: 100%; }
+.drill-dialog .drill-intro { margin: 0 0 12px; }
 .moments li { margin-bottom: 4px; }
 .moments .r { display: inline-block; min-width: 32px; color: var(--accent); font-family: var(--font-mono); font-size: 0.857rem; }
 .compare td:first-child { color: var(--muted); }
