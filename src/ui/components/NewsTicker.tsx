@@ -3,6 +3,7 @@
  * Every item has a category (icon + colour) and a tone: money gained in green, lost in red, alerts in amber.
  * Built from what the player can see (own club, tables, competitions, market, news). Display only.
  */
+import { moodOf } from '../../engine/club/board.ts';
 import { Fragment, type CSSProperties } from 'react';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 import { AMBITION_IDS } from '../../engine/club/ambitions.ts';
@@ -140,7 +141,11 @@ function items(tr: Translator, game: GameState): Item[] {
 
   // ——— Club ———
   const c = game.board.confidence;
-  add('club', c >= 60 ? 'good' : c >= 30 ? 'warn' : 'bad', t('ticker.board', { c }), 'board');
+  const mood = moodOf(c);
+  add('club', mood === 'delighted' || mood === 'content' ? 'good' : mood === 'uneasy' ? 'warn' : 'bad', t('ticker.board', { c, mood: t(`board.mood.${mood}`) }), 'board');
+  const ult = game.board.ultimatum;
+  if (ult) add('club', 'bad', t('ticker.ultimatum', { wins: ult.wins, need: ult.need, left: ult.of - ult.played }), 'board');
+  if (game.board.frozen) add('club', 'bad', t('recruit.frozen', { weeks: tr.weeks(game.board.frozen) }), 'board');
   if (club) add('club', 'neutral', t('ticker.reputation', { r: Math.round(club.reputation) }));
   const fac = game.facilities[me.id];
   if (fac)

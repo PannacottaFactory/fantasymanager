@@ -10,9 +10,10 @@ import type { GameState } from '../league/types.ts';
 import { clubOf, spend } from './finance.ts';
 import { askingPrice, canAdd, canLose, isPlayerTeam, locate, remainingWeeks, renewalDemand, signingBonus, transfer } from './market.ts';
 import { isOwn, knowledgeOf } from './scouting.ts';
+import { recruitmentBudget } from '../club/board.ts';
 import { askingWage, roundTo } from './value.ts';
 
-export type MarketError = 'notFound' | 'notAvailable' | 'squadFull' | 'squadMin' | 'noMoney' | 'closed' | 'busy' | 'refused' | 'known';
+export type MarketError = 'notFound' | 'notAvailable' | 'squadFull' | 'squadMin' | 'noMoney' | 'closed' | 'busy' | 'refused' | 'known' | 'board';
 
 export type BidOutcome =
   | { kind: 'accepted'; fee: number; wage: number }
@@ -37,6 +38,7 @@ export function bid(state: GameState, creatureId: string, fee: number, years: nu
   if (!canAdd(playerTeamOf(state), cfg)) return err(state, 'squadFull');
   if (!canLose(loc.team, cfg)) return err(state, 'squadMin');
   if (clubOf(state, state.playerTeamId).balance < fee) return err(state, 'noMoney');
+  if (fee > recruitmentBudget(state, cfg)) return err(state, 'board');
 
   const next = structuredClone(state);
   const mem = next.bids[creatureId];
@@ -79,6 +81,7 @@ export function signFreeAgent(state: GameState, creatureId: string, years: numbe
   if (!canAdd(playerTeamOf(state), cfg)) return err(state, 'squadFull');
   const fee = signingBonus(c, cfg);
   if (club.balance < fee) return err(state, 'noMoney');
+  if (fee > recruitmentBudget(state, cfg)) return err(state, 'board');
   if (c.hidden.ambition >= 16 && club.reputation < 35) return err(state, 'refused');
   const next = structuredClone(state);
   const wage = askingWage(c, club.reputation, years, cfg);

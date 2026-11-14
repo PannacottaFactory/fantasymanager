@@ -4,6 +4,7 @@ import { FACILITY_IDS, type FacilityId } from '../../data/config/club.ts';
 import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/config/index.ts';
 import { clubOf, spend } from '../economy/finance.ts';
 import { pushMessage } from '../league/messages.ts';
+import { worksFactor } from './board.ts';
 import type { Facilities, GameState } from '../league/types.ts';
 
 export function startingFacilities(quality: QualityId, cfg: GameConfig = DEFAULT_CONFIG): Facilities {
@@ -42,7 +43,13 @@ export function facilitiesUpkeep(state: GameState, teamId: string, cfg: GameConf
 
 // ——— Building ———
 
-export type BuildOutcome = { kind: 'started'; cost: number; weeks: number } | { kind: 'error'; error: 'maxLevel' | 'busy' | 'noMoney' };
+export type BuildOutcome = { kind: 'started'; cost: number; weeks: number } | { kind: 'error'; error: 'maxLevel' | 'busy' | 'noMoney' | 'board' };
+
+/** What the player pays for a level: the board's mood can make works cheaper, or refuse them (null). */
+export function playerUpgradeCost(state: GameState, level: number, cfg: GameConfig = DEFAULT_CONFIG): number | null {
+  const f = worksFactor(state, cfg);
+  return f === null ? null : Math.round((upgradeCost(level, cfg) * f) / 100) * 100;
+}
 
 /** Player starts the next level of a facility (paid now). */
 export function startBuilding(state: GameState, id: FacilityId, cfg: GameConfig = DEFAULT_CONFIG): { state: GameState; outcome: BuildOutcome } {
@@ -50,7 +57,8 @@ export function startBuilding(state: GameState, id: FacilityId, cfg: GameConfig 
   if (f.building) return { state, outcome: { kind: 'error', error: 'busy' } };
   const level = f.level + 1;
   if (level > cfg.club.facilities.maxLevel) return { state, outcome: { kind: 'error', error: 'maxLevel' } };
-  const cost = upgradeCost(level, cfg);
+  const cost = playerUpgradeCost(state, level, cfg);
+  if (cost === null) return { state, outcome: { kind: 'error', error: 'board' } };
   if (clubOf(state, state.playerTeamId).balance < cost) return { state, outcome: { kind: 'error', error: 'noMoney' } };
   const next = structuredClone(state);
   next.facilities[next.playerTeamId]![id].building = { level, weeksLeft: upgradeWeeks(level, cfg) };

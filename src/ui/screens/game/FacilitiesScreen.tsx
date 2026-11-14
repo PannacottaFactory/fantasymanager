@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FACILITY_IDS, type FacilityId } from '../../../data/config/club.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { facilityLevel, startBuilding, upgradeCost, upgradeWeeks } from '../../../engine/club/facilities.ts';
+import { facilityLevel, playerUpgradeCost, startBuilding, upgradeCost, upgradeWeeks } from '../../../engine/club/facilities.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
@@ -38,7 +38,8 @@ export function FacilitiesScreen() {
             const level = facilityLevel(game, game.playerTeamId, id);
             const b = fac[id].building;
             const nextLevel = level + 1;
-            const cost = upgradeCost(nextLevel);
+            const base = upgradeCost(nextLevel);
+            const cost = playerUpgradeCost(game, nextLevel);
             return (
               <div key={id} className="facility">
                 <div className="row" style={{ gap: 8 }}>
@@ -58,15 +59,18 @@ export function FacilitiesScreen() {
                   <div className="answer info">{t('fac.building', { n: b.level, weeks: tr.weeks(b.weeksLeft) })}</div>
                 ) : level >= max ? (
                   <div className="faint">{t('fac.max')}</div>
+                ) : cost === null ? (
+                  <div className="answer bad">{t('fac.frozen')}</div>
                 ) : (
                   <button
                     className="btn"
+                    title={cost < base ? t('fac.boardDiscount', { pct: Math.round((1 - cost / base) * 100) }) : undefined}
                     disabled={cost > balance}
                     onClick={() => {
                       const o = useGame.getState().act((g) => startBuilding(g, id));
                       if (!o) return;
                       if (o.kind === 'started') setNote({ text: t('fac.started', { weeks: tr.weeks(o.weeks) }), tone: 'good' });
-                      else setNote({ text: t(o.error === 'noMoney' ? 'err.noMoney' : 'fac.max'), tone: 'bad' });
+                      else setNote({ text: t(o.error === 'noMoney' ? 'err.noMoney' : o.error === 'board' ? 'fac.frozen' : 'fac.max'), tone: 'bad' });
                     }}
                   >
                     <Gold>{t('fac.upgrade', { n: nextLevel, cost: money(cost), weeks: tr.weeks(upgradeWeeks(nextLevel)) })}</Gold>

@@ -3,7 +3,7 @@ import { playerFixture, seasonOver, standings, teamById } from '../../../engine/
 import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
-import { Bar, Gold } from '../../components/common.tsx';
+import { Gold } from '../../components/common.tsx';
 import type { StringKey } from '../../i18n/strings.ts';
 import { compName, divName, roundKey } from '../../competitions.ts';
 import { answerOffer } from '../../../engine/economy/actions.ts';
@@ -13,7 +13,7 @@ import { abilityText, attributeText, categoryName, injuryText, speciesName } fro
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { BadgeIcon, UiIcon } from '../../icons/Icon.tsx';
+import { UiIcon } from '../../icons/Icon.tsx';
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { medalDesc, medalName } from '../../components/CreatureRecord.tsx';
 import { levelOfAbility, totalXpOfAbility } from '../../../engine/progression/levels.ts';
@@ -76,6 +76,9 @@ function messageIcon(m: InboxMessage): string {
     case 'boardObjective':
     case 'boardVerdict':
     case 'boardWarning':
+    case 'boardMood':
+    case 'ultimatum':
+    case 'ultimatumOver':
       return 'board';
     case 'facilityDone':
       return 'nav-facilities';
@@ -136,6 +139,8 @@ export function messageCategory(m: InboxMessage): MessageCategory {
       return 'club';
   }
 }
+
+const MOOD_RANK = { delighted: 0, content: 1, uneasy: 2, angry: 3 } as const;
 
 export function objectiveText(tr: Translator, o: ObjectiveId): string {
   return tr.t(`obj.${o}` as StringKey, { n: DEFAULT_CONFIG.league.promoted });
@@ -290,6 +295,24 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       };
     case 'boardWarning':
       return { title: t('msg.boardWarning.title'), body: t('msg.boardWarning.body', { c: m.confidence }), tone: 'bad' };
+    case 'boardMood': {
+      const up = MOOD_RANK[m.to] < MOOD_RANK[m.from];
+      return {
+        title: t('msg.boardMood.title', { mood: t(`board.mood.${m.to}`) }),
+        body: `${t(`msg.boardMood.${m.to}`)}\n${t('msg.boardMood.conf', { c: m.confidence })}`,
+        tone: up ? 'good' : 'bad',
+      };
+    }
+    case 'ultimatum':
+      return {
+        title: t('meet.ultimatum.title'),
+        body: t('meet.ultimatum.speech', { need: m.need, of: m.of, rep: DEFAULT_CONFIG.club.board.ultimatum.reputation, weeks: tr.weeks(DEFAULT_CONFIG.club.board.ultimatum.frozenWeeks) }),
+        tone: 'bad',
+      };
+    case 'ultimatumOver':
+      return m.met
+        ? { title: t('meet.ultMet.title'), body: t('meet.ultMet.speech', { reward: DEFAULT_CONFIG.club.board.ultimatum.reward }), tone: 'good' }
+        : { title: t('meet.ultMissed.title'), body: t('meet.ultMissed.speech', { rep: m.reputation, weeks: tr.weeks(m.frozen) }), tone: 'bad' };
     case 'facilityDone':
       return { title: t('msg.facilityDone.title', { facility: t(`fac.${m.facility}` as StringKey), n: m.level }), body: t('msg.facilityDone.body'), tone: 'good' };
     case 'death':
@@ -441,31 +464,6 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
       </button>
     );
   return null;
-}
-
-export function BoardCard({ game }: { game: GameState }) {
-  const tr = useT();
-  const { t } = tr;
-  const c = game.board.confidence;
-  return (
-    <section className="panel board-card" title={t('board.confidence.title')} data-tip="board">
-      <div className="row wrap" style={{ gap: 12 }}>
-        <span className="row" style={{ gap: 8 }}>
-          <BadgeIcon name="board" />
-          <b>{t('board.title')}</b>
-        </span>
-        <span>
-          {divName(t, divisionOf(game, game.playerTeamId))} — {t('board.objective', { objective: objectiveText(tr, game.board.objective) })}
-        </span>
-        <span className="spacer" />
-        <span className="muted">{t('board.confidence')}</span>
-        <span style={{ width: 120 }}>
-          <Bar value={c} max={100} color={c >= 60 ? 'var(--good)' : c >= 30 ? 'var(--warn)' : 'var(--bad)'} />
-        </span>
-        <b className="mono">{c} %</b>
-      </div>
-    </section>
-  );
 }
 
 export function NextMatch({ game }: { game: GameState }) {

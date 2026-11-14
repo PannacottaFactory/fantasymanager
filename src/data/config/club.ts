@@ -19,15 +19,31 @@ export const CLUB_CONFIG = {
   },
   board: {
     start: 60,
-    /** Weekly confidence change by result (league and cup). */
-    result: { koWin: 2, pointsWin: 1, pointsLoss: -1, koLoss: -2 },
+    /** Confidence change by result (league, cup and tournaments; losses × the difficulty's boardLoss). */
+    result: { koWin: 3, pointsWin: 2, pointsLoss: -1, koLoss: -2 },
+    /**
+     * Each league week from matchday `from`: on course for the objective (current place at or above the target) +onTarget,
+     * `behind` places or more below the target `offTarget` (× boardLoss).
+     */
+    standing: { from: 3, onTarget: 1, behind: 3, offTarget: -1 },
+    /** Mood thresholds (confidence at or above): below `uneasy` the board is angry. */
+    moods: { delighted: 75, content: 50, uneasy: 30 },
+    /** Recruitment budget: one purchase (fee or signing bonus) may use at most this share of the treasury. */
+    budget: { delighted: 1, content: 0.75, uneasy: 0.5, angry: 0.25 },
+    /** Facility works cost × this when delighted; frozen when angry. */
+    worksDelighted: 0.8,
+    /**
+     * An angry board issues an ultimatum: `need` wins out of the next `of` league matches. Met: +reward confidence. Missed:
+     * reputation −reputation, recruitment frozen `frozenWeeks` league weeks. No new one for `cooldown` league weeks.
+     */
+    ultimatum: { need: 2, of: 4, reward: 12, reputation: 5, frozenWeeks: 4, cooldown: 6 },
+    /** Weeks of confidence kept for the trend line. */
+    trendWeeks: 12,
     /** End of season: objective met / missed. */
     met: 15,
     missed: -20,
     /** Bonus paid when the objective is met (× division money). */
     bonus: 15000,
-    /** Below this, the board grumbles (messages) — no sacking. */
-    warning: 30,
   },
   relations: {
     /** Starters who fought together gain this much relation per match. */

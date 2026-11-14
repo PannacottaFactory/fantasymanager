@@ -15,6 +15,10 @@ import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
 import { currentSlot, deleteGame, listSlots, loadGame, saveGame, setCurrentSlot, type SlotId, type SlotMeta } from './saves.ts';
 import { completedWeek } from '../season.ts';
+import type { InboxMessage } from '../../engine/league/types.ts';
+
+/** Inbox messages that open a board meeting. */
+export const BOARD_NOTE_KINDS = new Set<InboxMessage['kind']>(['boardObjective', 'ultimatum', 'ultimatumOver', 'boardVerdict']);
 import { sessionPool, sessionState } from '../../engine/progression/sessions.ts';
 
 export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
@@ -92,6 +96,13 @@ interface GameStore {
   reveals: string[];
   openReveal: (messageId: string) => void;
   closeReveal: () => void;
+  /** Board meetings waiting (inbox message ids: season objective, ultimatum, its outcome, verdict), not saved. */
+  boardNotes: string[];
+  closeBoardNote: () => void;
+  /** The board's rules window. */
+  boardRules: boolean;
+  openBoardRules: () => void;
+  closeBoardRules: () => void;
   /** Tab to open on the League screen (consumed by it). */
   leagueTab: 'table' | 'comps' | 'honours' | null;
   openLeague: (tab: 'table' | 'comps' | 'honours') => void;
@@ -112,12 +123,19 @@ export const useGame = create<GameStore>()((set, get) => {
     );
   };
   /** Commits a state that may end the week: then shows its summary and starts a new week. */
+  /** Board moments that just happened get their meeting. */
+  const queueBoard = (prev: GameState | null, next: GameState) => {
+    const known = new Set(prev?.inbox.map((m) => m.id) ?? []);
+    const fresh = next.inbox.filter((m) => !known.has(m.id) && BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id);
+    if (fresh.length) set({ boardNotes: [...get().boardNotes, ...fresh] });
+  };
   const advance = (prev: GameState, next: GameState): boolean => {
     commit(next);
     // Scout reports that just came in get their reveal.
     const known = new Set(prev.inbox.map((m) => m.id));
     const fresh = next.inbox.filter((m) => !known.has(m.id) && m.kind === 'scoutReport' && m.target === 'creature' && m.verdict).map((m) => m.id);
     if (fresh.length) set({ reveals: [...get().reveals, ...fresh] });
+    queueBoard(prev, next);
     if (completedWeek(next) <= completedWeek(prev)) return false;
     set({ recap: { before: get().weekStart ?? prev, after: next }, weekStart: next });
     return true;
@@ -151,7 +169,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
-      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, reveals: [], sheet: null });
+      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, reveals: [], boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
       commit(game);
       void get().refreshSlots();
     },
@@ -172,7 +190,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = await loadGame(slot);
       if (!game) return;
       setCurrentSlot(slot);
-      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, reveals: [], sheet: null });
+      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, reveals: [], boardNotes: [], boardRules: false, sheet: null });
     },
     deleteSlot: async (slot) => {
       await deleteGame(slot);
@@ -194,6 +212,7 @@ export const useGame = create<GameStore>()((set, get) => {
       if (seasonOver(g)) {
         const next = startNextSeason(g);
         commit(next);
+        queueBoard(g, next);
         set({ screen: 'inbox', match: null, weekStart: next });
         return;
       }
@@ -287,6 +306,11 @@ export const useGame = create<GameStore>()((set, get) => {
     weekStart: null,
     recap: null,
     closeRecap: () => set({ recap: null }),
+    boardNotes: [],
+    closeBoardNote: () => set({ boardNotes: get().boardNotes.slice(1) }),
+    boardRules: false,
+    openBoardRules: () => set({ boardRules: true }),
+    closeBoardRules: () => set({ boardRules: false }),
     reveals: [],
     openReveal: (id) => set({ reveals: [id, ...get().reveals.filter((x) => x !== id)] }),
     closeReveal: () => set({ reveals: get().reveals.slice(1) }),

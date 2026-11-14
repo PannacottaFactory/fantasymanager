@@ -19,6 +19,7 @@
     "sim:species": "tsx src/sim/species.ts",
     "sim:archetypes": "tsx src/sim/archetypes.ts",
     "sim:ai": "tsx src/sim/ai.ts",
+    "sim:board": "tsx src/sim/board.ts",
     "sim:levers": "tsx src/sim/levers.ts",
     "ui:check": "node scripts/ui-check.mjs"
   },

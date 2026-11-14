@@ -1,4 +1,9 @@
 import { useMemo, useState, type CSSProperties } from 'react';
+import { boardMood, recruitmentBudget } from '../../../engine/club/board.ts';
+import { BadgeIcon } from '../../icons/Icon.tsx';
+import type { BoardMood } from '../../../engine/league/types.ts';
+
+const moodTone = (m: BoardMood) => (m === 'delighted' ? 'good' : m === 'content' ? 'info' : 'bad');
 import { ELEMENTS } from '../../../data/elements.ts';
 import { SPECIES } from '../../../data/species.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -400,6 +405,10 @@ export function RecruitScreen() {
           <span className="spacer" />
           <span className="muted">
             <Gold>{t('recruit.squad', { n: mine.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad, money: money(clubOf(game, game.playerTeamId).balance) })}</Gold>
+          </span>
+          <span className={`board-chip ${game.board.frozen ? 'bad' : moodTone(boardMood(game))}`} title={t('recruit.budget.title')}>
+            <BadgeIcon name="board" />{' '}
+            {game.board.frozen ? t('recruit.frozen', { weeks: tr.weeks(game.board.frozen) }) : <Gold>{t('recruit.budget', { v: money(recruitmentBudget(game)) })}</Gold>}
           </span>
         </div>
         <div className="row wrap" style={{ gap: 12, marginBottom: 10 }} data-tip="recruit">

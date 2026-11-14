@@ -91,6 +91,8 @@ describe('imperfect information', () => {
 describe('transfers', () => {
   it('a generous bid is accepted: creature, fee and contract move', () => {
     const g = game();
+    // A delighted board lets the whole treasury go on one purchase.
+    g.board.confidence = 90;
     const { team, c } = aiCreature(g);
     const price = askingPrice(team, c);
     const before = balance(g);

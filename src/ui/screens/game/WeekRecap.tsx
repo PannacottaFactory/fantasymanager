@@ -2,6 +2,8 @@
  * End-of-week summary: the player's matches of the week, the league position, the money, the infirmary, the levels
  * gained, then what the next week holds. Built from the states at the start and at the end of the week.
  */
+import { MoodPill, UltimatumPips } from './Board.tsx';
+import { moodOf } from '../../../engine/club/board.ts';
 import { isInjured } from '../../../engine/creature/derived.ts';
 import { playerDivision, playerTeam, seasonOver, standings } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -100,6 +102,19 @@ export function WeekRecap() {
             </div>
           </section>
         )}
+        <section className="recap-block">
+          <h4>{t('recap.board')}</h4>
+          <div className="recap-big">
+            {after.board.confidence} %{' '}
+            {after.board.confidence !== before.board.confidence && (
+              <span className={after.board.confidence > before.board.confidence ? 'good-text' : 'bad-text'}>
+                {after.board.confidence > before.board.confidence ? `▲${after.board.confidence - before.board.confidence}` : `▼${before.board.confidence - after.board.confidence}`}
+              </span>
+            )}
+          </div>
+          <MoodPill mood={moodOf(after.board.confidence)} />
+          {after.board.ultimatum && <UltimatumPips game={after} />}
+        </section>
         <section className="recap-block">
           <h4>{t('recap.money')}</h4>
           <div className="recap-big">

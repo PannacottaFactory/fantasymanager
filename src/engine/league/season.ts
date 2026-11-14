@@ -22,7 +22,7 @@ import { alignPotential, levelOf, matchXp } from '../progression/levels.ts';
 import { afterMatchSessions } from '../progression/sessions.ts';
 import { INJURIES } from '../../data/injuries.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
-import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard } from '../club/board.ts';
+import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard, weeklyBoardStanding } from '../club/board.ts';
 import { injuryWeeksFactor, startingFacilities, weeklyFacilities } from '../club/facilities.ts';
 import { seedRelations, weeklyRelations } from '../club/relations.ts';
 import { earn, seasonPrizes, ticketRevenue, trimLedgers, weeklyFinances } from '../economy/finance.ts';
@@ -472,6 +472,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   weeklyMarket(next, cfg);
   weeklyFacilities(next, cfg);
   contractWarning(next, cfg);
+  weeklyBoardStanding(next, cfg);
 
   next.matchday++;
   // From now on the weather counts: the player is told once.

@@ -1,4 +1,5 @@
 import { StableCrest } from '../../components/TeamCrest.tsx';
+import { UltimatumBanner } from './Board.tsx';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { compDef, compName, divName, roundKey } from '../../competitions.ts';
 import { CompIcon, DivIcon } from '../../icons/Icon.tsx';
@@ -100,6 +101,7 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           </span>
         }
       />
+      <UltimatumBanner game={game} league={!f.competition} />
       {issues.length > 0 && (
         <div className="remark bad">
           <span className="ico">!</span>

@@ -11,7 +11,7 @@ import { effectsOn, useT } from '../i18n/index.ts';
 import { useGame } from '../store/gameStore.ts';
 import { wording } from '../screens/game/InboxScreen.tsx';
 import { centreOf, fxLayer } from './FxLayer.tsx';
-import { UiIcon } from '../icons/Icon.tsx';
+import { BadgeIcon, UiIcon } from '../icons/Icon.tsx';
 import { Medal } from '../components/CreatureRecord.tsx';
 import { play } from '../sound/sfx.ts';
 
@@ -25,6 +25,7 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'medal':
     case 'arenaIntro':
     case 'gemNoticed':
+    case 'boardMood':
       return 'small';
     case 'scoutReport':
       return m.target !== 'creature' || !m.verdict ? null : m.verdict === 'gem' ? 'big' : 'small';
@@ -149,7 +150,7 @@ export function Celebrations() {
             }}
           >
             <span className="toast-icon">
-              {x.moment === 'sad' ? <UiIcon name="memorial" size="1.4em" /> : x.message.kind === 'medal' ? <Medal family={x.message.family} tier={x.message.tier} size="sm" /> : species ? <Crest speciesId={species} name={c?.name ?? ''} size={30} /> : x.message.kind === 'bestiary' ? <UiIcon name="bestiary" size="1.4em" /> : x.moment === 'huge' ? <UiIcon name="help-competitions" size="1.4em" /> : '✦'}
+              {x.moment === 'sad' ? <UiIcon name="memorial" size="1.4em" /> : x.message.kind === 'medal' ? <Medal family={x.message.family} tier={x.message.tier} size="sm" /> : species ? <Crest speciesId={species} name={c?.name ?? ''} size={30} /> : x.message.kind === 'bestiary' ? <UiIcon name="bestiary" size="1.4em" /> : x.message.kind === 'boardMood' ? <BadgeIcon name="board" /> : x.moment === 'huge' ? <UiIcon name="help-competitions" size="1.4em" /> : '✦'}
             </span>
             <span className="toast-text">
               <b>

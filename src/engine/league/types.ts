@@ -114,6 +114,9 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'boardObjective'; objective: ObjectiveId; division: number }
   | { kind: 'boardVerdict'; objective: ObjectiveId; met: boolean; position: number; bonus: number; confidence: number }
   | { kind: 'boardWarning'; confidence: number }
+  | { kind: 'boardMood'; from: BoardMood; to: BoardMood; confidence: number }
+  | { kind: 'ultimatum'; need: number; of: number }
+  | { kind: 'ultimatumOver'; met: boolean; wins: number; need: number; of: number; reputation: number; frozen: number }
   | { kind: 'facilityDone'; facility: FacilityId; level: number }
   | { kind: 'friendLeft'; name: string; friends: string[] }
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
@@ -234,10 +237,29 @@ export interface Coach {
 
 export type ObjectiveId = 'title' | 'promotion' | 'topHalf' | 'midTable' | 'survive';
 
+export type BoardMood = 'delighted' | 'content' | 'uneasy' | 'angry';
+
+/** `need` wins out of the next `of` league matches of the player. */
+export interface Ultimatum {
+  need: number;
+  of: number;
+  wins: number;
+  played: number;
+}
+
 export interface BoardState {
   objective: ObjectiveId;
   /** 0–100. */
   confidence: number;
+  /** Last mood announced to the player (a change sends a message). */
+  mood?: BoardMood;
+  /** Confidence after each of the last weeks (oldest first). */
+  trend?: number[];
+  ultimatum?: Ultimatum;
+  /** League weeks before another ultimatum may be issued. */
+  cooldown?: number;
+  /** League weeks of frozen recruitment left (missed ultimatum). */
+  frozen?: number;
 }
 
 export interface CupState {
