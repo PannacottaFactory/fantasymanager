@@ -9,7 +9,7 @@ import {
   sessionPool,
   sessionState,
   sessionTargets,
-  sessionsPerMatch,
+  extraSessionChance,
   type SessionResult,
 } from '../../../engine/progression/sessions.ts';
 import { attributeText, categoryName } from '../../../engine/text/localize.ts';
@@ -64,7 +64,7 @@ export function TrainingSession() {
   const team = playerTeam(game);
   const s = sessionState(game);
   const ready = sessionsReady(game);
-  const per = sessionsPerMatch(game, team.id);
+  const extra = Math.round(extraSessionChance(game, team.id) * 100);
   const [spin, setSpin] = useState<Spin | null>(null);
   const [phase, setPhase] = useState<Phase>('done');
   const busy = !!spin && phase !== 'done';
@@ -94,7 +94,7 @@ export function TrainingSession() {
         </span>
         <div className="sess-titles">
           <h2>{t('sess.title')}</h2>
-          <span className="muted">{t('sess.how', { n: per, max })}</span>
+          <span className="muted">{t(extra ? 'sess.howExtra' : 'sess.how', { p: extra, max })}</span>
         </div>
         <Tokens n={ready} max={max} />
       </div>

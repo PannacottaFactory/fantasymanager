@@ -422,8 +422,10 @@ export function DashboardScreen() {
         <NextMatch game={game} />
       </div>
       <Ambitions game={game} />
-      <BoardCard game={game} />
-      <ManagerCard game={game} />
+      <div className={`dash-pair ${game.manager?.career ? 'two' : ''}`}>
+        <BoardCard game={game} />
+        <ManagerCard game={game} />
+      </div>
       <div className="dash-grid">
         <SessionCard game={game} />
         <SquadStatus game={game} />

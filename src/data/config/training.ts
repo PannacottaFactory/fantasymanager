@@ -46,11 +46,13 @@ export const TRAINING_CONFIG = {
     mental: { physical: 0.3, combat: 0.4, mental: 2.6 },
   },
   /**
-   * Training sessions: each match played earns `byFacility[training ground level]` sessions (kept up to `maxStored`);
+   * Training sessions: each match played earns one session, plus one more with a chance of `extraChance[training ground
+   * level]` (drawn on its own stream; kept up to `maxStored`). Was 1 / 1 / 2 / 2 sessions: level 2 doubled the squad's
+   * session points and level 3 added nothing (`sim:facility`), a snowball for the rich stables;
    * a session draws a creature of the squad, then one attribute of its program (below its ceiling), which gains +1, or
    * +2 with a chance of `jackpot.base + coach quality × jackpot.perQuality` (coach of that category). AI stables too.
    */
-  sessions: { byFacility: [1, 1, 2, 2], maxStored: 3, jackpot: { base: 0.05, perQuality: 0.01 } },
+  sessions: { base: 1, extraChance: [0, 0.1, 0.2, 0.3], maxStored: 3, jackpot: { base: 0.05, perQuality: 0.01 } },
   /** Default training program of each role (the creature's role in the line-up, or its best one). */
   roleProgram: { tank: 'physical', striker: 'combat', caster: 'combat', support: 'mental', skirmisher: 'physical' } as Record<RoleId, AttributeCategory>,
   /** Rest program: no growth, extra fatigue recovery. */

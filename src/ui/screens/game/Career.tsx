@@ -132,9 +132,6 @@ export function ManagerCard({ game }: { game: GameState }) {
           {m.name && <small className="muted">{t('career.title')}</small>}
         </div>
         {m.ironman && <span className="career-tag">{t('career.ironman')}</span>}
-        <button className="link" onClick={() => useGame.getState().setScreen('career')}>
-          {t('cs.open')} →
-        </button>
         <span className="spacer" />
         <span className="career-rep" title={t('career.reputation.title')}>
           <small>{t('career.reputation')}</small>
@@ -154,27 +151,16 @@ export function ManagerCard({ game }: { game: GameState }) {
           </button>
         )}
       </div>
-      {m.jobs.length > 1 && (
-        <div className="career-history">
-          <small className="muted">{t('career.history')}</small>
-          <ol>
-            {m.jobs.map((j, i) => (
-              <li key={`${j.teamId}-${i}`}>
-                <b>{j.teamName}</b>{' '}
-                <span className="muted">
-                  {!j.to ? t('career.fromSeason', { s: j.from.season }) : j.to.season === j.from.season ? t('career.season', { s: j.from.season }) : t('career.seasons', { a: j.from.season, b: j.to.season })} ·{' '}
-                  {j.end ? t(`career.end.${j.end}`) : t('career.now')}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
-      {!m.unemployed && (
-        <button className="btn small ghost career-resign" onClick={onResign}>
-          {t('career.resign')}
+      <div className="career-foot">
+        <button className="link" onClick={() => useGame.getState().setScreen('career')}>
+          {t('cs.open')} →
         </button>
-      )}
+        {!m.unemployed && (
+          <button className="btn small ghost career-resign" onClick={onResign}>
+            {t('career.resign')}
+          </button>
+        )}
+      </div>
     </section>
   );
 }

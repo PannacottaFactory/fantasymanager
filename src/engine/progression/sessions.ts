@@ -32,10 +32,16 @@ export interface SessionState {
   recent: SessionResult[];
 }
 
-/** Sessions a stable earns per match played (its training ground). */
-export function sessionsPerMatch(state: GameState, teamId: string, cfg: GameConfig = DEFAULT_CONFIG): number {
-  const s = cfg.training.sessions;
-  return s.byFacility[facilityLevel(state, teamId, 'training')] ?? s.byFacility[s.byFacility.length - 1]!;
+/** Chance of an extra session after a match (its training ground). */
+export function extraSessionChance(state: GameState, teamId: string, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const c = cfg.training.sessions.extraChance;
+  return c[facilityLevel(state, teamId, 'training')] ?? c[c.length - 1]!;
+}
+
+/** Sessions a stable earns for one match: the base one, plus an extra one by chance (own stream, never alters results). */
+export function sessionsPerMatch(state: GameState, teamId: string, matchKey: string, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const extra = new Rng(deriveSeed(state.worldSeed, 'extraSession', state.season, matchKey, teamId)).chance(extraSessionChance(state, teamId, cfg));
+  return cfg.training.sessions.base + (extra ? 1 : 0);
 }
 
 /** The player's session state (a new game, or an older save, starts with one session). */
@@ -111,7 +117,7 @@ function raise(c: Creature, attr: AttributeKey, d: number, state: GameState, cfg
  * (random healthy creature, an attribute of the category its role needs most).
  */
 export function afterMatchSessions(state: GameState, team: Team, matchKey: string, cfg: GameConfig = DEFAULT_CONFIG) {
-  const n = sessionsPerMatch(state, team.id, cfg);
+  const n = sessionsPerMatch(state, team.id, matchKey, cfg);
   if (team.id === state.playerTeamId) {
     const s = sessionState(state);
     state.sessions = { ...s, available: Math.min(cfg.training.sessions.maxStored, s.available + n) };

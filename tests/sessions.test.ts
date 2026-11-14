@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ATTRIBUTE_CATEGORIES } from '../src/data/attributes.ts';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 import { newGame, playMatchday, playerTeam } from '../src/engine/league/season.ts';
-import { jackpotChance, runSession, sessionPool, sessionsLeft, sessionsPerMatch } from '../src/engine/progression/sessions.ts';
+import { extraSessionChance, jackpotChance, runSession, sessionPool, sessionsLeft } from '../src/engine/progression/sessions.ts';
 import { programCategory, setPlan } from '../src/engine/progression/training.ts';
 
 const game = () => newGame({ seed: 'sessions', teamName: 'Me', lang: 'en' });
@@ -29,11 +29,21 @@ describe('training sessions', () => {
     expect(runSession(state).outcome.kind).toBe('error');
   });
 
+  it('the training ground adds a chance of a second session per match, level by level', () => {
+    const g = game();
+    const chances = [0, 1, 2, 3].map((level) => {
+      g.facilities[g.playerTeamId]!.training = { level, building: null };
+      return extraSessionChance(g, g.playerTeamId);
+    });
+    expect(chances).toEqual([...DEFAULT_CONFIG.training.sessions.extraChance]);
+    expect(chances.every((c, i) => i === 0 || c > chances[i - 1]!)).toBe(true);
+  });
+
   it('each match played earns sessions, kept up to a few', () => {
     let g = runSession(game()).state;
     expect(sessionsLeft(g)).toBe(0);
     for (let i = 0; i < 8; i++) g = playMatchday(g);
-    expect(sessionsLeft(g)).toBeGreaterThanOrEqual(sessionsPerMatch(g, g.playerTeamId));
+    expect(sessionsLeft(g)).toBeGreaterThanOrEqual(DEFAULT_CONFIG.training.sessions.base);
     expect(sessionsLeft(g)).toBeLessThanOrEqual(DEFAULT_CONFIG.training.sessions.maxStored);
   });
 

@@ -3340,3 +3340,15 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .cs-table th.num, .cs-table td.num { text-align: right; }
 .cs-table th, .cs-table td { padding: 5px 10px; }
 .cs-tile b { overflow-wrap: anywhere; }
+
+/* ——— Dashboard: board and career side by side, compact ——— */
+.dash-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: stretch; }
+.dash-pair.two { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+@media (max-width: 1000px) { .dash-pair.two { grid-template-columns: minmax(0, 1fr); } }
+.dash-pair .panel.board-card { gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+.dash-pair .board-seal { width: 2rem; height: 2rem; }
+.dash-pair .board-gauge { padding-top: 10px; }
+.dash-pair .board-lines { font-size: 0.857rem; }
+.career-card { gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+.career-card .board-seal { width: 2rem; height: 2rem; }
+.career-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; font-size: 0.857rem; }
