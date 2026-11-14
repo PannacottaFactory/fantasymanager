@@ -22,6 +22,7 @@
   --r-md: 8px;
   --r-lg: 12px;
   --r-pill: 999px;
+  --panel-shadow: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 8px 24px rgb(0 0 0 / 0.22);
   --bg: #14110e;
   --panel: #1d1914;
   --panel-2: #26201a;
@@ -96,6 +97,7 @@
 }
 
 :root[data-theme='parchment'] {
+  --panel-shadow: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 4px 14px rgb(90 60 20 / 0.12);
   --bg: #e9dcbf;
   --panel: #f4ead3;
   --panel-2: #ece0c3;
@@ -166,30 +168,30 @@ a { color: var(--accent); }
 .spacer { flex: 1; }
 
 /* ——— Controls ——— */
+/* Component: button (style guide § 6) — the only place .btn itself is styled; screens may only place or size it. */
 .btn {
-  border: 1px solid var(--border-strong);
-  background: var(--panel-2);
-  padding: 6px 12px;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-  white-space: nowrap;
+  border: 1px solid var(--border-strong); background: var(--panel-2); color: inherit;
+  padding: 6px 12px; border-radius: var(--r-md); cursor: pointer; white-space: nowrap;
+  transition: transform 0.08s ease, background 0.12s, border-color 0.12s, box-shadow 0.12s;
 }
 .btn:hover:not(:disabled) { background: var(--panel-3); border-color: var(--accent); }
+.btn:active:not(:disabled) { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
-.btn.primary:hover:not(:disabled) { background: var(--accent-strong); }
-.btn.small { padding: 2px 8px; font-size: var(--fs-md); }
+.btn.primary:hover:not(:disabled) { background: var(--accent-strong); border-color: var(--accent-strong); box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 30%, transparent); }
 .btn.ghost { background: transparent; border-color: transparent; }
-.btn.ghost:hover:not(:disabled) { border-color: var(--border); }
+.btn.ghost:hover:not(:disabled) { background: var(--panel-2); border-color: var(--border); }
+.btn.danger { border-color: var(--bad); color: var(--bad); }
 .btn.active { border-color: var(--accent); color: var(--accent); }
+.btn.small { padding: 2px 8px; font-size: var(--fs-md); }
 select, input[type='text'], input[type='number'] {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   padding: 4px 6px;
 }
-select:focus, input:focus, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 select.compact { padding: 1px 2px; font-size: var(--fs-md); }
 label.field { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-md); color: var(--muted); }
 .seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
@@ -220,13 +222,15 @@ label.field { display: flex; flex-direction: column; gap: 2px; font-size: var(--
 .main > * { max-width: 2400px; margin: 0 auto; }
 
 /* ——— Panels ——— */
+/* Component: panel (style guide § 4) — one material in every theme; the shadow is a theme token. */
 .panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 12px;
+  background: var(--panel); border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: var(--r-lg); padding: var(--sp-4); box-shadow: var(--panel-shadow);
 }
-.panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.panel-head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: var(--sp-3); }
+.panel-head h2 { color: var(--text); }
+/* The first panel of a screen (its header) is a panel like the others; children may sit at absolute positions. */
+.screen-enter > .stack > .panel:first-child, .screen-enter > .panel:first-child { position: relative; overflow: hidden; }
 .side-home { border-top: 3px solid var(--home); }
 .side-away { border-top: 3px solid var(--away); }
 .team-name-input { font-family: var(--font-title); font-size: var(--fs-base); font-weight: 600; background: transparent; border: 1px solid transparent; padding: 2px 4px; min-width: 200px; }
@@ -439,7 +443,7 @@ table.data tr.sep td { border-top: 2px solid var(--border-strong); }
 .start-card h2 { font-size: var(--fs-xl); color: var(--accent); margin-bottom: 6px; }
 .resume { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel-2); }
 .next-match h4 { margin-bottom: 6px; }
-.dash .next-match { border-color: color-mix(in srgb, var(--home) 70%, transparent); background: linear-gradient(120deg, color-mix(in srgb, var(--home) 22%, var(--panel)), color-mix(in srgb, var(--home) 6%, var(--panel)) 70%); box-shadow: inset 4px 0 0 var(--home); }
+.dash .next-match { border-left: 3px solid var(--home); }
 .dash .next-match h4 { color: var(--home); }
 .inbox { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .msg {
@@ -566,7 +570,6 @@ button.star:hover { color: var(--accent); }
 
 /* ——— Phase 3: economy, recruitment, finances ——— */
 .good-text { color: var(--good); }
-.btn.danger { border-color: var(--bad); color: var(--bad); }
 .continue .balance {
   font: 700 var(--fs-body-sm) var(--font-mono); padding: 3px 8px; border-radius: var(--radius); cursor: pointer;
   background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
@@ -942,9 +945,6 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .fx-btn.on { filter: none; opacity: 1; }
 .screen-enter { animation: screen-in 0.28s ease-out backwards; }
 @keyframes screen-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.btn { transition: transform 0.08s ease, background 0.15s, border-color 0.15s, box-shadow 0.15s; }
-.btn:active:not(:disabled) { transform: scale(0.96); }
-.btn.primary:hover:not(:disabled) { box-shadow: 0 0 0 1px var(--accent), 0 4px 14px color-mix(in srgb, var(--accent) 30%, transparent); }
 .ability-card, .youth-card, .guide-steps li, .stat-tile { transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s; }
 .ability-card:hover, .youth-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgb(0 0 0 / 0.25); }
 .xp-bar > i { transition: width 0.8s cubic-bezier(.2, .8, .2, 1); }
@@ -984,12 +984,6 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 
 /* ——— Management screens polish ——— */
 /* Panels: a faint sheen at the top and an ornamented title rule. */
-.panel { background-image: linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 120px); }
-.panel > h2:first-child, .panel > h3:first-child, .panel-head > h2, .panel-head > h3 { position: relative; }
-.panel-head > h2::after {
-  content: ''; display: block; height: 1px; margin-top: 4px; width: min(220px, 100%);
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
 /* Bars and XP fill in when they appear. */
 .bar > i.fill, .xp-bar > i { transform-origin: left center; animation: bar-grow 0.8s cubic-bezier(.2, .8, .2, 1) both; }
 .mirror .bar > i.fill { transform-origin: right center; }
@@ -1020,8 +1014,7 @@ table.data tr.mine td { box-shadow: inset 0 1px 0 color-mix(in srgb, var(--home)
 .btn.primary .gold, .btn.active .gold { color: inherit; }
 
 /* ——— Dashboard ——— */
-.dash-hero { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-top: 3px solid var(--home);
-  background-image: radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%); }
+.dash-hero { display: flex; align-items: center; gap: 16px; }
 .dash-hero h2 { font-size: var(--fs-xl); color: var(--accent); margin: 0 0 2px; }
 .dash-rank { display: flex; flex-direction: column; align-items: center; padding: 6px 16px; border-left: 1px solid var(--border); }
 .dash-rank b { font: 700 var(--fs-2xl) var(--font-mono); color: var(--gold); line-height: 1; }
@@ -1318,8 +1311,7 @@ tr.drag-row:hover .drag-grip { color: var(--accent); }
 .pyr-name small { color: var(--muted); font-size: var(--fs-xs); }
 .pyr-you { font-size: var(--fs-xs); font-weight: 700; color: var(--home); white-space: nowrap; border: 1px solid color-mix(in srgb, var(--home) 60%, transparent); border-radius: var(--r-md); padding: 0 6px; }
 
-.div-hero { display: flex; gap: 16px; align-items: center; border-color: color-mix(in srgb, var(--tier) 45%, var(--border));
-  background: radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tier) 22%, transparent), transparent 60%), var(--panel); }
+.div-hero { display: flex; gap: 16px; align-items: center; }
 .div-hero h2 { margin: 0 0 2px; color: var(--tier); }
 .div-emblem { font-size: var(--fs-display); width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%;
   background: color-mix(in srgb, var(--tier) 18%, var(--panel-2)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tier) 50%, transparent), 0 0 24px color-mix(in srgb, var(--tier) 30%, transparent); }
@@ -1583,7 +1575,6 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .fs-arrow { color: var(--accent); }
 .fs-link { font-size: var(--fs-md); white-space: nowrap; color: var(--muted); }
 .first-steps.open .fs-list { margin-top: 8px; }
-.next-match { padding-block: 8px; }
 .next-match .nm-label { margin: 0; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.05em; }
 .next-match .btn.primary { padding-block: 4px; }
 
@@ -2111,24 +2102,12 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 .topbar { background: var(--panel);
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.25); position: relative; z-index: 20; }
 .season-ribbon { background: var(--panel); }
-.panel { background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 97%, #fff), var(--glass)); border-color: color-mix(in srgb, var(--border) 85%, transparent);
-  box-shadow: var(--depth); }
-:root[data-theme='parchment'] .panel { background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, #fff), var(--glass)); }
 /* The first panel of a screen is its header: lit from the top, with a gilded edge. */
-.screen-enter > .stack > .panel:first-child, .screen-enter > .panel:first-child { position: relative; overflow: hidden;
-  background: radial-gradient(ellipse 60% 120% at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
-    linear-gradient(180deg, color-mix(in srgb, var(--panel) 97%, #fff), var(--glass)); }
-.screen-enter > .stack > .panel:first-child::before, .screen-enter > .panel:first-child::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--gold) 50%, var(--accent) 70%, transparent); opacity: 0.8; }
 .panel-head h2, .screen-enter h2 { font-size: var(--fs-xl); letter-spacing: 0.04em; }
-.panel-head h2 { color: var(--text); text-shadow: 0 1px 12px color-mix(in srgb, var(--accent) 25%, transparent); }
 .panel-head h2 .gicon { color: var(--accent); }
 h3 { letter-spacing: 0.04em; }
 .screen-enter { animation: screen-in-2 0.35s cubic-bezier(.2, .8, .2, 1) backwards; }
 @keyframes screen-in-2 { from { opacity: 0; transform: translateY(10px) scale(0.995); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
-.btn { border-radius: var(--r-md); }
-.btn.primary { background: linear-gradient(180deg, var(--accent-strong), var(--accent)); box-shadow: 0 1px 0 rgb(255 255 255 / 0.25) inset, 0 3px 10px color-mix(in srgb, var(--accent) 25%, transparent); }
-.btn.primary:hover:not(:disabled) { background: linear-gradient(180deg, color-mix(in srgb, var(--accent-strong) 85%, #fff), var(--accent-strong)); }
 table.data tbody tr { transition: background 0.12s; }
 table.data tr:hover td { background: color-mix(in srgb, var(--accent) 7%, var(--panel-2)); }
 .dialog { box-shadow: 0 24px 60px rgb(0 0 0 / 0.55), 0 0 0 1px var(--edge) inset; }
@@ -2226,15 +2205,8 @@ table.data tr:hover td { background: color-mix(in srgb, var(--accent) 7%, var(--
 /* ——— Refinement: less, but better (one panel material, fewer nested frames, calmer type) ——— */
 /* Numbers in the body font with aligned figures (no typewriter look). Everything that used the mono font follows. */.mono, .attr { font-feature-settings: 'tnum' 1, 'lnum' 1; letter-spacing: 0; }
 /* One material: a flat panel, a hairline of light on top, one soft shadow. */
-.panel { padding: var(--sp); background: var(--panel); background-image: none;
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 8px 24px rgb(0 0 0 / 0.22); }
-:root[data-theme='parchment'] .panel { background: var(--panel); box-shadow: 0 1px 0 rgb(255 255 255 / 0.5) inset, 0 4px 14px rgb(90 60 20 / 0.12); }
-.screen-enter > .stack > .panel:first-child, .screen-enter > .panel:first-child { background: var(--panel); }
 .stack { gap: 14px; }
-.panel-head { margin-bottom: 12px; }
 /* Titles: no glow, no second rule under the heading. */
-.panel-head h2 { text-shadow: none; }
-.panel-head > h2::after { display: none; }
 /* Nested boxes: a quiet fill instead of a second frame. */
 .dash-tile, .stat-tile, .tile { border-color: transparent; background: color-mix(in srgb, var(--panel-2) 80%, var(--panel)); }
 .dash-tile:hover, .tile:hover { border-color: var(--border); box-shadow: none; }
