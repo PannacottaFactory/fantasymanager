@@ -90,6 +90,12 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   const firstFree = slots ? SLOTS.find((x) => !slots[x]) : undefined;
   const [target, setTarget] = useState<SlotId | null>(null);
   const into = target ?? firstFree ?? current;
+  // With saved games, the launch screen shows the slots; the form opens from « New game » or a free slot.
+  const [picking, setPicking] = useState(false);
+  const openForm = (slot?: SlotId) => {
+    if (slot) setTarget(slot);
+    setPicking(true);
+  };
   const suggested = useMemo(() => generateTeamName(new Rng(randomSeed()), lang), [lang]);
   const [name, setName] = useState('');
   const [seed, setSeed] = useState(randomSeed);
@@ -110,6 +116,8 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
     onCreated?.();
   };
   const anySaved = !!slots && SLOTS.some((x) => slots[x]);
+  const showSlots = anySaved && !onCancel && !picking;
+  const takenInto = slots?.[into];
 
   return (
     <div className="start">
@@ -126,39 +134,50 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
         <p className="start-tagline">{t('start.intro')}</p>
       </header>
 
-      {anySaved && !onCancel && (
-        <section className="slots" aria-label={t('start.slots')}>
-          {SLOTS.map((x, i) => (
-            <SlotCard key={x} n={i + 1} slot={x} meta={slots![x]} playing={!!game && x === current} onNew={() => setTarget(x)} />
-          ))}
-        </section>
+      {showSlots && (
+        <>
+          <section className="slots" aria-label={t('start.slots')}>
+            {SLOTS.map((x, i) => (
+              <SlotCard key={x} n={i + 1} slot={x} meta={slots![x]} playing={!!game && x === current} onNew={() => openForm(x)} />
+            ))}
+          </section>
+          <button className="btn big-btn new-game-cta" onClick={() => openForm(firstFree)}>
+            <UiIcon name="new-game" size="1.1em" /> {t('start.new')}
+          </button>
+        </>
       )}
 
+      {!showSlots && (
       <section className="panel start-card new-card">
         <div className="start-card-tag new">{t('start.newTag')}</div>
         <div className="row wrap new-head">
           <h2 className="row" style={{ gap: 8 }}>
             <UiIcon name="new-game" size="1.1em" /> {t('start.new')}
           </h2>
-          {slots && (
-            <span className="slot-pick" role="radiogroup" aria-label={t('start.saveIn')}>
+          {anySaved && slots && (
+            <div className="slot-pick" role="radiogroup" aria-label={t('start.saveIn')}>
               <span className="muted">{t('start.saveIn')}</span>
               {SLOTS.map((x, i) => (
                 <button
                   key={x}
                   role="radio"
                   aria-checked={x === into}
-                  className={`chip ${x === into ? 'on' : ''} ${slots[x] ? 'taken' : ''}`}
+                  className={`slot-opt ${x === into ? 'on' : ''} ${slots[x] ? 'taken' : ''}`}
                   title={slots[x] ? t('start.slotReplace', { team: slots[x]!.teamName }) : t('start.slotFree')}
                   onClick={() => setTarget(x)}
                 >
-                  {i + 1}
+                  <b>{t('start.slot', { n: i + 1 })}</b>
                   <small>{slots[x] ? slots[x]!.teamName : t('start.slotFree')}</small>
                 </button>
               ))}
-            </span>
+              {takenInto && <span className="new-warning">{t('start.slotReplaceLong', { team: takenInto.teamName })}</span>}
+            </div>
           )}
-          {slots?.[into] && <span className="new-warning">{t('start.slotReplace', { team: slots[into]!.teamName })}</span>}
+          {anySaved && !onCancel && (
+            <button className="link back-to-slots" onClick={() => setPicking(false)}>
+              ← {t('start.backToSlots')}
+            </button>
+          )}
         </div>
         <div className="new-grid">
           <div className="new-col">
@@ -232,7 +251,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
               </label>
             )}
             <div className="row wrap start-actions" style={{ gap: 10 }}>
-              <button className={`btn ${anySaved && !onCancel ? '' : 'primary'} big-btn`} onClick={start}>
+              <button className="btn primary big-btn" onClick={start}>
                 {t('start.begin')}
               </button>
               {onCancel && (
@@ -244,8 +263,9 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
           </div>
         </div>
       </section>
+      )}
 
-      {!onCancel && (
+      {!onCancel && !picking && (
         <p className="start-links muted">
           <button className="link" onClick={() => setScreen('arena')}>
             {t('start.arena')}

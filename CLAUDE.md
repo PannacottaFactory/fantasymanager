@@ -514,8 +514,11 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   a summary in the `meta` store (team, crest, season, week, division, rank, difficulty, saved at) so the start screen lists
   them without loading games (old saves get one on first listing). The game autosaves into `useGame().slot` (remembered
   in localStorage `fm.slot`); `loadSlot`, `deleteSlot`, `refreshSlots`, `openLaunch` (the brand button goes back to the
-  start screen). Start screen: three slot cards (in play / load / delete, empty = start here) and « Sauvegarder dans »
-  chips in the new-game form (default: first free slot; replacing a game asks first).
+  start screen). Start screen with saved games: the three slot cards (in play / load / delete, empty = start here) and a
+  « Nouvelle partie » button; the new-game form then takes their place (« Retour aux sauvegardes », bottom links hidden),
+  with « Enregistrer dans : » as three explicit options « Emplacement n — team / libre » (default: the free slot clicked,
+  else the first free one; a taken one turns red with « La partie … sera effacée », replacing still asks first). No
+  save: the form directly. `scripts/career-check.mjs` measures every view at 1366×768, 1440×900, 1920×1080.
 - **Start & dashboard**: opening the app with a save shows the start screen (store `launch`) with two cards, « continue »
   and « new game » (difficulty as cards, seed under « more options »). In a game the landing screen is the dashboard
   (`DashboardScreen`, nav « Accueil »): hero (rank), next match, board, squad status tiles, mini table, treasury,

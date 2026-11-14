@@ -74,5 +74,26 @@ const after = await page.evaluate(() => {
 });
 console.log('after taking the job:', JSON.stringify(after));
 await page.screenshot({ path: `${out}/new-job.png` });
+// The start screen again, now with a saved game (slot cards on top), at every size.
+for (const [w, h] of sizes) {
+  await page.setViewportSize({ width: w, height: h });
+  await page.reload();
+  await page.waitForTimeout(900);
+  const overflow = await page.evaluate(() => {
+    const scrolls = [document.documentElement, ...document.querySelectorAll('.main')];
+    return Math.max(...scrolls.map((el) => el.scrollHeight - el.clientHeight));
+  });
+  console.log(`${w}×${h} with a save: start screen overflow ${overflow}px`);
+  await page.screenshot({ path: `${out}/start-saved-${w}.png` });
+  // « New game »: the form takes the slots' place.
+  await page.locator('.new-game-cta').click();
+  await page.waitForTimeout(400);
+  const form = await page.evaluate(() => {
+    const scrolls = [document.documentElement, ...document.querySelectorAll('.main')];
+    return Math.max(...scrolls.map((el) => el.scrollHeight - el.clientHeight));
+  });
+  console.log(`${w}×${h} new-game form with a save: overflow ${form}px`);
+  await page.screenshot({ path: `${out}/start-form-${w}.png` });
+}
 console.log(errors.length ? errors.join('\n') : 'no errors');
 await browser.close();
