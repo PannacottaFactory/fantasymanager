@@ -1,6 +1,7 @@
 /**
  * The board: a season objective and a confidence that moves with results and the table. Its mood sets the recruitment
- * budget and facility works; an angry board issues an ultimatum. No sacking (career mode will add it).
+ * budget and facility works; an angry board issues an ultimatum. In career mode, a missed ultimatum (or a missed objective
+ * with a low confidence at the end of the season) costs the manager the job (`club/career.ts`).
  */
 import { clamp } from '../../core/math.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
@@ -8,6 +9,7 @@ import { clubOf, earn } from '../economy/finance.ts';
 import { divisionFixtures, divisionOf } from '../league/divisions.ts';
 import { pushMessage } from '../league/messages.ts';
 import { computeStandings } from '../league/standings.ts';
+import { lastWarning, requestSack } from './career.ts';
 import type { BoardMood, Fixture, GameState, ObjectiveId } from '../league/types.ts';
 export { divisionOf };
 import type { Team } from '../model.ts';
@@ -29,7 +31,8 @@ export function pickObjective(state: GameState, cfg: GameConfig = DEFAULT_CONFIG
   const n = ids.length;
   const promoted = cfg.league.promoted;
   if (div === 0) return rank === 1 ? 'title' : rank <= n / 2 - 1 ? 'topHalf' : rank <= n - promoted - 1 ? 'midTable' : 'survive';
-  return rank <= promoted ? 'promotion' : rank <= n / 2 ? 'topHalf' : 'midTable';
+  // The weakest stables of a division are only asked to stay out of the bottom places.
+  return rank <= promoted ? 'promotion' : rank <= n / 2 ? 'topHalf' : rank <= n - promoted ? 'midTable' : 'survive';
 }
 
 /** Is the objective met at this final position? */
@@ -132,7 +135,10 @@ function ultimatumMatch(state: GameState, won: boolean, cfg: GameConfig) {
     const club = clubOf(state, state.playerTeamId);
     club.reputation = clamp(club.reputation - u.reputation, 0, 100);
     state.board.frozen = u.frozenWeeks;
-    pushMessage(state, { kind: 'ultimatumOver', met: false, wins: t.wins, need: t.need, of: t.of, reputation: u.reputation, frozen: u.frozenWeeks });
+    // Career mode: a strike (the next one is fatal), or the job itself.
+    requestSack(state, 'ultimatum', cfg);
+    const career = state.manager?.career ? { warning: lastWarning(state, cfg), sacked: !!state.manager.pendingSack } : {};
+    pushMessage(state, { kind: 'ultimatumOver', met: false, wins: t.wins, need: t.need, of: t.of, reputation: u.reputation, frozen: u.frozenWeeks, ...career });
   }
 }
 
@@ -175,7 +181,7 @@ export function weeklyBoardStanding(state: GameState, cfg: GameConfig = DEFAULT_
 }
 
 /** End of season: the board judges the objective; meeting it brings a bonus. */
-export function boardVerdict(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
+export function boardVerdict(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): boolean {
   const b = cfg.club.board;
   const div = divisionOf(state, state.playerTeamId);
   const ids = state.divisions[div]!;
@@ -189,4 +195,5 @@ export function boardVerdict(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   const bonus = met ? Math.round(b.bonus * (cfg.league.divisionMoney[div] ?? 1)) : 0;
   if (bonus) earn(state, state.playerTeamId, 'prizes', bonus);
   pushMessage(state, { kind: 'boardVerdict', objective: state.board.objective, met, position, bonus, confidence: state.board.confidence });
+  return met;
 }

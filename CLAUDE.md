@@ -33,6 +33,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
 | `npm run sim:board -- --worlds 10 --seasons 2` | board, supporters & star requests over seasons on autopilot: weeks per mood / tier, ultimatums, tickets, requests per kind, per difficulty |
+| `npm run sim:career -- --worlds 8 --seasons 4` | career mode on autopilot: sackings (ultimatum / verdict), job offers, manager reputation & division per season (`--policy climb` takes offers) |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 
@@ -247,6 +248,32 @@ tests/       Vitest
   for: kept +8 morale, broken −20 and friends −8 (`requestOutcome` message). Measured in `sim:board` (≈ 1–1.5 per season
   on autopilot). UI `screens/game/Requests.tsx`: choices with their consequence in the Journal (`RequestActions`), the
   answer once given, `RequestNote` in the creature sheet; toast, ticker, help.
+- **Career mode** (`engine/club/career.ts`, `cfg.career`, `GameState.manager` — absent in old saves = no career): option
+  at new game (`NewGameOptions.career`, `ironman` only with career; start screen « Mode de jeu » Libre / Carrière cards +
+  Ironman checkbox, `SlotMeta.career / ironman` on the slot cards). Every game autosaves into one slot anyway; **Ironman**
+  closes the only way back: `playLive` saves the week already played (simulated) before the live match starts, so
+  leaving it (closing the page) counts as played; finishing it live overwrites that save. UI `screens/game/Career.tsx`:
+  `JobCentre` (locked window while `unemployed`), `JobOfferActions` under `jobOffer` messages (take / decline).
+  `sim:career -- --worlds 8 --seasons 4 [--policy climb]` measures sackings, offers, reputation (autopilot = AI line-up,
+  free points & sessions used, best contracts renewed: without that the squad bleeds and sackings are wildly
+  overstated) — normal ≈ 0.1–0.15 sackings / season, easy 0; the two weakest stables of a division get the objective
+  `survive` (« éviter les 2 dernières places ») instead of mid-table;
+  `node scripts/career-check.mjs <outDir> <url>` checks the start screen fit and forces a sacking. `manager.reputation` 0–100 (start 20) moves at each season change (`careerSeasonReview`, before
+  promotions: objective met / missed — `SeasonRecord.met` —, title, promotion, relegation, trophies, × division weight,
+  gains shrink near the top); `manager.jobs` = stables run (`end`: left / sacked); `SeasonRecord.teamId / teamName`.
+  **Sacking** (career only): the 2nd missed ultimatum of a season in the same job (`manager.strikes`, the 1st one is a
+  last warning: `ultimatumOver.warning / sacked`, worded by the board meeting) or, at the end of the season, objective
+  missed with confidence < 20 before the verdict (not if the job started after week 6 of that season) → `pendingSack`,
+  handled by `weeklyCareer` at the end of the league week → `unemployed`, reputation −5, `sacked` message,
+  2–3 **rescue** offers from stables in trouble (at least one, never the stable that sacked you); `playMatchday` /
+  `playCupRound` / `startNextSeason` return the state unchanged until `acceptJob`; the last offer cannot be declined.
+  **Offers** (`JobOffer`, `jobOffer` message): `poach` at the season change (`seasonOffers`, stables with reputation ≤
+  manager + 8 and ≥ current club + 4, until week 3), `vacancy` mid-season (weeks 6–15, 5 % a week, a stable doing badly).
+  **`takeOver(state, teamId)`** (pure): old stable → AI (new identity with `gen` → new `managerName`, held free points
+  placed by `placeHeldPoints`, AI tactic, knowledge of its creatures 90), new stable loses its identity; cleared: sale
+  list, offers, bids, training plans, open requests, line-ups, sessions, youngsters (released), fans, tournament
+  `registered`; fresh board (new objective, 6 weeks without ultimatum; message unless the season is over); kept: inbox, knowledge, bestiary,
+  ambitions, replays, memorial. `newJob` message. Tests `tests/career.test.ts`.
 - **Scouts** (`economy.scouting`): sent straight from every recruitment card / row (`ScoutSend` in `RecruitScreen.tsx`,
   icon flies to the « Recruteurs » tab: `ui/fx/scoutFlight.ts`; refused when busy, own or already known ≥ 90 → `known`).
   A creature report stores `before` (knowledge) + `verdict` from the estimates only (`scoutVerdict`: gem = potential ≥

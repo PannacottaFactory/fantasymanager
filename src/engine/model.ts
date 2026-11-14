@@ -159,6 +159,8 @@ export interface StableIdentity {
   manager: ManagerId;
   /** How much the stable sticks to its style (0 = eclectic, 1 = purist): squad share, signings, favourites. */
   focus: number;
+  /** Managers the stable had since the game started (a new one gets a new name). */
+  gen?: number;
 }
 
 export interface Team {

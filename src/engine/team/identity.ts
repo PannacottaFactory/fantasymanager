@@ -13,8 +13,9 @@ import { counterApproach } from '../combat/formulas.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
 
 /** Name of a stable's manager: fixed for the stable (drawn from its id), never changes results. */
-export function managerName(team: Pick<Team, 'id'>): string {
-  const rng = new Rng(`manager|${team.id}`);
+export function managerName(team: { id: string; identity?: { gen?: number } }): string {
+  const gen = team.identity?.gen ?? 0;
+  const rng = new Rng(gen ? `manager|${team.id}|${gen}` : `manager|${team.id}`);
   return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
 }
 

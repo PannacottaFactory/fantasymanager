@@ -49,7 +49,7 @@ interface GameStore {
   saveError: boolean;
   playerControls: boolean;
   init: () => Promise<void>;
-  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId) => void;
+  newGame: (teamName: string, seed?: string, difficulty?: DifficultyId, crest?: TeamCrest, slot?: SlotId, mode?: { career?: boolean; ironman?: boolean }) => void;
   setScreen: (s: Screen) => void;
   setPlayerTeam: (team: Team) => void;
   autoPick: () => void;
@@ -165,8 +165,8 @@ export const useGame = create<GameStore>()((set, get) => {
       void get().refreshSlots();
     },
 
-    newGame: (teamName, seed, difficulty, crest, slot) => {
-      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest });
+    newGame: (teamName, seed, difficulty, crest, slot, mode) => {
+      const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
       set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, reveals: [], boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
@@ -237,6 +237,9 @@ export const useGame = create<GameStore>()((set, get) => {
       const f = g.fixtures.find((x) => x.id === match.fixtureId);
       if (!f) return;
       const { setup } = fixtureSetup(g, f);
+      // Ironman: the save already holds the match as played (simulated); finishing it live replaces that. Leaving the
+      // live match (closing the page) therefore never gives a second chance.
+      if (g.manager?.ironman) saveGame(playMatchday(g), get().slot).catch(() => set({ saveError: true }));
       set({ match: { ...match, phase: 'live', setup: structuredClone(setup), liveKey: match.liveKey + 1 } });
     },
 

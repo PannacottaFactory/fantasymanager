@@ -220,7 +220,7 @@ function noteText(tr: Translator, m: Note): { title: string; speech: string; ton
     case 'ultimatumOver':
       return m.met
         ? { title: t('meet.ultMet.title'), speech: t('meet.ultMet.speech', { reward: u.reward }), tone: 'good', rules: false }
-        : { title: t('meet.ultMissed.title'), speech: t('meet.ultMissed.speech', { rep: m.reputation, weeks: tr.weeks(m.frozen) }), tone: 'bad', rules: false };
+        : { title: t('meet.ultMissed.title'), speech: t(m.sacked ? 'meet.ultMissed.sacked' : 'meet.ultMissed.speech', { rep: m.reputation, weeks: tr.weeks(m.frozen) }) + (m.warning ? ` ${t('meet.ultMissed.warning')}` : ''), tone: 'bad', rules: false };
     case 'boardVerdict':
       return m.met
         ? { title: t('meet.verdictMet.title'), speech: t('meet.verdictMet.speech', { pos: tr.ordinal(m.position), bonus: money(m.bonus) }), tone: 'good', rules: false }

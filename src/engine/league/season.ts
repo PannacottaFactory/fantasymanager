@@ -6,6 +6,7 @@ import { recordLineup, seasonRequests, weeklyRequests } from '../club/requests.t
 import { fansDrift, moveFans, weeklyFans } from '../club/fans.ts';
 import type { TeamCrest } from '../../data/crest.ts';
 import { checkAmbitions, recordSeason } from '../club/ambitions.ts';
+import { careerSeasonReview, careerVerdict, initManager, seasonOffers, weeklyCareer } from '../club/career.ts';
 import type { Lang } from '../../core/i18n.ts';
 import { clamp } from '../../core/math.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
@@ -47,6 +48,10 @@ export interface NewGameOptions {
   difficulty?: DifficultyId;
   /** The player's crest (default: drawn from the stable's id). */
   crest?: TeamCrest;
+  /** Career mode: the board can sack the manager, other stables offer jobs. */
+  career?: boolean;
+  /** Career mode only: a single save, no going back. */
+  ironman?: boolean;
 }
 
 /** Generates the stables of every division (the player's stable is the last slot of its division). */
@@ -155,6 +160,7 @@ export function newGame(opts: NewGameOptions, cfg: GameConfig = DEFAULT_CONFIG):
   startTournaments(state, championsFrom(state), cfg);
   snapshotSeasonStart(state, cfg);
   initBestiary(state);
+  initManager(state, opts, cfg);
   return state;
 }
 
@@ -170,6 +176,9 @@ export function cupDue(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): bool
 }
 
 export const seasonOver = (state: GameState, cfg: GameConfig = DEFAULT_CONFIG) => state.matchday > lastMatchday(state) && !cupDue(state, cfg);
+
+/** A sacked manager must take a job before any week (or season) can be played. */
+const waitingForJob = (state: GameState) => !!state.manager?.unemployed;
 
 export function teamById(state: GameState, id: string): Team {
   const t = state.teams.find((x) => x.id === id);
@@ -434,7 +443,7 @@ export function playWeek(state: GameState, playerMatch: MatchResult | null = nul
  * morale, form, relations, board) → a week of rest → training → money, scouts, market, facilities.
  */
 export function playMatchday(state: GameState, playerMatch: MatchResult | null = null, cfg: GameConfig = DEFAULT_CONFIG): GameState {
-  if (seasonOver(state, cfg)) return state;
+  if (seasonOver(state, cfg) || waitingForJob(state)) return state;
   // A cup week comes first when one is due.
   if (cupDue(state, cfg)) return playCupRound(state, playerMatch, cfg);
   const next: GameState = structuredClone(state);
@@ -486,6 +495,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   if (next.season === 1 && next.matchday === cfg.arena.startWeek) pushMessage(next, { kind: 'arenaIntro' });
   if (next.matchday > lastMatchday(next)) endOfLeague(next, cfg);
   checkAmbitions(next, cfg);
+  weeklyCareer(next, cfg);
   return next;
 }
 
@@ -504,7 +514,11 @@ function endOfLeague(next: GameState, cfg: GameConfig) {
   const me = next.playerTeamId;
   const trophies = [...(next.cup.winner === me ? ['shadow'] : []), ...next.tournaments.filter((t) => t.winner === me).map((t) => t.def)];
   recordSeason(next, div, pos, table[pos - 1]!.points, trophies);
-  boardVerdict(next, cfg);
+  const confidence = next.board.confidence;
+  const met = boardVerdict(next, cfg);
+  const record = next.career?.find((r) => r.season === next.season);
+  if (record) record.met = met;
+  careerVerdict(next, met, confidence, cfg);
 }
 
 // ——— Cup ———
@@ -547,7 +561,7 @@ function drawCupRound(state: GameState, cfg: GameConfig) {
 /** Plays the midweek that is due: the cup round and/or tournament rounds (half a week of rest, no wages or training). */
 export function playCupRound(state: GameState, playerMatch: MatchResult | null = null, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const key = midweekKey(state, cfg);
-  if (key === null) return state;
+  if (key === null || waitingForJob(state)) return state;
   const next: GameState = structuredClone(state);
   releaseYouth(next);
   const cupNow = cupKey(next, cfg) === key;
@@ -619,9 +633,12 @@ function promoteAndRelegate(next: GameState, cfg: GameConfig) {
 
 /** New season: promotions, ageing, contracts, youth, a new calendar and cup, a new board objective. */
 export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): GameState {
+  if (waitingForJob(state)) return state;
   const next: GameState = structuredClone(state);
   // The Champions Cup takes the best four of the top division, before promotions.
   const champions = championsFrom(next, divisionTables(next, cfg)[0]);
+  // The manager's season is judged on the finished season (objective, title, promotion, trophies).
+  careerSeasonReview(next, cfg);
   promoteAndRelegate(next, cfg);
   next.season++;
   next.matchday = 1;
@@ -647,6 +664,7 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
   snapshotSeasonStart(next, cfg);
   pushMessage(next, { kind: 'newSeason' });
   newSeasonObjective(next, cfg);
+  seasonOffers(next, cfg);
   checkAmbitions(next, cfg);
   return next;
 }

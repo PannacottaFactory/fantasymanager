@@ -51,6 +51,8 @@ function SlotCard({ n, slot, meta, playing, onNew }: { n: number; slot: SlotId; 
           <span className="muted">{slotWeek(tr, meta)}</span>
           <span className="muted">
             {divName(t, meta.division)} · {meta.position > 0 ? tr.ordinal(meta.position) : '—'} · {t(`diff.${meta.difficulty}`)}
+            {meta.career ? ` · ${t('slot.career')}` : ''}
+            {meta.ironman ? ` · ${t('slot.ironman')}` : ''}
           </span>
           {date && <small className="faint">{t('start.savedAt', { date })}</small>}
         </div>
@@ -94,6 +96,8 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   const tutorial = useTutorial();
   const [tips, setTips] = useState(tutorial.enabled);
   const [difficulty, setDifficulty] = useState<DifficultyId>('normal');
+  const [career, setCareer] = useState(false);
+  const [ironman, setIronman] = useState(false);
   const [more, setMore] = useState(false);
   const [crest, setCrest] = useState<TeamCrest>(() => defaultCrest(randomSeed()));
 
@@ -102,7 +106,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
     if (taken && !window.confirm(t('start.overwriteSlot', { team: taken.teamName, n: SLOTS.indexOf(into) + 1 }))) return;
     if (tips) tutorial.restart();
     else tutorial.setEnabled(false);
-    newGame(name.trim() || suggested, seed, difficulty, crest, into);
+    newGame(name.trim() || suggested, seed, difficulty, crest, into, { career, ironman: career && ironman });
     onCreated?.();
   };
   const anySaved = !!slots && SLOTS.some((x) => slots[x]);
@@ -184,10 +188,35 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
                 ))}
               </div>
             </div>
-            <label className="row" style={{ gap: 6, fontSize: '0.929rem' }}>
-              <input type="checkbox" checked={tips} onChange={(e) => setTips(e.target.checked)} />
-              {t('start.tutorial')}
-            </label>
+            <div className="field">
+              {t('start.mode')}
+              <div className="mode-cards" role="radiogroup" aria-label={t('start.mode')}>
+                {(['free', 'career'] as const).map((k) => (
+                  <button
+                    key={k}
+                    role="radio"
+                    aria-checked={(k === 'career') === career}
+                    className={`mode-card ${(k === 'career') === career ? 'on' : ''}`}
+                    title={t(`start.mode.${k}.desc`)}
+                    onClick={() => setCareer(k === 'career')}
+                  >
+                    <b>{t(`start.mode.${k}`)}</b>
+                    <span className="muted">{t(`start.mode.${k}.short`)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="row wrap" style={{ gap: 6, columnGap: 18 }}>
+              <label className={`row ironman ${career ? '' : 'off'}`} title={t('start.ironman.desc')}>
+                <input type="checkbox" disabled={!career} checked={career && ironman} onChange={(e) => setIronman(e.target.checked)} />
+                <b>{t('start.ironman')}</b>
+                <span className="muted">{t('start.ironman.short')}</span>
+              </label>
+              <label className="row" style={{ gap: 6, fontSize: '0.929rem' }}>
+                <input type="checkbox" checked={tips} onChange={(e) => setTips(e.target.checked)} />
+                {t('start.tutorial')}
+              </label>
+            </div>
             <button className="link" style={{ alignSelf: 'flex-start', fontSize: '0.857rem' }} onClick={() => setMore((m) => !m)}>
               {more ? '▾' : '▸'} {t('start.more')}
             </button>

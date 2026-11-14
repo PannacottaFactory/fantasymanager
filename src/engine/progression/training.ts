@@ -306,6 +306,24 @@ export function programFocus(state: GameState, c: Creature, cfg: GameConfig = DE
   return keys.some((k) => c.attributes[k] < attributeCap(c, k, cfg)) ? keys : [...ATTRIBUTE_KEYS];
 }
 
+/**
+ * A stable the manager left: the free points its creatures were holding are placed the AI way (by their default
+ * program, below the species cap). Mutates.
+ */
+export function placeHeldPoints(state: GameState, team: Team, cfg: GameConfig = DEFAULT_CONFIG) {
+  const rng = new Rng(deriveSeed(state.worldSeed, 'heldPoints', state.season, state.matchday, team.id));
+  for (const c of team.creatures) {
+    const g = c.growth;
+    if (!g?.freePoints) continue;
+    const weights = programWeights(c, team, defaultProgram(c, team, cfg), cfg);
+    for (let i = 0; i < g.freePoints; i++) {
+      const open = ATTRIBUTE_KEYS.filter((k) => c.attributes[k] < attributeCap(c, k, cfg) && weights[k] > 0);
+      if (open.length) c.attributes[rng.weighted(open, (k) => weights[k])]++;
+    }
+    g.freePoints = 0;
+  }
+}
+
 /** Places one of the player's free attribute points (in the program's attributes, below the species cap). */
 export function spendFreePoint(state: GameState, creatureId: string, key: AttributeKey, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const next = structuredClone(state);

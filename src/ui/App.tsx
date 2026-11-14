@@ -22,6 +22,7 @@ import { IntroModal } from './screens/game/IntroModal.tsx';
 import { WeekRecap } from './screens/game/WeekRecap.tsx';
 import { ScoutReveal } from './screens/game/ScoutReveal.tsx';
 import { BoardMeeting } from './screens/game/Board.tsx';
+import { JobCentre } from './screens/game/Career.tsx';
 import { SeasonRibbon } from './components/SeasonRibbon.tsx';
 import { ReputationChip } from './components/Reputation.tsx';
 import { DashboardScreen } from './screens/game/DashboardScreen.tsx';
@@ -256,6 +257,7 @@ export function App() {
       {game && !newGameOpen && !launch && <WeekRecap />}
       {game && !newGameOpen && !launch && <ScoutReveal />}
       {game && !newGameOpen && !launch && <BoardMeeting />}
+      {game && !newGameOpen && !launch && <JobCentre />}
       {game && !launch && !newGameOpen && <NewsTicker />}
       <Embers />
       <FxLayer />

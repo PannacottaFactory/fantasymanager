@@ -119,7 +119,8 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'request'; requestId: string; request: RequestKind; creatureId: string; name: string; wage?: number; asked?: number; fee?: number; fromTeam?: string }
   | { kind: 'requestOutcome'; request: RequestKind; creatureId: string; name: string; outcome: 'kept' | 'broken' | 'expired'; friends: string[] }
   | { kind: 'ultimatum'; need: number; of: number }
-  | { kind: 'ultimatumOver'; met: boolean; wins: number; need: number; of: number; reputation: number; frozen: number }
+  /** Career mode: `warning` = one more miss costs the job; `sacked` = this one did. */
+  | { kind: 'ultimatumOver'; met: boolean; wins: number; need: number; of: number; reputation: number; frozen: number; warning?: boolean; sacked?: boolean }
   | { kind: 'facilityDone'; facility: FacilityId; level: number }
   | { kind: 'friendLeft'; name: string; friends: string[] }
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
@@ -128,6 +129,10 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'medal'; creatureId: string; name: string; family: MedalFamily; tier: number; /** Other creatures that won the same medal that week. */ more?: { creatureId: string; name: string }[] }
   | { kind: 'bestiary'; seen: string[]; owned: string[]; rewards: BestiaryReward[] }
   | { kind: 'arenaIntro' }
+  // ——— Career mode ———
+  | { kind: 'sacked'; team: string; reason: SackReason; reputation: number }
+  | { kind: 'jobOffer'; offerId: string; teamId: string; team: string; division: number; reason: JobOfferReason; until: number }
+  | { kind: 'newJob'; teamId: string; team: string; division: number; from: string }
 );
 
 /** A transfer between two stables (null = free agent pool). */
@@ -430,6 +435,53 @@ export interface GameState {
   bestiary?: Bestiary;
   /** The player's training sessions (earned by playing matches). */
   sessions?: SessionState;
+  /** The manager (the player): reputation, jobs, career mode (absent in old saves: no career mode). */
+  manager?: ManagerState;
+}
+
+export type SackReason = 'ultimatum' | 'verdict';
+/** poach = a bigger stable wants the manager; vacancy = a stable parted with its manager mid-season; rescue = after a sacking. */
+export type JobOfferReason = 'poach' | 'vacancy' | 'rescue';
+
+/** A stable offers the manager a job. */
+export interface JobOffer {
+  id: string;
+  teamId: string;
+  reason: JobOfferReason;
+  season: number;
+  /** Last league matchday (inclusive) to accept; rescue offers do not lapse. */
+  until: number;
+}
+
+/** A stable the manager ran. */
+export interface ManagerJob {
+  teamId: string;
+  teamName: string;
+  from: { season: number; matchday: number };
+  /** Absent for the current job. */
+  to?: { season: number; matchday: number };
+  /** How it ended: sacked, or left for another stable. */
+  end?: 'sacked' | 'left';
+}
+
+export interface ManagerState {
+  /** Career mode: the board can sack the manager, other stables offer jobs. */
+  career: boolean;
+  /** One save, no going back (the UI keeps a single autosave). */
+  ironman: boolean;
+  /** 0–100: which stables would hire the manager. */
+  reputation: number;
+  /** Stables managed, oldest first; the last one is the current job (or the one just lost while unemployed). */
+  jobs: ManagerJob[];
+  offers: JobOffer[];
+  /** Sacked: no week can be played before accepting an offer. */
+  unemployed?: boolean;
+  /** Ultimatums missed in the current job this season (the last one before `sack.ultimatumStrikes` is a last warning). */
+  strikes?: number;
+  /** Set by the board during a week, handled at its end (`weeklyCareer`). */
+  pendingSack?: SackReason;
+  /** Reputation after each finished season (oldest first). */
+  trend?: number[];
 }
 
 export interface Bestiary {
@@ -449,10 +501,15 @@ export interface BestiaryReward {
 /** One finished season of the player's stable. */
 export interface SeasonRecord {
   season: number;
+  /** Stable managed that season (career mode: may change; absent in old saves = the current one). */
+  teamId?: string;
+  teamName?: string;
   division: number;
   position: number;
   points: number;
   cupWon: boolean;
+  /** The board's objective was met (absent in old saves). */
+  met?: boolean;
   /** Tournaments won that season (tournament definition ids: preseason, division, champions, marches…). */
   trophies?: string[];
 }

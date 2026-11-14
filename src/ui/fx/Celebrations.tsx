@@ -35,6 +35,8 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'transferIn':
     case 'ambition':
     case 'request':
+    case 'jobOffer':
+    case 'newJob':
       return 'big';
     case 'requestOutcome':
       return 'small';

@@ -7,6 +7,7 @@ import { divisionOf } from '../../../engine/league/divisions.ts';
 import { Gold } from '../../components/common.tsx';
 import type { StringKey } from '../../i18n/strings.ts';
 import { compName, divName, roundKey } from '../../competitions.ts';
+import { JobOfferActions } from './Career.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { locate } from '../../../engine/economy/market.ts';
@@ -85,6 +86,9 @@ function messageIcon(m: InboxMessage): string {
     case 'boardMood':
     case 'ultimatum':
     case 'ultimatumOver':
+    case 'sacked':
+    case 'jobOffer':
+    case 'newJob':
       return 'board';
     case 'facilityDone':
       return 'nav-facilities';
@@ -343,7 +347,7 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
     case 'ultimatumOver':
       return m.met
         ? { title: t('meet.ultMet.title'), body: t('meet.ultMet.speech', { reward: DEFAULT_CONFIG.club.board.ultimatum.reward }), tone: 'good' }
-        : { title: t('meet.ultMissed.title'), body: t('meet.ultMissed.speech', { rep: m.reputation, weeks: tr.weeks(m.frozen) }), tone: 'bad' };
+        : { title: t('meet.ultMissed.title'), body: t(m.sacked ? 'meet.ultMissed.sacked' : 'meet.ultMissed.speech', { rep: m.reputation, weeks: tr.weeks(m.frozen) }) + (m.warning ? ` ${t('meet.ultMissed.warning')}` : ''), tone: 'bad' };
     case 'facilityDone':
       return { title: t('msg.facilityDone.title', { facility: t(`fac.${m.facility}` as StringKey), n: m.level }), body: t('msg.facilityDone.body'), tone: 'good' };
     case 'death':
@@ -367,6 +371,16 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       return { title: t('msg.emergencySigning.title'), body: t('msg.emergencySigning.body', { names: m.names.join(', ') }), tone: 'bad' };
     case 'arenaIntro':
       return { title: t('msg.arenaIntro.title'), body: t('msg.arenaIntro.body'), tone: 'info' };
+    case 'sacked':
+      return { title: t('msg.sacked.title', { team: m.team }), body: t(`msg.sacked.${m.reason}`, { team: m.team, rep: m.reputation }), tone: 'bad' };
+    case 'jobOffer':
+      return {
+        title: t('msg.jobOffer.title', { team: m.team }),
+        body: [t(`msg.jobOffer.${m.reason}`, { team: m.team, div: divName(t, m.division) }), m.reason === 'rescue' ? '' : t('msg.jobOffer.until', { week: m.until })].filter(Boolean).join('\n'),
+        tone: 'info',
+      };
+    case 'newJob':
+      return { title: t('msg.newJob.title', { team: m.team }), body: t('msg.newJob.body', { team: m.team, from: m.from, div: divName(t, m.division) }), tone: 'good' };
     case 'medal':
       if (m.more?.length) {
         const names = [m.name, ...m.more.map((x) => x.name)];
@@ -406,6 +420,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
   const { act, openSheet, setScreen } = useGame.getState();
   const [error, setError] = useState<string | null>(null);
   if (m.kind === 'request') return <RequestActions game={game} m={m} />;
+  if (m.kind === 'jobOffer') return <JobOfferActions game={game} m={m} />;
   if (m.kind === 'offerReceived') {
     const open = game.offers.some((o) => o.id === m.offerId);
     const c = locate(game, m.creatureId)?.creature;

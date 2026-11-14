@@ -1,4 +1,5 @@
 import { ARENA_CONFIG } from './arena.ts';
+import { CAREER_CONFIG } from './career.ts';
 import { CLUB_CONFIG } from './club.ts';
 import { COLLECTION_CONFIG } from './collection.ts';
 import { COMBAT_CONFIG } from './combat.ts';
@@ -27,6 +28,7 @@ export const DEFAULT_CONFIG = {
   club: CLUB_CONFIG,
   collection: COLLECTION_CONFIG,
   arena: ARENA_CONFIG,
+  career: CAREER_CONFIG,
   identity: { styles: PLAY_STYLES, managers: MANAGERS, difficulties: DIFFICULTIES },
 };
 

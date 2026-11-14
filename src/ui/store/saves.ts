@@ -35,6 +35,9 @@ export interface SlotMeta {
   division: number;
   position: number;
   difficulty: DifficultyId;
+  /** Career mode / Ironman (absent in older summaries). */
+  career?: boolean;
+  ironman?: boolean;
   /** When it was last saved (ms since 1970). */
   savedAt: number;
 }
@@ -70,6 +73,8 @@ function metaOf(state: GameState, slot: SlotId, savedAt: number): SlotMeta {
     division,
     position: standings(state, division).findIndex((r) => r.teamId === me.id) + 1,
     difficulty: state.difficulty ?? 'normal',
+    career: !!state.manager?.career,
+    ironman: !!state.manager?.ironman,
     savedAt,
   };
 }

@@ -103,5 +103,6 @@ export function checkAmbitions(s: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
 export function recordSeason(s: GameState, division: number, position: number, points: number, trophies: string[] = []) {
   s.career ??= [];
   if (s.career.some((r) => r.season === s.season)) return;
-  s.career.push({ season: s.season, division, position, points, cupWon: s.cup.winner === s.playerTeamId, trophies });
+  const team = s.teams.find((t) => t.id === s.playerTeamId);
+  s.career.push({ season: s.season, teamId: s.playerTeamId, teamName: team?.name, division, position, points, cupWon: s.cup.winner === s.playerTeamId, trophies });
 }
