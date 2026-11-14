@@ -1040,7 +1040,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .dash-hero { display: flex; align-items: center; gap: 16px; }
 .dash-hero h2 { font-size: var(--fs-xl); color: var(--accent); margin: 0 0 2px; }
 .dash-rank { display: flex; flex-direction: column; align-items: center; padding: 6px 16px; border-left: 1px solid var(--border); }
-.dash-rank b { font: 700 var(--fs-2xl) var(--font-mono); color: var(--gold); line-height: 1; }
+.dash-rank b { font: 700 var(--fs-2xl) var(--font-mono); color: var(--text); line-height: 1; }
 .dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; align-items: start; }
 .dash-card { display: flex; flex-direction: column; gap: 8px; animation: fadein 0.4s ease-out both; }
 .dash-grid > :nth-child(2) { animation-delay: 0.05s; } .dash-grid > :nth-child(3) { animation-delay: 0.1s; }
@@ -1119,10 +1119,10 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 
 /* ——— First steps ——— */
 .first-steps { border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border)); background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%); animation: fadein 0.4s ease-out both; }
-.first-steps.done { border-color: var(--gold); }
+.first-steps.done { border-color: var(--accent); }
 .fs-trophy { font-size: var(--fs-2xl); }
 .fs-bar { width: 140px; height: 6px; border-radius: var(--r-sm); background: var(--panel-3); overflow: hidden; }
-.fs-bar i { display: block; height: 100%; background: var(--gold); transition: width 0.6s cubic-bezier(.2, .8, .2, 1); }
+.fs-bar i { display: block; height: 100%; background: var(--accent); transition: width 0.6s cubic-bezier(.2, .8, .2, 1); }
 .fs-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 4px 16px; }
 .fs-list li { display: flex; align-items: center; gap: 10px; padding: 5px 6px; border-radius: var(--r-sm); font-size: var(--fs-body-sm); }
 .fs-list li.next { background: color-mix(in srgb, var(--accent) 10%, transparent); }
@@ -2984,13 +2984,9 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .sess-coach { font-size: var(--fs-sm); }
 /* The call to action: gold, with a light sweeping across. */
 .session-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px; padding: 12px 28px; border-radius: var(--r-lg); cursor: pointer;
-  font: 700 var(--fs-base) var(--font-title); letter-spacing: 0.03em; color: #1a1408; border: 1px solid color-mix(in srgb, var(--gold) 80%, #fff);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 70%, #fff), var(--gold) 55%, color-mix(in srgb, var(--gold) 75%, #000));
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--gold) 30%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.5); transition: transform 0.15s, box-shadow 0.15s; }
-.session-go::after { content: ''; position: absolute; top: 0; bottom: 0; width: 40%; left: -60%; transform: skewX(-20deg);
-  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent); animation: sess-sweep 2.8s ease-in-out 1; }
-@keyframes sess-sweep { 0%, 55% { left: -60%; } 100% { left: 130%; } }
-.session-go:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 28px color-mix(in srgb, var(--gold) 40%, transparent), inset 0 1px 0 rgb(255 255 255 / 0.5); }
+  font: 700 var(--fs-base) var(--font-title); letter-spacing: 0.03em; color: var(--accent-text); border: 1px solid var(--accent);
+  background: var(--accent); transition: transform 0.15s, box-shadow 0.15s, background 0.15s; }
+.session-go:hover:not(:disabled) { transform: translateY(-1px); background: var(--accent-strong); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 30%, transparent); }
 .session-go:active:not(:disabled) { transform: scale(0.98); }
 .session-go:disabled { cursor: default; color: var(--muted); background: var(--panel); border-color: var(--border); box-shadow: none; font-family: inherit; font-weight: 600; }
 .session-go:disabled::after { display: none; }
