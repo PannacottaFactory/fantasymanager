@@ -150,6 +150,10 @@ function items(tr: Translator, game: GameState): Item[] {
     const d = ticketDelta(game);
     add('club', tier === 'euphoric' || tier === 'enthusiastic' ? 'good' : tier === 'loyal' ? 'neutral' : tier === 'grumbling' ? 'warn' : 'bad', t('ticker.fans', { tier: t(`fans.tier.${tier}`), d: `${d >= 0 ? '+' : '−'}${Math.abs(d)}` }), 'fans');
   }
+  for (const r of game.requests ?? []) {
+    if (r.status === 'open') add('squad', 'warn', t('ticker.request', { name: r.name, what: t(`req.note.${r.kind}`) }), 'nav-squad');
+    if (r.status === 'promised') add('squad', 'neutral', t('ticker.promise', { name: r.name, starts: r.starts ?? 0, need: DEFAULT_CONFIG.club.requests.playtime.need }), 'nav-squad');
+  }
   const ult = game.board.ultimatum;
   if (ult) add('club', 'bad', t('ticker.ultimatum', { wins: ult.wins, need: ult.need, left: ult.of - ult.played }), 'board');
   if (game.board.frozen) add('club', 'bad', t('recruit.frozen', { weeks: tr.weeks(game.board.frozen) }), 'board');

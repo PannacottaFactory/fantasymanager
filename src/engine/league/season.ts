@@ -2,6 +2,7 @@
  * Season flow (pure): create a world, play a week (league matchday or cup round), move to the next season.
  * Every function returns a NEW GameState; nothing reads the clock or Math.random.
  */
+import { recordLineup, seasonRequests, weeklyRequests } from '../club/requests.ts';
 import { fansDrift, moveFans, weeklyFans } from '../club/fans.ts';
 import type { TeamCrest } from '../../data/crest.ts';
 import { checkAmbitions, recordSeason } from '../club/ambitions.ts';
@@ -414,6 +415,8 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
   }
   if (met.length) updateBestiary(next, met, cfg);
   weeklyRelations(next, starters, cfg);
+  const mine = starters.get(next.playerTeamId);
+  if (mine) recordLineup(next, mine, cfg);
   weeklyBoard(next, played.map((p) => p.fixture), cfg);
   weeklyFans(next, played.map((p) => p.fixture), cfg);
   return played;
@@ -476,6 +479,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   contractWarning(next, cfg);
   weeklyBoardStanding(next, cfg);
   fansDrift(next, cfg);
+  weeklyRequests(next, cfg);
 
   next.matchday++;
   // From now on the weather counts: the player is told once.
@@ -639,6 +643,7 @@ export function startNextSeason(state: GameState, cfg: GameConfig = DEFAULT_CONF
   }
   startCup(next, cfg);
   startTournaments(next, champions, cfg);
+  seasonRequests(next, cfg);
   snapshotSeasonStart(next, cfg);
   pushMessage(next, { kind: 'newSeason' });
   newSeasonObjective(next, cfg);

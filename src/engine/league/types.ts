@@ -116,6 +116,8 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'boardWarning'; confidence: number }
   | { kind: 'boardMood'; from: BoardMood; to: BoardMood; confidence: number }
   | { kind: 'fansMood'; from: FansTier; to: FansTier; mood: number }
+  | { kind: 'request'; requestId: string; request: RequestKind; creatureId: string; name: string; wage?: number; asked?: number; fee?: number; fromTeam?: string }
+  | { kind: 'requestOutcome'; request: RequestKind; creatureId: string; name: string; outcome: 'kept' | 'broken' | 'expired'; friends: string[] }
   | { kind: 'ultimatum'; need: number; of: number }
   | { kind: 'ultimatumOver'; met: boolean; wins: number; need: number; of: number; reputation: number; frozen: number }
   | { kind: 'facilityDone'; facility: FacilityId; level: number }
@@ -239,6 +241,39 @@ export interface Coach {
 export type ObjectiveId = 'title' | 'promotion' | 'topHalf' | 'midTable' | 'survive';
 
 export type BoardMood = 'delighted' | 'content' | 'uneasy' | 'angry';
+
+export type RequestKind = 'playtime' | 'raise' | 'leave';
+export type RequestChoice = 'promise' | 'refuse' | 'list' | 'accept' | 'compromise' | 'sell' | 'raise';
+
+/** A star of the player's stable asks for something (one open at a time, a few per season). */
+export interface CreatureRequest {
+  id: string;
+  kind: RequestKind;
+  creatureId: string;
+  name: string;
+  season: number;
+  /** League matchday it was asked. */
+  matchday: number;
+  /** Last matchday to answer (silence = refusal). */
+  until: number;
+  status: 'open' | 'promised' | 'answered' | 'kept' | 'broken' | 'expired';
+  choice?: RequestChoice;
+  /** Raise: wage now and wage asked. */
+  wage?: number;
+  asked?: number;
+  /** Leave: the stable courting it and its fee. */
+  fromTeamId?: string;
+  fee?: number;
+  /** Playing-time promise: matches played since, starts among them. */
+  seen?: number;
+  starts?: number;
+}
+
+/** One match of the player's stable: who started, who was fit. */
+export interface LineupRecord {
+  starters: string[];
+  available: string[];
+}
 
 export type FansTier = 'euphoric' | 'enthusiastic' | 'loyal' | 'grumbling' | 'furious';
 
@@ -369,6 +404,14 @@ export interface GameState {
   /** This season's other knockout competitions (pre-season, division cups, Champions Cup, invitationals). */
   tournaments: Tournament[];
   board: BoardState;
+  /** Requests of the player's stars (absent in old saves: none). */
+  requests?: CreatureRequest[];
+  /** Record (matches, rating sum ×10) of the player's creatures when the season started (great-season raises). */
+  recordBase?: Record<string, { m: number; r: number }>;
+  /** The player's creatures that had a great season last season. */
+  greatSeason?: string[];
+  /** The player's last matches: starters and fit creatures (playing-time requests). */
+  lineups?: LineupRecord[];
   /** The player's supporters (absent in old saves: usual mood). */
   fans?: FansState;
   facilities: Record<string, Facilities>;

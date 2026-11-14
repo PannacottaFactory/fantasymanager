@@ -45,6 +45,31 @@ export const CLUB_CONFIG = {
     /** Bonus paid when the objective is met (× division money). */
     bonus: 15000,
   },
+  /** Requests of the player's star creatures (see engine/club/requests.ts). */
+  requests: {
+    /** At most this many requests per season, at least `gapWeeks` league weeks apart, one open at a time. */
+    maxPerSeason: 3,
+    gapWeeks: 4,
+    /** The player's best `stars` creatures (by aptitude) may ask. */
+    stars: 4,
+    /** Weekly chance that a star with a reason speaks up. */
+    chance: 0.35,
+    /** League weeks to answer; silence counts as a refusal. */
+    answerWeeks: 2,
+    /** Few starts while fit in the last `window` matches of the stable → asks to play; a promise = `need` starts out of the next `of` matches. */
+    playtime: { window: 4, maxStarts: 1, minAvailable: 3, of: 3, need: 2, kept: 8, refused: -10, broken: -20, friendsBroken: -8, listed: -5 },
+    /** Wage below `below` × what it could ask now → asks for a raise; compromise = halfway. */
+    /**
+     * Asks for a raise after a great season (≥ `seasonMatches` matches, average rating ≥ `seasonRating`) or a great run
+     * this season (≥ `runMatches`, ≥ `runRating`), or when paid below `below` × what it could ask now. Asks
+     * max(its worth, wage × `factor`); compromise = halfway.
+     */
+    raise: { seasonMatches: 12, seasonRating: 6.8, runMatches: 8, runRating: 7, below: 0.8, factor: 1.25, accepted: 10, compromise: 3, refused: -15, friendsRefused: -5 },
+    /** Ambitious star (ambition ≥ `ambition`) courted by a bigger stable: fee × value; keeping it with a raise = wage × `raiseMult`. */
+    leave: { ambition: 12, feeMin: 1.1, feeMax: 1.35, raiseMult: 1.4, kept: 5, refused: -20, friendsRefused: -5 },
+    /** Player matches remembered for playing time. */
+    lineups: 6,
+  },
   /** The player's supporters (see engine/club/fans.ts). */
   fans: {
     start: 50,

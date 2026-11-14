@@ -32,7 +32,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
-| `npm run sim:board -- --worlds 10 --seasons 2` | board & supporters over seasons on autopilot: weeks per mood / tier, ultimatums met / missed, tickets, per difficulty |
+| `npm run sim:board -- --worlds 10 --seasons 2` | board, supporters & star requests over seasons on autopilot: weeks per mood / tier, ultimatums, tickets, requests per kind, per difficulty |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 
@@ -236,6 +236,17 @@ tests/       Vitest
   (`fansTicketFactor` in `ticketRevenue`, player only). Tiers (`tierOf`): euphoric ≥ 80, enthusiastic ≥ 60, loyal ≥ 40,
   grumbling ≥ 20, furious; a new tier = `fansMood` message + toast. UI `ui/components/Fans.tsx` (`FansMeter`, `FansPill`,
   `ticketDelta`): dashboard card, Finances KPI, week summary, ticker; icon `fans`. Measured in `sim:board` (normal ≈ tickets ×0.98 on average).
+- **Star requests** (`engine/club/requests.ts`, `cfg.club.requests`, `GameState.requests` / `lineups` / `recordBase` /
+  `greatSeason`): the player's best 4 (`starsOf`) may ask — **playtime** (fit in ≥ 3 of the last 4 matches, started ≤ 1;
+  `recordLineup` after each player match), **leave** (ambition ≥ 12, a bigger stable that can pay value × 1.1–1.35),
+  **raise** (great season: ≥ 12 matches at ≥ 6.8 average, or a run of ≥ 8 at ≥ 7 this season, or paid < 80 % of its
+  worth; asks max(worth, wage × 1.25)). `weeklyRequests` (league weeks, own RNG stream): ≤ 3 per season, 4 weeks apart,
+  one open at a time, once per creature per season, 35 % weekly chance; 2 weeks to answer, silence = refusal (`expired`).
+  `answerRequest(state, id, choice)` with `REQUEST_CHOICES` (playtime: promise / refuse / list; raise: accept /
+  compromise / refuse; leave: raise ×1.4 / sell / refuse). A promise = 2 starts in the next 3 matches the creature is fit
+  for: kept +8 morale, broken −20 and friends −8 (`requestOutcome` message). Measured in `sim:board` (≈ 1–1.5 per season
+  on autopilot). UI `screens/game/Requests.tsx`: choices with their consequence in the Journal (`RequestActions`), the
+  answer once given, `RequestNote` in the creature sheet; toast, ticker, help.
 - **Scouts** (`economy.scouting`): sent straight from every recruitment card / row (`ScoutSend` in `RecruitScreen.tsx`,
   icon flies to the « Recruteurs » tab: `ui/fx/scoutFlight.ts`; refused when busy, own or already known ≥ 90 → `known`).
   A creature report stores `before` (knowledge) + `verdict` from the estimates only (`scoutVerdict`: gem = potential ≥

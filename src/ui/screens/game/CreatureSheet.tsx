@@ -2,6 +2,7 @@
  * Creature sheet inside a league game: the creature modal plus what the manager can do with it
  * (contract, sale, release for their own; offer or signing and scouting for the others).
  */
+import { RequestNote } from './Requests.tsx';
 import { renameCreature } from '../../../engine/team/rename.ts';
 import { useState } from 'react';
 import type { AttributeKey } from '../../../data/attributes.ts';
@@ -284,6 +285,7 @@ function Sheet({ id }: { id: string }) {
   );
   const footer = (
     <div className="stack sheet-footer" style={{ gap: 10 }}>
+      {own && <RequestNote game={game} creatureId={creature.id} />}
       {own && (
         <div className="market-panel">
           <TrainingRow game={game} creature={creature} />

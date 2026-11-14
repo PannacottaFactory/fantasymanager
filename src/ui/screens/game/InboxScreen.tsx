@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { RequestActions } from './Requests.tsx';
 import { playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -36,6 +37,9 @@ function messageIcon(m: InboxMessage): string {
   switch (m.kind) {
     case 'death':
       return 'memorial';
+    case 'request':
+    case 'requestOutcome':
+      return 'nav-squad';
     case 'recovered':
       return 'fac-infirmary';
     case 'tired':
@@ -123,6 +127,8 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'friendLeft':
     case 'relation':
     case 'medal':
+    case 'request':
+    case 'requestOutcome':
       return 'squad';
     case 'seasonEnd':
     case 'seasonPrize':
@@ -298,6 +304,20 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       };
     case 'boardWarning':
       return { title: t('msg.boardWarning.title'), body: t('msg.boardWarning.body', { c: m.confidence }), tone: 'bad' };
+    case 'request': {
+      const team = m.fromTeam ?? '';
+      return {
+        title: t(`req.title.${m.request}`, { name: m.name }),
+        body: t(`req.body.${m.request}`, { name: m.name, team, fee: tr.money(m.fee ?? 0), wage: tr.money(m.wage ?? 0), asked: tr.money(m.asked ?? 0) }),
+        tone: 'info',
+      };
+    }
+    case 'requestOutcome':
+      return {
+        title: t(`req.out.${m.outcome}.title`, { name: m.name }),
+        body: `${t(`req.out.${m.outcome}.body`, { name: m.name })}${m.friends.length ? `\n${t('req.out.friends', { names: m.friends.join(', ') })}` : ''}`,
+        tone: m.outcome === 'kept' ? 'good' : 'bad',
+      };
     case 'fansMood': {
       const better = FANS_RANK[m.to] < FANS_RANK[m.from];
       return {
@@ -385,6 +405,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
   const { t, money } = tr;
   const { act, openSheet, setScreen } = useGame.getState();
   const [error, setError] = useState<string | null>(null);
+  if (m.kind === 'request') return <RequestActions game={game} m={m} />;
   if (m.kind === 'offerReceived') {
     const open = game.offers.some((o) => o.id === m.offerId);
     const c = locate(game, m.creatureId)?.creature;

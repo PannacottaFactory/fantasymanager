@@ -1,6 +1,7 @@
 /**
  * The board and the supporters over whole seasons, the player's stable on autopilot: weeks spent in each board mood,
- * ultimatums (met / missed), confidence at the end of the season; supporters' tiers and average ticket multiplier.
+ * ultimatums (met / missed), confidence at the end of the season; supporters' tiers and average ticket multiplier;
+ * star requests per season by kind (unanswered on autopilot).
  *   npm run sim:board -- --worlds 6 --seasons 2
  */
 import { DIFFICULTY_IDS } from '../data/config/identity.ts';
@@ -26,6 +27,7 @@ for (const d of DIFFICULTY_IDS) {
   let played = 0;
   const fans: Record<FansTier, number> = { euphoric: 0, enthusiastic: 0, loyal: 0, grumbling: 0, furious: 0 };
   let tickets = 0;
+  const requests: Record<string, number> = {};
   for (let w = 0; w < WORLDS; w++) {
     let g = newGame({ seed: `board-${w}`, teamName: 'Test', lang: 'en', difficulty: d });
     for (let s = 0; s < SEASONS; s++) {
@@ -40,6 +42,7 @@ for (const d of DIFFICULTY_IDS) {
         for (const m of g.inbox) {
           if (seen.has(m.id)) continue;
           if (m.kind === 'ultimatum') issued++;
+          if (m.kind === 'request') requests[m.request] = (requests[m.request] ?? 0) + 1;
           if (m.kind === 'ultimatumOver') {
             if (m.met) met++;
             else missed++;
@@ -69,4 +72,6 @@ for (const d of DIFFICULTY_IDS) {
   );
   const fansShare = (Object.keys(fans) as FansTier[]).map((k) => `${k} ${Math.round((fans[k] / total) * 100)} %`).join(' · ');
   console.log(`        fans: ${fansShare} | tickets ×${(tickets / total).toFixed(2)} on average`);
+  const req = Object.entries(requests).map(([k, v]) => `${k} ${(v / n).toFixed(2)}`).join(' · ') || 'none';
+  console.log(`        star requests per season: ${req}`);
 }

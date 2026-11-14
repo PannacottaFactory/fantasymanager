@@ -34,7 +34,10 @@ function momentOf(m: InboxMessage): Moment | null {
       return m.rewards.length ? 'big' : m.owned.length ? 'small' : null;
     case 'transferIn':
     case 'ambition':
+    case 'request':
       return 'big';
+    case 'requestOutcome':
+      return 'small';
     case 'promoted':
     case 'cupWon':
       return 'huge';
@@ -126,6 +129,7 @@ export function Celebrations() {
   const open = (m: InboxMessage) => {
     const id = creatureOf(m);
     if (m.kind === 'scoutReport' && m.verdict && id && locate(game, id)) useGame.getState().openReveal(m.id);
+    else if (m.kind === 'request') useGame.getState().setScreen('inbox');
     else if (id && locate(game, id)) useGame.getState().openSheet(id);
     else useGame.getState().setScreen('inbox');
   };
