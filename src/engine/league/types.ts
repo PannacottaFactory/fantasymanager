@@ -115,6 +115,7 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'boardVerdict'; objective: ObjectiveId; met: boolean; position: number; bonus: number; confidence: number }
   | { kind: 'boardWarning'; confidence: number }
   | { kind: 'boardMood'; from: BoardMood; to: BoardMood; confidence: number }
+  | { kind: 'fansMood'; from: FansTier; to: FansTier; mood: number }
   | { kind: 'ultimatum'; need: number; of: number }
   | { kind: 'ultimatumOver'; met: boolean; wins: number; need: number; of: number; reputation: number; frozen: number }
   | { kind: 'facilityDone'; facility: FacilityId; level: number }
@@ -239,6 +240,20 @@ export type ObjectiveId = 'title' | 'promotion' | 'topHalf' | 'midTable' | 'surv
 
 export type BoardMood = 'delighted' | 'content' | 'uneasy' | 'angry';
 
+export type FansTier = 'euphoric' | 'enthusiastic' | 'loyal' | 'grumbling' | 'furious';
+
+/** The player's supporters. */
+export interface FansState {
+  /** 0–100 (50 = usual). */
+  mood: number;
+  /** Wins (> 0) or defeats (< 0) in a row. */
+  streak: number;
+  /** Last tier announced. */
+  tier?: FansTier;
+  /** Mood after each of the last weeks with a match (oldest first). */
+  trend?: number[];
+}
+
 /** `need` wins out of the next `of` league matches of the player. */
 export interface Ultimatum {
   need: number;
@@ -354,6 +369,8 @@ export interface GameState {
   /** This season's other knockout competitions (pre-season, division cups, Champions Cup, invitationals). */
   tournaments: Tournament[];
   board: BoardState;
+  /** The player's supporters (absent in old saves: usual mood). */
+  fans?: FansState;
   facilities: Record<string, Facilities>;
   news: NewsItem[];
   // ——— Identities & difficulty ———

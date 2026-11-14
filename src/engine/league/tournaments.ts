@@ -3,6 +3,7 @@
  * of the top division) and invitationals (minimum reputation + entry fee). Each round is played in a midweek given by
  * its key (`cfg.league.tournaments`); rounds sharing a key are played the same week. Pure, mutating helpers.
  */
+import { moveFans } from '../club/fans.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import { teamStrength } from '../club/board.ts';
@@ -177,7 +178,10 @@ export function finishTournamentRound(state: GameState, t: Tournament, played: F
     t.winner = winner;
     awardTrophy(state, winner, { def: t.def, tournament: t.id, division: t.division }, cfg);
     if (t.kind !== 'preseason') addNews(state, { kind: 'cupWinner', team: team(state, winner).name, tournament: t.id }, cfg);
-    if (winner === state.playerTeamId) pushMessage(state, { kind: 'cupWon', prize, tournament: t.id });
+    if (winner === state.playerTeamId) {
+      pushMessage(state, { kind: 'cupWon', prize, tournament: t.id });
+      moveFans(state, cfg.club.fans.events.trophy, cfg);
+    }
   } else drawRound(state, t, cfg);
 }
 

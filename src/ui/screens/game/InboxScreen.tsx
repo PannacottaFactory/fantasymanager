@@ -75,6 +75,8 @@ function messageIcon(m: InboxMessage): string {
       return 'help-goal';
     case 'boardObjective':
     case 'boardVerdict':
+    case 'fansMood':
+      return 'fans';
     case 'boardWarning':
     case 'boardMood':
     case 'ultimatum':
@@ -141,6 +143,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
 }
 
 const MOOD_RANK = { delighted: 0, content: 1, uneasy: 2, angry: 3 } as const;
+const FANS_RANK = { euphoric: 0, enthusiastic: 1, loyal: 2, grumbling: 3, furious: 4 } as const;
 
 export function objectiveText(tr: Translator, o: ObjectiveId): string {
   return tr.t(`obj.${o}` as StringKey, { n: DEFAULT_CONFIG.league.promoted });
@@ -295,6 +298,14 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       };
     case 'boardWarning':
       return { title: t('msg.boardWarning.title'), body: t('msg.boardWarning.body', { c: m.confidence }), tone: 'bad' };
+    case 'fansMood': {
+      const better = FANS_RANK[m.to] < FANS_RANK[m.from];
+      return {
+        title: t('msg.fansMood.title', { tier: t(`fans.tier.${m.to}`) }),
+        body: t('msg.fansMood.body', { d: `${m.mood >= 50 ? '+' : '−'}${Math.abs(Math.round((DEFAULT_CONFIG.club.fans.tickets.min + (m.mood / 100) * (DEFAULT_CONFIG.club.fans.tickets.max - DEFAULT_CONFIG.club.fans.tickets.min) - 1) * 100))}` }),
+        tone: better ? 'good' : 'bad',
+      };
+    }
     case 'boardMood': {
       const up = MOOD_RANK[m.to] < MOOD_RANK[m.from];
       return {

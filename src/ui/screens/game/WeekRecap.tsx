@@ -2,6 +2,8 @@
  * End-of-week summary: the player's matches of the week, the league position, the money, the infirmary, the levels
  * gained, then what the next week holds. Built from the states at the start and at the end of the week.
  */
+import { FansMeter } from '../../components/Fans.tsx';
+import { fansOf } from '../../../engine/club/fans.ts';
 import { MoodPill, UltimatumPips } from './Board.tsx';
 import { moodOf } from '../../../engine/club/board.ts';
 import { isInjured } from '../../../engine/creature/derived.ts';
@@ -114,6 +116,16 @@ export function WeekRecap() {
           </div>
           <MoodPill mood={moodOf(after.board.confidence)} />
           {after.board.ultimatum && <UltimatumPips game={after} />}
+        </section>
+        <section className="recap-block">
+          <h4>{t('fans.title')}</h4>
+          <FansMeter game={after} compact />
+          {Math.round(fansOf(after).mood) !== Math.round(fansOf(before).mood) && (
+            <span className={fansOf(after).mood > fansOf(before).mood ? 'good-text' : 'bad-text'} style={{ fontSize: '0.857rem' }}>
+              {fansOf(after).mood > fansOf(before).mood ? '▲ ' : '▼ '}
+              {t('fans.moved', { n: Math.abs(Math.round(fansOf(after).mood - fansOf(before).mood)) })}
+            </span>
+          )}
         </section>
         <section className="recap-block">
           <h4>{t('recap.money')}</h4>

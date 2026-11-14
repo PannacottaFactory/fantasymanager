@@ -45,6 +45,26 @@ export const CLUB_CONFIG = {
     /** Bonus paid when the objective is met (× division money). */
     bonus: 15000,
   },
+  /** The player's supporters (see engine/club/fans.ts). */
+  fans: {
+    start: 50,
+    /** Mood change per match of the player, at home / away. */
+    result: {
+      home: { koWin: 6, pointsWin: 4, pointsLoss: -2, koLoss: -5 },
+      away: { koWin: 4, pointsWin: 3, pointsLoss: -1, koLoss: -3 },
+    },
+    /** From the `from`-th win (loss) in a row, each match ± `bonus` more. */
+    streak: { from: 3, bonus: 2 },
+    /** One-off swings: a trophy, a promotion, a relegation. */
+    events: { trophy: 8, promoted: 12, relegated: -12 },
+    /** Each league week the mood moves this share of the way back towards `start`. */
+    drift: 0.06,
+    /** Home ticket revenue × (min + mood / 100 × (max − min)): ×0.7 furious … ×1.3 euphoric. */
+    tickets: { min: 0.7, max: 1.3 },
+    /** Tier thresholds (mood at or above); below `grumbling`: furious. */
+    tiers: { euphoric: 80, enthusiastic: 60, loyal: 40, grumbling: 20 },
+    trendWeeks: 12,
+  },
   relations: {
     /** Starters who fought together gain this much relation per match. */
     perMatch: 3,

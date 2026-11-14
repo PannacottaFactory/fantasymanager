@@ -2,6 +2,7 @@
  * Dashboard: the stable at a glance — next match, board, table position, squad status, best creatures,
  * money, recent results, messages and news. Every card leads to the screen that deals with it.
  */
+import { FansMeter } from '../../components/Fans.tsx';
 import { SessionCard } from './TrainingSession.tsx';
 import { weekText } from '../../season.ts';
 import { StableCrest } from '../../components/TeamCrest.tsx';
@@ -164,6 +165,15 @@ function Stars({ game }: { game: GameState }) {
           </li>
         ))}
       </ul>
+    </Card>
+  );
+}
+
+function Fans({ game }: { game: GameState }) {
+  const { t } = useT();
+  return (
+    <Card title={t('fans.title')} to="finances" link={t('nav.finances')} className="dash-fans">
+      <FansMeter game={game} />
     </Card>
   );
 }
@@ -417,6 +427,7 @@ export function DashboardScreen() {
         <SquadStatus game={game} />
         <MiniTable game={game} />
         <Money game={game} />
+        <Fans game={game} />
         <Stars game={game} />
         <Results game={game} />
         <Messages game={game} />

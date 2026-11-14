@@ -3,6 +3,8 @@
  * Every item has a category (icon + colour) and a tone: money gained in green, lost in red, alerts in amber.
  * Built from what the player can see (own club, tables, competitions, market, news). Display only.
  */
+import { fansOf, tierOf } from '../../engine/club/fans.ts';
+import { ticketDelta } from './Fans.tsx';
 import { moodOf } from '../../engine/club/board.ts';
 import { Fragment, type CSSProperties } from 'react';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
@@ -143,6 +145,11 @@ function items(tr: Translator, game: GameState): Item[] {
   const c = game.board.confidence;
   const mood = moodOf(c);
   add('club', mood === 'delighted' || mood === 'content' ? 'good' : mood === 'uneasy' ? 'warn' : 'bad', t('ticker.board', { c, mood: t(`board.mood.${mood}`) }), 'board');
+  {
+    const tier = tierOf(fansOf(game).mood);
+    const d = ticketDelta(game);
+    add('club', tier === 'euphoric' || tier === 'enthusiastic' ? 'good' : tier === 'loyal' ? 'neutral' : tier === 'grumbling' ? 'warn' : 'bad', t('ticker.fans', { tier: t(`fans.tier.${tier}`), d: `${d >= 0 ? '+' : '−'}${Math.abs(d)}` }), 'fans');
+  }
   const ult = game.board.ultimatum;
   if (ult) add('club', 'bad', t('ticker.ultimatum', { wins: ult.wins, need: ult.need, left: ult.of - ult.played }), 'board');
   if (game.board.frozen) add('club', 'bad', t('recruit.frozen', { weeks: tr.weeks(game.board.frozen) }), 'board');

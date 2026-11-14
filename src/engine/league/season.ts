@@ -2,6 +2,7 @@
  * Season flow (pure): create a world, play a week (league matchday or cup round), move to the next season.
  * Every function returns a NEW GameState; nothing reads the clock or Math.random.
  */
+import { fansDrift, moveFans, weeklyFans } from '../club/fans.ts';
 import type { TeamCrest } from '../../data/crest.ts';
 import { checkAmbitions, recordSeason } from '../club/ambitions.ts';
 import type { Lang } from '../../core/i18n.ts';
@@ -414,6 +415,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
   if (met.length) updateBestiary(next, met, cfg);
   weeklyRelations(next, starters, cfg);
   weeklyBoard(next, played.map((p) => p.fixture), cfg);
+  weeklyFans(next, played.map((p) => p.fixture), cfg);
   return played;
 }
 
@@ -473,6 +475,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   weeklyFacilities(next, cfg);
   contractWarning(next, cfg);
   weeklyBoardStanding(next, cfg);
+  fansDrift(next, cfg);
 
   next.matchday++;
   // From now on the weather counts: the player is told once.
@@ -574,7 +577,10 @@ export function playCupRound(state: GameState, playerMatch: MatchResult | null =
         next.cup.winner = winner;
         addNews(next, { kind: 'cupWinner', team: teamById(next, winner).name }, cfg);
         awardTrophy(next, winner, { def: 'shadow' }, cfg);
-        if (winner === next.playerTeamId) pushMessage(next, { kind: 'cupWon', prize });
+        if (winner === next.playerTeamId) {
+          pushMessage(next, { kind: 'cupWon', prize });
+          moveFans(next, cfg.club.fans.events.trophy, cfg);
+        }
       }
     } else drawCupRound(next, cfg);
   }
@@ -596,8 +602,14 @@ function promoteAndRelegate(next: GameState, cfg: GameConfig) {
     next.divisions[d + 1] = next.divisions[d + 1]!.filter((id) => !up.includes(id)).concat(down);
     addNews(next, { kind: 'promotion', teams: up.map((id) => teamById(next, id).name), division: d }, cfg);
     addNews(next, { kind: 'relegation', teams: down.map((id) => teamById(next, id).name), division: d + 1 }, cfg);
-    if (up.includes(next.playerTeamId)) pushMessage(next, { kind: 'promoted', division: d });
-    if (down.includes(next.playerTeamId)) pushMessage(next, { kind: 'relegated', division: d + 1 });
+    if (up.includes(next.playerTeamId)) {
+      pushMessage(next, { kind: 'promoted', division: d });
+      moveFans(next, cfg.club.fans.events.promoted, cfg);
+    }
+    if (down.includes(next.playerTeamId)) {
+      pushMessage(next, { kind: 'relegated', division: d + 1 });
+      moveFans(next, cfg.club.fans.events.relegated, cfg);
+    }
   }
 }
 

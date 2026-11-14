@@ -26,6 +26,7 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'arenaIntro':
     case 'gemNoticed':
     case 'boardMood':
+    case 'fansMood':
       return 'small';
     case 'scoutReport':
       return m.target !== 'creature' || !m.verdict ? null : m.verdict === 'gem' ? 'big' : 'small';
@@ -150,7 +151,7 @@ export function Celebrations() {
             }}
           >
             <span className="toast-icon">
-              {x.moment === 'sad' ? <UiIcon name="memorial" size="1.4em" /> : x.message.kind === 'medal' ? <Medal family={x.message.family} tier={x.message.tier} size="sm" /> : species ? <Crest speciesId={species} name={c?.name ?? ''} size={30} /> : x.message.kind === 'bestiary' ? <UiIcon name="bestiary" size="1.4em" /> : x.message.kind === 'boardMood' ? <BadgeIcon name="board" /> : x.moment === 'huge' ? <UiIcon name="help-competitions" size="1.4em" /> : '✦'}
+              {x.moment === 'sad' ? <UiIcon name="memorial" size="1.4em" /> : x.message.kind === 'medal' ? <Medal family={x.message.family} tier={x.message.tier} size="sm" /> : species ? <Crest speciesId={species} name={c?.name ?? ''} size={30} /> : x.message.kind === 'bestiary' ? <UiIcon name="bestiary" size="1.4em" /> : x.message.kind === 'boardMood' ? <BadgeIcon name="board" /> : x.message.kind === 'fansMood' ? <UiIcon name="fans" size="1.4em" /> : x.moment === 'huge' ? <UiIcon name="help-competitions" size="1.4em" /> : '✦'}
             </span>
             <span className="toast-text">
               <b>

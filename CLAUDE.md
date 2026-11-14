@@ -32,7 +32,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
-| `npm run sim:board -- --worlds 10 --seasons 2` | board over seasons on autopilot: weeks per mood, ultimatums met / missed, per difficulty |
+| `npm run sim:board -- --worlds 10 --seasons 2` | board & supporters over seasons on autopilot: weeks per mood / tier, ultimatums met / missed, tickets, per difficulty |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 
@@ -229,6 +229,13 @@ tests/       Vitest
   boardVerdict, after the reveals; the first objective opens after the welcome window), pre-match `UltimatumBanner`,
   board block in the week summary, budget chip in Recruitment, ticker. `sim:board` (autopilot, normal: ~22 % of weeks
   angry, 0.75 ultimatum / season). `node scripts/board-check.mjs <outDir> <url>` screenshots it.
+- **Supporters** (`engine/club/fans.ts`, `cfg.club.fans`, `GameState.fans` — absent in old saves = mood 50): mood 0–100
+  moved by every player match (`weeklyFans`, in `playFixtures`: home KO win +6 / win +4 / loss −2 / KO loss −5, away
+  +4 / +3 / −1 / −3; from the 3rd win or defeat in a row ±2 more), trophies +8, promotion +12, relegation −12
+  (`moveFans`), drifting 6 % back to 50 each league week (`fansDrift`). Home ticket revenue × 0.7 … 1.3
+  (`fansTicketFactor` in `ticketRevenue`, player only). Tiers (`tierOf`): euphoric ≥ 80, enthusiastic ≥ 60, loyal ≥ 40,
+  grumbling ≥ 20, furious; a new tier = `fansMood` message + toast. UI `ui/components/Fans.tsx` (`FansMeter`, `FansPill`,
+  `ticketDelta`): dashboard card, Finances KPI, week summary, ticker; icon `fans`. Measured in `sim:board` (normal ≈ tickets ×0.98 on average).
 - **Scouts** (`economy.scouting`): sent straight from every recruitment card / row (`ScoutSend` in `RecruitScreen.tsx`,
   icon flies to the « Recruteurs » tab: `ui/fx/scoutFlight.ts`; refused when busy, own or already known ≥ 90 → `known`).
   A creature report stores `before` (knowledge) + `verdict` from the estimates only (`scoutVerdict`: gem = potential ≥

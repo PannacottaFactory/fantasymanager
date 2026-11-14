@@ -3227,3 +3227,20 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 }
 .meeting-chair .ult-pips { flex-wrap: wrap; justify-content: center; }
 .meeting-chair .ult-pips b { font-family: inherit; font-size: 0.786rem; flex-basis: 100%; margin: 2px 0 0; }
+
+/* ——— Supporters: tier pill, mood gauge with trend, ticket effect ——— */
+.fans-meter { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.fans-top { display: flex; align-items: center; gap: 8px; }
+.fans-icon { color: var(--mood); display: inline-flex; }
+.fans-tickets { font-size: 0.857rem; font-weight: 700; white-space: nowrap; }
+.fans-bar { position: relative; padding-top: 14px; }
+.fans-bar .board-trend { height: 12px; }
+.fans-bar .board-trend polyline { stroke: color-mix(in srgb, var(--mood) 70%, var(--text)); }
+.fans-track { display: block; height: 8px; border-radius: 4px; background: var(--panel-3); overflow: hidden; }
+.fans-track i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, color-mix(in srgb, var(--mood) 55%, transparent), var(--mood));
+  transition: width 0.6s ease; }
+.fans-sub { font-size: 0.857rem; font-style: italic; }
+.kpi .fans-meter { margin-top: 4px; }
+.kpi .fans-bar { padding-top: 0; }
+.recap-block .fans-meter { margin-bottom: 4px; }
+.recap-block .fans-bar { padding-top: 0; }

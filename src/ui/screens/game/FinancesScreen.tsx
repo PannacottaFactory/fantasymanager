@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
+import { FansMeter } from '../../components/Fans.tsx';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
 import { creatureValue } from '../../../engine/economy/value.ts';
@@ -286,6 +287,10 @@ export function FinancesScreen() {
             <span className="kpi-sub">
               <Gold>{detail}</Gold>
             </span>
+          </div>
+          <div className="kpi" title={t('fans.title.hint')}>
+            <span className="kpi-label">{t('fans.title')}</span>
+            <FansMeter game={game} compact />
           </div>
           <div className="kpi" title={t('fin.reputation.title')}>
             <span className="kpi-label">{t('fin.reputation')}</span>

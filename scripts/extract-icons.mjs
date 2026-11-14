@@ -172,6 +172,7 @@ const UI = {
   'fac-training': 'arena',
   'fac-infirmary': 'health-normal',
   'fac-stands': 'ticket',
+  fans: 'party-flags',
   scout: 'spyglass',
   stamina: 'power-lightning',
   power: 'sword-wound',

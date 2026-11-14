@@ -1,4 +1,5 @@
 /** Treasury & ledger of every stable (pure; functions mutate the state they are given). */
+import { fansTicketFactor } from '../club/fans.ts';
 import { clamp } from '../../core/math.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import type { MatchOutcome } from '../combat/types.ts';
@@ -49,13 +50,14 @@ export function divisionMoney(state: GameState, teamId: string, cfg: GameConfig 
   return cfg.league.divisionMoney[divisionOf(state, teamId)] ?? 1;
 }
 
-/** Ticket revenue of a home match: reputations, division and stands. */
+/** Ticket revenue of a home match: reputations, division, stands and (the player's) supporters. */
 export function ticketRevenue(state: GameState, homeId: string, awayId: string, cfg: GameConfig = DEFAULT_CONFIG): number {
   const i = cfg.economy.income;
   const home = clubOf(state, homeId);
   const away = clubOf(state, awayId);
   const base = i.ticketsBase * (0.6 + (home.reputation / 100) * 0.8) * (1 + (away.reputation / 100) * 0.3);
-  return Math.round((base * divisionMoney(state, homeId, cfg) * ticketsFactor(state, homeId, cfg)) / 10) * 10;
+  const fans = homeId === state.playerTeamId ? fansTicketFactor(state, cfg) : 1;
+  return Math.round((base * divisionMoney(state, homeId, cfg) * ticketsFactor(state, homeId, cfg) * fans) / 10) * 10;
 }
 
 export function matchPrize(won: boolean, method: MatchOutcome['method'], cfg: GameConfig = DEFAULT_CONFIG): number {
