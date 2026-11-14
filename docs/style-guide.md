@@ -23,16 +23,20 @@ Verification: `node scripts/style-shots.mjs <dir>` takes 20 screens × 3 themes 
 | `--fs-xs` | 0.714rem (10 px) | badges, axis labels, corner marks |
 | `--fs-sm` | 0.786rem (11 px) | captions, table headers, chip text |
 | `--fs-md` | 0.857rem (12 px) | secondary text, hints, buttons « small » |
+| `--fs-body-sm` | 0.929rem (13 px) | dense lists, cards |
 | `--fs-base` | 1rem (14 px) | body, table cells, buttons |
 | `--fs-lg` | 1.143rem (16 px) | card and panel titles |
 | `--fs-xl` | 1.429rem (20 px) | page titles, key figures in a card |
-| `--fs-2xl` | 2rem (28 px) | hero figures (rank, treasury, rating) |
-| `--fs-3xl` | 2.857rem (40 px) | start screen title only |
+| `--fs-2xl` | 1.714rem (24 px) | hero figures (rank, treasury, rating) |
+| `--fs-3xl` | 2.286rem (32 px) | score digits, stage titles |
+| `--fs-display` | 2.857rem (40 px) | « VS », big reveal marks |
 
-- **Title font** (`--font-title`, Cinzel today): page titles and panel titles only — never numbers, buttons, table
+Sizes below 0.6rem (corner glyphs, dots) stay as they are; `clamp()` sizes (start title) too.
+
+- **Title font** (`--font-title`, Spectral SC): page titles and panel titles only — never numbers, buttons, table
   cells or labels. Panel titles in small caps are fine; nothing else is uppercased except `--fs-xs` labels
   (letter-spacing 0.06em).
-- **Body font** (`--font-body`, Inter): everything else, weights 400 / 600 / 700 only (500 is dropped).
+- **Body font** (`--font-body`, Inter): everything else, weights 400 / 600 / 700 only (500 is not bundled).
 - **Numbers**: tabular figures everywhere (`font-variant-numeric: tabular-nums`), right-aligned in tables.
 - Line height 1.45 for text, 1.15 for figures and titles.
 - Fonts are bundled (`@fontsource/*` imported in `src/ui/main.tsx`): no network request.
@@ -64,8 +68,8 @@ Verification: `node scripts/style-shots.mjs <dir>` takes 20 screens × 3 themes 
 - Highlight a panel (next match, an alert) with a **3px left border** in its role colour — never a full coloured
   background.
 - Dialogs: `--panel` + `--border-strong` + a stronger shadow; the overlay dims the page.
-- Ambient background: flat `--bg`. Film grain, vignette, radial glows and embers are decoration and go (or become
-  optional, see « Decisions »).
+- Ambient background: kept (embers, grain, glows, vignette — decided 2026-11-14); it stays behind the panels, which are
+  opaque.
 
 ## 5. Colour roles
 
@@ -96,10 +100,16 @@ yellow). Primary buttons use the accent; gold never fills a button.
 ## 7. Motion
 
 - Durations: 120 ms (hover, press), 200–300 ms (open, slide), up to 1.2 s for an event (level-up, trophy, KO).
-- Allowed loops: the live match (auras, which belong to the fight) and one « next match » cue. Everything else plays
-  once.
+- Allowed loops: the live match (auras, which belong to the fight), the next-match week in the season ribbon, the
+  tutorial ring, the news ticker and the ambient embers. Everything else plays once.
 - `:root[data-effects='reduced']` and `prefers-reduced-motion` turn every animation off.
 
 ## 8. Decisions taken
 
 - 2026-11-14: fonts bundled locally; theme tokens gathered at the top of `styles.css` (no visual change).
+- 2026-11-14: title font **Spectral SC** (chosen among Cinzel, Marcellus SC, Alegreya SC, Spectral SC); the ambient
+  background (embers, grain, glows, vignette) **stays as it is**; loops on management screens play once (kept: live
+  auras, the next-match week in the ribbon, the tutorial ring, the news ticker, the embers); every font size and radius
+  now uses the scale tokens (40 sizes → 10, 20 radii → 3 + pill); numbers no longer use the title font.
+- Next: one component of each kind (buttons, chips, tiles, tables, panel titles) rewritten in one place, the old
+  scattered rules removed; gold audit (money / rewards only); live match review.

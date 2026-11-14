@@ -479,7 +479,7 @@ class Glyph implements Effect {
     glow(ctx, this.at.x, y, size * 2.6, this.color);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = alpha;
-    ctx.font = `700 ${size}px Cinzel, 'Palatino Linotype', Georgia, serif`;
+    ctx.font = `700 ${size}px 'Spectral SC', 'Palatino Linotype', Georgia, serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 2;

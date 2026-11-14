@@ -84,8 +84,10 @@ tests/       Vitest
 - Commentary templates: `[tags, text]`; tags must all be present on the event; specific templates are favoured,
   recent ones avoided. Tests fail on any unfilled `{placeholder}`.
 - **Style guide**: `docs/style-guide.md` (type scale, spacing, radii, surfaces, colour roles, motion; decisions log). Every
-  theme token sits in the three blocks at the top of `styles.css`. Fonts are bundled (`@fontsource/inter`, `@fontsource/cinzel`
-  imported in `src/ui/main.tsx`, no Google Fonts). `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
+  theme token sits in the three blocks at the top of `styles.css`. Fonts are bundled (`@fontsource/inter`, `@fontsource/spectral-sc` — titles —
+  imported in `src/ui/main.tsx`, no Google Fonts). Font sizes / radii use the scale tokens (`--fs-*`, `--r-*`, `--sp-*`):
+  never a raw rem size or px radius in a new rule. Loops only in the live match, the ribbon's next week, the tutorial
+  ring, the ticker and the embers. `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
   effects off) + `node scripts/style-diff.mjs <before> <after>` (pixel diff) check what a CSS change did.
 - UI: three themes — night (black, default), dark (brown) and parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed).
