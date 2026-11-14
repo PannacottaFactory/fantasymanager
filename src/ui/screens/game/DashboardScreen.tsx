@@ -149,7 +149,7 @@ function Stars({ game }: { game: GameState }) {
       <ul className="dash-list">
         {top.map((c) => (
           <li key={c.id}>
-            <Crest speciesId={c.speciesId} name={c.name} size={28} />
+            <Crest speciesId={c.speciesId} name={c.name} size={28} level={levelOf(c)} />
             <span className="grow dash-who">
               <button className="link" onClick={() => useGame.getState().openSheet(c.id)}>
                 {c.name}

@@ -255,9 +255,7 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
                 <GemBadge game={game} c={r.c} />
               </span>
               <div className="rc-top">
-                <span className="rc-medal">
-                  <SpeciesIcon id={r.c.speciesId} size="1.9em" />
-                </span>
+                <Crest speciesId={r.c.speciesId} name={r.c.name} size={44} />
                 <div className="rc-who">
                   <b title={r.c.name}>{r.c.name}</b>
                   <span className="rc-species">

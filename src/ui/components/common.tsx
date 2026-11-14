@@ -74,36 +74,61 @@ export function Bar({ value, max, color, thin, title, ghost }: { value: number; 
   );
 }
 
+/** Metal of a creature's level frame (bronze 1–3, silver 4–6, gold 7–9, legend 10); iron when the level is not known. */
+export type FrameMetal = 'iron' | 'bronze' | 'silver' | 'gold' | 'legend';
+export const frameOfLevel = (level: number): Exclude<FrameMetal, 'iron'> => (level >= 10 ? 'legend' : level >= 7 ? 'gold' : level >= 4 ? 'silver' : 'bronze');
+const METAL: Record<FrameMetal, [string, string]> = {
+  iron: ['#8a8a92', '#3c3c43'],
+  bronze: ['#c98f5a', '#6e4524'],
+  silver: ['#c8d0d8', '#6a737c'],
+  gold: ['#f0c64a', '#8a6410'],
+  legend: ['#b48cf0', '#4b2d85'],
+};
+
+/** A hex colour mixed with white (share 0–1). */
+function lighten(hex: string, share: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (c: number) => Math.round(c + (255 - c) * share);
+  return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => mix(c).toString(16).padStart(2, '0')).join('')}`;
+}
+
 /**
- * Creature crest: a shield in the colours of its species' elements, carrying the creature's initials
- * (or the species' when no name is given).
+ * Creature emblem: its species icon, flat, in the colours of its elements (top to bottom), on a dark disc framed by
+ * a metal ring that tells its level (bronze, silver, gold, legend) — iron when the level is not known (other stables,
+ * the arena). Style guide: docs/style-guide.md § 6.
  */
-export function Crest({ speciesId, name, size = 24 }: { speciesId: string; name?: string; size?: number }) {
+export function Crest({ speciesId, name, size = 24, level }: { speciesId: string; name?: string; size?: number; level?: number }) {
   const { lang } = useT();
   const els = SPECIES[speciesId]?.elements ?? [];
-  const c1 = els[0] ? ELEMENTS[els[0]].color : '#777';
+  const c1 = els[0] ? ELEMENTS[els[0]].color : '#9a9aa2';
   const c2 = els[1] ? ELEMENTS[els[1]].color : c1;
   const sp = speciesName(speciesId, lang);
-  const label = initials(name ?? sp);
+  const metal: FrameMetal = level === undefined ? 'iron' : frameOfLevel(level);
+  const [m1, m2] = METAL[metal];
   const gid = `crest-${els.join('-') || 'none'}`;
   return (
-    <svg className="crest" width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={name ? `${name} (${sp})` : sp}>
+    <svg className={`crest metal-${metal}`} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={name ? `${name} (${sp})` : sp}>
       <title>{name ? `${name} — ${sp}` : sp}</title>
       <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="50%" stopColor={c1} />
-          <stop offset="50%" stopColor={c2} />
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={lighten(c1, 0.15)} />
+          <stop offset="1" stopColor={c2 === c1 ? c1 : c2} />
         </linearGradient>
+        <radialGradient id="crest-disc" cx="0.5" cy="0.4" r="0.6">
+          <stop offset="0" stopColor="#2a2420" />
+          <stop offset="1" stopColor="#0d0b0a" />
+        </radialGradient>
       </defs>
-      <path d="M2.5 2.5 H21.5 V11.5 C21.5 17.5 12 22.5 12 22.5 C12 22.5 2.5 17.5 2.5 11.5 Z" fill={`url(#${gid})`} stroke="rgb(0 0 0 / 0.45)" strokeWidth="1" />
-      <path d="M4.5 4.5 H19.5 V11.5 C19.5 16 12 20.2 12 20.2 C12 20.2 4.5 16 4.5 11.5 Z" fill="none" stroke="rgb(255 255 255 / 0.25)" strokeWidth="0.8" />
+      <circle cx="12" cy="12" r="11.2" fill={m2} />
+      <circle cx="12" cy="12" r="10.4" fill={m1} />
+      <circle cx="12" cy="12" r="9" fill="url(#crest-disc)" />
       {SPECIES_ICONS[speciesId] ? (
-        <svg x="5.2" y="4.6" width="13.6" height="13.6" viewBox={ICON_VIEWBOX} className="crest-icon">
-          <g dangerouslySetInnerHTML={{ __html: SPECIES_ICONS[speciesId]! }} />
+        <svg x="5" y="5" width="14" height="14" viewBox={ICON_VIEWBOX} className="crest-icon">
+          <g fill={`url(#${gid})`} dangerouslySetInnerHTML={{ __html: SPECIES_ICONS[speciesId]!.replaceAll('fill="currentColor"', '') }} />
         </svg>
       ) : (
-        <text x="12" y="14.2" textAnchor="middle" className="crest-text">
-          {label}
+        <text x="12" y="15" textAnchor="middle" className="crest-text">
+          {initials(name ?? sp)}
         </text>
       )}
     </svg>

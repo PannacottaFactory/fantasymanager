@@ -92,7 +92,7 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
             }}
           >
             <button className="grow-head link-plain" onClick={() => useGame.getState().openSheet(g.c.id)}>
-              <Crest speciesId={g.c.speciesId} name={g.c.name} size={30} />
+              <Crest speciesId={g.c.speciesId} name={g.c.name} size={30} level={levelOf(g.c)} />
               <span className="grow-name">
                 <b>{g.c.name}</b>
                 <small className="muted">{t('lvl.short', { n: g.lv1 })}</small>

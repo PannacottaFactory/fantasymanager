@@ -94,7 +94,9 @@ tests/       Vitest
   per-viewer prefs (theme, language, commentary speed).
 - **Icons**: species & role icons from game-icons.net (CC BY 3.0, credited in Help), extracted by
   `node scripts/extract-icons.mjs` into `src/ui/icons/gameIcons.ts` (edit the lists there when adding a species
-  or role); `<SpeciesIcon>` (element colour), `<RoleIcon>`, `<RoleLabel>`; the crest shows the species icon.
+  or role); `<SpeciesIcon>` (element colour), `<RoleIcon>`, `<RoleLabel>`; the creature emblem `<Crest level?>` = flat species icon in its
+  elements' colours on a dark disc, metal ring by level (bronze / silver / gold / legend; iron when unknown — only the
+  player's own creatures pass `level`, never in the arena).
 - **Text size**: every font size is in `rem` (base 14 px × `--text-scale`); the viewer picks normal / large (default,
   ×1.15) / extra-large (×1.3) with the « Aa » button. Never write font sizes in px (CSS) or numbers (inline styles).
 - **i18n**: engine text functions take a `lang` (`Commentator(…, cfg, lang)`, `buildReport(…, cfg, lang)`,

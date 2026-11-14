@@ -15,6 +15,7 @@ import { SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
 import { TrainingGuide } from './TrainingGuide.tsx';
 import { TrainingSession } from './TrainingSession.tsx';
 import { maxLevelOf } from '../../../engine/progression/levels.ts';
+import { levelOf } from '../../../engine/progression/levels.ts';
 
 export function ProgramSelect({ value, onChange }: { value: ProgramId; onChange: (p: ProgramId) => void }) {
   const { t } = useT();
@@ -46,7 +47,7 @@ export function TrainingScreen() {
       sort: (c) => c.name,
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
-          <Crest speciesId={c.speciesId} name={c.name} />
+          <Crest speciesId={c.speciesId} name={c.name} level={levelOf(c)} />
           <button className="link" onClick={() => openSheet(c.id)}>
             {c.name}
           </button>

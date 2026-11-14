@@ -77,7 +77,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
     <Modal
       title={
         <span className="row">
-          <Crest speciesId={sp.id} name={creature.name} size={30} />
+          <Crest speciesId={sp.id} name={creature.name} size={30} level={known ? levelOf(creature) : undefined} />
           {onRename ? <RenameTitle name={creature.name} onRename={onRename} /> : creature.name}
         </span>
       }

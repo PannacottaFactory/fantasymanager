@@ -682,7 +682,8 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .role-icon.role-support { color: var(--role-support); }
 .role-icon.role-caster { color: var(--role-caster); }
 .role-icon.role-skirmisher { color: var(--role-skirmisher); }
-.crest-icon { color: rgb(16 12 8 / 0.82); }
+.crest-icon { filter: drop-shadow(0 0.5px 0.5px rgb(0 0 0 / 0.6)); }
+.crest.metal-legend { filter: drop-shadow(0 0 3px color-mix(in srgb, #b48cf0 70%, transparent)); }
 .species-icon { display: inline-flex; vertical-align: middle; filter: brightness(1.25) drop-shadow(0 1px 1px rgb(0 0 0 / 0.35)); }
 :root[data-theme="parchment"] .species-icon { filter: brightness(0.85); }
 .species-icon .gicon { vertical-align: 0; }
@@ -1975,15 +1976,18 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 .ccard.frame-legend::before { content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: var(--r-lg);
   background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.18) 45%, transparent 60%); background-size: 250% 100%; animation: ccard-shine 4s ease-in-out 1; }
 @keyframes ccard-shine { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+/* Card illustration (style guide § 6): the element's light from above, a glow below, the icon light with a halo. */
 .ccard-art { position: relative; display: grid; place-items: center; height: 128px; overflow: hidden;
-  background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--c1) 55%, transparent), transparent 65%),
-    linear-gradient(135deg, color-mix(in srgb, var(--c1) 45%, #0b0a0c), color-mix(in srgb, var(--c2) 40%, #0b0a0c));
+  background: radial-gradient(60% 40% at 50% 100%, color-mix(in srgb, var(--c1) 30%, transparent), transparent),
+    radial-gradient(120% 90% at 50% 15%, color-mix(in srgb, var(--c1) 50%, #0d0b0a), color-mix(in srgb, var(--c2) 45%, #0d0b0a) 60%, #0d0b0a);
   border-bottom: 1px solid color-mix(in srgb, var(--metal) 60%, transparent); }
 .ccard-art::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgb(0 0 0 / 0.45)); pointer-events: none; }
 .ccard-glow { position: absolute; width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--c1) 70%, #fff 10%), transparent 70%);
   opacity: 0.45; filter: blur(8px); animation: ccard-breathe 4s ease-in-out 1; }
 @keyframes ccard-breathe { 50% { transform: scale(1.12); opacity: 0.65; } }
-.ccard-icon { position: relative; z-index: 1; filter: drop-shadow(0 4px 8px rgb(0 0 0 / 0.6)) brightness(1.15); transition: transform 0.25s ease; }
+.ccard-icon { position: relative; z-index: 1; transition: transform 0.25s ease;
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.6)) drop-shadow(0 0 14px color-mix(in srgb, var(--c1) 55%, transparent)); }
+.ccard-icon .species-icon { color: #fff8e8 !important; filter: none; }
 .ccard:hover .ccard-icon { transform: scale(1.08); }
 .ccard-ovr { position: absolute; top: 8px; left: 10px; z-index: 2; display: flex; flex-direction: column; align-items: center; line-height: 1; color: #fff; text-shadow: 0 2px 4px rgb(0 0 0 / 0.8); }
 .ccard-ovr b { font: 800 var(--fs-2xl) var(--font-body); font-variant-numeric: tabular-nums; }

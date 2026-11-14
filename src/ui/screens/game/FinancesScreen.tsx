@@ -14,6 +14,7 @@ import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { useGame } from '../../store/gameStore.ts';
+import { levelOf } from '../../../engine/progression/levels.ts';
 
 const INCOME: IncomeKind[] = ['tickets', 'sponsor', 'prizes', 'sales'];
 const EXPENSE: ExpenseKind[] = ['wages', 'staff', 'upkeep', 'medical', 'scouting', 'facilities', 'purchases', 'compensation', 'fees'];
@@ -223,7 +224,7 @@ export function FinancesScreen() {
       sort: (c) => c.name,
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
-          <Crest speciesId={c.speciesId} name={c.name} />
+          <Crest speciesId={c.speciesId} name={c.name} level={levelOf(c)} />
           <button className="link" onClick={() => useGame.getState().openSheet(c.id)}>
             {c.name}
           </button>

@@ -18,6 +18,7 @@ import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { useGame } from '../../store/gameStore.ts';
+import { levelOf } from '../../../engine/progression/levels.ts';
 
 interface Spin {
   /** Session number (a new show for each). */
@@ -146,6 +147,12 @@ function useReel(len: number, target: number, active: boolean, onEnd: () => void
 }
 
 function Show({ spin, phase, setPhase }: { spin: Spin; phase: Phase; setPhase: (p: Phase) => void }) {
+  const game = useGame((st) => st.game);
+  /** Level of one of the player's creatures (its frame on the roulette). */
+  const lvOf = (id: string) => {
+    const c = game ? playerTeam(game).creatures.find((x) => x.id === id) : undefined;
+    return c ? levelOf(c) : undefined;
+  };
   const { t, lang } = useT();
   const { result, pool, targets } = spin;
   const who = Math.max(0, pool.findIndex((p) => p.id === result.creatureId));
@@ -178,7 +185,7 @@ function Show({ spin, phase, setPhase }: { spin: Spin; phase: Phase; setPhase: (
       <div className={`reel-grid ${picked ? 'settled' : ''}`}>
         {pool.map((p, i) => (
           <span key={p.id} className={`reel-card ${!picked && i === litCreature ? 'lit' : ''} ${picked && i === who ? 'win' : ''}`}>
-            <Crest speciesId={p.speciesId} name={p.name} size={24} />
+            <Crest speciesId={p.speciesId} name={p.name} size={24} level={lvOf(p.id)} />
             <span className="reel-name">{p.name}</span>
           </span>
         ))}
@@ -207,7 +214,7 @@ function Show({ spin, phase, setPhase }: { spin: Spin; phase: Phase; setPhase: (
         {phase === 'done' && winner && (
           <div className="sess-result">
             <button className="sr-crest" onClick={() => useGame.getState().openSheet(winner.id)} title={t('sess.openSheet')}>
-              <Crest speciesId={winner.speciesId} name={winner.name} size={34} />
+              <Crest speciesId={winner.speciesId} name={winner.name} size={34} level={lvOf(winner.id)} />
             </button>
             <div className="sr-text">
               <button className="sr-who link" onClick={() => useGame.getState().openSheet(winner.id)} title={t('sess.openSheet')}>

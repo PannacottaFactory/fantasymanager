@@ -16,6 +16,7 @@ import { useGame } from '../../store/gameStore.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
+import { levelOf } from '../../../engine/progression/levels.ts';
 
 const VIEW_KEY = 'fm.squadView';
 
@@ -50,7 +51,7 @@ export function SquadScreen() {
       sort: (c) => c.name,
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
-          <Crest speciesId={c.speciesId} name={c.name} />
+          <Crest speciesId={c.speciesId} name={c.name} level={levelOf(c)} />
           <button className="link" onClick={() => useGame.getState().openSheet(c.id)}>
             {c.name}
           </button>

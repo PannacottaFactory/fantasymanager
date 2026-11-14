@@ -98,6 +98,12 @@ yellow). Primary buttons use the accent; gold never fills a button.
 - **Panel title**: `h3` in the title font at `--fs-base` (the small caps read larger), with an optional link « … → »
   on the right; a screen's title is the first panel's `h2` at `--fs-xl`.
 - **Bar / gauge**: height 6px, radius `--r-sm`, track `--panel-3`.
+- **Creature emblem** (`<Crest speciesId name size level?>`): the species icon, flat, in its elements' colours (top →
+  bottom), on a dark disc inside a metal ring: bronze levels 1–3, silver 4–6, gold 7–9, legend 10 (violet, a soft glow)
+  — iron when the level is not known (other stables, the arena: their level is hidden information). Only the player's
+  own creatures pass `level`. Same metals as the creature cards (`frameOfLevel`).
+- **Card illustration** (creature cards): the element's light from above, a glow below, the icon light (`#fff8e8`) with
+  a halo in the element's colour. Large formats only.
 
 ## 7. Motion
 
@@ -124,3 +130,5 @@ yellow). Primary buttons use the accent; gold never fills a button.
   with a parchment variant), `--on-gold` / `--on-good` (ink on a gold or green fill), `--bench`, `--role-*`. Remaining raw
   colours are deliberate: theme swatches, the effects palette of the live match, `#fff` / `#000` used in `color-mix`,
   and per-class category variables (`--tier`, `--comp`, `--ac`, `--metal`).
+- 2026-11-14: creatures (Steam roadmap step 2): the flat icon is kept (a medallion was not readable enough); level
+  frames and card illustrations as described in § 6. The old two-colour shield crest is gone.

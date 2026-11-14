@@ -16,13 +16,13 @@ import { fatigueColor, moraleColor, moraleKey } from '../format.ts';
 import { useT } from '../i18n/index.ts';
 import { RoleLabel, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { Medal } from './CreatureRecord.tsx';
-import { StageMark, Stars } from './common.tsx';
+import { frameOfLevel, StageMark, Stars } from './common.tsx';
 
 export type Selection = 'starter' | 'bench' | 'reserve';
 
 /** Metal of the frame by level. */
 export function frameOf(level: number): 'bronze' | 'silver' | 'gold' | 'legend' {
-  return level >= 10 ? 'legend' : level >= 7 ? 'gold' : level >= 4 ? 'silver' : 'bronze';
+  return frameOfLevel(level);
 }
 
 export function CreatureCard({ c, selection, onOpen, forSale }: { c: Creature; selection: Selection; onOpen: () => void; forSale?: boolean }) {

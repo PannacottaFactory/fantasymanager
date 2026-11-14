@@ -175,7 +175,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       sort: (c) => c.name,
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
-          <Crest speciesId={c.speciesId} name={c.name} />
+          <Crest speciesId={c.speciesId} name={c.name} level={levelOf(c)} />
           <button className="link" onClick={() => setOpenId(c.id)}>
             {c.name}
           </button>
@@ -359,7 +359,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         <Modal
           title={
             <span className="row">
-              <Crest speciesId={favCreature.speciesId} name={favCreature.name} size={28} /> {t('fav.pickTitle', { name: favCreature.name })}
+              <Crest speciesId={favCreature.speciesId} name={favCreature.name} size={28} level={levelOf(favCreature)} /> {t('fav.pickTitle', { name: favCreature.name })}
             </span>
           }
           onClose={() => setFavFor(null)}
