@@ -2801,6 +2801,11 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .lineup-head small { margin-left: auto; font: 600 var(--fs-xs) var(--font-body); text-transform: uppercase; letter-spacing: 0.08em; flex: none; }
 .prematch-lineups .lineup { gap: 3px; }
 .prematch-lineups .lineup-row { padding: 2px 6px; }
+/* The opponent's line-up is the mirror of the player's: crest on the right, name right-aligned, gauge filling leftwards. */
+.prematch-lineups .side-away .lineup-head, .prematch-lineups .side-away .lineup-row { flex-direction: row-reverse; }
+.prematch-lineups .side-away .lineup-head small { margin-left: 0; margin-right: auto; }
+.prematch-lineups .side-away .lineup-row .grow { text-align: right; }
+.prematch-lineups .side-away .lineup-row .bar { transform: scaleX(-1); }
 
 /* ——— Journal: folders · list by week · reading pane ——— */
 .journal { display: grid; grid-template-columns: 200px minmax(0, 1.25fr) minmax(340px, 1fr); gap: 14px; align-items: stretch;
