@@ -1,0 +1,105 @@
+# Fantasy Manager — style guide
+
+A sober management game, polished and readable: the eye goes to the data and the decisions, not the decoration.
+Every rule here is a token in `src/ui/styles.css` (`:root` and the theme blocks at the top); a component never
+writes a raw value the guide already names.
+
+Verification: `node scripts/style-shots.mjs <dir>` takes 20 screens × 3 themes from a fixed world;
+`node scripts/style-diff.mjs <before> <after>` shows what a change did, pixel by pixel.
+
+## 1. Principles
+
+1. **Data first.** Numbers, names and states carry the colour; frames and backgrounds stay quiet.
+2. **One way to do each thing.** One panel material, one button family, one chip, one table style.
+3. **Colour means something.** A colour is a role (interaction, money, status, competition), never decoration.
+4. **Motion answers something.** An animation follows an action or an event and stops; nothing loops on a
+   management screen except a single « it's your turn » cue.
+5. **Three themes, one design.** Night (default), Brown, Parchment differ only by their tokens.
+
+## 2. Typography
+
+| Token | Size (× 14 px × text scale) | Use |
+|---|---|---|
+| `--fs-xs` | 0.714rem (10 px) | badges, axis labels, corner marks |
+| `--fs-sm` | 0.786rem (11 px) | captions, table headers, chip text |
+| `--fs-md` | 0.857rem (12 px) | secondary text, hints, buttons « small » |
+| `--fs-base` | 1rem (14 px) | body, table cells, buttons |
+| `--fs-lg` | 1.143rem (16 px) | card and panel titles |
+| `--fs-xl` | 1.429rem (20 px) | page titles, key figures in a card |
+| `--fs-2xl` | 2rem (28 px) | hero figures (rank, treasury, rating) |
+| `--fs-3xl` | 2.857rem (40 px) | start screen title only |
+
+- **Title font** (`--font-title`, Cinzel today): page titles and panel titles only — never numbers, buttons, table
+  cells or labels. Panel titles in small caps are fine; nothing else is uppercased except `--fs-xs` labels
+  (letter-spacing 0.06em).
+- **Body font** (`--font-body`, Inter): everything else, weights 400 / 600 / 700 only (500 is dropped).
+- **Numbers**: tabular figures everywhere (`font-variant-numeric: tabular-nums`), right-aligned in tables.
+- Line height 1.45 for text, 1.15 for figures and titles.
+- Fonts are bundled (`@fontsource/*` imported in `src/ui/main.tsx`): no network request.
+
+## 3. Spacing and shape
+
+| Token | Value | Use |
+|---|---|---|
+| `--sp-1` | 4px | inside chips, icon ↔ text |
+| `--sp-2` | 8px | between related items, table cell padding (vertical) |
+| `--sp-3` | 12px | between controls, card padding (compact) |
+| `--sp-4` | 16px | panel padding, gap between cards |
+| `--sp-5` | 24px | between sections of a screen |
+| `--sp-6` | 32px | page margins on wide screens |
+
+| Token | Value | Use |
+|---|---|---|
+| `--r-sm` | 4px | inputs, small chips, bars |
+| `--r-md` | 8px | buttons, tiles, cards inside a panel |
+| `--r-lg` | 12px | panels, dialogs |
+| `--r-pill` | 999px | pills, toggles |
+| (50 %) | — | round icons, dots, avatars |
+
+## 4. Surfaces and depth
+
+- `--bg` the page; `--panel` a panel; `--panel-2` a tile or card inside a panel (filled, **no border**);
+  `--panel-3` hover / pressed.
+- Panels: `--panel` + 1px `--border` + one soft shadow (`--depth`). No gradient, no glow, no gilded edge.
+- Highlight a panel (next match, an alert) with a **3px left border** in its role colour — never a full coloured
+  background.
+- Dialogs: `--panel` + `--border-strong` + a stronger shadow; the overlay dims the page.
+- Ambient background: flat `--bg`. Film grain, vignette, radial glows and embers are decoration and go (or become
+  optional, see « Decisions »).
+
+## 5. Colour roles
+
+| Role | Tokens | Rule |
+|---|---|---|
+| Interaction | `--accent`, `--accent-strong`, `--accent-text` | links, selected tab / segment, focus ring, primary button |
+| Money & rewards | `--gold` | gold amounts (`<Money>`, `<Gold>`), trophies, medals, level-up rewards — nothing else |
+| Status | `--good`, `--bad`, `--warn`, `--info` | results, gains / losses, alerts; always with a word or icon, never colour alone |
+| Sides | `--home`, `--away` | the player vs the opponent (match, tables) |
+| Gauges | `--hp*`, `--stamina`, `--morale`, `--xp-color` | bars only |
+| Categories | `--tk-*`, `--comp`, `--viz-1..5` | competitions, news categories, charts (validated palette) |
+| Text | `--text`, `--muted`, `--faint` | three inks; labels and values never take a series colour |
+
+The accent and the gold are close hues: the accent is interaction (a muted brass), the gold is value (bright
+yellow). Primary buttons use the accent; gold never fills a button.
+
+## 6. Components (one each)
+
+- **Button**: `.btn` (neutral), `.btn.primary` (one per screen area: the main action), `.btn.ghost`,
+  `.btn.small`. Radius `--r-md`, no gradient, no shine animation.
+- **Chip / pill**: one `.chip` (radius `--r-pill`, `--fs-sm`, padding `2px 8px`), variants by role colour.
+- **Tile**: `--panel-2`, radius `--r-md`, padding `--sp-3`; big figure `--fs-xl`, label `--fs-sm` muted.
+- **Table**: header `--fs-sm` muted uppercase-free, rows separated by a 1px `--border` line, hover `--panel-3`,
+  numbers right-aligned.
+- **Panel title**: `h3` in the title font, `--fs-lg`, with an optional link « … → » on the right.
+- **Bar / gauge**: height 6px, radius `--r-sm`, track `--panel-3`.
+
+## 7. Motion
+
+- Durations: 120 ms (hover, press), 200–300 ms (open, slide), up to 1.2 s for an event (level-up, trophy, KO).
+- Allowed loops: the live match (auras, which belong to the fight) and one « next match » cue. Everything else plays
+  once.
+- `:root[data-effects='reduced']` and `prefers-reduced-motion` turn every animation off.
+
+## 8. Decisions taken
+
+- 2026-11-14: fonts bundled locally; theme tokens gathered at the top of `styles.css` (no visual change).

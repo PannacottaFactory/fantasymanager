@@ -1,4 +1,5 @@
-/* ——— Theme tokens ——— */
+/* ——— Theme tokens (every theme variable lives here; see docs/style-guide.md) ———
+   Brown (« dark ») is the base theme; night and parchment override it. */
 :root {
   --bg: #14110e;
   --panel: #1d1914;
@@ -30,10 +31,46 @@
   --a4: #8fd16a;
   --a5: #3fd68e;
   --shadow: 0 6px 24px rgb(0 0 0 / 0.45);
-  --radius: 6px;
   --font-title: 'Cinzel', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  color-scheme: dark;
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+  --viz-4: #c98500;
+  --viz-5: #d55181;
+  --xp-color: #4f9dff;
+  --radius: 10px;
+  --glass: var(--panel);
+  --edge: rgb(255 255 255 / 0.045);
+  --depth: 0 1px 0 var(--edge) inset, 0 10px 30px rgb(0 0 0 / 0.28);
+  --font-mono: var(--font-body);
+  --sp: 16px;
+  --tk-match: var(--accent);
+  --tk-league: #6fa8dc;
+  --tk-cup: #c38be8;
+  --tk-money: var(--gold);
+  --tk-squad: #7cc47a;
+  --tk-market: #e0a63c;
+  --tk-club: #5fb0c9;
+  --tk-news: var(--muted);
+}
+
+:root[data-theme='night'] {
+  --bg: #09090b;
+  --panel: #121215;
+  --panel-2: #19191d;
+  --panel-3: #222227;
+  --border: #2b2b31;
+  --border-strong: #42424b;
+  --text: #ebe9e4;
+  --muted: #9b9aa2;
+  --faint: #62626b;
+  --accent: #d0a94e;
+  --gold: #f0cb4c;
+  --accent-strong: #e6c066;
+  --accent-text: #121008;
+  --shadow: 0 6px 24px rgb(0 0 0 / 0.65);
   color-scheme: dark;
 }
 
@@ -69,9 +106,18 @@
   --a5: #147a4a;
   --shadow: 0 6px 24px rgb(80 60 20 / 0.25);
   color-scheme: light;
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-4: #eda100;
+  --viz-5: #e87ba4;
+  --xp-color: #2a6cc4;
+  --glass: var(--panel);
+  --edge: rgb(255 255 255 / 0.5);
+  --depth: 0 1px 0 var(--edge) inset, 0 6px 18px rgb(90 60 20 / 0.14);
 }
 
-/* ——— Base ——— */
+/* ——— Theme tokens ——— *//* ——— Base ——— */
 * { box-sizing: border-box; }
 html { font-size: calc(14px * var(--text-scale, 1.15)); }
 html, body, #root { height: 100%; }
@@ -547,25 +593,7 @@ table.ledger tr.ledger-total td { font-weight: 700; border-top: 2px solid var(--
 @media (max-width: 1750px) { .nav button.future { display: none; } }
 @media (max-width: 1500px) { .continue .status { display: none; } }
 
-/* ——— Black theme ——— */
-:root[data-theme='night'] {
-  --bg: #09090b;
-  --panel: #121215;
-  --panel-2: #19191d;
-  --panel-3: #222227;
-  --border: #2b2b31;
-  --border-strong: #42424b;
-  --text: #ebe9e4;
-  --muted: #9b9aa2;
-  --faint: #62626b;
-  --accent: #d0a94e;
-  --gold: #f0cb4c;
-  --accent-strong: #e6c066;
-  --accent-text: #121008;
-  --shadow: 0 6px 24px rgb(0 0 0 / 0.65);
-  color-scheme: dark;
-}
-/* Theme picker: three swatches */
+/* ——— Black theme ——— *//* Theme picker: three swatches */
 .theme-seg button { padding: 4px 7px; }
 .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: middle; border: 1px solid var(--border-strong); }
 .swatch.parchment { background: #efe3c8; }
@@ -732,10 +760,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 
 /* ——— Post-match analysis ———
    Categorical slots for damage sources: validated reference palette (dark steps on the dark themes,
-   light steps on parchment; light-mode contrast is relieved by the written values next to the bars). */
-:root { --viz-1: #3987e5; --viz-2: #d95926; --viz-3: #199e70; --viz-4: #c98500; --viz-5: #d55181; }
-:root[data-theme='parchment'] { --viz-1: #2a78d6; --viz-2: #eb6834; --viz-3: #1baf7a; --viz-4: #eda100; --viz-5: #e87ba4; }
-.ana-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.857rem; margin-bottom: 6px; }
+   light steps on parchment; light-mode contrast is relieved by the written values next to the bars). */.ana-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.857rem; margin-bottom: 6px; }
 .ana-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 .ana-row { margin: 8px 0; }
 .ana-stack { display: flex; gap: 2px; height: 14px; margin: 3px 0; min-width: 4px; }
@@ -793,10 +818,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 
 /* ——— Levels ——— */
 .level-badge { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-/* XP is blue everywhere (bars fill week after week; the level-up is gold). */
-:root { --xp-color: #4f9dff; }
-:root[data-theme='parchment'] { --xp-color: #2a6cc4; }
-.xp-bar { width: 60px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--xp-color) 14%, var(--panel-2)); overflow: hidden;
+/* XP is blue everywhere (bars fill week after week; the level-up is gold). */.xp-bar { width: 60px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--xp-color) 14%, var(--panel-2)); overflow: hidden;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xp-color) 30%, transparent); }
 .xp-bar i { display: block; height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--xp-color) 75%, #000), var(--xp-color)); border-radius: 4px; }
 .xp-bar i.max { background: var(--good); }
@@ -2033,12 +2055,7 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
   .vs-star-away { flex-direction: row; text-align: left; }
 }
 
-/* ——— Visual depth: ambient background, glass panels, softer shadows, nicer transitions ——— */
-:root { --radius: 10px; --glass: var(--panel); --edge: rgb(255 255 255 / 0.045);
-  --depth: 0 1px 0 var(--edge) inset, 0 10px 30px rgb(0 0 0 / 0.28); }
-:root[data-theme='parchment'] { --glass: var(--panel); --edge: rgb(255 255 255 / 0.5);
-  --depth: 0 1px 0 var(--edge) inset, 0 6px 18px rgb(90 60 20 / 0.14); }
-body { font-variant-numeric: tabular-nums;
+/* ——— Visual depth: ambient background, glass panels, softer shadows, nicer transitions ——— */body { font-variant-numeric: tabular-nums;
   background:
     radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
     radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 70%),
@@ -2186,9 +2203,7 @@ table.data tr:hover td { background: color-mix(in srgb, var(--accent) 7%, var(--
 }
 
 /* ——— Refinement: less, but better (one panel material, fewer nested frames, calmer type) ——— */
-/* Numbers in the body font with aligned figures (no typewriter look). Everything that used the mono font follows. */
-:root { --font-mono: var(--font-body); --sp: 16px; }
-.mono, .attr { font-feature-settings: 'tnum' 1, 'lnum' 1; letter-spacing: 0; }
+/* Numbers in the body font with aligned figures (no typewriter look). Everything that used the mono font follows. */.mono, .attr { font-feature-settings: 'tnum' 1, 'lnum' 1; letter-spacing: 0; }
 /* One material: a flat panel, a hairline of light on top, one soft shadow. */
 .panel { padding: var(--sp); background: var(--panel); background-image: none;
   box-shadow: 0 1px 0 rgb(255 255 255 / 0.035) inset, 0 8px 24px rgb(0 0 0 / 0.22); }
@@ -2880,12 +2895,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 @keyframes field-lit { 0% { box-shadow: 0 0 0 2px var(--gold), 0 0 14px color-mix(in srgb, var(--gold) 50%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
 :root[data-effects='reduced'] .auto-picked .break-orders select, :root[data-effects='reduced'] .bench-row.fallen { animation: none; }
 
-/* ——— Flash info (bottom band) ——— */
-:root {
-  --tk-match: var(--accent); --tk-league: #6fa8dc; --tk-cup: #c38be8; --tk-money: var(--gold); --tk-squad: #7cc47a;
-  --tk-market: #e0a63c; --tk-club: #5fb0c9; --tk-news: var(--muted);
-}
-.ticker { height: 32px; background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 80%, black), color-mix(in srgb, var(--bg) 92%, black));
+/* ——— Flash info (bottom band) ——— */.ticker { height: 32px; background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 80%, black), color-mix(in srgb, var(--bg) 92%, black));
   border-top: 1px solid color-mix(in srgb, var(--bad) 45%, var(--border-strong)); box-shadow: 0 -6px 18px rgb(0 0 0 / 0.35); }
 .app { padding-bottom: 32px; }
 .ticker-tag { gap: 7px; display: flex; align-items: center; background: linear-gradient(180deg, #d4483a, #a8281e); color: #fff;

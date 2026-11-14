@@ -83,6 +83,10 @@ tests/       Vitest
 - Attributes 1–20 (21 attributes: 6 physical, 6 combat, 9 mental). Hidden: ability/potential 1–200, personality.
 - Commentary templates: `[tags, text]`; tags must all be present on the event; specific templates are favoured,
   recent ones avoided. Tests fail on any unfilled `{placeholder}`.
+- **Style guide**: `docs/style-guide.md` (type scale, spacing, radii, surfaces, colour roles, motion; decisions log). Every
+  theme token sits in the three blocks at the top of `styles.css`. Fonts are bundled (`@fontsource/inter`, `@fontsource/cinzel`
+  imported in `src/ui/main.tsx`, no Google Fonts). `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
+  effects off) + `node scripts/style-diff.mjs <before> <after>` (pixel diff) check what a CSS change did.
 - UI: three themes — night (black, default), dark (brown) and parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed).
 - **Icons**: species & role icons from game-icons.net (CC BY 3.0, credited in Help), extracted by
