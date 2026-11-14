@@ -476,6 +476,9 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   sticky header and the team orders above the table.
 - **Season calendar** (League › Competitions, « Votre saison »): a tile per week (pre-season … 18), each match a chip in
   its competition's colour (opponent crest, V/D + score once played, « prochain match »), current week highlighted.
+- **Starting squad strength** (2026-11-14): `DifficultyDef.playerPotential` sets the mean potential of the player's squad
+  (easy 80, normal 70, hard 65; novice 55, regional 85): normal ≈ best five 71 vs 65 in the Marches League (it was 83,
+  a Royal League squad). Autopilot finishes ≈ 6th in normal.
 - **Difficulty** (re-tuned): the player starts with a regional squad in every difficulty but a small club (money,
   reputation, staff: `DifficultyDef.playerClub`, novice except easy); the Marches League holds
   0 / 3 / 6 regional stables (easy / normal / hard) and AI identities, reading, money and board differ. `sim:ai

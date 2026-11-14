@@ -78,7 +78,7 @@ export function generateWorld(seed: string, teamName: string, lang: Lang, cfg: G
       const rng = world.fork(isPlayer ? 'player' : `ai${d}-${i}`);
       const identity = isPlayer ? undefined : identities[nextIdentity++];
       const favoured = identity ? { species: cfg.identity.styles[identity.style].species, share: styleShare(identity, difficulty, cfg) } : undefined;
-      const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured }, cfg);
+      const team = generateTeam(rng, { name: isPlayer ? teamName.trim() || undefined : undefined, quality, size, lang, favoured, ...(isPlayer && diff.playerPotential ? { potentialMean: diff.playerPotential } : {}) }, cfg);
       if (isPlayer) {
         const st = cfg.generation.startingSquad;
         for (const c of team.creatures) {

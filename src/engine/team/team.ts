@@ -51,6 +51,8 @@ export interface GenerateTeamOptions {
   favoured?: { species: string[]; share: number };
   size?: number;
   lang?: Lang;
+  /** Mean potential of the squad instead of the quality's (the player's starting squad). */
+  potentialMean?: number;
 }
 
 /** Deep copy of a team with fresh ids (same squad on both sides of a test match). */
@@ -80,7 +82,7 @@ export function generateTeam(rng: Rng, opts: GenerateTeamOptions = {}, cfg: Game
       : fav?.species.length && rng.chance(fav.share)
         ? rng.pick(fav.species)
         : undefined;
-    creatures.push(generateCreature(rng, { quality: opts.quality, speciesId, stableId: id, lang: opts.lang }, cfg));
+    creatures.push(generateCreature(rng, { quality: opts.quality, speciesId, stableId: id, lang: opts.lang, potentialMean: opts.potentialMean }, cfg));
   }
   return { id, name: opts.name ?? generateTeamName(rng, opts.lang), creatures, tactic: autoTactic(creatures, cfg) };
 }

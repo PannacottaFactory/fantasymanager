@@ -16,6 +16,8 @@ export interface GenerateCreatureOptions {
   quality?: QualityId;
   /** Overrides the drawn potential (1–200). */
   potential?: number;
+  /** Overrides the quality's mean potential (same draw, same spread). */
+  potentialMean?: number;
   age?: number;
   stableId?: string | null;
   /** Language of the generated surname. */
@@ -94,7 +96,7 @@ export function generateCreature(
   if (!species) throw new Error(`Unknown species ${opts.speciesId}`);
   const quality = g.qualities[opts.quality ?? 'professional'];
   const drawn = clamp(
-    Math.round(opts.potential ?? rng.normal(quality.potentialMean, quality.potentialSd)),
+    Math.round(opts.potential ?? rng.normal(opts.potentialMean ?? quality.potentialMean, quality.potentialSd)),
     g.minAbility,
     g.maxAbility,
   );

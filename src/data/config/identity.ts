@@ -88,6 +88,8 @@ export interface DifficultyDef {
   startMoney: number;
   /** Quality tier of the player's starting squad. */
   playerQuality?: 'novice' | 'regional';
+  /** Mean potential of the player's starting squad (default: the quality's), between novice 55 and regional 85. */
+  playerPotential?: number;
   /** Tier of the player's club (money, reputation, coaches, facilities); default novice: a small stable with a decent squad. */
   playerClub?: 'novice' | 'regional';
   /** Multiplier on the board's confidence losses. */
@@ -104,7 +106,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
       ['novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
-    playerQuality: 'regional', playerClub: 'regional', styleShare: 0.35, identities: false, reading: 'none', favorites: false, restFatigue: 60, startMoney: 1.3, boardLoss: 0.5, styleBias: 6,
+    playerQuality: 'regional', playerPotential: 80, playerClub: 'regional', styleShare: 0.35, identities: false, reading: 'none', favorites: false, restFatigue: 60, startMoney: 1.3, boardLoss: 0.5, styleBias: 6,
   },
   normal: {
     divisions: [
@@ -113,7 +115,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice'],
       ['regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
-    playerQuality: 'regional', styleShare: 0.5, identities: true, reading: 'tacticians', favorites: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
+    playerQuality: 'regional', playerPotential: 70, styleShare: 0.5, identities: true, reading: 'tacticians', favorites: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
   },
   hard: {
     divisions: [
@@ -122,7 +124,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
       ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
     ],
-    playerQuality: 'regional', styleShare: 0.55, identities: true, reading: 'all', favorites: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
+    playerQuality: 'regional', playerPotential: 65, styleShare: 0.55, identities: true, reading: 'all', favorites: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
   },
 };
 
