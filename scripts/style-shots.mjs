@@ -1,4 +1,4 @@
-/* global console, process, window, localStorage */
+/* global console, process, window, localStorage, document */
 /**
  * Reproducible screenshots of every main screen, in each theme, for visual work on the stylesheet: a fixed world
  * (seed, names, crest), three weeks simulated, effects off, animations disabled, toasts and save dates hidden.
@@ -85,6 +85,31 @@ for (const theme of themes) {
   await page.evaluate(() => window.__fm.getState().continueGame());
   await calm();
   await shot('prematch');
+  // The live match, at fixed points: instant speed runs to the first break (the break panel), then to the end.
+  await page.evaluate(() => {
+    const s = window.__fm.getState();
+    s.setPlayerControls(true);
+    s.playLive();
+  });
+  await wait(300);
+  await page.locator('[data-tip="live-speed"] button').last().click();
+  const breakBtn = page.locator('.overlay [data-tip="break"]');
+  await breakBtn.waitFor({ timeout: 30000 });
+  await shot('live-break');
+  await page.evaluate(() => {
+    const st = document.createElement('style');
+    st.id = 'hide-overlay';
+    st.textContent = '.overlay { display: none !important; }';
+    document.head.appendChild(st);
+  });
+  await shot('live-round5');
+  await page.evaluate(() => document.getElementById('hide-overlay')?.remove());
+  // Resume at every break until the end.
+  for (let i = 0; i < 4 && (await breakBtn.count()); i++) {
+    await breakBtn.click();
+    await wait(800);
+  }
+  await shot('live-end');
   await page.evaluate(() => window.__fm.setState({ match: null }));
   await page.evaluate(() => window.__fm.getState().openLaunch());
   await shot('start-saved');
