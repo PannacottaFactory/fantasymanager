@@ -37,6 +37,8 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:facility -- --worlds 8 --seasons 2` | weight of the training ground: same worlds with the player's ground forced to 0–3 (sessions, attribute points, league points, position) |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
+| `node scripts/steam-check.mjs <outDir> [url] [1920x1080,1366x768,1280x800]` | Steam formats (dev server running): screenshots of every main screen per resolution + pixels each one overflows (0 = fits) |
+| `npm run dev` → top-bar dev tools (dev builds only, `ui/dev/DevTools.tsx`) | window size · screen-size test (the game in an iframe at 1920×1080 / 2560×1440 / 1366×768 / 1280×800 Steam Deck / 1280×720, scaled to fit; the frame skips the start screen; closing reloads to pick up its save) · full screen like a PC game |
 
 Quality tiers: `novice | regional | professional | elite | legendary`.
 
@@ -90,8 +92,20 @@ tests/       Vitest
   ring, the ticker and the embers. Shared components (button, panel, chip / tag, tile, table, headings) are each defined
   once (« Component: » blocks): screens may place or size them, never restyle them; a chip variant only sets colours. `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
   effects off) + `node scripts/style-diff.mjs <before> <after>` (pixel diff) check what a CSS change did.
-- UI: three themes — night (black, default), dark (brown) and parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
-  per-viewer prefs (theme, language, commentary speed).
+- UI: four themes — night (black, default), dark (brown), parchment (light), slate (dark blue-grey) — via CSS tokens in `src/ui/styles.css`; localStorage only for
+  per-viewer prefs (theme, language, commentary speed, layout).
+- **Layout** (⚙ « Disposition », `useSettings().layout`): `side` (default, manager-game style) = sidebar `SideNav` (`NavBar.tsx`,
+  same `NAV_ENTRIES` as the tabs; stable identity `ClubIdentity` on top, foldable, icons only < 1100 px), top bar with the
+  stable colour (`--club`) along its top edge; `top` = the former tabs (`NavBar`). The start screen follows the setting too
+  (without a game only the tools are enabled).
+- **Manager-game screens**: dashboard `NextMatchBanner` (face-off with form, last meeting, assistant tips from
+  `nextMatchAdvice` worded with `useTipVars`, arena, starters, Prepare / Tactics / Squad in its header) beside the club card
+  (`.dash-lead`: crest + name + rank on one line, reputation bar full width; tiles on two rows below 1500 px); Squad = one table (not grouped: selection is the
+  Tactics screen's job), views General (role, condition, morale, HP, the six profile axes `useAxisColumns`, traits) /
+  Attributes (all 21) / Contracts (age, value, wage, end), `fm.squadView`; Tactics shows HP, the six axes and traits; no
+  « Form » column anywhere (it only nudges match-start morale); attribute columns centred (`col-attr`);
+  creature sheet header `.sheet-hero` in the species' element colours (`--el1/--el2`) with a medallion and `ProfileRadar`
+  (6 axes, dashed league average of the player's division starters, estimates = middle of the ranges). `ui-check` / `board-check` / `scout-check` force `top` (their helpers click tabs) unless `UI_LAYOUT=side`.
 - **Icons**: species & role icons from game-icons.net (CC BY 3.0, credited in Help), extracted by
   `node scripts/extract-icons.mjs` into `src/ui/icons/gameIcons.ts` (edit the lists there when adding a species
   or role); `<SpeciesIcon>` (element colour), `<RoleIcon>`, `<RoleLabel>`; the creature emblem `<Crest level?>` = flat species icon in its
@@ -143,7 +157,7 @@ tests/       Vitest
 - **Projectiles**: `ui/screens/arena/Projectiles.tsx` draws shots, element particles and impacts between cards
   (`data-cid`); target reactions & health drop land when the projectile arrives (`FLIGHT` per speed).
 - **Pyramid** (save v6 — older saves need a new game): 4 divisions of 10 — 0 Grand Arena, 1 Royal League, 2 Barony
-  League, 3 Marches League (names in `ui/competitions.ts` `divName`, emblems `DIV_ICON`). The player starts in D4
+  League, 3 Pit League (names in `ui/competitions.ts` `divName`, emblems `DIV_ICON`). The player starts in D4
   (`cfg.league.playerDivision` 3, quality novice; easy: regional via `DifficultyDef.playerQuality`). Money ×1.35/1/0.75/0.55,
   reputation baselines 64/46/30/18. 2 up / 2 down between each pair.
 - **Competitions**: the Shadow Cup (`state.cup`, 40 stables: 24 byes, 6 rounds after matchdays 2/5/8/11/14/17) and
@@ -157,8 +171,22 @@ tests/       Vitest
   `playMatchday` plays it first (`playCupRound` plays every round of that key). `playerFixture` returns the player's tie
   in a midweek (or nothing). In the UI, « Next match » plays midweeks without the player on their own up to its next match.
   Cup messages carry `tournament` / `rounds`; `SeasonRecord.trophies` lists the season's tournament wins.
-- **League screen**: tabs Championship (pyramid of the 4 leagues with the money scale « po ×1,35 » in gold, division
-  hero with rules + gap to promotion / drop, table with zones and ▲▼ movement since the previous matchday, fixtures),
+- **League screen**: tabs Championship (manager-game layout, fits 1920×1080: strip of the 4 divisions with the money
+  scale « po ×1,35 » and « Vous · 6e » (`DivisionStrip`), compact division header (rules, weeks played, place + gap chips),
+  the table (zones with dashed edges, ▲▼ since the previous matchday, « Prochain adversaire » tag, points pills), side column:
+  matchday with ‹ › (`Matchday`, `MatchLine` cards also used by the competition brackets) and « La saison » card with tabs
+  Position (`PositionChart`: place after each week over the zones) / Chiffres (`TeamLeaders`: most KOs, fewest KOs taken,
+  form over the last five)); divisions read left (D4, bronze) to right (D1, platinum): `.tier-3` bronze, `.tier-2` silver,
+  `.tier-1` gold, `.tier-0` platinum (darker variants on parchment). Competitions tab = master / detail: « Votre saison »
+  chain (whole season folded, `cal.full`), list of competitions grouped (in / registration / the rest, other leagues'
+  cups), detail of the chosen one (`CompDetail`: banner in `--comp`, trophy, status, your next tie, registration,
+  `Bracket` = rounds as columns of `BracketTie` cards). Honours tab: KPI strip, three shelves (league titles bronze →
+  platinum, cups, tournaments) of `TrophyStand` plinths lit when won with the seasons, seasons table (league in its metal,
+  promoted / relegated chip, W–L, board objective, trophies).
+- **Staff screen** (`StaffScreen.tsx`): KPI strip, a card per program in its colour (`--dom`: physical / combat / mental):
+  emblem, coach, stars, match XP ×, +2 chance, the creatures on the program (crests open their sheets), wage, dismiss — or
+  « Trouver un entraîneur » filtering the candidates; candidates one line each (domain filter, XP ×, +2 %, gain over the
+  current coach, wage, hire · fee).
   Competitions (« Votre programme » = the player's coming matches grouped by week — pre-season, then week d = league
   match ① then the rounds keyed d / d.5 ② —, next match highlighted, « deux matchs » flag; then every competition as a
   list (default) or cards, choice in localStorage `fm.compView`: description, status, field (still in / favourite =
@@ -478,10 +506,10 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   its competition's colour (opponent crest, V/D + score once played, « prochain match »), current week highlighted.
 - **Starting squad** (chosen at new game, whatever the difficulty: `NewGameOptions.squad` = modest / solid (default) /
   gifted → mean potential `generation.startingSquad.potential` 65 / 72 / 80; the generator's internal tiers are never
-  shown). Solid ≈ best five ~73 vs 65 in the Marches League (it used to be 83, a Royal League squad). New-game form:
+  shown). Solid ≈ best five ~73 vs 65 in the Pit League (it used to be 83, a Royal League squad). New-game form:
   difficulty as three compact cards (description in the tooltip), then « Effectif de départ », then « Mode de jeu ».
 - **Difficulty** (re-tuned): the player starts with a regional squad in every difficulty but a small club (money,
-  reputation, staff: `DifficultyDef.playerClub`, novice except easy); the Marches League holds
+  reputation, staff: `DifficultyDef.playerClub`, novice except easy); the Pit League holds
   0 / 3 / 6 regional stables (easy / normal / hard) and AI identities, reading, money and board differ. `sim:ai
   --season-only` (autopilot, enters the invitationals it can) ≈ 4th · 1.4 trophies/season (easy), 5th · 0.8 (normal),
   7th · 0.5 (hard) — a skilled player does better.
@@ -514,7 +542,8 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - Pre-match: face-off banner (`screens/game/Versus.tsx`: crests slide in on their colours, « VS » slams with a
   clash sound, duel of the stars — the opponent's star from public record only —, last meeting), then the row
   « Modifier la tactique » (`.cta-tactics`) · « Jouer en direct » · « Simuler », then both line-ups.
-- **Drag and drop in Tactics**: the table is split into three boxes (`SortableTable.groups`: Starters / Bench / Reserve,
+- **Drag and drop in Tactics** (the only way to move a creature: no Starter / Bench / Reserve buttons; a ⠿ grip column for touch;
+  same look as the Squad table — two-line name, filled attribute boxes): the table is split into three boxes (`SortableTable.groups`: Starters / Bench / Reserve,
   one tbody each with a heading). `ui/components/rowDrag.ts` drags the whole row with pointer events (a copy follows the
   pointer; touch: the ⠿ grip), boxes light up (red when full). Drop on a box = `setSelection`; on a creature = `dropOnto`
   (free place in its group, otherwise swap; between two starters their lines swap) in `engine/team/edit.ts`. A box may be
@@ -573,9 +602,10 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   `cfg.collection.bestiary`, `bestiary` inbox message; the starting squad is not rewarded (`initBestiary`, also for old
   saves). Encyclopedia tab « Votre bestiaire » (`ui/screens/BestiaryView.tsx`: unknown species are silhouettes, rarity
   from `SpeciesDef.rarity`), dashboard card, `openBestiary()` in the store.
-- **Creature cards** (`ui/components/CreatureCard.tsx`): Squad shows cards by default (Cards / Table switch, localStorage
-  `fm.squadView`), grouped Starters / Bench / Reserves; art in the element colours, frame metal by level (bronze 1–3,
-  silver 4–6, gold 7–9, legend 10 with a shine), rating, level + XP, points to place, condition bars, best medals.
+- **Creature cards**: removed (the Squad is a table only).
+- **Facilities screen** (`FacilitiesScreen.tsx`): KPI strip (levels built, upkeep, works, board price), one card per facility
+  in its colour (`--fac`: training good, infirmary home, stands gold): emblem + watermark, level ladder, effects now → next
+  level (`effectsAt`), league average / rank, works progress bar or build button with price, discount, upkeep, shortfall.
 - **Sound** (`ui/sound/sfx.ts`) — **switched off for now** (`SOUND_ENABLED = false`: `play` / `unlockAudio` do nothing, the volume
   setting is hidden; flip it to bring them back): every sound is synthesised with Web Audio (no files); volume in the settings menu
   (`useSettings().volume`, `fm.volume`, 0 = off, default 0.5); the context starts on the first gesture. Hooks: button

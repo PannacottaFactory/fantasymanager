@@ -1,5 +1,8 @@
 import { ATTRIBUTE_CATEGORIES, type AttributeCategory, type AttributeKey } from '../../../data/attributes.ts';
-import { useState, type ReactNode } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
+import { ATTRIBUTE_KEYS } from '../../../data/attributes.ts';
+import { ELEMENTS } from '../../../data/elements.ts';
+import { ProfileRadar } from '../../components/ProfileRadar.tsx';
 import { ROLE_IDS } from '../../../data/roles.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { getSpecies, maxHp, maxStamina, overallRating, roleFit } from '../../../engine/creature/derived.ts';
@@ -50,6 +53,8 @@ interface Props {
   knowledge?: number;
   /** Own creatures: gives it a new name. */
   onRename?: (name: string) => void;
+  /** Average attributes to compare the combat profile with (the league's starters). */
+  reference?: Record<AttributeKey, number>;
 }
 
 /** A small labelled value in the sheet header. */
@@ -62,7 +67,7 @@ function StatTile({ label, value, title, big }: { label: string; value: ReactNod
   );
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, pointKeys, onRename }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, pointKeys, onRename, reference }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
@@ -73,6 +78,17 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
   const injuries = creature.condition.injuries.filter((i) => i.weeksLeft > 0);
   const known = knowledge >= 100;
   const ovr = overallRange(creature, knowledge);
+  // The profile radar: true values for known creatures, the middle of the estimated ranges otherwise.
+  const profile = Object.fromEntries(
+    ATTRIBUTE_KEYS.map((k) => {
+      if (known) return [k, creature.attributes[k]];
+      const r = attributeRange(creature, k, knowledge);
+      return [k, (r.low + r.high) / 2];
+    }),
+  ) as Record<AttributeKey, number>;
+  // The header takes the colours of the species' elements.
+  const elColors = sp.elements.map((e) => ELEMENTS[e].color);
+  const heroStyle = { '--el1': elColors[0] ?? 'var(--accent)', '--el2': elColors[1] ?? elColors[0] ?? 'var(--accent)' } as CSSProperties;
   return (
     <Modal
       title={
@@ -85,7 +101,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
       className="sheet-dialog"
     >
       <div className="sheet">
-        <div className="sheet-head">
+        <div className="sheet-head sheet-hero" style={heroStyle}>
+          <div className="sheet-medal" aria-hidden="true">
+            <SpeciesIcon id={sp.id} size="3.4em" />
+          </div>
+          <div className="sheet-hero-main">
           <div className="sheet-sub">
             <span title={spText.description}>
               <SpeciesIcon id={sp.id} size="1.3em" /> <b>{spText.name}</b>
@@ -118,6 +138,8 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
               <UiIcon name="injury" /> {injuries.map((i) => `${injuryText(i.injuryId, lang).short} (${tr.weeks(i.weeksLeft)})`).join(', ')}
             </div>
           )}
+                  </div>
+          <ProfileRadar values={profile} reference={reference} />
         </div>
         {extra}
 

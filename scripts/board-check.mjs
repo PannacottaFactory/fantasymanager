@@ -1,4 +1,4 @@
-/* global console, process, window */
+/* global console, process, window, localStorage */
 /**
  * Visual check of the board: new game (season meeting after the welcome window), dashboard card, the rules window,
  * then an angry board forced through the dev store (ultimatum meeting, pre-match banner, recruitment budget, frozen
@@ -13,6 +13,8 @@ mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// Navigation helpers below click the top tabs: use that layout unless UI_LAYOUT=side.
+await page.addInitScript((l) => localStorage.setItem('fm.layout', l), process.env.UI_LAYOUT ?? 'top');
 const errors = [];
 page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`));
 page.on('pageerror', (e) => errors.push(`page: ${e.message}\n${e.stack ?? ''}`));

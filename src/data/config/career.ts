@@ -3,7 +3,7 @@
  * stables offer them a job. Every number of `engine/club/career.ts` lives here.
  */
 export const CAREER_CONFIG = {
-  /** Manager reputation (0–100) at the start of a game (about the size of a Marches League club). */
+  /** Manager reputation (0–100) at the start of a game (about the size of a Pit League club). */
   start: 20,
   /**
    * End of each season, before promotions: objective met / missed, title, promotion, relegation, each trophy (the

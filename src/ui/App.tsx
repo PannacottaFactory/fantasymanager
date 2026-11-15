@@ -3,8 +3,11 @@ import { AfterMatchTraining, sessionsReady } from './screens/game/TrainingSessio
 import { StableCrest } from './components/TeamCrest.tsx';
 import { useEffect, useRef, useState } from 'react';
 import { ICON_VIEWBOX, SPECIES_ICONS } from './icons/gameIcons.ts';
-import { cupDue, playerFixture, playerTeam, seasonOver } from '../engine/league/season.ts';
+import { cupDue, playerDivision, playerFixture, playerTeam, seasonOver, standings } from '../engine/league/season.ts';
+import { divName } from './competitions.ts';
+import { defaultCrest } from '../engine/team/crest.ts';
 import type { GameState } from '../engine/league/types.ts';
+import type { Screen } from './store/gameStore.ts';
 import type { StringKey } from './i18n/strings.ts';
 import { NewsTicker } from './components/NewsTicker.tsx';
 import { compName, roundKey } from './competitions.ts';
@@ -37,8 +40,9 @@ import { NewsScreen } from './screens/game/NewsScreen.tsx';
 import { StaffScreen } from './screens/game/StaffScreen.tsx';
 import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
 import { useGame } from './store/gameStore.ts';
-import { NavBar } from './components/NavBar.tsx';
+import { NavBar, SideNav } from './components/NavBar.tsx';
 import { SettingsMenu } from './components/SettingsMenu.tsx';
+import { DevTools } from './dev/DevTools.tsx';
 import { HelpScreen } from './screens/HelpScreen.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { LiveMatch } from './screens/arena/LiveMatch.tsx';
@@ -127,14 +131,47 @@ function ContinueButton() {
   );
 }
 
+/** The stable's identity at the top of the sidebar: crest, name, league and position (manager-game style). */
+function ClubIdentity({ game }: { game: GameState }) {
+  const tr = useT();
+  const team = playerTeam(game);
+  const d = playerDivision(game);
+  const pos = standings(game, d).findIndex((r) => r.teamId === team.id) + 1;
+  return (
+    <button className="club-id" onClick={() => useGame.getState().setScreen('dashboard')} title={team.name}>
+      <StableCrest team={team} size={30} />
+      <span className="club-id-text side-label">
+        <b>{team.name}</b>
+        <small>
+          {divName(tr.t, d)}
+          {pos > 0 && ` · ${tr.ordinal(pos)}`}
+        </small>
+      </span>
+    </button>
+  );
+}
+
 export function App() {
   const { t } = useT();
-  const { lang, theme, textSize, effects } = useSettings();
+  const { lang, theme, textSize, effects, layout } = useSettings();
   const { ready, game, screen, viewing, saveError, replaying, intro, launch } = useGame();
   useFirstStepsTracker();
   const { init, setScreen, viewReport } = useGame.getState();
   const [newGameOpen, setNewGameOpen] = useState(false);
   const unread = game?.inbox.filter((m) => !m.read).length ?? 0;
+  // Every screen follows the chosen layout, the start screen too (without a game, only the tools can be opened).
+  const side = layout === 'side';
+  const inGame = !!game && !launch && !newGameOpen;
+  const navProps = {
+    // Without a game in front of us, only the tools can be the current screen.
+    screen: newGameOpen || launch || !game ? (screen === 'encyclopedia' || screen === 'arena' ? screen : null) : screen,
+    hasGame: !!game,
+    badges: { inbox: unread, squad: game ? playerTeam(game).creatures.reduce((s, c) => s + (c.growth?.freePoints ?? 0), 0) : 0, training: game ? sessionsReady(game) : 0 },
+    onSelect: (id: Screen) => {
+      setNewGameOpen(false);
+      setScreen(id);
+    },
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -214,7 +251,10 @@ export function App() {
   else content = <DashboardScreen />;
 
   return (
-    <div className="app">
+    <div
+      className={`app ${side ? 'layout-side' : ''}`}
+      style={side && inGame && game ? { ['--club' as string]: (playerTeam(game).crest ?? defaultCrest(game.playerTeamId)).field[0] } : undefined}
+    >
       <header className="topbar">
         <button className="brand" onClick={() => (game ? useGame.getState().openLaunch() : setScreen('dashboard'))} title={t('start.slots')}>
           <svg className="brand-icon" width="30" height="30" viewBox={ICON_VIEWBOX} aria-hidden="true" dangerouslySetInnerHTML={{ __html: SPECIES_ICONS.dragon! }} />
@@ -225,16 +265,10 @@ export function App() {
             </small>
           </div>
         </button>
-        <NavBar
-          screen={newGameOpen || launch ? null : screen}
-          hasGame={!!game}
-          badges={{ inbox: unread, squad: game ? playerTeam(game).creatures.reduce((s, c) => s + (c.growth?.freePoints ?? 0), 0) : 0, training: game ? sessionsReady(game) : 0 }}
-          onSelect={(id) => {
-            setNewGameOpen(false);
-            setScreen(id);
-          }}
-        />
+        {!side && <NavBar {...navProps} />}
+        {side && <span className="spacer" />}
         {!launch && <ContinueButton />}
+        {import.meta.env.DEV && <DevTools />}
         <SettingsMenu />
         <button className={`btn small ghost help-btn ${screen === 'help' ? 'active' : ''}`} data-tip="help-btn" title={t('help.btn')} aria-label={t('help.btn')} onClick={() => setScreen('help')}>
           ?
@@ -244,6 +278,7 @@ export function App() {
         {game && !launch && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && screen !== 'help' && <SeasonRibbon game={game} />}
         {saveError && <div className="save-error">{t('save.failed')}</div>}
       </div>
+      {side && <SideNav {...navProps} head={inGame && game ? <ClubIdentity game={game} /> : undefined} />}
       <main className="main">
         <ErrorBoundary key={`${screen}-${viewing ? 'report' : ''}-${replaying ? 'replay' : ''}`}>
           <div className="screen-enter">{content}</div>

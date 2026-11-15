@@ -132,3 +132,8 @@ yellow). Primary buttons use the accent; gold never fills a button.
   and per-class category variables (`--tier`, `--comp`, `--ac`, `--metal`).
 - 2026-11-14: creatures (Steam roadmap step 2): the flat icon is kept (a medallion was not readable enough); level
   frames and card illustrations as described in § 6. The old two-colour shield crest is gone.
+- 2026-11-15: **layout** setting (⚙ « Disposition », `useSettings().layout`, localStorage `fm.layout`): `side` (default) =
+  manager-game shell — top bar across (stable colour `--club` as a 3 px top edge, title, treasury, Continue), the
+  sidebar `SideNav` on the left (stable identity, every screen under small group headings, foldable to icons,
+  `fm.sideCollapsed`, icons only below 1100 px); `top` = the former tabs. The start screen always uses the tabs.
+  Fourth theme **slate** (« Ardoise », dark blue-grey + gold), token block beside the three others.

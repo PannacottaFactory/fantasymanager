@@ -7,6 +7,8 @@ export interface Column<T> {
   render: (row: T) => ReactNode;
   sort?: (row: T) => number | string;
   num?: boolean;
+  /** Extra class of the column's cells (header included), e.g. the first column of a group of columns. */
+  className?: string;
 }
 
 interface Props<T> {
@@ -41,7 +43,7 @@ export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort,
   const renderRow = (r: T, i: number, list: T[]) => (
     <tr key={rowKey(r)} {...rowProps?.(r)} className={rowClass?.(r, i, list)}>
       {columns.map((c) => (
-        <td key={c.key} className={c.num ? 'num' : ''}>
+        <td key={c.key} className={`${c.num ? 'num' : ''} ${c.className ?? ''}`}>
           {c.render(r)}
         </td>
       ))}
@@ -56,7 +58,7 @@ export function SortableTable<T>({ rows, columns, rowKey, rowClass, initialSort,
             {columns.map((c) => (
               <th
                 key={c.key}
-                className={`${c.sort ? 'sortable' : ''} ${c.num ? 'num' : ''}`}
+                className={`${c.sort ? 'sortable' : ''} ${c.num ? 'num' : ''} ${c.className ?? ''}`}
                 title={c.title}
                 onClick={() => c.sort && setSort((s) => (s?.key === c.key ? { key: c.key, dir: (s.dir * -1) as 1 | -1 } : { key: c.key, dir: c.num ? -1 : 1 }))}
               >

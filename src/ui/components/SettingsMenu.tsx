@@ -4,14 +4,14 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { LANGS } from '../../core/i18n.ts';
-import { TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
+import { LAYOUTS, TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { UiIcon } from '../icons/Icon.tsx';
 import { play, SOUND_ENABLED } from '../sound/sfx.ts';
 
 export function SettingsMenu() {
   const { t } = useT();
-  const { lang, setLang, theme, setTheme, textSize, setTextSize, effects, setEffects, volume, setVolume } = useSettings();
+  const { lang, setLang, theme, setTheme, textSize, setTextSize, effects, setEffects, volume, setVolume, layout, setLayout } = useSettings();
   // Volume before muting, to come back to it.
   const before = useRef(volume || 0.5);
   const [open, setOpen] = useState(false);
@@ -56,6 +56,16 @@ export function SettingsMenu() {
                 <button key={s} className={s === textSize ? 'on' : ''} onClick={() => setTextSize(s)} role="radio" aria-checked={s === textSize} title={t(`text.${s}` as StringKey)}>
                   <span className="ts-a" style={{ fontSize: `${0.9 + i * 0.22}rem` }}>A</span>
                   <small>{t(`text.short.${s}` as StringKey)}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.layout')}</span>
+            <div className="opt-seg" role="radiogroup">
+              {LAYOUTS.map((l) => (
+                <button key={l} className={l === layout ? 'on' : ''} onClick={() => setLayout(l)} role="radio" aria-checked={l === layout}>
+                  {t(`layout.${l}` as StringKey)}
                 </button>
               ))}
             </div>

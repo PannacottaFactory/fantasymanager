@@ -6,7 +6,7 @@ import type { Line, RoleId, TargetPriority } from '../../data/schema.ts';
 import { isInjured, maxHp, overallRating } from '../../engine/creature/derived.ts';
 import { dropOnto, insertInGroup, isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
-import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
+import { abilityText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
 import { AbilityCard, KindIcon, abilityColor } from './AbilityCard.tsx';
 import { isUnlocked, levelOf, maxLevelOf, unlockLevel } from '../../engine/progression/levels.ts';
@@ -14,14 +14,14 @@ import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Risk, Stance, Team } from '../../engine/model.ts';
 import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
-import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
+import { ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
+import { useAxisColumns } from './ProfileRadar.tsx';
 import { useRowDrag } from './rowDrag.ts';
 import { RoleIcon } from '../icons/Icon.tsx';
 import { SpeciesIcon } from '../icons/Icon.tsx';
 
 const TARGETS: TargetPriority[] = ['nearest', 'weakest', 'strongest', 'casters', 'threat'];
-const ATTR_COLUMNS = ['strength', 'toughness', 'speed', 'stamina', 'attack', 'defense', 'magic', 'courage', 'discipline'] as const;
 
 export function issueText(tr: Translator, team: Team, issue: TacticIssue): string {
   switch (issue.code) {
@@ -101,6 +101,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const slot = (id: string) => team.tactic.lineup.find((s) => s.creatureId === id);
   const status = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
   const m = DEFAULT_CONFIG.match;
+  const axisColumns = useAxisColumns<Creature>();
   // Drag a whole row into a box (starters / bench / reserve) or onto a creature: a free place there, otherwise a swap.
   type Group = 'starter' | 'bench' | 'reserve';
   const groupOf = (c: Creature): Group => selectionOf(team, c.id);
@@ -142,68 +143,59 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
 
   const columns: Column<Creature>[] = [
     {
-      key: 'status',
-      label: t('col.selection'),
-      sort: status,
-      render: (c) => {
-        const st = selectionOf(team, c.id);
-        return (
-          <span className="row" style={{ gap: 4 }}>
-            <span className="drag-grip" aria-hidden="true">⠿</span>
-            <span className="sel-seg" role="radiogroup" aria-label={t('col.selection')}>
-              {(['starter', 'bench', 'reserve'] as const).map((to) => (
-                <button
-                  key={to}
-                  role="radio"
-                  aria-checked={st === to}
-                  className={st === to ? `on sel-${to}` : ''}
-                  title={t(`sel.${to}.title`)}
-                  onClick={() => onChange(setSelection(team, c.id, to, DEFAULT_CONFIG, true))}
-                >
-                  {t(`sel.${to}.short`)}
-                </button>
-              ))}
-            </span>
-          </span>
-        );
-      },
+      // The grip: rows move by drag and drop only (the whole row with a mouse, this handle on touch screens).
+      key: 'grip',
+      label: '',
+      render: () => (
+        <span className="drag-grip" title={t('sel.drag.hint')} aria-hidden="true">
+          ⠿
+        </span>
+      ),
     },
     {
       key: 'name',
       label: t('col.name'),
       sort: (c) => c.name,
       render: (c) => (
-        <span className="row" style={{ gap: 6 }}>
+        <span className="sq-who">
           <Crest speciesId={c.speciesId} name={c.name} level={levelOf(c)} />
-          <button className="link" onClick={() => setOpenId(c.id)}>
-            {c.name}
-          </button>
+          <span className="sq-who-text">
+            <button className="link" onClick={() => setOpenId(c.id)}>
+              {c.name}
+            </button>
+            {!onSwapSpecies && (
+              <small>
+                <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} />
+              </small>
+            )}
+          </span>
         </span>
       ),
     },
-    {
-      key: 'species',
-      label: t('col.species'),
-      sort: (c) => speciesName(c.speciesId, lang),
-      render: (c) => (
-        <span className="row" style={{ gap: 4 }}>
-          <SpeciesIcon id={c.speciesId} />
-          <ElementDots speciesId={c.speciesId} />
-          {onSwapSpecies ? (
-            <select className="compact" value={c.speciesId} title={t('arena.swapSpecies')} onChange={(e) => onSwapSpecies(c.id, e.target.value)}>
-              {SPECIES_IDS.map((id) => (
-                <option key={id} value={id}>
-                  {speciesName(id, lang)}
-                </option>
-              ))}
-            </select>
-          ) : (
-            speciesName(c.speciesId, lang)
-          )}
-        </span>
-      ),
-    },
-    { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
+    // Test arena: the species can be changed on the spot.
+    ...(onSwapSpecies
+      ? [
+          {
+            key: 'species',
+            label: t('col.species'),
+            sort: (c: Creature) => speciesName(c.speciesId, lang),
+            render: (c: Creature) => (
+              <span className="row" style={{ gap: 4 }}>
+                <SpeciesIcon id={c.speciesId} />
+                <ElementDots speciesId={c.speciesId} />
+                <select className="compact" value={c.speciesId} title={t('arena.swapSpecies')} onChange={(e) => onSwapSpecies(c.id, e.target.value)}>
+                  {SPECIES_IDS.map((id) => (
+                    <option key={id} value={id}>
+                      {speciesName(id, lang)}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            ),
+          },
+        ]
+      : []),
+    { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b className="sq-ovr">{overallRating(c)}</b> },
   ];
   if (league) {
     // Own creatures only (the test arena has no progression): level with its XP bar, and the potential (max level).
@@ -297,22 +289,13 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         );
       },
     },
-    { key: 'hp', label: t('col.hp'), num: true, sort: (c) => maxHp(c, DEFAULT_CONFIG), render: (c) => maxHp(c, DEFAULT_CONFIG) },
-    ...ATTR_COLUMNS.map(
-      (k): Column<Creature> => ({
-        key: k,
-        label: attributeText(k, lang).short,
-        title: attributeText(k, lang).name,
-        num: true,
-        sort: (c) => c.attributes[k],
-        render: (c) => <Attr v={c.attributes[k]} />,
-      }),
-    ),
-    { key: 'traits', label: t('col.traits'), render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
+    { key: 'hp', label: t('col.hp'), num: true, className: 'col-hp', sort: (c) => maxHp(c, DEFAULT_CONFIG), render: (c) => maxHp(c, DEFAULT_CONFIG) },
+    ...axisColumns,
+    { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
   );
   // Column order after the species: rating, potential, fatigue, role, line, instruction, favourite move, level / XP;
   // then health, attributes and traits. Columns absent from the test arena are simply skipped.
-  const ORDER = ['status', 'name', 'species', 'ovr', 'pot', 'cond', 'role', 'line', 'stance', 'build', 'level'];
+  const ORDER = ['grip', 'name', 'species', 'ovr', 'pot', 'cond', 'role', 'line', 'stance', 'build', 'level'];
   const rank = (k: string) => (ORDER.includes(k) ? ORDER.indexOf(k) : ORDER.length);
   columns.sort((a, b) => rank(a.key) - rank(b.key));
 
@@ -332,7 +315,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
           </span>
         )}
       </div>
-      <div data-tip={league ? 'lineup' : undefined}>
+      <div data-tip={league ? 'lineup' : undefined} className="squad-table">
       <div className="faint drag-hint">{t('sel.drag.hint')}</div>
       <SortableTable
         rows={ordered}

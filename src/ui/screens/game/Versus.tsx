@@ -88,7 +88,7 @@ function StarCard({ c, side, own }: { c?: Creature; side: 0 | 1; own: boolean })
 }
 
 /** Last played meeting between the two stables (any competition), from the player's side. */
-function lastMeeting(game: GameState, oppId: string): Fixture | undefined {
+export function lastMeeting(game: GameState, oppId: string): Fixture | undefined {
   const me = game.playerTeamId;
   return game.fixtures.filter((f) => f.result && ((f.home === me && f.away === oppId) || (f.away === me && f.home === oppId))).at(-1);
 }

@@ -24,7 +24,8 @@ import { levelOf, maxLevelOf } from '../../../engine/progression/levels.ts';
 import { divName } from '../../competitions.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame, type Screen } from '../../store/gameStore.ts';
-import { NextMatch, wording } from './InboxScreen.tsx';
+import { wording } from './InboxScreen.tsx';
+import { NextMatchBanner } from './NextMatchBanner.tsx';
 import { BoardCard } from './Board.tsx';
 import { ManagerCard } from './Career.tsx';
 import { FormDots } from './LeagueScreen.tsx';
@@ -58,7 +59,7 @@ function Hero({ game }: { game: GameState }) {
   const row = table[pos - 1];
   return (
     <section className="panel dash-hero">
-      <StableCrest team={team} size={60} />
+      <StableCrest team={team} size={44} />
       <div className="grow">
         <h2>{team.name}</h2>
         <div className="muted">
@@ -416,10 +417,12 @@ export function DashboardScreen() {
   const game = useGame((s) => s.game)!;
   return (
     <div className="stack dash" data-tip="dashboard">
-      <Hero game={game} />
+      <div className="dash-lead">
+        <Hero game={game} />
+        <NextMatchBanner game={game} />
+      </div>
       <div className="dash-top">
         <FirstSteps />
-        <NextMatch game={game} />
       </div>
       <Ambitions game={game} />
       <div className={`dash-pair ${game.manager?.career ? 'two' : ''}`}>

@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { RequestActions } from './Requests.tsx';
-import { playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
+import { teamById } from '../../../engine/league/season.ts';
 import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { divisionOf } from '../../../engine/league/divisions.ts';
 import { Gold } from '../../components/common.tsx';
 import type { StringKey } from '../../i18n/strings.ts';
 import { compName, divName, roundKey } from '../../competitions.ts';
@@ -514,38 +513,6 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
       </button>
     );
   return null;
-}
-
-export function NextMatch({ game }: { game: GameState }) {
-  const tr = useT();
-  const { t } = tr;
-  const f = playerFixture(game);
-  if (!f || seasonOver(game)) return null;
-  const home = f.home === game.playerTeamId;
-  const opp = teamById(game, home ? f.away : f.home);
-  // The opponent may play in another division (cups): its own table.
-  const table = standings(game, divisionOf(game, opp.id));
-  const pos = table.findIndex((r) => r.teamId === opp.id) + 1;
-  const row = table[pos - 1];
-  return (
-    <section className="panel next-match">
-      <div className="row wrap" style={{ gap: 10 }}>
-        <h4 className="nm-label">{t('inbox.nextMatch')}</h4>
-        <span className="tag">{home ? t('common.home') : t('common.away')}</span>
-        <b style={{ fontFamily: 'var(--font-title)', fontSize: '1.05rem' }}>{opp.name}</b>
-        {row && (
-          <span className="muted">
-            {divisionOf(game, opp.id) !== divisionOf(game, game.playerTeamId) && `${divName(t, divisionOf(game, opp.id))} · `}
-            {t('match.position', { pos: tr.ordinal(pos), pts: row.points })}
-          </span>
-        )}
-        <span className="spacer" />
-        <button className="btn primary" onClick={() => useGame.getState().continueGame()}>
-          {t('continue.next')} ▶
-        </button>
-      </div>
-    </section>
-  );
 }
 
 /** Body text of a message: plain lines become paragraphs, « • » lines a list. */

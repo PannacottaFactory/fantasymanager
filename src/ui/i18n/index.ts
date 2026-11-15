@@ -7,8 +7,12 @@ import { DEFAULT_LANG, isLang, type Lang } from '../../core/i18n.ts';
 import { fill } from '../../core/text.ts';
 import { en, fr, type StringKey } from './strings.ts';
 
-export type Theme = 'night' | 'dark' | 'parchment';
-export const THEMES: Theme[] = ['parchment', 'dark', 'night'];
+export type Theme = 'night' | 'dark' | 'parchment' | 'slate';
+export const THEMES: Theme[] = ['parchment', 'dark', 'night', 'slate'];
+/** Where the navigation sits: a sidebar on the left (manager-game style, default) or tabs in the top bar. */
+export type Layout = 'side' | 'top';
+export const LAYOUTS: Layout[] = ['side', 'top'];
+const LAYOUT_KEY = 'fm.layout';
 export type TextSize = 'normal' | 'large' | 'xlarge';
 export const TEXT_SIZES: TextSize[] = ['normal', 'large', 'xlarge'];
 /** Multiplier of the 14 px base text. */
@@ -57,6 +61,8 @@ interface SettingsState {
   setLang: (l: Lang) => void;
   setTheme: (t: Theme) => void;
   setTextSize: (t: TextSize) => void;
+  layout: Layout;
+  setLayout: (l: Layout) => void;
 }
 
 export const useSettings = create<SettingsState>()((set) => ({
@@ -66,8 +72,13 @@ export const useSettings = create<SettingsState>()((set) => ({
   })(),
   theme: (() => {
     const v = read(THEME_KEY);
-    return v === 'parchment' || v === 'dark' || v === 'night' ? v : 'night';
+    return v === 'parchment' || v === 'dark' || v === 'night' || v === 'slate' ? v : 'night';
   })(),
+  layout: read(LAYOUT_KEY) === 'top' ? 'top' : 'side',
+  setLayout: (layout) => {
+    write(LAYOUT_KEY, layout);
+    set({ layout });
+  },
   setLang: (lang) => {
     write(LANG_KEY, lang);
     set({ lang });

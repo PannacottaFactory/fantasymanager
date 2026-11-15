@@ -13,8 +13,9 @@ import { potentialLevelRange } from '../../engine/economy/scouting.ts';
 import type { Creature } from '../../engine/model.ts';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 
-export function Attr({ v }: { v: number }) {
-  return <span className={`attr ${attrClass(v)}`}>{v}</span>;
+/** An attribute value coloured by tier; `cell` = a filled box (dense tables, manager-game style). */
+export function Attr({ v, cell }: { v: number; cell?: boolean }) {
+  return <span className={`attr ${attrClass(v)}${cell ? ' cell' : ''}`}>{v}</span>;
 }
 
 /** Estimated attribute: a range coloured by its middle. */

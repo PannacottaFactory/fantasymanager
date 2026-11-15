@@ -14,6 +14,8 @@ mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// Navigation helpers below click the top tabs: use that layout unless UI_LAYOUT=side.
+await page.addInitScript((l) => localStorage.setItem('fm.layout', l), process.env.UI_LAYOUT ?? 'top');
 // Optional theme for the screenshots: UI_THEME=dark|night|parchment.
 if (process.env.UI_THEME) {
   await page.addInitScript((t) => localStorage.setItem('ui.theme', t), process.env.UI_THEME);
@@ -148,10 +150,10 @@ if (await matchMsg.count()) {
 // Every sheet of the squad.
 await go(0, 0);
 await shot('02-squad');
-// Squad as cards (default view): every card opens its sheet.
-const n = await page.locator('.ccard').count();
+// Squad table: every name opens its sheet.
+const n = await page.locator('.sq-who-text .link').count();
 for (let i = 0; i < n; i++) {
-  await page.locator('.ccard').nth(i).click();
+  await page.locator('.sq-who-text .link').nth(i).click();
   await wait(300);
   if (i === 0) {
     await shot('03-sheet');

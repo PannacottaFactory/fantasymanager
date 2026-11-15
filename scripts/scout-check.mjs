@@ -1,4 +1,4 @@
-/* global console, process, window */
+/* global console, process, window, localStorage */
 /**
  * Visual check of the scouts: new game, sends two scouts from the recruitment cards (flight to the tab), plays the
  * weeks until the reports come in and screenshots the staged reveal (during and after), the cards and the journal.
@@ -13,6 +13,8 @@ mkdirSync(out, { recursive: true });
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+// Navigation helpers below click the top tabs: use that layout unless UI_LAYOUT=side.
+await page.addInitScript((l) => localStorage.setItem('fm.layout', l), process.env.UI_LAYOUT ?? 'top');
 const errors = [];
 page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`));
 page.on('pageerror', (e) => errors.push(`page: ${e.message}\n${e.stack ?? ''}`));

@@ -5,7 +5,8 @@
 import { RequestNote } from './Requests.tsx';
 import { renameCreature } from '../../../engine/team/rename.ts';
 import { useState } from 'react';
-import type { AttributeKey } from '../../../data/attributes.ts';
+import { ATTRIBUTE_KEYS, type AttributeKey } from '../../../data/attributes.ts';
+import { divisionOf } from '../../../engine/league/divisions.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
@@ -312,8 +313,20 @@ function Sheet({ id }: { id: string }) {
       extra={own ? undefined : extra}
       footer={footer}
       aside={<CreatureRecordPanel creature={creature} />}
+      reference={leagueReference(game)}
     />
   );
+}
+
+/** Average attributes of the starters of the player's league (what « average » means on the profile radar). */
+function leagueReference(game: GameState): Record<AttributeKey, number> | undefined {
+  const ids = game.divisions?.[divisionOf(game, game.playerTeamId)] ?? [];
+  const starters = ids.flatMap((id) => {
+    const team = game.teams.find((x) => x.id === id);
+    return team ? team.tactic.lineup.flatMap((s) => team.creatures.find((c) => c.id === s.creatureId) ?? []) : [];
+  });
+  if (!starters.length) return undefined;
+  return Object.fromEntries(ATTRIBUTE_KEYS.map((k) => [k, starters.reduce((n, c) => n + c.attributes[k], 0) / starters.length])) as Record<AttributeKey, number>;
 }
 
 /** Mounted once in the app: shows the sheet of `useGame().sheet`. */

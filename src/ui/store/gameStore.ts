@@ -161,7 +161,9 @@ export const useGame = create<GameStore>()((set, get) => {
     init: async () => {
       const slot = currentSlot();
       const game = await loadGame(slot);
-      set({ game, slot, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game, weekStart: game });
+      // Dev size test (the game shown in a frame): straight back into the game, no start screen.
+      const framed = import.meta.env.DEV && window.self !== window.top;
+      set({ game, slot, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game && !framed, weekStart: game });
       void get().refreshSlots();
     },
 

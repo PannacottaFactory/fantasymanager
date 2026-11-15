@@ -42,17 +42,11 @@ function useNextTips(result: MatchResult, game: GameState | null): { foe: string
   }, [result, game]);
 }
 
-export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: MatchSetup }) {
+/** The values a tip or a factor is worded with (orders, targets, effect names, French decimals). */
+export function useTipVars() {
   const { t, lang } = useT();
-  const game = useGame((s) => s.game);
-  const before = useSetup(result, setup);
-  const v = useMemo(() => explainMatch(result, 0, before), [result, before]);
-  const next = useNextTips(result, game);
-  // Lessons of the match first; at most five tips in all, with something about the next opponent when there is.
-  const lessons = next?.tips.length ? v.tips.filter((x) => x.key !== 'keepGoing').slice(0, 5 - Math.min(2, next.tips.length)) : v.tips;
-  const ahead = next ? next.tips.filter((x) => !lessons.some((l) => l.key === 'rest' && x.key === 'nextRest')).slice(0, 5 - lessons.length) : [];
   const order = (a: string | number | undefined) => (a === 'cautious' || a === 'balanced' || a === 'aggressive' ? t(`orders.${a}`) : String(a ?? ''));
-  const vars = (x: Record<string, string | number>) => ({
+  return (x: Record<string, string | number>) => ({
     ...x,
     casters: t('target.casters'),
     weakest: t('target.weakest'),
@@ -64,6 +58,18 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
     effect: x.effect ? effectText(String(x.effect), lang).name : '',
     rating: typeof x.rating === 'string' && lang === 'fr' ? x.rating.replace('.', ',') : x.rating,
   });
+}
+
+export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: MatchSetup }) {
+  const { t } = useT();
+  const game = useGame((s) => s.game);
+  const before = useSetup(result, setup);
+  const v = useMemo(() => explainMatch(result, 0, before), [result, before]);
+  const next = useNextTips(result, game);
+  // Lessons of the match first; at most five tips in all, with something about the next opponent when there is.
+  const lessons = next?.tips.length ? v.tips.filter((x) => x.key !== 'keepGoing').slice(0, 5 - Math.min(2, next.tips.length)) : v.tips;
+  const ahead = next ? next.tips.filter((x) => !lessons.some((l) => l.key === 'rest' && x.key === 'nextRest')).slice(0, 5 - lessons.length) : [];
+  const vars = useTipVars();
   const TipList = ({ tips }: { tips: Tip[] }) => (
     <ul className="verdict-list tips">
       {tips.map((tip) => (

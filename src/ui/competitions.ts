@@ -3,7 +3,7 @@ import type { StringKey } from './i18n/strings.ts';
 
 type T = (key: StringKey, vars?: Record<string, string | number>) => string;
 
-/** Name of a division: 0 = the Grand Arena (top) … 3 = the Marches League. */
+/** Name of a division: 0 = the Grand Arena (top) … 3 = the Pit League. */
 export const divName = (t: T, d: number) => t(`div.${Math.max(0, Math.min(3, d))}` as StringKey);
 
 /** Tournament definition from a tournament id ("division-2" → "division"); undefined = the Shadow Cup. */

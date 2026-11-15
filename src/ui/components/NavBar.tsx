@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import type { Screen } from '../store/gameStore.ts';
@@ -26,6 +26,48 @@ const ICON: Partial<Record<Screen, string>> = {
 
 type Entry = Item | Group;
 const isGroup = (e: Entry): e is Group => 'items' in e;
+
+/** Every screen of the navigation, in order: single screens and groups. Shared by the top tabs and the sidebar. */
+const NAV_ENTRIES: Entry[] = [
+  { id: 'dashboard', label: 'nav.dashboard', needsGame: true },
+  { id: 'inbox', label: 'nav.inbox', needsGame: true },
+  {
+    label: 'nav.group.stable',
+    icon: 'nav-stable',
+    items: [
+      { id: 'squad', label: 'nav.squad', needsGame: true },
+      { id: 'tactics', label: 'nav.tactics', needsGame: true },
+      { id: 'training', label: 'nav.training', needsGame: true },
+    ],
+  },
+  {
+    label: 'nav.group.competitions',
+    icon: 'nav-competitions',
+    items: [
+      { id: 'league', label: 'nav.league', needsGame: true },
+      { id: 'news', label: 'nav.news', needsGame: true },
+    ],
+  },
+  { id: 'recruit', label: 'nav.scouting', needsGame: true },
+  {
+    label: 'nav.group.club',
+    icon: 'nav-club',
+    items: [
+      { id: 'finances', label: 'nav.finances', needsGame: true },
+      { id: 'staff', label: 'nav.staff', needsGame: true },
+      { id: 'facilities', label: 'nav.facilities', needsGame: true },
+      { id: 'career', label: 'nav.career', needsGame: true },
+    ],
+  },
+  {
+    label: 'nav.group.tools',
+    icon: 'nav-tools',
+    items: [
+      { id: 'encyclopedia', label: 'nav.encyclopedia' },
+      { id: 'arena', label: 'nav.arena' },
+    ],
+  },
+];
 
 interface Props {
   screen: Screen | null;
@@ -105,46 +147,7 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
     };
   }, [open]);
 
-  const entries: Entry[] = [
-    { id: 'dashboard', label: 'nav.dashboard', needsGame: true },
-    { id: 'inbox', label: 'nav.inbox', needsGame: true },
-    {
-      label: 'nav.group.stable',
-      icon: 'nav-stable',
-      items: [
-        { id: 'squad', label: 'nav.squad', needsGame: true },
-        { id: 'tactics', label: 'nav.tactics', needsGame: true },
-        { id: 'training', label: 'nav.training', needsGame: true },
-      ],
-    },
-    {
-      label: 'nav.group.competitions',
-      icon: 'nav-competitions',
-      items: [
-        { id: 'league', label: 'nav.league', needsGame: true },
-        { id: 'news', label: 'nav.news', needsGame: true },
-      ],
-    },
-    { id: 'recruit', label: 'nav.scouting', needsGame: true },
-    {
-      label: 'nav.group.club',
-      icon: 'nav-club',
-      items: [
-        { id: 'finances', label: 'nav.finances', needsGame: true },
-        { id: 'staff', label: 'nav.staff', needsGame: true },
-        { id: 'facilities', label: 'nav.facilities', needsGame: true },
-        { id: 'career', label: 'nav.career', needsGame: true },
-      ],
-    },
-    {
-      label: 'nav.group.tools',
-      icon: 'nav-tools',
-      items: [
-        { id: 'encyclopedia', label: 'nav.encyclopedia' },
-        { id: 'arena', label: 'nav.arena' },
-      ],
-    },
-  ];
+  const entries = NAV_ENTRIES;
 
   const badge = (n?: number, gold = false) => (n ? <span className={`badge ${gold ? 'gold-badge' : ''}`}>{gold ? `+${n}` : n}</span> : null);
   const pick = (id: Screen) => {
@@ -224,6 +227,75 @@ export function NavBar({ screen, hasGame, badges, onSelect }: Props) {
           </div>
         );
       })}
+    </nav>
+  );
+}
+
+const COLLAPSED_KEY = 'fm.sideCollapsed';
+const readCollapsed = () => {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Sidebar navigation (manager-game layout): every screen always visible, grouped under small headings, the stable's
+ * identity on top (`head`). Can fold down to its icons (remembered per viewer).
+ */
+export function SideNav({ screen, hasGame, badges, onSelect, head }: Props & { head?: ReactNode }) {
+  const { t } = useT();
+  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const toggle = () => {
+    const v = !collapsed;
+    setCollapsed(v);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, v ? '1' : '0');
+    } catch {
+      /* storage unavailable */
+    }
+  };
+  const gold = (id: Screen) => id === 'squad' || id === 'training';
+  const item = (i: Item) => {
+    const disabled = i.needsGame && !hasGame;
+    const n = badges[i.id];
+    return (
+      <button
+        key={i.id}
+        className={`side-item ${i.id === screen ? 'on' : ''}`}
+        disabled={disabled}
+        aria-current={i.id === screen ? 'page' : undefined}
+        title={disabled ? t('nav.needsGame') : collapsed ? t(i.label) : t(`nav.hint.${i.id}` as StringKey)}
+        onClick={() => onSelect(i.id)}
+      >
+        <UiIcon name={ICON[i.id] ?? ''} size="1.25em" />
+        <span className="side-label">{t(i.label)}</span>
+        {!!n && <span className={`badge ${gold(i.id) ? 'gold-badge' : ''}`}>{gold(i.id) ? `+${n}` : n}</span>}
+      </button>
+    );
+  };
+  return (
+    <nav className={`side-nav ${collapsed ? 'collapsed' : ''}`} aria-label="Screens" data-tip="nav">
+      {head && <div className="side-head">{head}</div>}
+      <div className="side-scroll">
+        {NAV_ENTRIES.map((e) =>
+          isGroup(e) ? (
+            <div key={e.label} className="side-group">
+              <div className="side-group-title">
+                <span className="side-label">{t(e.label)}</span>
+              </div>
+              {e.items.map(item)}
+            </div>
+          ) : (
+            item(e)
+          ),
+        )}
+      </div>
+      <button className="side-fold" onClick={toggle} title={t(collapsed ? 'nav.expand' : 'nav.collapse')} aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')} aria-expanded={!collapsed}>
+        <span aria-hidden="true">{collapsed ? '»' : '«'}</span>
+        <span className="side-label">{t('nav.collapse')}</span>
+      </button>
     </nav>
   );
 }

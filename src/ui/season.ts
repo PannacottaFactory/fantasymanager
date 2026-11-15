@@ -103,7 +103,7 @@ export function completedWeek(game: GameState): number {
 
 type T = (key: StringKey, vars?: Record<string, string | number>) => string;
 
-/** « Marches League » or « Shadow Cup · Quarter-finals ». */
+/** « Pit League » or « Shadow Cup · Quarter-finals ». */
 export function itemLabel(t: T, x: SeasonItem): string {
   return x.league ? divName(t, x.division ?? 0) : `${compName(t, x.tournamentId)} · ${t(roundKey(x.round ?? 0, x.rounds ?? 1))}`;
 }

@@ -1,12 +1,12 @@
-import { ATTRIBUTE_KEYS } from '../../../data/attributes.ts';
-import { bestRole, isInjured, overallRating } from '../../../engine/creature/derived.ts';
+import { ATTRIBUTE_CATEGORIES, type AttributeCategory, type AttributeKey } from '../../../data/attributes.ts';
+import { bestRole, isInjured, maxHp, overallRating } from '../../../engine/creature/derived.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
-import { isStarter } from '../../../engine/team/edit.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, StageMark, Stars, TraitChip } from '../../components/common.tsx';
-import { lifeStage } from '../../../engine/progression/training.ts';
-import { CreatureCard } from '../../components/CreatureCard.tsx';
+import { useAxisColumns } from '../../components/ProfileRadar.tsx';
+import { creatureValue } from '../../../engine/economy/value.ts';
+import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { useState } from 'react';
 import { maxLevelOf } from '../../../engine/progression/levels.ts';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
@@ -19,6 +19,7 @@ import { UiIcon } from '../../icons/Icon.tsx';
 import { levelOf } from '../../../engine/progression/levels.ts';
 
 const VIEW_KEY = 'fm.squadView';
+type SquadView = 'general' | 'attrs' | 'contracts';
 
 export function SquadScreen() {
   const tr = useT();
@@ -27,14 +28,15 @@ export function SquadScreen() {
   const team = playerTeam(game);
   const openSheet = (id: string) => useGame.getState().openSheet(id);
   const waiting = team.creatures.filter((c) => (c.growth?.freePoints ?? 0) > 0);
-  const [view, setView] = useState<'cards' | 'table'>(() => {
+  const [view, setView] = useState<SquadView>(() => {
     try {
-      return localStorage.getItem(VIEW_KEY) === 'table' ? 'table' : 'cards';
+      const v = localStorage.getItem(VIEW_KEY);
+      return v === 'attrs' || v === 'contracts' ? v : 'general';
     } catch {
-      return 'cards';
+      return 'general';
     }
   });
-  const pickView = (v: 'cards' | 'table') => {
+  const pickView = (v: SquadView) => {
     setView(v);
     try {
       localStorage.setItem(VIEW_KEY, v);
@@ -42,33 +44,28 @@ export function SquadScreen() {
       /* private window: the choice is not kept */
     }
   };
-  const selection = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
+  const axisColumns = useAxisColumns<Creature>();
 
-  const columns: Column<Creature>[] = [
+  // Columns shared by both table views: who, level, potential, rating.
+  const idColumns: Column<Creature>[] = [
     {
       key: 'name',
       label: t('col.name'),
       sort: (c) => c.name,
       render: (c) => (
-        <span className="row" style={{ gap: 6 }}>
+        <span className="sq-who">
           <Crest speciesId={c.speciesId} name={c.name} level={levelOf(c)} />
-          <button className="link" onClick={() => useGame.getState().openSheet(c.id)}>
-            {c.name}
-          </button>
+          <span className="sq-who-text">
+            <button className="link" onClick={() => openSheet(c.id)}>
+              {c.name}
+            </button>
+            <small>
+              <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} /> <StageMark c={c} />
+            </small>
+          </span>
         </span>
       ),
     },
-    {
-      key: 'species',
-      label: t('col.species'),
-      sort: (c) => speciesName(c.speciesId, lang),
-      render: (c) => (
-        <span className="row" style={{ gap: 4 }}>
-          <SpeciesIcon id={c.speciesId} /> {speciesName(c.speciesId, lang)} <ElementDots speciesId={c.speciesId} />
-        </span>
-      ),
-    },
-    { key: 'stage', label: t('col.stageShort'), title: t('col.stage.title'), sort: (c) => ['young', 'prime', 'declining'].indexOf(lifeStage(c)), render: (c) => <StageMark c={c} /> },
     {
       key: 'level',
       label: t('col.level'),
@@ -86,20 +83,33 @@ export function SquadScreen() {
       ),
     },
     { key: 'pot', label: t('col.potential'), title: t('stars.potentialCol'), sort: (c) => c.potential, render: (c) => <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} /> },
-    { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
+    { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b className="sq-ovr">{overallRating(c)}</b> },
+  ];
+  const attrColumn = (k: AttributeKey, first = false): Column<Creature> => ({
+    key: k,
+    label: attributeText(k, lang).short,
+    title: attributeText(k, lang).name,
+    num: true,
+    className: first ? 'col-attr col-cat' : 'col-attr',
+    sort: (c) => c.attributes[k],
+    render: (c) => <Attr v={c.attributes[k]} cell />,
+  });
+
+  // General view: role, condition, morale, health, the six profile axes, traits.
+  const columns: Column<Creature>[] = [
+    ...idColumns,
     { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => <RoleLabel role={bestRole(c)} /> },
-    {
-      key: 'sel',
-      label: t('col.selection'),
-      sort: selection,
-      render: (c) => {
-        const s = selection(c);
-        return <span className={`tag ${s === 0 ? 'accent' : ''}`}>{s === 0 ? t('sel.starter') : s === 1 ? t('sel.bench') : t('sel.reserve')}</span>;
-      },
-    },
     { key: 'cond', label: t('col.condition'), title: t('col.condition.title'), sort: conditionSort, render: (c) => <ConditionCell c={c} /> },
     { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)} style={{ color: moraleColor(c.condition.morale) }}>{t(moraleKey(c.condition.morale))}</span> },
-    { key: 'form', label: t('col.form'), num: true, sort: (c) => c.condition.form, render: (c) => <Attr v={c.condition.form} /> },
+    { key: 'hp', label: t('col.hp'), num: true, className: 'col-hp', sort: (c) => maxHp(c, DEFAULT_CONFIG), render: (c) => maxHp(c, DEFAULT_CONFIG) },
+    ...axisColumns,
+    { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
+  ];
+  // Contracts view: age, value, wage, end of contract, for sale.
+  const contractColumns: Column<Creature>[] = [
+    ...idColumns,
+    { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
+    { key: 'value', label: t('col.value'), num: true, sort: (c) => creatureValue(c), render: (c) => <Money v={creatureValue(c)} /> },
     { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => <Money v={c.contract?.wage ?? 0} /> },
     {
       key: 'contract',
@@ -112,21 +122,12 @@ export function SquadScreen() {
         </span>
       ),
     },
-    ...(['strength', 'toughness', 'speed', 'stamina', 'attack', 'defense', 'magic', 'courage'] as const)
-      .filter((k) => ATTRIBUTE_KEYS.includes(k))
-      .map(
-        (k): Column<Creature> => ({
-          key: k,
-          label: attributeText(k, lang).short,
-          title: attributeText(k, lang).name,
-          num: true,
-          sort: (c) => c.attributes[k],
-          render: (c) => <Attr v={c.attributes[k]} />,
-        }),
-      ),
-    { key: 'traits', label: t('col.traits'), render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
   ];
-
+  // Attributes view: every attribute, physical | combat | mental.
+  const attrColumns: Column<Creature>[] = [
+    ...idColumns,
+    ...(Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).flatMap((cat) => ATTRIBUTE_CATEGORIES[cat].map((k, i) => attrColumn(k, i === 0))),
+  ];
   return (
     <div className="stack">
       <section className="panel side-home" data-tip="squad">
@@ -162,36 +163,26 @@ export function SquadScreen() {
           </button>
         </p>
         <div className="row squad-view-bar">
-          <Seg<'cards' | 'table'>
+          <Seg<SquadView>
             value={view}
             onChange={pickView}
             options={[
-              { value: 'cards', label: <><UiIcon name="view-cards" /> {t('squad.view.cards')}</> },
-              { value: 'table', label: <><UiIcon name="view-table" /> {t('squad.view.table')}</> },
+              { value: 'general', label: t('squad.view.general') },
+              { value: 'attrs', label: t('squad.view.attrs') },
+              { value: 'contracts', label: t('squad.view.contracts') },
             ]}
           />
         </div>
-        {view === 'table' ? (
-          <SortableTable rows={team.creatures} columns={columns} rowKey={(c) => c.id} initialSort={{ key: 'sel', dir: 1 }} rowClass={(c) => (isInjured(c) ? 'dim' : '')} />
-        ) : (
-          ([0, 1, 2] as const).map((g) => {
-            const list = team.creatures.filter((c) => selection(c) === g).sort((a, b) => overallRating(b) - overallRating(a));
-            if (!list.length) return null;
-            const sel = g === 0 ? 'starter' : g === 1 ? 'bench' : 'reserve';
-            return (
-              <div key={g} className="ccard-group">
-                <h3 className={`ccard-group-title sel-${sel}`}>
-                  {t(g === 0 ? 'sel.starters' : g === 1 ? 'sel.benchGroup' : 'sel.reserveGroup')} <span className="faint">{list.length}</span>
-                </h3>
-                <div className="ccard-grid">
-                  {list.map((c) => (
-                    <CreatureCard key={c.id} c={c} selection={sel} onOpen={() => openSheet(c.id)} forSale={game.forSale.includes(c.id)} />
-                  ))}
-                </div>
-              </div>
-            );
-          })
-        )}
+        <div className="squad-table">
+          <SortableTable
+            key={view}
+            rows={team.creatures}
+            columns={view === 'attrs' ? attrColumns : view === 'contracts' ? contractColumns : columns}
+            rowKey={(c) => c.id}
+            initialSort={{ key: 'ovr', dir: -1 }}
+            rowClass={(c) => (isInjured(c) ? 'dim' : '')}
+          />
+        </div>
       </section>
       {(game.fallen?.length ?? 0) > 0 && (
         <section className="panel memorial">
