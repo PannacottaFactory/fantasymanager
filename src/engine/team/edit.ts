@@ -20,7 +20,7 @@ export function toggleStarter(team: Team, id: string, cfg: GameConfig = DEFAULT_
     const c = team.creatures.find((x) => x.id === id);
     if (!c) return team;
     const role = bestRole(c);
-    t.lineup.push({ creatureId: id, role, line: ROLES[role].defaultLine, stance: 'normal' });
+    t.lineup = frontFirst([...t.lineup, { creatureId: id, role, line: ROLES[role].defaultLine, stance: 'normal' }]);
     t.bench = t.bench.filter((b) => b !== id);
   }
   return { ...team, tactic: t };
@@ -46,7 +46,7 @@ export function setSelection(team: Team, id: string, to: Selection, cfg: GameCon
   t.bench = t.bench.filter((b) => b !== id);
   if (to === 'starter') {
     const role = bestRole(c);
-    t.lineup.push({ creatureId: id, role, line: ROLES[role].defaultLine, stance: 'normal' });
+    t.lineup = frontFirst([...t.lineup, { creatureId: id, role, line: ROLES[role].defaultLine, stance: 'normal' }]);
   } else if (to === 'bench') t.bench.push(id);
   return { ...team, tactic: t };
 }
@@ -81,6 +81,7 @@ export function swapCreatures(team: Team, a: string, b: string): Team {
   t.bench = t.bench.filter((id) => (id !== a || sb === 'bench') && (id !== b || sa === 'bench'));
   if (sb === 'starter') put(a, ca, 'starter', slotB);
   if (sa === 'starter') put(b, cb, 'starter', slotA);
+  t.lineup = frontFirst(t.lineup);
   return { ...team, tactic: t };
 }
 
@@ -93,10 +94,15 @@ export function toggleBench(team: Team, id: string, cfg: GameConfig = DEFAULT_CO
 }
 
 export function updateSlot(team: Team, id: string, patch: Partial<Omit<LineupSlot, 'creatureId'>>): Team {
-  return {
-    ...team,
-    tactic: { ...team.tactic, lineup: team.tactic.lineup.map((s) => (s.creatureId === id ? { ...s, ...patch } : s)) },
-  };
+  let lineup = team.tactic.lineup.map((s) => (s.creatureId === id ? { ...s, ...patch } : s));
+  // A change of line regroups the starters: front line at the top of the list, back line below (stable).
+  if (patch.line) lineup = frontFirst(lineup);
+  return { ...team, tactic: { ...team.tactic, lineup } };
+}
+
+/** The slots with the front line first, then the back line, each keeping its order. */
+export function frontFirst<S extends { line: Line }>(slots: readonly S[]): S[] {
+  return [...slots.filter((s) => s.line === 'front'), ...slots.filter((s) => s.line !== 'front')];
 }
 
 export function setOrders(team: Team, orders: Partial<TeamOrders>): Team {

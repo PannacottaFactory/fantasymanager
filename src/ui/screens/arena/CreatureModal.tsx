@@ -153,7 +153,11 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
                       {/* A slot on every row while points are left, so the values stay aligned. */}
                       {freePoints > 0 && (
                         <span className="plus-slot">
-                          {creature.attributes[k] < attributeCeiling(creature, k) && (!pointKeys || pointKeys.includes(k)) && (
+                          {creature.attributes[k] >= attributeCeiling(creature, k) ? (
+                            <span className="plus-cap" title={t('lvl.atCap', { n: attributeCeiling(creature, k) })}>
+                              {t('lvl.capShort')}
+                            </span>
+                          ) : (!pointKeys || pointKeys.includes(k)) && (
                             <button
                               className="plus-btn"
                               title={t('lvl.raise', { attr: attributeText(k, lang).name })}

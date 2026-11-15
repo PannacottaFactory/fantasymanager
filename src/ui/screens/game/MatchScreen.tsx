@@ -16,12 +16,14 @@ import { useT } from '../../i18n/index.ts';
 import { useGame, type MatchFlow } from '../../store/gameStore.ts';
 import { LiveMatch } from '../arena/LiveMatch.tsx';
 import { ReportView } from '../arena/ReportView.tsx';
-import { RoleLabel, UiIcon } from '../../icons/Icon.tsx';
+import { RoleLabel, SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
+import { speciesName } from '../../../engine/text/localize.ts';
+import { frontFirst } from '../../../engine/team/edit.ts';
 import { Versus } from './Versus.tsx';
 import { arenaActive, arenaFor } from '../../../engine/league/arena.ts';
 
 function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const byId = new Map(team.creatures.map((c) => [c.id, c]));
   return (
     <section className={`panel ${side === 0 ? 'side-home' : 'side-away'}`}>
@@ -30,19 +32,23 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
         <small className="faint">{title}</small>
       </h3>
       <div className="lineup">
-        {team.tactic.lineup.map((s) => {
+        {frontFirst(team.tactic.lineup).map((s) => {
           const c = byId.get(s.creatureId);
           if (!c) return null;
+          // From the outside in: name, fatigue, line, species (icon inwards), role (nearest the middle of the face-off).
           return (
             <div key={c.id} className={`lineup-row ${isInjured(c) ? 'bad-text' : ''}`}>
-              <Crest speciesId={c.speciesId} name={c.name} />
-              <span className="grow ellipsis">{c.name}</span>
-              <span className="tag">
-                <RoleLabel role={s.role} short />
-              </span>
-              <span className="tag">{s.line === 'front' ? t('tag.front') : t('tag.back')}</span>
-              <span style={{ width: 44 }} title={`${t('col.fatigue')} ${c.condition.fatigue}`}>
+              <span className="lr-crest"><Crest speciesId={c.speciesId} name={c.name} /></span>
+              <span className="lr-name grow ellipsis">{c.name}</span>
+              <span className="lr-fat" title={`${t('col.fatigue')} ${c.condition.fatigue}`}>
                 <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />
+              </span>
+              <span className="lr-line tag">{s.line === 'front' ? t('tag.front') : t('tag.back')}</span>
+              <span className="lr-sp lineup-species faint">
+                <span className="ellipsis">{speciesName(c.speciesId, lang)}</span> <SpeciesIcon id={c.speciesId} size="1.1em" />
+              </span>
+              <span className="lr-role tag">
+                <RoleLabel role={s.role} short />
               </span>
             </div>
           );
@@ -52,9 +58,9 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
           if (!c) return null;
           return (
             <div key={id} className="lineup-row dim">
-              <Crest speciesId={c.speciesId} name={c.name} />
-              <span className="grow ellipsis">{c.name}</span>
-              <span className="tag">{t('tag.bench')}</span>
+              <span className="lr-crest"><Crest speciesId={c.speciesId} name={c.name} /></span>
+              <span className="lr-name grow ellipsis">{c.name}</span>
+              <span className="lr-bench tag">{t('tag.bench')}</span>
             </div>
           );
         })}

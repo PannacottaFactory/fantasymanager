@@ -9,13 +9,13 @@ import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, attributeText, roleText, speciesName } from '../../engine/text/localize.ts';
 import { getSpecies } from '../../engine/creature/derived.ts';
 import { AbilityCard, KindIcon, abilityColor } from './AbilityCard.tsx';
-import { isUnlocked, levelOf, unlockLevel } from '../../engine/progression/levels.ts';
+import { isUnlocked, levelOf, maxLevelOf, unlockLevel, xpInLevel } from '../../engine/progression/levels.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Risk, Stance, Team } from '../../engine/model.ts';
 import { fatigueColor } from '../format.ts';
 import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
-import { Attr, Bar, Crest, ElementDots, Modal, TraitChip } from './common.tsx';
+import { Attr, Bar, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
 import { useRowDrag } from './rowDrag.ts';
 import { RoleIcon } from '../icons/Icon.tsx';
@@ -208,7 +208,22 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     { key: 'ovr', label: t('col.ovr'), title: t('col.ovr.title'), num: true, sort: (c) => overallRating(c), render: (c) => <b>{overallRating(c)}</b> },
   ];
   if (league) {
+    // Own creatures only (the test arena has no progression): level with its XP, and the potential (max level).
+    const per = DEFAULT_CONFIG.training.levels.xpPerLevel;
     columns.push(
+      {
+        key: 'level',
+        label: t('col.level'),
+        title: t('col.level.title'),
+        sort: (c) => c.ability,
+        render: (c) => (
+          <span className="row" style={{ gap: 6 }}>
+            <LevelBadge c={c} compact />
+            {levelOf(c) < maxLevelOf(c) && <span className="faint mono">{t('xp.amount', { xp: xpInLevel(c), per })}</span>}
+          </span>
+        ),
+      },
+      { key: 'pot', label: t('col.potential'), title: t('stars.potentialCol'), sort: (c) => c.potential, render: (c) => <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} /> },
       {
         key: 'cond',
         label: t('col.fatigue'),

@@ -198,7 +198,11 @@ export const useGame = create<GameStore>()((set, get) => {
       await get().refreshSlots();
     },
 
-    setScreen: (screen) => set({ screen, viewing: null, launch: false }),
+    setScreen: (screen) => {
+      // Leaving a finished match's report by any other way still closes it (and opens the after-match training).
+      if (screen !== 'match' && get().match?.phase === 'report') get().closeMatch();
+      set({ screen, viewing: null, launch: false });
+    },
 
     setPlayerTeam: (team) => mapPlayerTeam(() => team),
     autoPick: () => mapPlayerTeam((t) => aiPrepare(t)),
@@ -207,6 +211,8 @@ export const useGame = create<GameStore>()((set, get) => {
     continueGame: () => {
       const g = get().game;
       if (!g) return;
+      // A report still open is closed first (whatever button led here), so its training window is never skipped.
+      if (get().match?.phase === 'report') get().closeMatch();
       // The after-match training and the summary of the week that just ended come first.
       if (get().drill || get().recap) return;
       if (seasonOver(g)) {
@@ -325,10 +331,19 @@ export const useGame = create<GameStore>()((set, get) => {
       else set({ drill: false });
     },
     leagueTab: null,
-    openLeague: (tab) => set({ leagueTab: tab, screen: 'league', viewing: null, launch: false }),
+    openLeague: (tab) => {
+      if (get().match?.phase === 'report') get().closeMatch();
+      set({ leagueTab: tab, screen: 'league', viewing: null, launch: false });
+    },
     encTab: null,
-    openBestiary: () => set({ encTab: { tab: 'bestiary' }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null }),
-    openEncyclopedia: (tab, id) => set({ encTab: { tab, id }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null }),
+    openBestiary: () => {
+      if (get().match?.phase === 'report') get().closeMatch();
+      set({ encTab: { tab: 'bestiary' }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null });
+    },
+    openEncyclopedia: (tab, id) => {
+      if (get().match?.phase === 'report') get().closeMatch();
+      set({ encTab: { tab, id }, screen: 'encyclopedia', viewing: null, launch: false, sheet: null });
+    },
   };
 });
 

@@ -298,15 +298,6 @@ function levelUp(state: GameState, c: Creature, before: number, after: number, i
 }
 
 /**
- * Attributes the player's free points can go to: those of the creature's training program (physical, combat or
- * mental), or every attribute when those are all at their ceiling.
- */
-export function programFocus(state: GameState, c: Creature, cfg: GameConfig = DEFAULT_CONFIG): AttributeKey[] {
-  const keys = [...ATTRIBUTE_CATEGORIES[programCategory(state, c)]];
-  return keys.some((k) => c.attributes[k] < attributeCap(c, k, cfg)) ? keys : [...ATTRIBUTE_KEYS];
-}
-
-/**
  * A stable the manager left: the free points its creatures were holding are placed the AI way (by their default
  * program, below the species cap). Mutates.
  */
@@ -324,12 +315,12 @@ export function placeHeldPoints(state: GameState, team: Team, cfg: GameConfig = 
   }
 }
 
-/** Places one of the player's free attribute points (in the program's attributes, below the species cap). */
+/** Places one of the player's free attribute points (any attribute, whatever the program or role; below the species cap). */
 export function spendFreePoint(state: GameState, creatureId: string, key: AttributeKey, cfg: GameConfig = DEFAULT_CONFIG): GameState {
   const next = structuredClone(state);
   const team = next.teams.find((t) => t.id === next.playerTeamId)!;
   const c = team.creatures.find((x) => x.id === creatureId);
-  if (!c?.growth?.freePoints || c.attributes[key] >= attributeCap(c, key, cfg) || !programFocus(next, c, cfg).includes(key)) return state;
+  if (!c?.growth?.freePoints || c.attributes[key] >= attributeCap(c, key, cfg)) return state;
   c.attributes[key]++;
   c.growth.freePoints--;
   progressLogger(c, next.season, next.matchday, cfg)(key, 1);

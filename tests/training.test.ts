@@ -222,7 +222,8 @@ describe('levels and experience', () => {
 
   it('level-ups give the player points to place, which raise an attribute', async () => {
     const { newGame, playMatchday, playerTeam } = await import('../src/engine/league/season.ts');
-    const { spendFreePoint, programFocus } = await import('../src/engine/progression/training.ts');
+    const { spendFreePoint, programCategory } = await import('../src/engine/progression/training.ts');
+    const { ATTRIBUTE_CATEGORIES } = await import('../src/data/attributes.ts');
     let g = newGame({ seed: 'levels', teamName: 'Me', lang: 'en' });
     for (let i = 0; i < 18 && !g.inbox.some((m) => m.kind === 'levelUp'); i++) g = playMatchday(g);
     const up = g.inbox.find((m) => m.kind === 'levelUp');
@@ -230,11 +231,9 @@ describe('levels and experience', () => {
     if (!up || up.kind !== 'levelUp') return;
     const c = playerTeam(g).creatures.find((x) => x.id === up.creatureId)!;
     expect(c.growth!.freePoints).toBeGreaterThanOrEqual(2);
-    // Points go to the attributes of the creature's program only.
-    const focus = programFocus(g, c);
-    const outside = (Object.keys(c.attributes) as (keyof typeof c.attributes)[]).find((k) => !focus.includes(k));
-    if (outside) expect(spendFreePoint(g, c.id, outside)).toBe(g);
-    const key = focus.find((k) => c.attributes[k] < 15)!;
+    // Points go anywhere, outside the creature's program too.
+    const focus: readonly string[] = ATTRIBUTE_CATEGORIES[programCategory(g, c)];
+    const key = (Object.keys(c.attributes) as (keyof typeof c.attributes)[]).find((k) => !focus.includes(k) && c.attributes[k] < 15)!;
     const next = spendFreePoint(g, c.id, key);
     const after = playerTeam(next).creatures.find((x) => x.id === c.id)!;
     expect(after.attributes[key]).toBe(c.attributes[key] + 1);

@@ -486,6 +486,8 @@ table.fixtures td.winner { font-weight: 700; }
   .continue .status { display: none; }
 }
 .lineup-row .bar { min-width: 0; }
+.lineup-species { display: inline-flex; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
+.lineup-species svg { flex: none; }
 .topbar > * { flex-shrink: 0; }
 .topbar > .nav { flex-shrink: 1; }
 
@@ -832,9 +834,9 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .xp-big i { display: block; height: 100%; border-radius: var(--r-sm); transition: width 0.8s cubic-bezier(.2, .8, .2, 1);
   background: linear-gradient(90deg, color-mix(in srgb, var(--xp-color) 70%, #000), var(--xp-color) 85%, color-mix(in srgb, var(--xp-color) 60%, #fff)); }
 .xp-big.max i { background: var(--good); }
-/* « + » to place a point: a small gold key, the cross drawn (always centred). */
+/* « + » to place a point: a quiet outlined key, the cross drawn (always centred); gold on hover. */
 .plus-slot { display: inline-grid; place-items: center; width: 1.2rem; flex: none; margin-left: 2px; }
-.plus-btn svg { width: 0.6rem; height: 0.6rem; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; fill: none; }
+.plus-btn svg { width: 0.55rem; height: 0.55rem; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; fill: none; }
 .plus-btn:active { transform: scale(0.94); }
 .plus-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 .free-points { margin: 4px 0; }
@@ -1799,20 +1801,19 @@ table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: v
 .plus-btn {
   display: grid;
   place-items: center;
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.05rem;
+  height: 1.05rem;
   padding: 0;
   cursor: pointer;
   border-radius: var(--r-sm);
-  border: 1px solid color-mix(in srgb, var(--gold) 75%, transparent);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 30%, var(--panel)), color-mix(in srgb, var(--gold) 12%, var(--panel)));
-  color: var(--gold);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent);
-  transition: background 0.15s, color 0.15s, transform 0.12s;
-  animation: plus-glow 2.2s ease-in-out 1;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--border));
+  background: transparent;
+  color: color-mix(in srgb, var(--gold) 80%, var(--muted));
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-@keyframes plus-glow { 50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent); } }
-.plus-btn:hover { background: var(--gold); color: var(--on-gold); transform: scale(1.12); animation: none; }
+.plus-btn:hover { background: color-mix(in srgb, var(--gold) 16%, transparent); border-color: var(--gold); color: var(--gold); }
+/* An attribute at its limit while points are left: a quiet « max » (the reason in the tooltip). */
+.plus-cap { font-size: var(--fs-xs); color: var(--faint); letter-spacing: 0.04em; cursor: help; }
 :root[data-effects='reduced'] .point-chip, :root[data-effects='reduced'] .plus-btn, :root[data-effects='reduced'] .badge.gold-badge { animation: none; }
 
 /* ——— Navigation on a row of its own (not enough room beside the title and buttons): names stay visible ——— */
@@ -2802,7 +2803,27 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .prematch-lineups .lineup { gap: 3px; }
 .prematch-lineups .lineup-row { padding: 2px 6px; }
 /* The opponent's line-up is the mirror of the player's: crest on the right, name right-aligned, gauge filling leftwards. */
-.prematch-lineups .side-away .lineup-head, .prematch-lineups .side-away .lineup-row { flex-direction: row-reverse; }
+.prematch-lineups .side-away .lineup-head { flex-direction: row-reverse; }
+/* Pre-match line-ups: fixed columns so every row lines up; the opponent's card is the mirror image. */
+.prematch-lineups .lineup-row {
+  display: grid; align-items: center; column-gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr) 44px 4.5rem 10rem 5.5rem;
+  grid-template-areas: 'crest name fat line sp role';
+}
+.prematch-lineups .side-away .lineup-row {
+  grid-template-columns: 5.5rem 10rem 4.5rem 44px minmax(0, 1fr) auto;
+  grid-template-areas: 'role sp line fat name crest';
+}
+.lr-crest { grid-area: crest; display: flex; }
+.lr-name { grid-area: name; }
+.lr-fat { grid-area: fat; }
+.lr-line { grid-area: line; }
+.lr-sp { grid-area: sp; }
+.lr-role { grid-area: role; }
+.prematch-lineups .lineup-row > .tag { justify-self: stretch; justify-content: center; text-align: center; }
+.prematch-lineups .lineup-row > .lr-bench { grid-column: 3 / -1; justify-self: end; }
+.prematch-lineups .side-away .lineup-row > .lr-bench { grid-column: 1 / 5; justify-self: start; }
+.prematch-lineups .side-away .lineup-species { flex-direction: row-reverse; }
 .prematch-lineups .side-away .lineup-head small { margin-left: 0; margin-right: auto; }
 .prematch-lineups .side-away .lineup-row .grow { text-align: right; }
 .prematch-lineups .side-away .lineup-row .bar { transform: scaleX(-1); }

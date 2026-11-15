@@ -19,7 +19,7 @@ import { Knowledge, Gold, Money } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { CreatureModal } from '../arena/CreatureModal.tsx';
-import { programCategory, programFocus, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
+import { programCategory, setPlan, spendFreePoint } from '../../../engine/progression/training.ts';
 import { ProgramSelect } from './TrainingScreen.tsx';
 import { CreatureRecordPanel } from '../../components/CreatureRecord.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
@@ -306,7 +306,6 @@ function Sheet({ id }: { id: string }) {
       knowledge={k}
       deltas={own ? seasonDeltas(creature) : undefined}
       onSpendPoint={own ? (k) => update((g) => spendFreePoint(g, id, k)) : undefined}
-      pointKeys={own ? programFocus(game, creature) : undefined}
       favorites={favorites}
       onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
       onRename={own ? (name) => update((g) => renameCreature(g, id, name)) : undefined}
