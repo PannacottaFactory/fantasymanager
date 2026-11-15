@@ -326,6 +326,11 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     ),
     { key: 'traits', label: t('col.traits'), render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
   );
+  // Column order after the species: rating, potential, fatigue, role, line, instruction, favourite move, level / XP;
+  // then health, attributes and traits. Columns absent from the test arena are simply skipped.
+  const ORDER = ['status', 'name', 'species', 'ovr', 'pot', 'cond', 'role', 'line', 'stance', 'build', 'level'];
+  const rank = (k: string) => (ORDER.includes(k) ? ORDER.indexOf(k) : ORDER.length);
+  columns.sort((a, b) => rank(a.key) - rank(b.key));
 
   return (
     <section className={`panel ${className ?? ''}`}>

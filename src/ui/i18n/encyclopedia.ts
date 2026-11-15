@@ -10,6 +10,9 @@ const en = {
   intro: 'Everything the arena runs on, with the exact numbers the simulation uses.',
   search: 'Search…',
   none: 'Nothing matches.',
+  searchAll: 'Search the whole encyclopedia…',
+  results: '{n} result(s) in the whole encyclopedia',
+  resultsMore: 'and {n} more — refine the search',
   'tab.bestiary': 'Your bestiary',
   'tab.species': 'Species',
   'tab.abilities': 'Abilities',
@@ -28,7 +31,7 @@ const en = {
   'sp.roles': 'Natural roles',
   'sp.passives': 'Permanent effects',
   'sp.life': 'Life',
-  'sp.lifeText': 'Fights from {min} years old, reaches its full potential at {peak}, declines after {end} (−{decline} % per year), retires around {max}.',
+  'sp.lifeText': 'Fights from {min} years old. ▲ Developing until {peak} · ◆ in its prime from {peak} to {end} · ▼ declining after {end} (−{decline} % per year) · retires around {max}.',
   'sp.growth': 'Growth',
   'sp.growthText': 'Physical ×{p} · combat ×{c} · mental ×{m} (1 = normal speed).',
   'sp.upkeep': 'Food & keep',
@@ -255,6 +258,9 @@ const en = {
   'ru.levels.title': 'Levels and experience',
   'ru.levels.body':
     'Creatures have a level from 1 to {max}; the bar of each level counts {xp} XP. The first levels come quickly, the last ones take much longer. Their maximum level (the potential, written n★) is set by their potential. Abilities unlock at given levels.\nXP per match: taking part {played}, starter +{starter}, +{rating} per rating point above 5, +{win} for a win. XP comes from matches only, multiplied by the coach of the creature’s program and by the life stage: young ×{young}, at the peak ×{prime}, past the prime ×{old}.\nLevelling up is what makes a creature stronger: while the XP bar fills, its attribute points are put aside; when it goes up a level it receives them all at once (spread by its training program: more points at higher levels), plus two points placed by hand in any attribute, whatever its role or program (AI stables place theirs by their program). Its potential is simply its maximum level: the last level-up brings it straight to its potential (everything left at once), then it stops progressing.\nA level measures progress within the species: a high-level creature of a modest species may stay weaker than a lower-level one of a strong species — compare them by their rating.',
+  'ru.age.title': 'Age and life stages',
+  'ru.age.body':
+    'Each species has its own life cycle (its page, « Life »): it fights from a minimum age, reaches its prime, then declines and retires. Every creature is one year older at each new season. Its life stage is shown by a symbol next to it (squad, training, cards):\n▲ Developing — before its prime. It gains XP at full speed (×{young}): its levels come quickly.\n◆ In its prime — its best years. XP ×{prime}: it still progresses, more slowly, and keeps its strength.\n▼ Declining — past its prime. It no longer gains XP (×{old}) and loses attributes at every birthday, according to its species’ decline rate (physical ones first, combat ones less, mental ones hardly). It retires once it passes its species’ maximum age.\nOn the market, a young creature is priced on what it can become; a declining star costs less but will not stay strong for long.',
   'ru.injury.title': 'Injuries',
   'ru.injury.body':
     'A creature knocked out has a {ko} % chance of injury, a heavy hit (over {heavyHit} % of its health) {heavy} % — modified by its hidden injury proneness, its traits and its fatigue. Injuries keep a creature out for weeks; the infirmary shortens them.\nRarely, a creature knocked out dies of the injury it picked up: {severe} % for a severe injury, {career} % for a career-ending one, {moderate} % for a moderate one (less with the infirmary). The whole stable loses morale, its friends even more.',
@@ -275,6 +281,9 @@ const fr: Record<EncKey, string> = {
   intro: 'Tout ce qui fait tourner l’arène, avec les chiffres exacts qu’utilise la simulation.',
   search: 'Rechercher…',
   none: 'Aucun résultat.',
+  searchAll: 'Rechercher dans toute l’encyclopédie…',
+  results: '{n} résultat(s) dans toute l’encyclopédie',
+  resultsMore: 'et {n} de plus — précisez la recherche',
   'tab.bestiary': 'Votre bestiaire',
   'tab.species': 'Espèces',
   'tab.abilities': 'Capacités',
@@ -292,7 +301,7 @@ const fr: Record<EncKey, string> = {
   'sp.roles': 'Rôles naturels',
   'sp.passives': 'Effets permanents',
   'sp.life': 'Vie',
-  'sp.lifeText': 'Combat dès {min} ans, atteint tout son potentiel à {peak}, décline après {end} (−{decline} % par an), prend sa retraite vers {max}.',
+  'sp.lifeText': 'Combat dès {min} ans. ▲ En développement jusqu’à {peak} · ◆ à son apogée de {peak} à {end} · ▼ en déclin après {end} (−{decline} % par an) · retraite vers {max}.',
   'sp.growth': 'Progression',
   'sp.growthText': 'Physique ×{p} · combat ×{c} · mental ×{m} (1 = vitesse normale).',
   'sp.upkeep': 'Nourriture & entretien',
@@ -512,6 +521,9 @@ const fr: Record<EncKey, string> = {
   'ru.levels.title': 'Niveaux et expérience',
   'ru.levels.body':
     'Les créatures ont un niveau de 1 à {max} ; la barre de chaque niveau compte {xp} XP. Les premiers niveaux viennent vite, les derniers demandent beaucoup plus. Leur niveau maximum (le potentiel, noté n★) dépend de leur potentiel. Les capacités se débloquent à certains niveaux.\nXP par match : participer {played}, titulaire +{starter}, +{rating} par point de note au-dessus de 5, +{win} pour une victoire. L’XP ne vient que des matchs, multipliée par l’entraîneur du programme de la créature et selon l’âge : jeune ×{young}, à l’apogée ×{prime}, après l’apogée ×{old}.\nC’est en passant des niveaux qu’une créature devient plus forte : pendant que la barre d’XP se remplit, ses points d’attributs sont mis de côté ; quand elle passe un niveau, elle les reçoit tous d’un coup (répartis selon son programme d’entraînement : plus de points aux niveaux élevés), plus deux points placés à la main dans l’attribut de votre choix, quels que soient son rôle et son programme (les écuries IA placent les leurs selon leur programme). Son potentiel, c’est simplement son niveau maximum : le dernier passage de niveau l’amène directement à son potentiel (tout le reste d’un coup), puis elle ne progresse plus.\nLe niveau mesure la progression dans l’espèce : une créature de haut niveau d’une espèce modeste peut rester moins forte qu’une créature de niveau inférieur d’une espèce puissante — comparez-les à leur note.',
+  'ru.age.title': 'Âge et étapes de vie',
+  'ru.age.body':
+    'Chaque espèce a son propre cycle de vie (sa page, « Vie ») : elle combat dès un âge minimum, atteint son apogée, puis décline et prend sa retraite. Chaque créature prend un an à chaque nouvelle saison. Son étape de vie est signalée par un symbole à côté d’elle (effectif, entraînement, cartes) :\n▲ En développement — avant son apogée. Elle gagne l’XP à pleine vitesse (×{young}) : ses niveaux viennent vite.\n◆ À son apogée — ses meilleures années. XP ×{prime} : elle progresse encore, plus lentement, et garde toute sa force.\n▼ En déclin — après son apogée. Elle ne gagne plus d’XP (×{old}) et perd des attributs à chaque anniversaire, selon le rythme de déclin de son espèce (le physique d’abord, le combat un peu moins, le mental presque pas). Elle prend sa retraite une fois passé l’âge maximum de son espèce.\nSur le marché, une jeune créature se paie sur ce qu’elle peut devenir ; une star en déclin coûte moins cher mais ne restera pas forte longtemps.',
   'ru.injury.title': 'Blessures',
   'ru.injury.body':
     'Une créature mise KO a {ko} % de risque de blessure, un gros coup (plus de {heavyHit} % de sa vie) {heavy} % — modifiés par sa fragilité cachée, ses traits et sa fatigue. Les blessures écartent une créature pendant des semaines ; l’infirmerie les raccourcit.\nRarement, une créature mise KO meurt de la blessure reçue : {severe} % pour une blessure grave, {career} % pour une blessure de fin de carrière, {moderate} % pour une blessure modérée (moins avec l’infirmerie). Toute l’écurie perd du moral, ses amis davantage.',

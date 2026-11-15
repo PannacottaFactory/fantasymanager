@@ -59,9 +59,9 @@ function Tokens({ n, max }: { n: number; max: number }) {
  * one runs over the attributes of its program and stops on the one that goes up. The engine draws; the roulettes show.
  */
 export function TrainingSession() {
-  const { t, lang } = useT();
+  const { t } = useT();
   const game = useGame((s) => s.game)!;
-  const { act, openSheet } = useGame.getState();
+  const { act } = useGame.getState();
   const team = playerTeam(game);
   const s = sessionState(game);
   const ready = sessionsReady(game);
@@ -69,7 +69,6 @@ export function TrainingSession() {
   const [spin, setSpin] = useState<Spin | null>(null);
   const [phase, setPhase] = useState<Phase>('done');
   const busy = !!spin && phase !== 'done';
-  const nameOf = (id: string) => team.creatures.find((c) => c.id === id)?.name ?? '?';
   const max = DEFAULT_CONFIG.training.sessions.maxStored;
 
   const train = () => {
@@ -113,16 +112,6 @@ export function TrainingSession() {
         {!spin && <span className="faint sess-coach">{t('sess.coach')}</span>}
       </div>
 
-      {s.recent.length > 0 && !busy && (
-        <div className="session-log">
-          <span className="muted">{t('sess.recent')}</span>
-          {[...s.recent].reverse().map((r, i) => (
-            <button key={i} className={`session-log-chip ${r.d > 1 ? 'jackpot' : ''}`} onClick={() => openSheet(r.creatureId)}>
-              <UiIcon name={`dom-${r.category}`} /> {nameOf(r.creatureId)} <b>+{r.d} {attributeText(r.attr, lang).name}</b>
-            </button>
-          ))}
-        </div>
-      )}
     </section>
   );
 }

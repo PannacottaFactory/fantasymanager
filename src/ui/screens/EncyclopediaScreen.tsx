@@ -3,7 +3,10 @@
  * rules — all generated from the game data and config, so the numbers are always the real ones.
  * Play styles are never named: only mechanics.
  */
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+import type { Lang } from '../../core/i18n.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import { ATTRIBUTE_CATEGORIES, ATTRIBUTE_KEYS, type AttributeCategory, type AttributeKey } from '../../data/attributes.ts';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
@@ -32,10 +35,142 @@ const cfg = DEFAULT_CONFIG;
 export type Tab = 'bestiary' | 'species' | 'abilities' | 'effects' | 'traits' | 'roles' | 'elements' | 'attributes' | 'injuries' | 'rules';
 const TABS: Tab[] = ['species', 'abilities', 'effects', 'traits', 'roles', 'elements', 'attributes', 'injuries', 'rules'];
 const ROLE_IDS = Object.keys(ROLES) as RoleId[];
-export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury', 'levels', 'arena'] as const;
+export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury', 'levels', 'age', 'arena'] as const;
 
-/** Accent-insensitive, case-insensitive match. */
-const norm = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+/**
+ * Accent-insensitive, case-insensitive form of a text, one character for one character (so a position found in the
+ * normalised text is the same in the original: snippets and highlights).
+ */
+const norm = (s: string) =>
+  s
+    .split('')
+    .map((ch) => (ch.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase() || ch)[0])
+    .join('');
+
+/** One page of the encyclopedia as plain text, for the search across every tab. */
+interface Doc {
+  tab: Tab;
+  id: string;
+  label: string;
+  text: string;
+}
+
+/** Entries of a tab: [id, label, icon]. */
+function entriesOf(tab: Tab, lang: Lang): { id: string; label: string; icon?: ReactNode }[] {
+  const e = encT(lang);
+  switch (tab) {
+    case 'species':
+      return SPECIES_IDS.map((id) => ({ id, label: speciesText(id, lang).name, icon: <SpeciesIcon id={id} /> }));
+    case 'abilities':
+      return Object.values(ABILITIES).map((a) => ({ id: a.id, label: abilityText(a.id, lang).name, icon: <span style={{ color: elColor(a.element) }}><KindIcon kind={a.kind} /></span> }));
+    case 'effects':
+      return Object.values(EFFECTS).map((x) => ({ id: x.id, label: effectText(x.id, lang).name, icon: <span className={x.beneficial ? 'good-text' : 'bad-text'}>{x.beneficial ? '▲' : '▼'}</span> }));
+    case 'traits':
+      return Object.values(TRAITS).map((x) => ({ id: x.id, label: traitText(x.id, lang).name }));
+    case 'roles':
+      return ROLE_IDS.map((id) => ({ id, label: roleText(id, lang).name, icon: <RoleIcon role={id} /> }));
+    case 'attributes':
+      return ATTRIBUTE_KEYS.map((k) => ({ id: k, label: attributeText(k, lang).name }));
+    case 'injuries':
+      return Object.values(INJURIES).map((i) => ({ id: i.id, label: injuryText(i.id, lang).short }));
+    case 'rules':
+      return RULES.map((r) => ({ id: r, label: e(`ru.${r}.title` as EncKey) }));
+    case 'elements':
+      return [{ id: 'chart', label: e('tab.elements') }];
+    default:
+      return [];
+  }
+}
+
+function pageOf(tab: Tab, id: string): ReactElement | null {
+  const go = () => {};
+  switch (tab) {
+    case 'species':
+      return <SpeciesEntry id={id} go={go} />;
+    case 'abilities':
+      return <AbilityEntry id={id} go={go} />;
+    case 'effects':
+      return <EffectEntry id={id} go={go} />;
+    case 'traits':
+      return <TraitEntry id={id} go={go} />;
+    case 'roles':
+      return <RoleEntry id={id as RoleId} go={go} />;
+    case 'attributes':
+      return <AttributeEntry id={id as AttributeKey} go={go} />;
+    case 'injuries':
+      return <InjuryEntry id={id} />;
+    case 'rules':
+      return <RuleEntry id={id as (typeof RULES)[number]} />;
+    case 'elements':
+      return <ElementsChart />;
+    default:
+      return null;
+  }
+}
+
+/** Every page rendered once, off screen, to plain text (per language; the numbers are the real ones). */
+const INDEX = new Map<Lang, Doc[]>();
+function searchIndex(lang: Lang): Doc[] {
+  const done = INDEX.get(lang);
+  if (done) return done;
+  const host = document.createElement('div');
+  const root = createRoot(host);
+  const docs: Doc[] = [];
+  for (const tab of TABS)
+    for (const { id, label } of entriesOf(tab, lang)) {
+      const page = pageOf(tab, id);
+      if (!page) continue;
+      flushSync(() => root.render(page));
+      // A copy with a space after every element, so words of different lines never stick together.
+      const copy = host.cloneNode(true) as HTMLElement;
+      copy.querySelectorAll('*').forEach((el) => el.append(' '));
+      docs.push({ tab, id, label, text: (copy.textContent ?? '').replace(/\s+/g, ' ').trim() });
+    }
+  root.unmount();
+  INDEX.set(lang, docs);
+  return docs;
+}
+
+/** « … words around the match … » with the match marked. */
+function Snippet({ text, q }: { text: string; q: string }) {
+  const at = norm(text).indexOf(q);
+  if (at < 0) return null;
+  const from = Math.max(0, at - 40);
+  const to = Math.min(text.length, at + q.length + 60);
+  return (
+    <span className="enc-snippet">
+      {from > 0 && '…'}
+      {text.slice(from, at)}
+      <mark>{text.slice(at, at + q.length)}</mark>
+      {text.slice(at + q.length, to)}
+      {to < text.length && '…'}
+    </span>
+  );
+}
+
+/** Lights every occurrence of the search in the page shown (CSS highlights; nothing where unsupported). */
+function useHighlight(container: HTMLElement | null, q: string, key: string) {
+  useEffect(() => {
+    const reg = (globalThis as { CSS?: { highlights?: Map<string, unknown> } }).CSS?.highlights;
+    const H = (globalThis as { Highlight?: new (...r: Range[]) => unknown }).Highlight;
+    if (!reg || !H) return;
+    reg.delete('enc-search');
+    if (!container || !q) return;
+    const ranges: Range[] = [];
+    const walk = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      const s = norm(n.textContent ?? '');
+      for (let i = s.indexOf(q); i >= 0; i = s.indexOf(q, i + q.length)) {
+        const r = document.createRange();
+        r.setStart(n, i);
+        r.setEnd(n, i + q.length);
+        ranges.push(r);
+      }
+    }
+    if (ranges.length) reg.set('enc-search', new H(...ranges));
+    return () => void reg.delete('enc-search');
+  }, [container, q, key]);
+}
 
 export interface Link {
   tab: Tab;
@@ -64,34 +199,29 @@ export function EncyclopediaScreen() {
     setQuery('');
   };
 
-  // Entries of the current tab: [id, label, icon].
-  const entries = useMemo((): { id: string; label: string; icon?: ReactNode }[] => {
-    switch (tab) {
-      case 'species':
-        return SPECIES_IDS.map((id) => ({ id, label: speciesText(id, lang).name, icon: <SpeciesIcon id={id} /> }));
-      case 'abilities':
-        return Object.values(ABILITIES).map((a) => ({ id: a.id, label: abilityText(a.id, lang).name, icon: <span style={{ color: elColor(a.element) }}><KindIcon kind={a.kind} /></span> }));
-      case 'effects':
-        return Object.values(EFFECTS).map((x) => ({ id: x.id, label: effectText(x.id, lang).name, icon: <span className={x.beneficial ? 'good-text' : 'bad-text'}>{x.beneficial ? '▲' : '▼'}</span> }));
-      case 'traits':
-        return Object.values(TRAITS).map((x) => ({ id: x.id, label: traitText(x.id, lang).name }));
-      case 'roles':
-        return ROLE_IDS.map((id) => ({ id, label: roleText(id, lang).name, icon: <RoleIcon role={id} /> }));
-      case 'attributes':
-        return ATTRIBUTE_KEYS.map((k) => ({ id: k, label: attributeText(k, lang).name }));
-      case 'injuries':
-        return Object.values(INJURIES).map((i) => ({ id: i.id, label: injuryText(i.id, lang).short }));
-      case 'rules':
-        return RULES.map((r) => ({ id: r, label: e(`ru.${r}.title` as EncKey) }));
-      default:
-        return [];
-    }
-  }, [tab, lang, e]);
+  const entries = useMemo(() => (tab === 'elements' ? [] : entriesOf(tab, lang)), [tab, lang]);
   const sorted = useMemo(() => [...entries].sort((a, b) => (tab === 'rules' ? 0 : a.label.localeCompare(b.label, lang))), [entries, tab, lang]);
   const q = norm(query.trim());
-  const shown = q ? sorted.filter((x) => norm(x.label).includes(q)) : sorted;
-  const current = sel && entries.some((x) => x.id === sel) ? sel : (shown[0]?.id ?? null);
-  const hasList = tab !== 'elements' && tab !== 'bestiary';
+
+  // The search looks into every page of every tab (built once per language, after the first letter typed).
+  const [index, setIndex] = useState<Doc[] | null>(() => INDEX.get(lang) ?? null);
+  useEffect(() => {
+    if (!q || (index && INDEX.get(lang) === index)) return;
+    const id = window.setTimeout(() => setIndex(searchIndex(lang)), 0);
+    return () => window.clearTimeout(id);
+  }, [q, lang, index]);
+  const results = useMemo(() => {
+    if (!q || !index) return [];
+    const inLabel = index.filter((d) => norm(d.label).includes(q));
+    const inText = index.filter((d) => !norm(d.label).includes(q) && norm(d.text).includes(q));
+    return [...inLabel, ...inText];
+  }, [q, index]);
+  const MAX_RESULTS = 80;
+
+  const current = sel && (entries.some((x) => x.id === sel) || (tab === 'elements' && sel === 'chart')) ? sel : (results.find((r) => r.tab === tab)?.id ?? sorted[0]?.id ?? null);
+  const hasList = !!q || (tab !== 'elements' && tab !== 'bestiary');
+  const [detail, setDetail] = useState<HTMLElement | null>(null);
+  useHighlight(detail, q, `${tab}/${current}`);
 
   return (
     <div className="stack">
@@ -112,21 +242,46 @@ export function EncyclopediaScreen() {
       <div className={hasList ? 'enc-layout' : ''}>
         {hasList && (
           <section className="panel enc-list">
-            <input type="search" value={query} placeholder={e('search')} onChange={(ev) => setQuery(ev.target.value)} />
-            {shown.length === 0 && <div className="muted">{e('none')}</div>}
-            <ul>
-              {shown.map((x) => (
-                <li key={x.id}>
-                  <button className={x.id === current ? 'on' : ''} onClick={() => setSel(x.id)}>
-                    {x.icon && <span className="enc-ico">{x.icon}</span>}
-                    {x.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <input type="search" value={query} placeholder={e('searchAll')} onChange={(ev) => setQuery(ev.target.value)} />
+            {q ? (
+              <>
+                {index && <div className="faint enc-count">{results.length ? e('results', { n: results.length }) : e('none')}</div>}
+                <ul className="enc-results">
+                  {results.slice(0, MAX_RESULTS).map((d) => (
+                    <li key={`${d.tab}/${d.id}`}>
+                      <button
+                        className={d.tab === tab && d.id === current ? 'on' : ''}
+                        onClick={() => {
+                          setTab(d.tab);
+                          setSel(d.id);
+                        }}
+                      >
+                        <span className="enc-res-head">
+                          <b>{d.label}</b>
+                          <span className="enc-res-tab">{e(`tab.${d.tab}` as EncKey)}</span>
+                        </span>
+                        {!norm(d.label).includes(q) && <Snippet text={d.text} q={q} />}
+                      </button>
+                    </li>
+                  ))}
+                  {results.length > MAX_RESULTS && <li className="faint enc-count">{e('resultsMore', { n: results.length - MAX_RESULTS })}</li>}
+                </ul>
+              </>
+            ) : (
+              <ul>
+                {sorted.map((x) => (
+                  <li key={x.id}>
+                    <button className={x.id === current ? 'on' : ''} onClick={() => setSel(x.id)}>
+                      {x.icon && <span className="enc-ico">{x.icon}</span>}
+                      {x.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
-        <section className="panel enc-detail">
+        <section className="panel enc-detail" ref={setDetail}>
           {tab === 'elements' && <ElementsChart />}
           {tab === 'bestiary' && game && <BestiaryView game={game} go={go} />}
           {current && tab === 'species' && <SpeciesEntry id={current} go={go} />}
@@ -848,6 +1003,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       rating: num(cfg.training.xp.perRatingPoint), win: num(cfg.training.xp.win),
       young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining),
     },
+    age: { young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining) },
   };
   return (
     <div>
