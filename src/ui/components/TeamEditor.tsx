@@ -12,10 +12,9 @@ import { AbilityCard, KindIcon, abilityColor } from './AbilityCard.tsx';
 import { isUnlocked, levelOf, maxLevelOf, unlockLevel } from '../../engine/progression/levels.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Risk, Stance, Team } from '../../engine/model.ts';
-import { fatigueColor } from '../format.ts';
 import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
-import { Attr, Bar, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
+import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
 import { useRowDrag } from './rowDrag.ts';
 import { RoleIcon } from '../icons/Icon.tsx';
@@ -217,22 +216,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         render: (c) => <LevelBadge c={c} compact bare />,
       },
       { key: 'pot', label: t('col.potential'), title: t('stars.potentialCol'), sort: (c) => c.potential, render: (c) => <Stars n={maxLevelOf(c)} title={t('stars.potential', { n: maxLevelOf(c) })} /> },
-      {
-        key: 'cond',
-        label: t('col.fatigue'),
-        sort: (c) => (isInjured(c) ? 200 : 0) + c.condition.fatigue,
-        render: (c) => {
-          const inj = c.condition.injuries.find((i) => i.weeksLeft > 0);
-          if (inj) return <span className="tag bad">{t('status.injured', { weeks: tr.weeks(inj.weeksLeft) })}</span>;
-          return (
-            <span className="row" style={{ gap: 4 }} title={`${t('col.fatigue')} ${c.condition.fatigue}%`}>
-              <span style={{ width: 46 }}>
-                <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />
-              </span>
-            </span>
-          );
-        },
-      },
+      { key: 'cond', label: t('col.condition'), title: t('col.condition.title'), sort: conditionSort, render: (c) => <ConditionCell c={c} /> },
     );
   }
   columns.push(

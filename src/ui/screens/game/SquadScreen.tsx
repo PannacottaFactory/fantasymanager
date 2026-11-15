@@ -4,13 +4,13 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import { isStarter } from '../../../engine/team/edit.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, Bar, Crest, ElementDots, LevelBadge, Money, Seg, StageMark, Stars, TraitChip } from '../../components/common.tsx';
+import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, StageMark, Stars, TraitChip } from '../../components/common.tsx';
 import { lifeStage } from '../../../engine/progression/training.ts';
 import { CreatureCard } from '../../components/CreatureCard.tsx';
 import { useState } from 'react';
 import { maxLevelOf } from '../../../engine/progression/levels.ts';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
-import { fatigueColor, moraleKey, moraleColor } from '../../format.ts';
+import { moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
@@ -97,34 +97,7 @@ export function SquadScreen() {
         return <span className={`tag ${s === 0 ? 'accent' : ''}`}>{s === 0 ? t('sel.starter') : s === 1 ? t('sel.bench') : t('sel.reserve')}</span>;
       },
     },
-    {
-      key: 'status',
-      label: t('col.status'),
-      sort: (c) => (isInjured(c) ? 1 : 0),
-      render: (c) => {
-        const inj = c.condition.injuries.find((i) => i.weeksLeft > 0);
-        if (inj)
-          return (
-            <span className="tag bad" title={injuryText(inj.injuryId, lang).short}>
-              {t('status.injured', { weeks: tr.weeks(inj.weeksLeft) })}
-            </span>
-          );
-        return c.condition.fatigue >= 50 ? <span className="tag warn">{t('status.tired')}</span> : <span className="faint">{t('status.available')}</span>;
-      },
-    },
-    {
-      key: 'fatigue',
-      label: t('col.fatigue'),
-      num: true,
-      sort: (c) => c.condition.fatigue,
-      render: (c) => (
-        <span className="row" style={{ gap: 4, justifyContent: 'flex-end' }} title={`${t('col.fatigue')} ${c.condition.fatigue}%`}>
-          <span style={{ width: 50 }}>
-            <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />
-          </span>
-        </span>
-      ),
-    },
+    { key: 'cond', label: t('col.condition'), title: t('col.condition.title'), sort: conditionSort, render: (c) => <ConditionCell c={c} /> },
     { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)} style={{ color: moraleColor(c.condition.morale) }}>{t(moraleKey(c.condition.morale))}</span> },
     { key: 'form', label: t('col.form'), num: true, sort: (c) => c.condition.form, render: (c) => <Attr v={c.condition.form} /> },
     { key: 'wage', label: t('col.wage'), num: true, sort: (c) => c.contract?.wage ?? 0, render: (c) => <Money v={c.contract?.wage ?? 0} /> },

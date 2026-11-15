@@ -3,8 +3,8 @@ import { ELEMENTS } from '../../data/elements.ts';
 import { SPECIES } from '../../data/species.ts';
 import { TRAITS } from '../../data/traits.ts';
 import type { ElementId } from '../../data/schema.ts';
-import { elementName, speciesName, traitText } from '../../engine/text/localize.ts';
-import { attrClass, initials } from '../format.ts';
+import { elementName, injuryText, speciesName, traitText } from '../../engine/text/localize.ts';
+import { attrClass, fatigueColor, initials } from '../format.ts';
 import { effectsOn, useT } from '../i18n/index.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
 import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.ts';
@@ -73,6 +73,36 @@ export function Bar({ value, max, color, thin, title, ghost }: { value: number; 
     </div>
   );
 }
+
+/**
+ * « Condition » of an own creature in one cell: injured → « Injury · n weeks »; otherwise its fatigue bar (as wide as
+ * the injury label, so the column stays aligned), or « Available » when fresh. Exact values in the tooltip.
+ */
+export function ConditionCell({ c }: { c: Creature }) {
+  const tr = useT();
+  const { t, lang } = tr;
+  const inj = c.condition.injuries.find((i) => i.weeksLeft > 0);
+  if (inj)
+    return (
+      <span className="cond-cell">
+        <span className="tag bad" title={injuryText(inj.injuryId, lang).short}>
+          {t('status.injured', { weeks: tr.weeks(inj.weeksLeft) })}
+        </span>
+      </span>
+    );
+  const f = c.condition.fatigue;
+  return (
+    <span className="cond-cell" title={`${t('col.fatigue')} ${f} %`}>
+      {f > 0 ? <Bar value={f} max={100} color={fatigueColor(f)} /> : <span className="faint">{t('status.available')}</span>}
+    </span>
+  );
+}
+
+/** Sort key of the condition: available, then more and more tired, then injured (longest last). */
+export const conditionSort = (c: Creature) => {
+  const inj = c.condition.injuries.find((i) => i.weeksLeft > 0);
+  return inj ? 200 + inj.weeksLeft : c.condition.fatigue;
+};
 
 /** Metal of a creature's level frame (bronze 1–3, silver 4–6, gold 7–9, legend 10); iron when the level is not known. */
 export type FrameMetal = 'iron' | 'bronze' | 'silver' | 'gold' | 'legend';
