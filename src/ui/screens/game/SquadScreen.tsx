@@ -68,7 +68,6 @@ export function SquadScreen() {
         </span>
       ),
     },
-    { key: 'age', label: t('col.age'), num: true, sort: (c) => c.age, render: (c) => c.age },
     { key: 'stage', label: t('col.stageShort'), title: t('col.stage.title'), sort: (c) => ['young', 'prime', 'declining'].indexOf(lifeStage(c)), render: (c) => <StageMark c={c} /> },
     {
       key: 'level',
@@ -77,7 +76,7 @@ export function SquadScreen() {
       sort: (c) => c.ability,
       render: (c) => (
         <span className="row" style={{ gap: 6 }}>
-          <LevelBadge c={c} compact />
+          <LevelBadge c={c} compact bare />
           {(c.growth?.freePoints ?? 0) > 0 && (
             <button className="point-chip" title={t('points.chip.title')} onClick={() => openSheet(c.id)}>
               +{c.growth!.freePoints}
@@ -119,12 +118,9 @@ export function SquadScreen() {
       num: true,
       sort: (c) => c.condition.fatigue,
       render: (c) => (
-        <span className="row" style={{ gap: 4, justifyContent: 'flex-end' }}>
+        <span className="row" style={{ gap: 4, justifyContent: 'flex-end' }} title={`${t('col.fatigue')} ${c.condition.fatigue}%`}>
           <span style={{ width: 50 }}>
             <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />
-          </span>
-          <span className="mono" style={{ width: 22 }}>
-            {c.condition.fatigue}
           </span>
         </span>
       ),

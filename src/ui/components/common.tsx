@@ -202,7 +202,8 @@ export function Seg<T extends string>({ value, options, onChange }: { value: T; 
 }
 
 /** Level 1–10 with the XP bar of the current level and the creature's maximum level (own creatures). */
-export function LevelBadge({ c, compact }: { c: Creature; compact?: boolean }) {
+/** `bare`: the level as a plain number (tables whose column is already named « Level »). */
+export function LevelBadge({ c, compact, bare }: { c: Creature; compact?: boolean; bare?: boolean }) {
   const { t } = useT();
   const lv = levelOf(c);
   const max = maxLevelOf(c);
@@ -211,7 +212,7 @@ export function LevelBadge({ c, compact }: { c: Creature; compact?: boolean }) {
   const per = DEFAULT_CONFIG.training.levels.xpPerLevel;
   return (
     <span className="level-badge" title={atMax ? t('lvl.atMax', { n: lv }) : t('lvl.tip', { n: lv, xp, per, max })}>
-      <b>{t('lvl.short', { n: lv })}</b>
+      <b>{bare ? lv : t('lvl.short', { n: lv })}</b>
       <span className="xp-bar">
         <i style={{ width: atMax ? '100%' : `${(100 * xp) / per}%` }} className={atMax ? 'max' : ''} />
       </span>
