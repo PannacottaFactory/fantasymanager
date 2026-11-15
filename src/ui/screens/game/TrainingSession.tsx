@@ -87,6 +87,13 @@ export function TrainingSession() {
     setPhase(effectsOn() ? 'creature' : 'done');
   };
 
+  const go = !busy && (
+    <button className="session-go" disabled={ready <= 0} onClick={train} title={t('sess.coach')}>
+      <UiIcon name="nav-training" size="1.3em" />
+      <span>{ready > 0 ? t('sess.go') : t('sess.afterMatch')}</span>
+    </button>
+  );
+
   return (
     <section className={`panel session ${ready > 0 && !busy ? 'ready' : ''}`} data-tip="session">
       <div className="sess-head">
@@ -102,12 +109,7 @@ export function TrainingSession() {
 
       <div className="session-stage">
         {spin && <Show key={spin.n} spin={spin} phase={phase} setPhase={setPhase} />}
-        {!busy && (
-          <button className="session-go" disabled={ready <= 0} onClick={train}>
-            <UiIcon name="nav-training" size="1.3em" />
-            <span>{ready > 0 ? t('sess.go') : t('sess.afterMatch')}</span>
-          </button>
-        )}
+        {go}
         {!spin && <span className="faint sess-coach">{t('sess.coach')}</span>}
       </div>
 

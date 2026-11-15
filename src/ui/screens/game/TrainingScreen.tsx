@@ -30,7 +30,7 @@ export function ProgramSelect({ value, onChange }: { value: ProgramId; onChange:
   );
 }
 
-/** Training: the sessions on top, then each creature's program (which attributes its level-ups and sessions raise). */
+/** Training: the sessions and the guide on the left, each creature's program on the right (which attributes its level-ups and sessions raise). */
 export function TrainingScreen() {
   const tr = useT();
   const { t, lang } = tr;
@@ -78,7 +78,7 @@ export function TrainingScreen() {
       label: t('col.level'),
       title: t('col.level.title'),
       sort: (c) => c.ability,
-      render: (c) => <LevelBadge c={c} />,
+      render: (c) => <LevelBadge c={c} compact />,
     },
     {
       key: 'progress',
@@ -108,9 +108,14 @@ export function TrainingScreen() {
   ];
 
   return (
-    <div className="stack">
-      <TrainingSession />
-      <section className="panel">
+    <div className="train-layout">
+      <div className="train-side">
+        <TrainingSession />
+        <section className="panel train-aside">
+          <TrainingGuide />
+        </section>
+      </div>
+      <section className="panel train-main">
         <div className="panel-head">
           <h2>{t('train.title')}</h2>
           <span className="spacer" />
@@ -128,7 +133,6 @@ export function TrainingScreen() {
             ))}
           </span>
         </div>
-        <TrainingGuide />
         <div className="row wrap" style={{ gap: 8, marginBottom: 10 }}>
           <select className="compact" value={allProgram} onChange={(e) => setAllProgram(e.target.value as ProgramId)}>
             <option value="role">{t('prog.byRole')}</option>
@@ -142,7 +146,7 @@ export function TrainingScreen() {
             {t('train.applyAll')}
           </button>
         </div>
-        <div data-tip="training">
+        <div data-tip="training" className="train-table">
           <SortableTable rows={team.creatures} columns={cols} rowKey={(c) => c.id} initialSort={{ key: 'level', dir: -1 }} />
         </div>
       </section>

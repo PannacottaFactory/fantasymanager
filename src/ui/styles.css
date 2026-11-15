@@ -3262,6 +3262,31 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .session-stage { position: relative; display: grid; gap: 14px; justify-items: center; padding: 18px 14px; border-radius: var(--r-lg);
   background: linear-gradient(180deg, color-mix(in srgb, var(--panel-2) 85%, #000), var(--panel-2)); border: 1px solid var(--border);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), inset 0 -20px 40px rgb(0 0 0 / 0.18); }
+/* Training screen: sessions + guide on the left, the creatures' table on the right — one screen, no scroll. */
+.train-layout { display: grid; grid-template-columns: 29rem minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+.train-layout > .panel, .train-side > .panel { margin: 0; }
+.train-side { display: grid; gap: var(--sp-4); min-width: 0; }
+/* Sessions in the side column: the head wraps, the button (also « next session after the next match ») stays large. */
+.train-side .sess-titles h2 { font-size: var(--fs-base); white-space: nowrap; }
+.train-side .sess-titles .muted { font-size: var(--fs-sm); }
+.train-side .session-stage { padding: 12px; gap: 8px; }
+.train-side .sess-coach { display: none; } /* in the button's tooltip */
+.train-side .guide-lines li { margin: 1px 0; }
+.train-side .session-go { width: 100%; justify-content: center; padding: 14px 24px; font-size: var(--fs-lg); }
+.train-side .session-go:disabled { font-size: var(--fs-base); }
+.train-side .training-guide { font-size: var(--fs-sm); }
+.train-side .guide-steps { margin: 6px 0 4px; gap: 4px; }
+.train-side .guide-steps li { padding: 4px 8px; }
+.train-main .panel-head { flex-wrap: wrap; row-gap: 6px; }
+.train-aside .training-guide { margin: 0; background: transparent; padding: 0; }
+.train-aside .training-guide > summary { font-family: var(--font-title); font-size: var(--fs-base); margin-bottom: 2px; }
+.train-aside .guide-steps { flex-direction: column; }
+.train-aside .guide-steps li { flex: none; }
+@media (max-width: 1200px) { .train-layout { grid-template-columns: minmax(0, 1fr); } }
+/* Training table: columns sized to their content instead of spread over the whole width. */
+.train-table { overflow-x: auto; }
+.train-table table.data { width: auto; }
+.train-table table.data td, .train-table table.data th { padding-inline: 8px; }
 .session.ready .session-stage { border-color: color-mix(in srgb, var(--gold) 40%, var(--border)); }
 .sess-coach { font-size: var(--fs-sm); }
 /* The call to action: gold, with a light sweeping across. */
