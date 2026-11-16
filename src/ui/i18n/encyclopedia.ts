@@ -230,7 +230,7 @@ const en = {
   // Rules
   'ru.match.title': 'A match',
   'ru.match.body':
-    '{starters} starters and {bench} substitutes per side, two lines (front and back). Up to {rounds} rounds, with breaks after rounds {breaks}: up to {subs} substitutions per match, new orders, lines and stances.\nA side with nobody standing loses by KO. Otherwise the judges score the % of the opponents’ total health removed, and the higher score wins.\nLeague points: KO win {koWin}, points win {pointsWin}, points loss {pointsLoss}, KO loss {koLoss}.',
+    '{starters} starters and {bench} substitutes per side, two lines (front and back). Up to {rounds} rounds, with breaks after rounds {breaks}: up to {subs} substitutions per match, new orders, lines and stances.\nA side with nobody standing loses by KO. Otherwise the judges score the % of the opponents’ total health removed — every opponent that entered the arena counts, those taken off with the health they had left, and healing gives health back — and the higher score wins.\nLeague points: KO win {koWin}, points win {pointsWin}, points loss {pointsLoss}, KO loss {koLoss}.',
   'ru.turn.title': 'Turn order',
   'ru.turn.body':
     'Each round, creatures act from the highest initiative: speed + {antic} × anticipation, size (small +{small}, large {large}, huge {huge}) and a random part up to {noise}. Effects (damage and healing over time) tick at the start of the round.',
@@ -493,7 +493,7 @@ const fr: Record<EncKey, string> = {
 
   'ru.match.title': 'Un match',
   'ru.match.body':
-    '{starters} titulaires et {bench} remplaçants par camp, deux lignes (avant et arrière). Jusqu’à {rounds} rounds, avec des pauses après les rounds {breaks} : jusqu’à {subs} remplacements par match, nouvelles consignes, lignes et postures.\nUn camp sans créature debout perd par KO. Sinon les juges comptent le % de vie totale adverse retiré, et le meilleur score gagne.\nPoints de ligue : victoire par KO {koWin}, aux points {pointsWin}, défaite aux points {pointsLoss}, par KO {koLoss}.',
+    '{starters} titulaires et {bench} remplaçants par camp, deux lignes (avant et arrière). Jusqu’à {rounds} rounds, avec des pauses après les rounds {breaks} : jusqu’à {subs} remplacements par match, nouvelles consignes, lignes et postures.\nUn camp sans créature debout perd par KO. Sinon les juges comptent le % de vie totale adverse retiré — tous les adversaires entrés dans l’arène comptent, ceux sortis avec la vie qu’il leur restait, et les soins rendent de la vie — et le meilleur score gagne.\nPoints de ligue : victoire par KO {koWin}, aux points {pointsWin}, défaite aux points {pointsLoss}, par KO {koLoss}.',
   'ru.turn.title': 'Ordre de jeu',
   'ru.turn.body':
     'À chaque round, les créatures agissent de la plus haute initiative à la plus basse : vitesse + {antic} × anticipation, taille (petite +{small}, grande {large}, énorme {huge}) et une part de hasard jusqu’à {noise}. Les effets (dégâts et soins sur la durée) agissent au début du round.',

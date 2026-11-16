@@ -26,6 +26,7 @@
     "sim:attributes": "tsx src/sim/attributes.ts",
     "sim:injuries": "tsx src/sim/injuries.ts",
     "sim:fatigue": "tsx src/sim/fatigue.ts",
+    "sim:judges": "tsx src/sim/judges.ts",
     "ui:check": "node scripts/ui-check.mjs"
   },
   "dependencies": {

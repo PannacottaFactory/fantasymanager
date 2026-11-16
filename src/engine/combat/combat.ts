@@ -1029,11 +1029,15 @@ export class Combat {
     return true;
   }
 
+  /**
+   * Judges: share of the opponents' health actually removed — every opponent that entered the arena (those taken off
+   * count with the health they had left), healing deducted. A side that heals well keeps its health and the points.
+   */
   private judgeScore(side: Side): number {
     const opp = this.combatants.filter((c) => c.side === other(side) && c.enteredRound !== null);
     const total = opp.reduce((s, c) => s + c.maxHp, 0);
-    const dealt = this.combatants.filter((c) => c.side === side).reduce((s, c) => s + c.damageDealt, 0);
-    return total ? Math.min(100, Math.round((100 * dealt) / total)) : 0;
+    const left = opp.reduce((s, c) => s + (c.state === 'ko' ? 0 : Math.max(0, Math.round(c.hp))), 0);
+    return total ? clamp(Math.round((100 * (total - left)) / total), 0, 100) : 0;
   }
 
   private pointsWinner(): Side {

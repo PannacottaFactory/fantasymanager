@@ -3,7 +3,7 @@ import { Combat } from '../../../engine/combat/combat.ts';
 import { aiBreakDecision } from '../../../engine/combat/decisions.ts';
 import { replayDeciders } from '../../../engine/combat/simulate.ts';
 import type { BreakDecision, MatchEvent, MatchResult, MatchSetup, RosterEntry } from '../../../engine/combat/types.ts';
-import { applyEvent, initialView, type MatchView } from '../../../engine/combat/view.ts';
+import { applyEvent, initialView, judgesScore, type MatchView } from '../../../engine/combat/view.ts';
 import { Commentator, type CommentaryLine } from '../../../engine/commentary/commentator.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { SPECIES } from '../../../data/species.ts';
@@ -396,7 +396,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
         <section className="panel chronicle">
           <div className="scoreband">
             <div className="sb-side home" title={t('live.judgesTip')}>
-              <b className="sb-pct">{ended && outcome ? scoreA : Math.round((1 - health(1)) * 100)}</b>
+              <b className="sb-pct">{ended && outcome ? scoreA : judgesScore(view, 0)}</b>
               <small>{t('live.judges')}</small>
             </div>
           <div className="round-banner">
@@ -424,7 +424,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
             </div>
           </div>
             <div className="sb-side away" title={t('live.judgesTip')}>
-              <b className="sb-pct">{ended && outcome ? scoreB : Math.round((1 - health(0)) * 100)}</b>
+              <b className="sb-pct">{ended && outcome ? scoreB : judgesScore(view, 1)}</b>
               <small>{t('live.judges')}</small>
             </div>
             <div className="health-duel">

@@ -38,6 +38,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npm run sim:attributes -- --matches 3000 --points 3` | what attribute points are worth: a level on one / every starter, +n in each attribute (ranking), health per strength; `--only a,b` · `--set combat.x.y=v,…` to try a config variant |
 | `npm run sim:fatigue -- --worlds 6` | fatigue spiral: the player's season with no rotation / the assistant's rotation / rotation + pace yourself (starters' fatigue, ≥ 50 / ≥ 70, points, place) |
+| `npm run sim:judges -- --matches 4000` | fairness of the judges: points won by the side with more health / that healed more / made more substitutions, last-break dilution trick |
 | `npm run sim:injuries -- --worlds 6 --seasons 2` | injuries on autopilot: injured per stable and week, weeks with 2+ / 3+ / 4+ / 5+ out, new injuries per match, weeks out, squad size |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 | `node scripts/steam-check.mjs <outDir> [url] [1920x1080,1366x768,1280x800]` | Steam formats (dev server running): screenshots of every main screen per resolution + pixels each one overflows (0 = fits) |
@@ -374,7 +375,11 @@ tests/       Vitest
 
 ## Arena rules (current)
 5 starters + 3 bench, 2 abstract lines (front/back). Max 20 rounds; breaks after rounds 5/10/15 with up to
-3 substitutions. A team with nobody standing loses by KO; otherwise judges' score = % of opposing health removed.
+3 substitutions. A team with nobody standing loses by KO; otherwise judges' score = % of opposing health removed, net of healing,
+over every opponent that entered (those taken off count with the health they had left; `judgeScore` in `Combat`,
+`judgesScore(view)` for the live band — the same formula, tested in `tests/judges.test.ts`). Counting healing made healers
+too strong, so healing was halved (`heal.statBase` 0.28, `statPerPoint` 0.02): the side that healed clearly more now wins
+≈ 54 % of points decisions (39 % when healing did not count), support species ≈ 50 % in `sim:species` (`sim:judges`).
 League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0.
 **Deaths (rare)**: after a league/cup match, a creature knocked out that picked up an injury dies of it with
 `cfg.league.death.chance[severity]` (moderate 2 %, severe 20 %, career 50 %) × the infirmary factor — own RNG stream

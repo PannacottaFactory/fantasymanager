@@ -99,8 +99,9 @@ export const COMBAT_CONFIG = {
     lowHpPenalty: 0.1,
   },
   heal: {
-    statBase: 0.55,
-    statPerPoint: 0.04,
+    /** Healing = power × (statBase + magic × statPerPoint). Halved when the judges started counting it. */
+    statBase: 0.28,
+    statPerPoint: 0.02,
   },
   guard: {
     /** Passive intercept chance for front-line tanks. */

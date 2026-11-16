@@ -33,6 +33,14 @@ export interface MatchView {
   ended: boolean;
 }
 
+/** Judges' score of a side so far, as the engine counts it: health removed from every opponent that entered, healing deducted. */
+export function judgesScore(view: MatchView, side: 0 | 1): number {
+  const opp = Object.values(view.creatures).filter((c) => c.side !== side && c.state !== 'bench');
+  const total = opp.reduce((s, c) => s + c.maxHp, 0);
+  const left = opp.reduce((s, c) => s + (c.state === 'ko' ? 0 : Math.max(0, Math.round(c.hp))), 0);
+  return total ? Math.min(100, Math.max(0, Math.round((100 * (total - left)) / total))) : 0;
+}
+
 export function initialView(roster: Record<string, RosterEntry>): MatchView {
   const creatures: Record<string, CombatantView> = {};
   for (const r of Object.values(roster)) {
