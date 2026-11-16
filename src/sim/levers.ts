@@ -64,6 +64,9 @@ const LEVERS: Lever[] = [
   { label: 'all in the back line', mod: lineup((s) => ({ ...s, line: 'back' })) },
   { label: 'all in the front line', mod: lineup((s) => ({ ...s, line: 'front' })) },
   { label: 'roles rotated (wrong roles)', mod: lineup((s, k, all) => ({ ...s, role: all[(k + 1) % all.length]!.role })) },
+  { label: 'strikers moved to the back line', mod: lineup((s) => (s.role === 'striker' ? { ...s, line: 'back' } : s)) },
+  { label: 'tanks played as strikers', mod: lineup((s) => (s.role === 'tank' ? { ...s, role: 'striker' } : s)) },
+  { label: 'tanks as strikers (vs ranged/spells)', mod: lineup((s) => (s.role === 'tank' ? { ...s, role: 'striker' } : s)), opponent: (i) => squad(i, ['elf', 'centaur', 'djinn', 'lich', 'naga', 'harpy', 'salamander', 'imp']) },
   {
     label: '3 best starters benched',
     mod: (t) => {

@@ -179,10 +179,10 @@ export const COMBAT_CONFIG = {
    * species, a creature gets only `roleFit.offRoleBonus` of the role's bonuses (its costs still apply).
    */
   roles: {
-    tank: { melee: 0.88, ranged: 0.88, spell: 0.88, heal: 1, mitigation: 0.03 },
+    tank: { melee: 0.88, ranged: 0.88, spell: 0.88, heal: 1, mitigation: 0.02 },
     striker: { melee: 1.15, ranged: 1, spell: 1, heal: 1, mitigation: -0.05 },
     caster: { melee: 1, ranged: 1, spell: 1.15, heal: 1, mitigation: -0.05 },
-    support: { melee: 0.85, ranged: 0.85, spell: 0.85, heal: 1.25, mitigation: 0 },
+    support: { melee: 0.85, ranged: 0.85, spell: 0.85, heal: 1.15, mitigation: 0 },
     skirmisher: { melee: 1.05, ranged: 1.1, spell: 1, heal: 1, mitigation: -0.04 },
   } as Record<RoleId, { melee: number; ranged: number; spell: number; heal: number; mitigation: number }>,
   /**

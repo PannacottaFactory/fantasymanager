@@ -263,7 +263,7 @@ const list: SpeciesDef[] = [
     abilities: [{ id: 'ember-talons' }, { id: 'flame-burst', minAbility: 40 }, { id: 'rebirth-flame', minAbility: 90 }, { id: 'solar-flare', minAbility: 130 }],
     passives: ['rekindling'],
     nameCulture: 'phoenix', traitWeights: { loyal: 2, fearless: 2, 'pack-leader': 1.5, coward: 0.1 },
-    upkeep: 120, rarity: 1, valueMult: 1.08,
+    upkeep: 120, rarity: 1, valueMult: 1.5,
   },
   {
     id: 'dryad', name: 'Dryad', plural: 'Dryads', size: 'medium', elements: ['nature'],

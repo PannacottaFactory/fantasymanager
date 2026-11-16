@@ -380,6 +380,9 @@ over every opponent that entered (those taken off count with the health they had
 `judgesScore(view)` for the live band — the same formula, tested in `tests/judges.test.ts`). Counting healing made healers
 too strong, so healing was halved (`heal.statBase` 0.28, `statPerPoint` 0.02): the side that healed clearly more now wins
 ≈ 54 % of points decisions (39 % when healing did not count), support species ≈ 50 % in `sim:species` (`sim:judges`).
+Then tank role armour +3 % → +2 % (the tank's job is intercepting), support healing bonus +25 % → +15 %: tanks + healing
+(fortress) 65 → 62 %, purify 59 → 55 % in `sim:archetypes`; phoenix `valueMult` 1.08 → 1.5. A striker hits as hard from
+the back line (melee ignores the attacker's line) but moving strikers back costs ≈ 4 points (thinner front line).
 League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0.
 **Deaths (rare)**: after a league/cup match, a creature knocked out that picked up an injury dies of it with
 `cfg.league.death.chance[severity]` (moderate 2 %, severe 20 %, career 50 %) × the infirmary factor — own RNG stream
