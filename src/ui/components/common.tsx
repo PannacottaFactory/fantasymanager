@@ -141,7 +141,7 @@ export function Crest({ speciesId, name, size = 24, level }: { speciesId: string
   const gid = `crest-${els.join('-') || 'none'}`;
   return (
     <svg className={`crest metal-${metal}`} width={size} height={size} viewBox="0 0 24 24" role="img" aria-label={name ? `${name} (${sp})` : sp}>
-      <title>{name ? `${name} · ${sp}` : sp}</title>
+      <title>{name ? `${name} — ${sp}` : sp}</title>
       <defs>
         <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={lighten(c1, 0.15)} />
@@ -287,7 +287,7 @@ export function StageMark({ c }: { c: Creature }) {
   const m = DEFAULT_CONFIG.training.stage[st];
   const mult = lang === 'fr' ? String(m).replace('.', ',') : String(m);
   return (
-    <span className={`stage-mark ${st}`} title={`${t(STAGE_KEY[st])} · ${m > 0 ? t('stage.xp', { m: mult }) : t('stage.none')}`}>
+    <span className={`stage-mark ${st}`} title={`${t(STAGE_KEY[st])} — ${m > 0 ? t('stage.xp', { m: mult }) : t('stage.none')}`}>
       {STAGE_SYMBOL[st]}
     </span>
   );

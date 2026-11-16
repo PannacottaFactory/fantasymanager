@@ -1028,6 +1028,16 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .dash-money > b { font: 700 var(--fs-xl) var(--font-mono); }
 .dash-spark { width: 160px; height: 40px; flex: none; }
 table.standings.compact td { padding: 3px 6px; }
+/* Dashboard mini table: long stable names are cut with « … » instead of pushing the points out of the card. */
+.dash-card table.standings.compact { width: 100%; table-layout: fixed; }
+.dash-card table.standings.compact td:first-child { width: 2.2em; }
+.dash-card table.standings.compact td.mt-name { overflow: hidden; text-overflow: ellipsis; }
+.dash-card table.standings.compact td.mt-form { width: 88px; }
+.dash-card table.standings.compact td:last-child { width: 2.6em; }
+.dash-rating { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+/* Best creatures: the names get the room (the XP bar stays in the squad and the sheet). */
+.dash-list .level-badge .xp-bar { display: none; }
+.dash-list .dash-who { min-width: 0; }
 :root[data-effects='reduced'] .dash-card { animation: none; }
 @media (max-width: 640px) { .dash-tiles { grid-template-columns: repeat(2, 1fr); } .dash-hero { flex-wrap: wrap; } }
 

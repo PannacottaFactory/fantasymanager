@@ -17,7 +17,7 @@ import { playerTeam, standings, teamById } from '../../../engine/league/season.t
 import type { GameState } from '../../../engine/league/types.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { Bar, Crest, Gold, LevelBadge, Attr, RollingMoney } from '../../components/common.tsx';
+import { Bar, Crest, Gold, LevelBadge, RollingMoney } from '../../components/common.tsx';
 import { SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
 import { useT } from '../../i18n/index.ts';
 import { levelOf, maxLevelOf } from '../../../engine/progression/levels.ts';
@@ -96,8 +96,10 @@ function MiniTable({ game }: { game: GameState }) {
             return (
               <tr key={r.teamId} className={`${r.teamId === game.playerTeamId ? 'mine' : ''} ${zone}`}>
                 <td className="num">{i + 1}</td>
-                <td>{teamById(game, r.teamId).name}</td>
-                <td>
+                <td className="mt-name" title={teamById(game, r.teamId).name}>
+                  {teamById(game, r.teamId).name}
+                </td>
+                <td className="mt-form">
                   <FormDots form={r.form} />
                 </td>
                 <td className="num">
@@ -158,11 +160,8 @@ function Stars({ game }: { game: GameState }) {
               <span className="faint">{speciesName(c.speciesId, lang)}</span>
             </span>
             <LevelBadge c={c} compact />
-            <b className="mono" title={t('cr.overall')}>
-              {overallRating(c)}
-            </b>
-            <span title={t('col.form')}>
-              <Attr v={c.condition.form} />
+            <span className="dash-rating" title={t('cr.overall')}>
+              <small className="faint">{t('col.rating')}</small> <b className="mono">{overallRating(c)}</b>
             </span>
           </li>
         ))}
@@ -322,7 +321,7 @@ function Ambitions({ game }: { game: GameState }) {
           {cur ? (
             <>
               <span className="amb-ico">➤</span> <b>{t(`amb.${cur}` as StringKey)}</b>
-              <span className="muted"> · {t(`amb.${cur}.desc` as StringKey)}</span>
+              <span className="muted"> — {t(`amb.${cur}.desc` as StringKey)}</span>
               {p && <span className="faint mono"> ({p.n}/{p.of})</span>}
             </>
           ) : (
@@ -353,7 +352,7 @@ function Ambitions({ game }: { game: GameState }) {
               <span className="amb-ico">{reached !== undefined ? '✓' : id === next[0] ? '➤' : '○'}</span>
               <span className="grow">
                 <b>{t(`amb.${id}` as StringKey)}</b>
-                <span className="muted"> · {t(`amb.${id}.desc` as StringKey)}</span>
+                <span className="muted"> — {t(`amb.${id}.desc` as StringKey)}</span>
                 {p && reached === undefined && <span className="faint mono"> ({p.n}/{p.of})</span>}
               </span>
               {reached !== undefined && <span className="faint">{t('amb.season', { s: reached })}</span>}

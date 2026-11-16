@@ -115,7 +115,7 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
           <TipList tips={lessons} />
           {ahead.length > 0 && (
             <>
-              <div className="faint small">{t('verdict.ahead')} · {next!.foe}</div>
+              <div className="faint small">{t('verdict.ahead')} — {next!.foe}</div>
               <TipList tips={ahead} />
             </>
           )}

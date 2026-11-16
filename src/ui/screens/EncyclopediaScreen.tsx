@@ -434,7 +434,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
               <A to={{ tab: 'effects', id: p }} go={go}>
                 {effectText(p, lang).name}
               </A>{' '}
-              · {effectText(p, lang).description}
+              — {effectText(p, lang).description}
             </>
           ))}
         />
@@ -449,7 +449,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
               <A to={{ tab: 'abilities', id: a.id }} go={go}>
                 {abilityText(a.id, lang).name}
               </A>{' '}
-              <span className="faint">· {a.minAbility && unlockLevel(a.minAbility) > 1 ? e('sp.unlock', { n: unlockLevel(a.minAbility) }) : e('sp.always')}</span>
+              <span className="faint">— {a.minAbility && unlockLevel(a.minAbility) > 1 ? e('sp.unlock', { n: unlockLevel(a.minAbility) }) : e('sp.always')}</span>
             </li>
           );
         })}
@@ -593,7 +593,7 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
             <A to={{ tab: 'species', id: l.sid }} go={go}>
               {speciesText(l.sid, lang).name}
             </A>{' '}
-            <span className="faint">· {l.min && unlockLevel(l.min) > 1 ? e('sp.unlock', { n: unlockLevel(l.min) }) : e('sp.always')}</span>
+            <span className="faint">— {l.min && unlockLevel(l.min) > 1 ? e('sp.unlock', { n: unlockLevel(l.min) }) : e('sp.always')}</span>
           </>
         ))}
       />
