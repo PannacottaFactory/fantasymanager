@@ -633,6 +633,8 @@ export const en = {
 
   // Squad
   'squad.title': 'Squad',
+  'squad.count': '{n}/{max} creatures',
+  'squad.count.title': 'Creatures in your stable / most allowed',
   'squad.hint': 'Click a name for the full profile. Fatigue recovers each week; tired creatures start matches with less stamina.',
   'col.name': 'Name',
   'col.species': 'Species',
@@ -652,7 +654,7 @@ export const en = {
   'col.form': 'Form',
   'col.status': 'Status',
   'col.condition': 'Condition',
-  'col.condition.title': 'Fatigue bar (exact value on hover), or the injury and the weeks left',
+  'col.condition.title': 'Freshness bar (full and green when rested, exact fatigue on hover), or the injury and the weeks left',
   'status.injured': 'Injured · {weeks}',
   'status.available': 'Available',
   'status.tired': 'Tired',
@@ -2551,6 +2553,8 @@ export const fr: Record<StringKey, string> = {
   'msg.newSeason.body': 'Un nouveau calendrier a été tiré. Bonne chance !',
 
   'squad.title': 'Effectif',
+  'squad.count': '{n}/{max} créatures',
+  'squad.count.title': 'Créatures de votre écurie / maximum autorisé',
   'squad.hint': 'Cliquez sur un nom pour la fiche complète. La fatigue se résorbe chaque semaine ; une créature fatiguée commence le match avec moins d’endurance.',
   'col.name': 'Nom',
   'col.species': 'Espèce',
@@ -2569,8 +2573,8 @@ export const fr: Record<StringKey, string> = {
   'col.morale': 'Moral',
   'col.form': 'Forme',
   'col.status': 'Statut',
-  'col.condition': 'État',
-  'col.condition.title': 'Barre de fatigue (valeur exacte au survol), ou la blessure et les semaines restantes',
+  'col.condition': 'Santé',
+  'col.condition.title': 'Barre de fraîcheur (pleine et verte quand la créature est reposée, fatigue exacte au survol), ou la blessure et les semaines restantes',
   'status.injured': 'Blessure · {weeks}',
   'status.available': 'Disponible',
   'status.tired': 'Fatigue',

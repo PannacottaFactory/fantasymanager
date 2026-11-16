@@ -47,6 +47,9 @@ export function TacticsScreen() {
             <h2>
               {t('tactics.title')} — {team.name}
             </h2>
+            <span className="tag squad-count" title={t('squad.count.title')}>
+              {t('squad.count', { n: team.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad })}
+            </span>
             <span className="spacer" />
             <span className="muted" style={{ fontSize: '0.857rem' }}>
               {t('tactics.hint')}

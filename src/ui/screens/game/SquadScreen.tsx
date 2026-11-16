@@ -135,6 +135,9 @@ export function SquadScreen() {
           <h2>
             {t('squad.title')} — {team.name}
           </h2>
+          <span className="tag squad-count" title={t('squad.count.title')}>
+              {t('squad.count', { n: team.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad })}
+            </span>
         </div>
         <p className="muted" style={{ marginTop: 0, fontSize: '0.929rem' }}>
           {t('squad.hint')}
