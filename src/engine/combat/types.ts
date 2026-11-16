@@ -50,6 +50,8 @@ export interface Combatant {
   hp: number;
   maxStamina: number;
   stamina: number;
+  /** Stamina at the start of the match (less than the max when it came in tired). */
+  startStamina?: number;
   morale: number;
   effects: ActiveEffect[];
   state: CombatantState;

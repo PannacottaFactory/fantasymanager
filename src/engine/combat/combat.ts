@@ -283,7 +283,9 @@ export class Combat {
         fatigueGained: played
           ? Math.round(
               pm.fatigueBase +
-                (1 - staminaFraction(c)) * pm.fatigueFromStamina +
+                // What it spent in this match (not the stamina it already lacked when it came in tired: that loop made
+                // tired creatures come back ever more tired).
+                (Math.max(0, (c.startStamina ?? c.maxStamina) - c.stamina) / Math.max(1, c.maxStamina)) * pm.fatigueFromStamina +
                 Math.min(1, ((c.leftRound ?? this.round) - (c.enteredRound ?? 1) + 1) / this.cfg.match.maxRounds) * pm.fatigueFromRounds +
                 (c.state === 'ko' ? pm.fatigueOnKo : 0),
             )
@@ -383,6 +385,7 @@ export class Combat {
       hp: mHp,
       maxStamina: mSt,
       stamina: Math.round(mSt * (1 - (cr.condition.fatigue / 100) * this.cfg.combat.stamina.preMatchFatigueLoss)),
+      startStamina: Math.round(mSt * (1 - (cr.condition.fatigue / 100) * this.cfg.combat.stamina.preMatchFatigueLoss)),
       morale: clamp(50 + (cr.condition.morale - 50) * m.startWeight + (cr.condition.form - 10) * m.formWeight, 5, 100),
       effects: [],
       state: starter ? 'active' : 'bench',

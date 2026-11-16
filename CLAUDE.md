@@ -37,6 +37,8 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:facility -- --worlds 8 --seasons 2` | weight of the training ground: same worlds with the player's ground forced to 0–3 (sessions, attribute points, league points, position) |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
 | `npm run sim:attributes -- --matches 3000 --points 3` | what attribute points are worth: a level on one / every starter, +n in each attribute (ranking), health per strength; `--only a,b` · `--set combat.x.y=v,…` to try a config variant |
+| `npm run sim:fatigue -- --worlds 6` | fatigue spiral: the player's season with no rotation / the assistant's rotation / rotation + pace yourself (starters' fatigue, ≥ 50 / ≥ 70, points, place) |
+| `npm run sim:injuries -- --worlds 6 --seasons 2` | injuries on autopilot: injured per stable and week, weeks with 2+ / 3+ / 4+ / 5+ out, new injuries per match, weeks out, squad size |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 | `node scripts/steam-check.mjs <outDir> [url] [1920x1080,1366x768,1280x800]` | Steam formats (dev server running): screenshots of every main screen per resolution + pixels each one overflows (0 = fits) |
 | `npm run dev` → top-bar dev tools (dev builds only, `ui/dev/DevTools.tsx`) | window size · screen-size test (the game in an iframe at 1920×1080 / 2560×1440 / 1366×768 / 1280×800 Steam Deck / 1280×720, scaled to fit; the frame skips the start screen; closing reloads to pick up its save) · full screen like a PC game |
@@ -247,7 +249,7 @@ tests/       Vitest
   −40 % hit/damage/initiative/interception) and injuries are ×(1 + fatigue/100).
 - **Training intensity** (`cfg.training.intensity`): light ×0.6 growth, −8 fatigue, +1 morale; intense ×1.4 growth,
   +16 fatigue a week (after recovery, so carried into the match), −2 morale, 3 % injury a week (× proneness/10).
-  The select's tooltip shows these numbers (`intensityDesc`). Match injuries: KO 9 %, heavy hit 1 % (≈ 0.9 per match);
+  The select's tooltip shows these numbers (`intensityDesc`). Match injuries: KO 8 %, heavy hit 1 % (≈ 0.8 per match, `sim:injuries`: ≈ 1.4 injured per stable, 4+ out ≈ 7 % of weeks); squads up to 20 (`economy.club.maxSquad`, AI stables keep ≈ 12–13);
   death chances lowered (1.6 / 16 / 40 %) to keep deaths flat. Free agents' signing bonus = 55 % of value (no fee).
 - **Encyclopedia › Attributes**: each attribute lists what it does in the arena with the config numbers
   (`attributeVars`, `at.*` texts), the roles weighing it and the best species.
@@ -609,7 +611,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   `continueGame` waits while it is open. **Bench not full** (fewer than `match.benchSize`, lineup valid): amber remark on
   the pre-match screen + a confirmation (« Compléter le banc » via `repair` / « Jouer quand même ») before live or simulate.
 - **Bonds** (discreet, mostly lore; `cfg.combat.bonds`, `Combatant.bonds` from relations ≥ `club.relations.friend` / ≤ `rival`): a friend knocked out makes the other **avenging** (effect, damage ×1.1, 4 rounds; `enrage` event with `reason: 'friendKo'` + `friend`, commentary `friendKo`, rage mark/aura); a friend who already hit the target this round gives +4 % to hit; a rival's hit never counts as teamwork (combo). Match-start morale from relations as before. Encyclopedia › Morale explains it in one sentence.
-- **Fatigue retuned** (training no longer adds any): match fatigue = 10 + 34 × stamina emptied + 14 × share of the rounds on the field + 10 if knocked out (time and KOs tire too: cheap-blow, quick-recovery species such as skeletons no longer come back fresh every week; spread per species 28–47 instead of 22–49), weekly recovery 20 + 0.6 × recovery → starters ~27 % fatigued before a match (sim:balance), rotation matters.
+- **Fatigue retuned** (training no longer adds any): match fatigue = 10 + 34 × stamina spent in the match (from `Combatant.startStamina`, not from the max: counting the stamina a tired creature already lacked made it come back ever more tired — a spiral) + 14 × share of the rounds on the field + 10 if knocked out (time and KOs tire too: cheap-blow, quick-recovery species such as skeletons no longer come back fresh every week; spread per species 28–47 instead of 22–49), weekly recovery 20 + 0.6 × recovery → starters ~27 % fatigued before a match (sim:balance), rotation matters.
 - **Creature records & medals** (`engine/team/record.ts`, `cfg.collection.medals`): `Creature.record` (matches, starts,
   wins, KOs, times KO, damage, healing, best of the match, best / average rating, trophies with season) filled after every
   league / cup / tournament match (`recordSide` in `playFixtures`) and trophy (`awardTrophy`: every creature of the

@@ -218,7 +218,7 @@ export const COMBAT_CONFIG = {
   bonds: { avengeRounds: 4, friendCombo: 0.04 },
   injury: {
     /** Chance of injury when knocked out (before modifiers). */
-    onKo: 0.09,
+    onKo: 0.08,
     /** Chance per heavy hit taken. */
     onHeavyHit: 0.01,
     /** injuryProneness (1–20) multiplies chance by (0.5 + prone/20). */

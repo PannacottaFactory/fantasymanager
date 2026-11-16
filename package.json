@@ -24,6 +24,8 @@
     "sim:facility": "tsx src/sim/facility.ts",
     "sim:levers": "tsx src/sim/levers.ts",
     "sim:attributes": "tsx src/sim/attributes.ts",
+    "sim:injuries": "tsx src/sim/injuries.ts",
+    "sim:fatigue": "tsx src/sim/fatigue.ts",
     "ui:check": "node scripts/ui-check.mjs"
   },
   "dependencies": {

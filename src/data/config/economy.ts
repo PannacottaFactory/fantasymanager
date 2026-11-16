@@ -57,7 +57,7 @@ export const ECONOMY_CONFIG = {
     reputationBaseline: [64, 46, 30, 18],
     reputationReversion: 0.2,
     minSquad: 9,
-    maxSquad: 16,
+    maxSquad: 20,
   },
   transfers: {
     /** AI asking price = value × (base + importance × importanceWeight); importance 1 = starter, 0.5 = bench, 0 = reserve. */
