@@ -584,6 +584,8 @@ export function playCupRound(state: GameState, playerMatch: MatchResult | null =
   const played = playFixtures(next, fixtures, playerMatch, cfg);
   newsFromResults(next, played, before, cfg);
   for (const team of next.teams) rest(team, 0.5, cfg);
+  // The round's match XP turns into progress straight away (not held until the league week).
+  weeklyTraining(next, new Set(), cfg, `midweek-${key}`);
 
   if (cupNow) {
     const prize = cfg.league.cup.prize[round] ?? 0;

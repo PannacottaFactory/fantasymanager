@@ -11,12 +11,16 @@ export const COMBAT_CONFIG = {
   stamina: {
     base: 40,
     perStamina: 4,
-    regenBase: 0.5,
-    regenPerRecovery: 0.15,
+    /** Regen per round = max(regenMin, regenBase + recovery × regenPerRecovery + stamina × regenPerStamina). */
+    regenBase: -1,
+    regenMin: 0.3,
+    regenPerRecovery: 0.3,
     regenPerStamina: 0.08,
     /** Regen multiplier when the creature spends its turn resting. */
     restMult: 4,
     sizeCostMult: { small: 0.85, medium: 1, large: 1.15, huge: 1.3 } as Record<SizeClass, number>,
+    /** Ability costs × (1 − (discipline − 10) × this): disciplined fighters spend less. */
+    disciplinePerPoint: 0.025,
     /** Pre-match fatigue (0–100) removes this fraction of the pool at 100. */
     preMatchFatigueLoss: 0.5,
   },
@@ -25,6 +29,8 @@ export const COMBAT_CONFIG = {
     threshold: 0.5,
     /** Penalty (hit, damage, initiative) at 0 stamina. */
     maxPenalty: 0.35,
+    /** Fatigue penalties × (1 − (determination − 10) × this). */
+    determinationPerPoint: 0.08,
     /** Injury chances × (1 + pre-match fatigue/100 × this). */
     injuryFromFatigue: 1,
     /** "Exhausted" announced below this fraction. */
@@ -48,13 +54,22 @@ export const COMBAT_CONFIG = {
     /** Other melee fighters forcing their way to the back line past a standing front line. */
     reachPenalty: 0.22,
     spellBonus: -0.03,
-    /** Bonus per point of teamwork when an ally already hit the target this round. */
-    comboPerTeamwork: 0.004,
+    /** To hit per point of the attacker's composure above 10 (below 10: less). */
+    perComposure: 0.006,
+    /** Harder to hit per point of the target's speed above 10. */
+    dodgePerSpeed: 0.006,
+    /** Allies' hit bonus per point of the best leader's leadership above 10 (a poor leader: a malus). */
+    perLeadership: 0.008,
+    /** When an ally already hit the target this round: comboBase + (teamwork − 10) × comboPerTeamwork to hit. */
+    comboBase: 0.04,
+    comboPerTeamwork: 0.015,
   },
   damage: {
     statBase: 0.55,
     statPerPoint: 0.045,
-    aggressionPerPoint: 0.006,
+    /** Physical damage × (1 + aggressionBase + (aggression − 10) × aggressionPerPoint). */
+    aggressionBase: 0.06,
+    aggressionPerPoint: 0.02,
     variance: 0.15,
     critBase: 0.04,
     critPerTechnique: 0.004,
@@ -66,6 +81,8 @@ export const COMBAT_CONFIG = {
     packMax: 4,
     /** Physical mitigation per point of toughness. */
     physMitigationPerToughness: 0.017,
+    /** Front-line armour per point of courage above 10. */
+    courageFrontPerPoint: 0.012,
     /** Spell mitigation per point of (focus + courage) / 2. */
     spellMitigationPerPoint: 0.015,
     sizeArmor: { small: 0, medium: 0, large: 0.04, huge: 0.08 } as Record<SizeClass, number>,

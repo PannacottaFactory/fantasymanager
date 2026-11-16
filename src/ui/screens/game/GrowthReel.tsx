@@ -4,53 +4,18 @@
  * Built from the creatures at the start and at the end of the week. Display only.
  */
 import { useEffect, useRef, type CSSProperties } from 'react';
-import { ATTRIBUTE_KEYS } from '../../../data/attributes.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { SPECIES } from '../../../data/species.ts';
-import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
-import type { Creature } from '../../../engine/model.ts';
-import { levelOf, maxLevelOf, unlockLevel, xpInLevel } from '../../../engine/progression/levels.ts';
+import { levelOf, maxLevelOf } from '../../../engine/progression/levels.ts';
+import { weekGrowth } from '../../growth.ts';
 import { abilityText, attributeText } from '../../../engine/text/localize.ts';
-import { Crest } from '../../components/common.tsx';
+import { Crest, Modal } from '../../components/common.tsx';
 import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { play } from '../../sound/sfx.ts';
 
 const PER = DEFAULT_CONFIG.training.levels.xpPerLevel;
-const totalXp = (c: Creature) => (levelOf(c) - 1) * PER + xpInLevel(c);
-
-interface Growth {
-  c: Creature;
-  xp: number;
-  from: number;
-  to: number;
-  lv0: number;
-  lv1: number;
-  attrs: { k: (typeof ATTRIBUTE_KEYS)[number]; d: number }[];
-  abilities: string[];
-}
-
-export function weekGrowth(before: GameState, after: GameState): Growth[] {
-  const was = new Map(playerTeam(before).creatures.map((c) => [c.id, c]));
-  const out: Growth[] = [];
-  for (const c of playerTeam(after).creatures) {
-    const b = was.get(c.id);
-    if (!b) continue;
-    const lv0 = levelOf(b);
-    const lv1 = levelOf(c);
-    const xp = totalXp(c) - totalXp(b);
-    const attrs = ATTRIBUTE_KEYS.map((k) => ({ k, d: c.attributes[k] - b.attributes[k] })).filter((a) => a.d !== 0);
-    const abilities = (SPECIES[c.speciesId]?.abilities ?? []).filter((a) => {
-      const l = unlockLevel(a.minAbility);
-      return l > lv0 && l <= lv1;
-    });
-    if (xp <= 0 && !attrs.length && lv1 <= lv0) continue;
-    out.push({ c, xp: Math.max(0, xp), from: xpInLevel(b), to: xpInLevel(c), lv0, lv1, attrs, abilities: abilities.map((a) => a.id) });
-  }
-  return out.sort((a, b) => b.lv1 - b.lv0 - (a.lv1 - a.lv0) || b.attrs.length - a.attrs.length || b.xp - a.xp);
-}
 
 export function GrowthReel({ before, after }: { before: GameState; after: GameState }) {
   const { t, lang } = useT();
@@ -128,5 +93,29 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
         );
       })}
     </div>
+  );
+}
+
+/** After every player match: its XP filling the bars (level-ups, attributes, abilities), before the after-match training. */
+export function MatchProgress() {
+  const { t } = useT();
+  const progress = useGame((s) => s.progress);
+  const match = useGame((s) => s.match);
+  const viewing = useGame((s) => s.viewing);
+  if (!progress || match || viewing) return null;
+  const close = () => useGame.getState().closeProgress();
+  return (
+    <Modal
+      title={t('progress.title')}
+      onClose={close}
+      className="progress-dialog"
+      actions={
+        <button className="btn primary" onClick={close} autoFocus>
+          {t('drill.done')}
+        </button>
+      }
+    >
+      <GrowthReel before={progress.before} after={progress.after} />
+    </Modal>
   );
 }

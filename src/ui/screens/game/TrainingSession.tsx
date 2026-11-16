@@ -250,7 +250,8 @@ export function AfterMatchTraining() {
   const drill = useGame((s) => s.drill);
   const match = useGame((s) => s.match);
   const game = useGame((s) => s.game);
-  if (!drill || match || !game) return null;
+  const progress = useGame((s) => s.progress);
+  if (!drill || match || progress || !game) return null;
   const close = () => useGame.getState().closeDrill();
   const left = sessionsReady(game);
   return (

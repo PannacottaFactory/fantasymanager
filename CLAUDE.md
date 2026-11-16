@@ -36,6 +36,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:career -- --worlds 8 --seasons 4` | career mode on autopilot: sackings (ultimatum / verdict), job offers, manager reputation & division per season (`--policy climb` takes offers) |
 | `npm run sim:facility -- --worlds 8 --seasons 2` | weight of the training ground: same worlds with the player's ground forced to 0–3 (sessions, attribute points, league points, position) |
 | `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
+| `npm run sim:attributes -- --matches 3000 --points 3` | what attribute points are worth: a level on one / every starter, +n in each attribute (ranking), health per strength; `--only a,b` · `--set combat.x.y=v,…` to try a config variant |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 | `node scripts/steam-check.mjs <outDir> [url] [1920x1080,1366x768,1280x800]` | Steam formats (dev server running): screenshots of every main screen per resolution + pixels each one overflows (0 = fits) |
 | `npm run dev` → top-bar dev tools (dev builds only, `ui/dev/DevTools.tsx`) | window size · screen-size test (the game in an iframe at 1920×1080 / 2560×1440 / 1366×768 / 1280×800 Steam Deck / 1280×720, scaled to fit; the frame skips the start screen; closing reloads to pick up its save) · full screen like a PC game |
@@ -234,6 +235,14 @@ tests/       Vitest
   Individual instruction (`cfg.combat.stances`): all out = +8 % damage, −4 % armour, +15 % stamina costs; pace yourself
   = −8 % damage, −15 % stamina costs (AI uses fewer big abilities); normal = neither. Neutral on average in `sim:levers`
   (±1.5), a tired squad pacing itself +4.
+- **Attributes all count** (`sim:attributes`, +3 on every starter ≈ +2 to +5 points of win rate, strength / toughness ≈ +9–10,
+  accuracy only for ranged creatures): the weak ones got an effect centred on 10 (an average creature is unchanged, below 10
+  is a malus) — speed = dodge (`hit.dodgePerSpeed`) + initiative, composure = to hit (`hit.perComposure`), leadership = the
+  best leader on the field gives allies to hit (`hit.perLeadership`, `Combatant.led`), courage = front-line armour
+  (`damage.courageFrontPerPoint`), determination = lighter exhaustion penalties (`fatigue.determinationPerPoint`),
+  discipline = cheaper abilities (`stamina.disciplinePerPoint`), aggression ±2 %/pt damage (`aggressionBase` + per point),
+  teamwork combo (`comboBase` + per point), recovery regen ×2 (`regenBase` −1, `regenMin`). A level (+2) on one creature
+  ≈ +1.5, on the five starters ≈ +5; five levels on all ≈ +22.
 - **Fatigue**: pre-match fatigue removes up to 70 % of the stamina pool, penalties start below 60 % stamina (up to
   −40 % hit/damage/initiative/interception) and injuries are ×(1 + fatigue/100).
 - **Training intensity** (`cfg.training.intensity`): light ×0.6 growth, −8 fatigue, +1 morale; intense ×1.4 growth,
@@ -590,6 +599,11 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   unlocks by level, encyclopedia "Levels and experience" rule, Level column / badge / chart in levels). 115 tests.
   Next (later): phase 6 (save slots, import/export, worker sims).
 - **Training sessions** (`engine/progression/sessions.ts`, `ui/screens/game/TrainingSession.tsx`, top of Training + dashboard card + gold badge on the Training tab): every match a stable plays earns 1 session + a second one with a chance of `cfg.training.sessions.extraChance[training ground level]` (0 / 10 / 20 / 30 %, own stream `extraSession`; `afterMatchSessions` in `playFixtures`; was 1/1/2/2 — level 2 doubled squad growth, level 3 added nothing: `sim:facility` now ≈ 23 / 26 / 28 / 30 sessions a season), the player keeps up to `maxStored` (3) in `GameState.sessions` (`available`, `total` = seed of the draws, `recent`); AI stables spend theirs at once. « Entraîner une créature »: `runSession` draws a healthy creature (not the last one trained), then an attribute of its **program** category below its ceiling: +1, or +2 with `jackpot.base + coach quality × perQuality` (coach of that category). UI: two chained roulettes (the squad stays shown, the drawn one lit gold, the others dimmed; then the program's attributes; ~4–6 s; instant when effects are off). **Programs are physical / combat / mental only** (default `defaultProgram` = `cfg.training.roleProgram[role]`: tank / skirmisher physical, striker / caster combat, support mental; old role / balanced / rest plans map to it; « Selon le rôle » in apply-all resets). **XP comes from matches only** (`matchXp`, ×1.6 to fold in the old training share) × life stage × the coach of the creature’s program (`coachFactor`) × the training ground (+10 % per level); **training touches neither fatigue nor morale and causes no injury; no intensity.** Staff screen: per coach « XP en match ×f · +2 en séance p % · n créatures au programme », candidates compared with the current coach. Training table: no age / next-ability columns. Each level gives `levels.freePoints` (2) points to place in any attribute, whatever the role or program (« + » on every attribute below its ceiling). Life stage = `<StageMark>` (▲ developing, ◆ prime, ▼ declining; XP ×1 / ×0.5 / ×0 on hover) in Training, Squad table and cards.
+- **After-match progress**: `simulate` / `finishLive` keep `afterMatch` (states before / after the match); closing the report sets
+  `progress` when `weekGrowth` (`ui/growth.ts`) finds any, and `MatchProgress` (`GrowthReel.tsx`, `.progress-dialog`) shows the XP
+  bars filling, before the training window (the training, week recap, board, career and scout windows wait for it). Midweek
+  (cup / tournament) rounds turn their match XP into progress at once (`weeklyTraining(…, stream 'midweek-<key>')` in
+  `playCupRound`), league weeks in `playMatchday` as before.
 - **After-match training**: closing a match report (`closeMatch`) opens `AfterMatchTraining` (store flag `drill`, not saved)
   when sessions are waiting, before the end-of-week summary (`closeDrill` folds the session's gains into `recap.after`).
   `continueGame` waits while it is open. **Bench not full** (fewer than `match.benchSize`, lineup valid): amber remark on

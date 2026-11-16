@@ -501,6 +501,8 @@ export class Combat {
       const leader = team.reduce((a, b) => (b.attrs.leadership > a.attrs.leadership ? b : a));
       const m = cfg.combat.morale;
       const aura = traitSum(leader, 'auraMorale');
+      const led = (leader.attrs.leadership - 10) * cfg.combat.hit.perLeadership;
+      for (const c of team) c.led = c.id === leader.id ? 0 : led;
       if (leader.attrs.leadership >= m.minLeadership || aura > 0) {
         const boost = Math.max(0, leader.attrs.leadership - m.minLeadership + 1) * m.leadershipAuraPerPoint + aura;
         let lifted = false;

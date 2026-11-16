@@ -68,10 +68,32 @@ await wait(800);
 // Welcome window of the new game.
 await shot('00-intro');
 await closeModal();
+// Windows that follow the welcome one (the board's first meeting…): closed by their main button.
+for (let i = 0; i < 5 && (await page.locator('.overlay').count()); i++) {
+  await shot(`00-after-intro-${i}`);
+  const main = page.locator('.overlay .btn.primary');
+  if (await main.count()) await main.last().click();
+  else await closeModal();
+  await wait(400);
+}
 
+/** After-match progress window (XP bars filling): screenshot of the first, then closes it. */
+let progresses = 0;
+const closeProgress = async () => {
+  while (await page.locator('.progress-dialog').count()) {
+    progresses++;
+    if (progresses === 1) {
+      await wait(2500);
+      await shot('00-progress');
+    }
+    await page.locator('.progress-dialog .dialog-head .btn.ghost[aria-label]').first().click();
+    await wait(300);
+  }
+};
 /** After-match training window: spins the roulette once (screenshot of the first), then closes it. */
 let drills = 0;
 const closeDrill = async () => {
+  await closeProgress();
   while (await page.locator('.drill-dialog').count()) {
     drills++;
     const spin = page.locator('.drill-dialog .session-go:not([disabled])');
@@ -105,7 +127,7 @@ for (let w = 0; w < weeks; w++) {
   await page.locator('.topbar .btn.primary').first().click();
   await wait(600);
   // Closing the report opens the after-match training (then the week's summary): close them and go on.
-  if (await page.locator('.drill-dialog, .recap').count()) {
+  if (await page.locator('.progress-dialog, .drill-dialog, .recap').count()) {
     await closeRecap();
     await page.locator('.topbar .btn.primary').first().click();
     await wait(600);
@@ -130,7 +152,7 @@ await closeRecap();
 // The next pre-match screen (arena conditions start after a few weeks).
 await page.locator('.topbar .btn.primary').first().click();
 await wait(600);
-if (await page.locator('.drill-dialog, .recap').count()) {
+if (await page.locator('.progress-dialog, .drill-dialog, .recap').count()) {
   await closeRecap();
   await page.locator('.topbar .btn.primary').first().click();
 }

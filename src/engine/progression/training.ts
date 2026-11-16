@@ -241,12 +241,13 @@ export function snapshotSeasonStart(state: GameState, cfg: GameConfig = DEFAULT_
 }
 
 /**
- * One week of training for every stable (match XP was stored by the match effects).
- * Returns the player's training injuries (already applied).
+ * Turns the match XP stored by the match effects into progress, for every stable: after each league week, and right
+ * after each midweek (cup / tournament) round so the player sees every match's XP at once. `stream` keeps the two
+ * apart (a midweek round shares the matchday number of the coming league week).
  */
-export function weeklyTraining(state: GameState, _played: Set<string>, cfg: GameConfig = DEFAULT_CONFIG) {
+export function weeklyTraining(state: GameState, _played: Set<string>, cfg: GameConfig = DEFAULT_CONFIG, stream = 'training') {
   const t = cfg.training;
-  const rng = new Rng(deriveSeed(state.worldSeed, 'training', state.season, state.matchday));
+  const rng = new Rng(deriveSeed(state.worldSeed, stream, state.season, state.matchday));
   for (const team of state.teams) {
     const isPlayer = team.id === state.playerTeamId;
     for (const c of team.creatures) {

@@ -264,7 +264,7 @@ export function BoardMeeting() {
   const game = useGame((s) => s.game);
   const notes = useGame((s) => s.boardNotes);
   const rules = useGame((s) => s.boardRules);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.recap || !!s.sheet || s.intro || s.reveals.length > 0);
+  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || !!s.sheet || s.intro || s.reveals.length > 0);
   if (!game) return null;
   const st = useGame.getState();
   if (rules)

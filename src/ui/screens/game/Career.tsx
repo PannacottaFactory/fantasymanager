@@ -83,7 +83,7 @@ export function JobOfferActions({ game, m }: { game: GameState; m: Extract<Inbox
 export function JobCentre() {
   const { t } = useT();
   const game = useGame((s) => s.game);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.recap);
+  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap);
   const [, refresh] = useState(0);
   const m = game?.manager;
   if (!game || !m?.unemployed || blocked) return null;

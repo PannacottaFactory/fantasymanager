@@ -54,6 +54,8 @@ export interface Combatant {
   effects: ActiveEffect[];
   state: CombatantState;
   guarding: boolean;
+  /** Hit bonus from the side's best leader this round ((leadership − 10) × hit.perLeadership, 0 for the leader). */
+  led?: number;
   exhaustedAnnounced: boolean;
   lowHpRageUsed: boolean;
   /** Substituted out (or replaced after a KO). */

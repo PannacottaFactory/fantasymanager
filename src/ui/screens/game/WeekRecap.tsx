@@ -29,8 +29,9 @@ export function WeekRecap() {
   const match = useGame((s) => s.match);
   const viewing = useGame((s) => s.viewing);
   const drill = useGame((s) => s.drill);
-  // Shown once the match report and the after-match training are closed.
-  if (!recap || match || viewing || drill) return null;
+  const progress = useGame((s) => s.progress);
+  // Shown once the match report, its progress and the after-match training are closed.
+  if (!recap || match || viewing || drill || progress) return null;
   const { before, after } = recap;
   const st = useGame.getState();
   const close = () => st.closeRecap();

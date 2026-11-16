@@ -224,7 +224,7 @@ function Reveal({ m }: { m: Report }) {
 export function ScoutReveal() {
   const game = useGame((s) => s.game);
   const reveals = useGame((s) => s.reveals);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.recap || !!s.sheet);
+  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || !!s.sheet);
   if (!game || blocked || !reveals.length) return null;
   const m = game.inbox.find((x): x is Report => x.id === reveals[0] && x.kind === 'scoutReport');
   if (!m || !locate(game, m.targetId)) {

@@ -418,8 +418,9 @@ table.data tr.warn-row td { background: color-mix(in srgb, var(--bad) 12%, trans
 .remark.warn .ico { color: var(--warn); }
 .remark.warn { align-items: center; box-shadow: inset 3px 0 0 var(--warn); }
 .drill-dialog { width: min(860px, 96vw); }
-.drill-dialog .session-stage > *, .drill-dialog .reel-slot, .drill-dialog .reel-attrs { max-width: 100%; min-width: 0; }
-.drill-dialog .reel-show { width: 100%; }
+/* The roulette stays inside its box wherever it is shown (after-match window, Training side column). */
+.session-stage > *, .reel-slot, .reel-attrs { max-width: 100%; min-width: 0; }
+.session-stage .reel-show { width: 100%; grid-template-columns: minmax(0, 1fr); }
 .drill-dialog .drill-intro { margin: 0 0 12px; }
 .moments li { margin-bottom: 4px; }
 .moments .r { display: inline-block; min-width: 32px; color: var(--accent); font-family: var(--font-mono); font-size: var(--fs-md); }
@@ -3080,6 +3081,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .train-side .sess-titles h2 { font-size: var(--fs-base); white-space: nowrap; }
 .train-side .sess-titles .muted { font-size: var(--fs-sm); }
 .train-side .session-stage { padding: 12px; gap: 8px; }
+.train-side .reel-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
 .train-side .sess-coach { display: none; } /* in the button's tooltip */
 .train-side .guide-lines li { margin: 1px 0; }
 .train-side .session-go { width: 100%; justify-content: center; padding: 14px 24px; font-size: var(--fs-lg); }

@@ -428,7 +428,7 @@ export const FR_ROLES: Record<RoleId, { name: string; short: string; description
 export const FR_ATTRIBUTES: Record<AttributeKey, { name: string; short: string; description: string }> = {
   strength: { name: 'Force', short: 'For', description: 'Puissance brute des coups au corps à corps. Augmente les PV.' },
   stamina: { name: 'Endurance', short: 'End', description: 'Réserve d’énergie et capacité à tenir la distance.' },
-  speed: { name: 'Vitesse', short: 'Vit', description: 'Agit plus tôt dans chaque round.' },
+  speed: { name: 'Vitesse', short: 'Vit', description: 'Agit plus tôt dans chaque round et se laisse moins toucher.' },
   agility: { name: 'Agilité', short: 'Agi', description: 'Esquive des coups et des projectiles.' },
   toughness: { name: 'Robustesse', short: 'Rob', description: 'PV et résistance aux dégâts physiques.' },
   recovery: { name: 'Récupération', short: 'Réc', description: 'Énergie regagnée entre les actions et au repos.' },
@@ -438,15 +438,15 @@ export const FR_ATTRIBUTES: Record<AttributeKey, { name: string; short: string; 
   magic: { name: 'Magie', short: 'Mag', description: 'Puissance des sorts et des soins.' },
   focus: { name: 'Concentration', short: 'Con', description: 'Précision des sorts et résistance à la magie hostile.' },
   technique: { name: 'Technique', short: 'Tec', description: 'Coups critiques et finesse aux armes à distance.' },
-  courage: { name: 'Courage', short: 'Cou', description: 'Tenir bon quand les alliés tombent ou que les coups font mal.' },
-  composure: { name: 'Sang-froid', short: 'SgF', description: 'Tête froide sous pression : critiques et moins d’erreurs.' },
+  courage: { name: 'Courage', short: 'Cou', description: 'Tenir la première ligne, et bon quand les alliés tombent ou que les coups font mal.' },
+  composure: { name: 'Sang-froid', short: 'SgF', description: 'Tête froide sous pression : coups plus sûrs, critiques et moins d’erreurs.' },
   aggression: { name: 'Agressivité', short: 'Agr', description: 'Frappe plus fort mais se protège moins, et peut oublier toute prudence.' },
   tactics: { name: 'Sens tactique', short: 'Tac', description: 'Faire les bons choix : cibles, affinités élémentaires, timing.' },
-  discipline: { name: 'Discipline', short: 'Dis', description: 'Suivre les consignes du manager.' },
+  discipline: { name: 'Discipline', short: 'Dis', description: 'Suivre les consignes du manager et ménager ses forces.' },
   anticipation: { name: 'Anticipation', short: 'Ant', description: 'Lire le combat : initiative, esquive, interceptions.' },
-  determination: { name: 'Détermination', short: 'Dét', description: 'Se battre encore plus fort quand l’équipe est menée.' },
+  determination: { name: 'Détermination', short: 'Dét', description: 'Tenir bon dans l’épuisement, se battre plus fort quand l’équipe est menée.' },
   teamwork: { name: 'Jeu collectif', short: 'Col', description: 'Attaques coordonnées et protection des alliés.' },
-  leadership: { name: 'Leadership', short: 'Lea', description: 'Maintient le moral des alliés tant qu’il est sur le terrain.' },
+  leadership: { name: 'Leadership', short: 'Lea', description: 'Guide les coups des alliés et maintient leur moral tant qu’il est sur le terrain.' },
 };
 
 export const FR_CATEGORIES: Record<AttributeCategory, string> = { physical: 'Physique', combat: 'Combat', mental: 'Mental' };

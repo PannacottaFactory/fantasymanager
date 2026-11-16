@@ -118,7 +118,9 @@ export function fatiguePenalty(c: Combatant, cfg: GameConfig): number {
   const f = cfg.combat.fatigue;
   const ratio = staminaFraction(c);
   if (ratio >= f.threshold) return 0;
-  return (f.maxPenalty * (f.threshold - ratio)) / f.threshold;
+  // Determination: a determined fighter keeps going when spent (centred on 10).
+  const grit = Math.max(0, 1 - (c.attrs.determination - 10) * f.determinationPerPoint);
+  return (f.maxPenalty * (f.threshold - ratio) * grit) / f.threshold;
 }
 
 /** Morale performance multiplier around 1. */
@@ -169,9 +171,12 @@ export function hitChance(
   if (kind === 'spell') p += h.spellBonus;
   // Reaching the back line past a standing front line: easy for a skilled skirmisher, hard for anyone else.
   if (ctx.flank) p -= attacker.role === 'skirmisher' ? h.flankPenalty * (2 - attacker.roleFactor) : h.reachPenalty;
-  if (ctx.combo) p += attacker.attrs.teamwork * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
+  if (ctx.combo) p += h.comboBase + (attacker.attrs.teamwork - 10) * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
   if (ctx.friendCombo) p += cfg.combat.bonds.friendCombo;
   p += effectMod(attacker, 'hitBonus') - effectMod(defender, 'dodgeBonus');
+  // Composure steadies the blow, speed makes the target harder to catch, the best leader on the field guides the strikes
+  // (all centred on 10).
+  p += (attacker.attrs.composure - 10) * h.perComposure - (defender.attrs.speed - 10) * h.dodgePerSpeed + (attacker.led ?? 0);
   if (ctx.orders.risk === 'high') p += cfg.combat.orders.riskHigh.hitBonus;
   if (ctx.orders.risk === 'low') p += cfg.combat.orders.riskLow.hitBonus;
   p -= fatiguePenalty(attacker, cfg);
@@ -247,7 +252,7 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   const d = cfg.combat.damage;
   const kind = attackKind(ability);
   let dmg = ability.power * (d.statBase + powerStat(attacker, kind) * d.statPerPoint);
-  if (kind !== 'spell') dmg *= 1 + attacker.attrs.aggression * d.aggressionPerPoint;
+  if (kind !== 'spell') dmg *= 1 + d.aggressionBase + (attacker.attrs.aggression - 10) * d.aggressionPerPoint;
   dmg *= effectMod(attacker, 'damageMult');
   // Fury: the more wounded, the harder it hits.
   dmg *= 1 + effectMod(attacker, 'fury') * (1 - hpFraction(attacker));
@@ -310,6 +315,8 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
   } else {
     m = a.toughness * d.physMitigationPerToughness + d.sizeArmor[defender.size] - a.aggression * d.aggressionMitigationPenalty;
   }
+  // Courage: holding the front line without flinching.
+  if (defender.line === 'front') m += (a.courage - 10) * d.courageFrontPerPoint;
   m += effectMod(defender, 'mitigation');
   m += roleMitigation(defender, cfg);
   m += cfg.combat.orders[orders.aggression].mitigation;
@@ -327,12 +334,15 @@ export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrder
   let cost = ability.staminaCost * cfg.combat.stamina.sizeCostMult[c.size];
   cost *= cfg.combat.orders[orders.aggression].staminaCostMult;
   cost *= cfg.combat.stances[c.stance].staminaCostMult;
+  // Discipline: a disciplined fighter spends its strength sparingly (centred on 10, so the average does not move).
+  cost *= 1 - (c.attrs.discipline - 10) * cfg.combat.stamina.disciplinePerPoint;
   return Math.round(cost);
 }
 
 export function staminaRegen(c: Combatant, cfg: GameConfig): number {
   const s = cfg.combat.stamina;
-  return (s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina) * effectMod(c, 'staminaRegenMult');
+  // Centred on recovery 10 (regenBase is negative): never below a trickle.
+  return Math.max(s.regenMin, s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina) * effectMod(c, 'staminaRegenMult');
 }
 
 export function interceptChance(guard: Combatant, cfg: GameConfig): number {

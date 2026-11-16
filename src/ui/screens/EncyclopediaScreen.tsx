@@ -846,13 +846,13 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
     case 'stamina':
       return { base: c.stamina.base, per: c.stamina.perStamina, p10: c.stamina.base + 10 * c.stamina.perStamina, p20: c.stamina.base + 20 * c.stamina.perStamina, regen: num(c.stamina.regenPerStamina) };
     case 'speed':
-      return { per: num(c.initiative.perSpeed), noise: c.initiative.noise };
+      return { per: num(c.initiative.perSpeed), noise: c.initiative.noise, dodge: p(c.hit.dodgePerSpeed) };
     case 'agility':
       return { melee: p(hit * 0.4), ranged: p(hit * 0.7) };
     case 'toughness':
       return { hp: num(c.hp.perToughness), arm: p(c.damage.physMitigationPerToughness), min: pct(c.damage.minMitigation), max: p(c.damage.maxMitigation) };
     case 'recovery':
-      return { regen: num(c.stamina.regenPerRecovery), rest: c.stamina.restMult, base: cfg.league.week.fatigueRecovery, week: num(cfg.league.week.fatigueRecoveryPerAttr) };
+      return { regen: num(c.stamina.regenPerRecovery), r10: num(Math.round((c.stamina.regenBase + 10 * c.stamina.regenPerRecovery + 10 * c.stamina.regenPerStamina) * 10) / 10), rest: c.stamina.restMult, base: cfg.league.week.fatigueRecovery, week: num(cfg.league.week.fatigueRecoveryPerAttr) };
     case 'attack':
       return { p: p(hit * 0.7) };
     case 'accuracy':
@@ -866,23 +866,23 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
     case 'technique':
       return { crit: p(c.damage.critPerTechnique), mult: mult(c.damage.critMult), p: p(hit * 0.3) };
     case 'courage':
-      return { c: p(c.morale.courageReductionPerPoint), arm: p(c.damage.spellMitigationPerPoint / 2) };
+      return { c: p(c.morale.courageReductionPerPoint), arm: p(c.damage.spellMitigationPerPoint / 2), front: p(c.damage.courageFrontPerPoint) };
     case 'composure':
-      return { crit: p(c.damage.critPerComposure), h: p(c.morale.composureReductionPerPoint), low: p(c.damage.lowHpThreshold), pen: p(c.damage.lowHpPenalty) };
+      return { hit: p(c.hit.perComposure), crit: p(c.damage.critPerComposure), h: p(c.morale.composureReductionPerPoint), low: p(c.damage.lowHpThreshold), pen: p(c.damage.lowHpPenalty) };
     case 'aggression':
       return { d: p(c.damage.aggressionPerPoint), a: p(c.damage.aggressionMitigationPenalty), inst: 14 };
     case 'tactics':
       return { noise: p(c.ai.noiseMax), inst: 14 };
     case 'discipline':
-      return { d5: disobey(5), d10: disobey(10), d15: disobey(15), fav: mult(1 + c.favorites.bonus) };
+      return { d5: disobey(5), d10: disobey(10), d15: disobey(15), fav: mult(1 + c.favorites.bonus), cost: p(c.stamina.disciplinePerPoint) };
     case 'anticipation':
       return { init: num(c.initiative.perAnticipation), p: p(hit * 0.4), g: p(c.guard.perAnticipation) };
     case 'determination':
-      return { d: p(c.damage.determinationMax) };
+      return { d: p(c.damage.determinationMax), f: p(c.fatigue.determinationPerPoint) };
     case 'teamwork':
       return { c: p(c.hit.comboPerTeamwork), g: p(c.guard.perTeamwork) };
     case 'leadership':
-      return { min: c.morale.minLeadership, a: num(c.morale.leadershipAuraPerPoint), below: c.morale.minLeadership - 1 };
+      return { min: c.morale.minLeadership, a: num(c.morale.leadershipAuraPerPoint), below: c.morale.minLeadership - 1, hit: p(c.hit.perLeadership) };
   }
 }
 
