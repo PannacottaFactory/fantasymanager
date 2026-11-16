@@ -3,7 +3,7 @@ import { bestRole, isInjured, maxHp, overallRating } from '../../../engine/creat
 import { playerTeam } from '../../../engine/league/season.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, StageMark, Stars, TraitChip } from '../../components/common.tsx';
+import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, SquadCount, StageMark, Stars, TraitChip } from '../../components/common.tsx';
 import { useAxisColumns } from '../../components/ProfileRadar.tsx';
 import { creatureValue } from '../../../engine/economy/value.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -135,13 +135,8 @@ export function SquadScreen() {
           <h2>
             {t('squad.title')} — {team.name}
           </h2>
-          <span className="tag squad-count" title={t('squad.count.title')}>
-              {t('squad.count', { n: team.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad })}
-            </span>
+          <SquadCount n={team.creatures.length} />
         </div>
-        <p className="muted" style={{ marginTop: 0, fontSize: '0.929rem' }}>
-          {t('squad.hint')}
-        </p>
         {waiting.length > 0 && (
           <div className="points-banner">
             <span className="pb-icon">+{waiting.reduce((n, c) => n + (c.growth?.freePoints ?? 0), 0)}</span>

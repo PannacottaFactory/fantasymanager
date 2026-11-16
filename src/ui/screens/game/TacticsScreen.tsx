@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
+import { SquadCount } from '../../components/common.tsx';
 import { TeamEditor } from '../../components/TeamEditor.tsx';
 import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { useT } from '../../i18n/index.ts';
@@ -47,9 +48,7 @@ export function TacticsScreen() {
             <h2>
               {t('tactics.title')} — {team.name}
             </h2>
-            <span className="tag squad-count" title={t('squad.count.title')}>
-              {t('squad.count', { n: team.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad })}
-            </span>
+            <SquadCount n={team.creatures.length} />
             <span className="spacer" />
             <span className="muted" style={{ fontSize: '0.857rem' }}>
               {t('tactics.hint')}

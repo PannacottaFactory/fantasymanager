@@ -41,18 +41,21 @@ export function issueText(tr: Translator, team: Team, issue: TacticIssue): strin
 export function OrdersFields({ team, onChange }: { team: Team; onChange: (t: Team) => void }) {
   const { t } = useT();
   const o = team.tactic.orders;
+  const r = DEFAULT_CONFIG.combat.orders;
+  const pc = (x: number) => String(Math.round(x * 100)).replace('-', '−');
+  const riskTip = t('orders.risk.title', { hc: pc(r.riskHigh.critBonus), hh: pc(r.riskHigh.hitBonus), lc: pc(r.riskLow.critBonus), lh: pc(r.riskLow.hitBonus) });
   return (
     <>
-      <label className="field">
-        <span title={t('orders.approach.title')}>{t('orders.approach')} ⓘ</span>
+      <label className="field order-field" title={t('orders.approach.title')}>
+        <span className="of-label">{t('orders.approach')} <span className="of-info">ⓘ</span></span>
         <select value={o.aggression} onChange={(e) => onChange(setOrders(team, { aggression: e.target.value as Aggression }))}>
           <option value="cautious">{t('orders.cautious')}</option>
           <option value="balanced">{t('orders.balanced')}</option>
           <option value="aggressive">{t('orders.aggressive')}</option>
         </select>
       </label>
-      <label className="field">
-        {t('orders.target')}
+      <label className="field order-field" title={t('orders.target.title')}>
+        <span className="of-label">{t('orders.target')} <span className="of-info">ⓘ</span></span>
         <select value={o.target} onChange={(e) => onChange(setOrders(team, { target: e.target.value as TargetPriority }))}>
           {TARGETS.map((x) => (
             <option key={x} value={x}>
@@ -61,8 +64,8 @@ export function OrdersFields({ team, onChange }: { team: Team; onChange: (t: Tea
           ))}
         </select>
       </label>
-      <label className="field">
-        {t('orders.risk')}
+      <label className="field order-field" title={riskTip}>
+        <span className="of-label">{t('orders.risk')} <span className="of-info">ⓘ</span></span>
         <select value={o.risk} onChange={(e) => onChange(setOrders(team, { risk: e.target.value as Risk }))}>
           <option value="low">{t('risk.low')}</option>
           <option value="normal">{t('risk.normal')}</option>
@@ -303,9 +306,12 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     <section className={`panel ${className ?? ''}`}>
       {header && <div className="panel-head">{header}</div>}
       <div className="row wrap" style={{ marginBottom: 10, gap: 14 }}>
-        <span data-tip={league ? 'orders' : undefined} className="row wrap" style={{ gap: 14, alignItems: 'flex-end' }}>
-          <OrdersFields team={team} onChange={onChange} />
-        </span>
+        <div data-tip={league ? 'orders' : undefined} className="orders-box">
+          <span className="ob-head">{t('orders.heading')}</span>
+          <div className="ob-fields">
+            <OrdersFields team={team} onChange={onChange} />
+          </div>
+        </div>
         <span className="muted" style={{ fontSize: '0.857rem', alignSelf: 'end' }}>
           {t('tactics.count', { s: team.tactic.lineup.length, smax: m.starters, b: team.tactic.bench.length, bmax: m.benchSize })}
         </span>

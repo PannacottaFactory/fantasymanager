@@ -3962,3 +3962,36 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
 .hn-div { display: inline-flex; align-items: center; gap: 6px; color: var(--tier); font-weight: 600; }
 .hn-pos { font-size: var(--fs-lg); }
 @media (max-width: 1250px) { .hn-shelves { grid-template-columns: minmax(0, 1fr); } }
+
+/* Squad count beside the Squad / Tactics titles: chip size, accent colours (amber two from the cap, red at the cap). */
+.squad-count {
+  --sc: var(--accent);
+  display: inline-flex; align-items: baseline; gap: 5px;
+  padding: 2px var(--sp-2);
+  border: 1px solid color-mix(in srgb, var(--sc) 70%, transparent);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--sc) 18%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sc) 25%, transparent);
+  font-size: var(--fs-md); cursor: help;
+}
+.squad-count.near { --sc: var(--warn); }
+.squad-count.full { --sc: var(--bad); }
+.squad-count .sc-num { font-variant-numeric: tabular-nums; }
+.squad-count .sc-num b { color: var(--sc); font-weight: 700; }
+.squad-count .sc-max { color: var(--muted); }
+.squad-count .sc-label { color: var(--text); }
+
+/* Team orders (Tactics): a light frame, each order with its tooltip. */
+.orders-box {
+  display: flex; align-items: flex-end; gap: var(--sp-3); flex-wrap: wrap;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.orders-box .ob-head { align-self: center; font-size: var(--fs-md); font-weight: 700; color: var(--accent); }
+.orders-box .ob-fields { display: flex; gap: var(--sp-3); flex-wrap: wrap; align-items: flex-end; }
+.orders-box .order-field { cursor: help; }
+.orders-box .order-field select { cursor: pointer; font-weight: 600; }
+.orders-box .of-label { font-weight: 600; color: var(--text); }
+.orders-box .of-info { color: var(--accent); font-weight: 400; }

@@ -101,6 +101,22 @@ export function ConditionCell({ c }: { c: Creature }) {
   );
 }
 
+/** How many creatures the stable owns out of the most allowed, beside the Squad / Tactics titles. */
+export function SquadCount({ n }: { n: number }) {
+  const { t } = useT();
+  const max = DEFAULT_CONFIG.economy.club.maxSquad;
+  const level = n >= max ? 'full' : n >= max - 2 ? 'near' : 'ok';
+  return (
+    <span className={`squad-count ${level}`} title={t('squad.count.title')}>
+      <span className="sc-num">
+        <b>{n}</b>
+        <span className="sc-max">/{max}</span>
+      </span>
+      <span className="sc-label">{t('squad.count')}</span>
+    </span>
+  );
+}
+
 /** Sort key of the condition: available, then more and more tired, then injured (longest last). */
 export const conditionSort = (c: Creature) => {
   const inj = c.condition.injuries.find((i) => i.weeksLeft > 0);
