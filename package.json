@@ -23,6 +23,7 @@
     "sim:career": "tsx src/sim/career.ts",
     "sim:facility": "tsx src/sim/facility.ts",
     "sim:levers": "tsx src/sim/levers.ts",
+    "sim:talks": "tsx src/sim/talks.ts",
     "sim:attributes": "tsx src/sim/attributes.ts",
     "sim:injuries": "tsx src/sim/injuries.ts",
     "sim:fatigue": "tsx src/sim/fatigue.ts",

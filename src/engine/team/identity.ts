@@ -1,6 +1,6 @@
 /**
  * AI stable identities: a play style (squad, signings, favoured abilities, target orders) and a manager
- * temperament (aggression, risk, substitutions, reading the opponent). Pure functions.
+ * temperament (aggression, substitutions, reading the opponent). Pure functions.
  */
 import { Rng } from '../../core/rng.ts';
 import { MANAGER_NAMES } from '../../data/names.ts';
@@ -11,6 +11,7 @@ import type { TargetPriority } from '../../data/schema.ts';
 import { getAbilities } from '../creature/derived.ts';
 import { counterApproach } from '../combat/formulas.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
+import { managerTalk, preMatchSituation } from '../combat/talks.ts';
 
 /** Name of a stable's manager: fixed for the stable (drawn from its id), never changes results. */
 export function managerName(team: { id: string; identity?: { gen?: number } }): string {
@@ -46,12 +47,12 @@ export function favouredSpecies(team: Team, cfg: GameConfig = DEFAULT_CONFIG): s
   return team.identity ? cfg.identity.styles[team.identity.style].species : [];
 }
 
-/** Base orders of an AI stable: aggression and risk from its manager, target from its style. */
+/** Base orders of an AI stable: aggression from its manager, target from its style. */
 export function identityOrders(team: Team, difficulty: DifficultyId, cfg: GameConfig = DEFAULT_CONFIG): TeamOrders {
   const d = cfg.identity.difficulties[difficulty];
-  if (!team.identity || !d.identities) return { aggression: 'balanced', target: 'nearest', risk: 'normal' };
+  if (!team.identity || !d.identities) return { aggression: 'balanced', target: 'nearest' };
   const m = cfg.identity.managers[team.identity.manager];
-  return { aggression: m.aggression, risk: m.risk, target: cfg.identity.styles[team.identity.style].target };
+  return { aggression: m.aggression, target: cfg.identity.styles[team.identity.style].target };
 }
 
 /** Does this stable's manager study the opponent? */
@@ -66,7 +67,9 @@ export function readsOpponent(team: Team, difficulty: DifficultyId, cfg: GameCon
 export function managerStyle(team: Team, difficulty: DifficultyId, orders: TeamOrders, cfg: GameConfig = DEFAULT_CONFIG): AiManagerStyle {
   const d = cfg.identity.difficulties[difficulty];
   const m = cfg.identity.managers[team.identity && d.identities ? team.identity.manager : 'steady'];
-  return { tiredBelow: m.tiredBelow, hurtBelow: m.hurtBelow, adaptOrders: m.adaptOrders, reads: readsOpponent(team, difficulty, cfg), base: orders };
+  const reads = readsOpponent(team, difficulty, cfg);
+  const talker = reads ? 'read' : team.identity && d.identities ? team.identity.manager === 'tactician' ? 'read' : team.identity.manager : 'steady';
+  return { tiredBelow: m.tiredBelow, hurtBelow: m.hurtBelow, adaptOrders: m.adaptOrders, reads, base: orders, talker };
 }
 
 /**
@@ -110,5 +113,7 @@ export function applyIdentity(team: Team, tactic: Tactic, difficulty: Difficulty
       if (fav.length) favorites[s.creatureId] = fav;
     }
   }
-  return { ...tactic, orders, favorites, ai: managerStyle(team, difficulty, orders, cfg) };
+  const ai = managerStyle(team, difficulty, orders, cfg);
+  orders.talk = managerTalk(ai, preMatchSituation({ ...team, tactic }, opponent));
+  return { ...tactic, orders, favorites, ai: { ...ai, base: orders } };
 }

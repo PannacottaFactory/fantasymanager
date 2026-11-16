@@ -8,12 +8,14 @@ import { levelOfAbility } from '../../../engine/progression/levels.ts';
 import { ABILITIES } from '../../../data/abilities.ts';
 import { KindIcon } from '../../components/AbilityCard.tsx';
 import type { BreakDecision, Combatant, SubstitutionDecision } from '../../../engine/combat/types.ts';
-import type { Aggression, Risk, Stance, TeamOrders } from '../../../engine/model.ts';
+import type { Aggression, Stance, TeamOrders } from '../../../engine/model.ts';
 import { abilityText, roleText, speciesName } from '../../../engine/text/localize.ts';
 import { Bar, Crest, ElementDots, Modal } from '../../components/common.tsx';
 import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
+import { breakSituation, readTalk } from '../../../engine/combat/talks.ts';
+import { TalkPicker } from '../../components/TeamTalk.tsx';
 import { ROLE_IDS } from '../../../data/roles.ts';
 import { SPECIES } from '../../../data/species.ts';
 import type { Line, RoleId } from '../../../data/schema.ts';
@@ -34,7 +36,9 @@ export function BreakPanel({ combat, onResume }: Props) {
   const mine = combat.combatants.filter((c) => c.side === side && !c.replaced && c.state !== 'bench' && c.state !== 'withdrawn');
   const bench = combat.bench(side);
   const [subs, setSubs] = useState<SubstitutionDecision[]>([]);
-  const [orders, setOrders] = useState<TeamOrders>({ ...combat.sides[side].orders });
+  const [talkAdvice] = useState(() => readTalk(breakSituation(combat, side)));
+  // No talk yet (test arena): the assistant's is proposed.
+  const [orders, setOrders] = useState<TeamOrders>(() => ({ ...combat.sides[side].orders, talk: combat.sides[side].orders.talk ?? talkAdvice.talk }));
   const [stances, setStances] = useState<Record<string, Stance>>(() => Object.fromEntries(mine.map((c) => [c.id, c.stance])));
 
   const outIds = new Set(subs.map((s) => s.outId));
@@ -123,14 +127,10 @@ export function BreakPanel({ combat, onResume }: Props) {
               ))}
             </select>
           </label>
-          <label className="field">
-            {t('orders.risk')}
-            <select value={orders.risk} onChange={(e) => setOrders({ ...orders, risk: e.target.value as Risk })}>
-              <option value="low">{t('risk.low')}</option>
-              <option value="normal">{t('risk.normal')}</option>
-              <option value="high">{t('risk.high')}</option>
-            </select>
-          </label>
+        </div>
+        <div className="break-talk">
+          <h4>{t('talk.heading')}</h4>
+          <TalkPicker value={orders.talk} advice={talkAdvice} onChange={(talk) => setOrders({ ...orders, talk: talk ?? talkAdvice.talk })} />
         </div>
         <div className="table-wrap">
           <table className="data">

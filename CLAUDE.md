@@ -35,7 +35,8 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:board -- --worlds 10 --seasons 2` | board, supporters & star requests over seasons on autopilot: weeks per mood / tier, ultimatums, tickets, requests per kind, per difficulty |
 | `npm run sim:career -- --worlds 8 --seasons 4` | career mode on autopilot: sackings (ultimatum / verdict), job offers, manager reputation & division per season (`--policy climb` takes offers) |
 | `npm run sim:facility -- --worlds 8 --seasons 2` | weight of the training ground: same worlds with the player's ground forced to 0–3 (sessions, attribute points, league points, position) |
-| `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads |
+| `npm run sim:levers -- --matches 400` | weight of each manager decision (orders, lines, roles, bench, fatigue, breaks) at equal squads; `--only a,b` (label words) · `--set path=v,…` config variant |
+| `npm run sim:talks -- --matches 600` | team talks: each talk / reading the game / a random talk vs no talk, per situation (tired, shaken, vs ranged, vs brutes), opponent silent or reading; `--set` |
 | `npm run sim:attributes -- --matches 3000 --points 3` | what attribute points are worth: a level on one / every starter, +n in each attribute (ranking), health per strength; `--only a,b` · `--set combat.x.y=v,…` to try a config variant |
 | `npm run sim:fatigue -- --worlds 6` | fatigue spiral: the player's season with no rotation / the assistant's rotation / rotation + pace yourself (starters' fatigue, ≥ 50 / ≥ 70, points, place) |
 | `npm run sim:judges -- --matches 4000` | fairness of the judges: points won by the side with more health / that healed more / made more substitutions, last-break dilution trick |
@@ -96,7 +97,7 @@ tests/       Vitest
   ring, the ticker and the embers. Shared components (button, panel, chip / tag, tile, table, headings) are each defined
   once (« Component: » blocks): screens may place or size them, never restyle them; a chip variant only sets colours. `node scripts/style-shots.mjs <dir>` (20 screens × 3 themes, fixed world,
   effects off) + `node scripts/style-diff.mjs <before> <after>` (pixel diff) check what a CSS change did.
-- UI: four themes — night (black, default), dark (brown), parchment (light), slate (dark blue-grey) — via CSS tokens in `src/ui/styles.css`; localStorage only for
+- UI: four themes — slate (dark blue-grey, default), night (black), dark (brown), parchment (light) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed, layout).
 - **Layout** (⚙ « Disposition », `useSettings().layout`): `side` (default, manager-game style) = sidebar `SideNav` (`NavBar.tsx`,
   same `NAV_ENTRIES` as the tabs, foldable, icons only < 1100 px), top bar with the
@@ -121,8 +122,10 @@ tests/       Vitest
   `generateTeam({ lang })`); the language never changes RNG draws or results (tested). French templates must not
   write `de {x}` / `à {x}` / `que {x}` before a creature (elision), use `{aE}/{tE}/{oE}` for gender agreement;
   `tests/i18n.test.ts` checks this on real matches. Inbox messages are stored as data and worded by the UI.
+- **Team talks** (`TeamOrders.talk`, `cfg.combat.orders.talks`, `engine/combat/talks.ts`): before the match and at each break each manager gives one talk to the creatures on the field: rally (morale climbs a share of the way to a target, once), second wind (a share of the missing stamina back, once), focus (+to hit), close ranks (front-line armour vs melee + interceptions), keep moving (ranged / spell hit −), all or nothing (+damage, +stamina costs). Given in `Combat.giveTalk` (constructor after `matchStart`, and `resume()` after every break) → `teamTalk` event (with the morale / stamina it set: view, commentator `teamTalk.<talk>`, marks rally / rest). A talk-only change is recorded in `decisions` but emits no `ordersChanged`. `readTalk(situation)` = the assistant (tired → second wind, shaken → rally, behind in the last period → all or nothing, then the foe's melee share: ≤ 0.4 keep moving, ≥ 0.7 close ranks, else focus); `managerTalk(style, …)` by `AiManagerStyle.talker` (readers and tacticians read, cautious / aggressive / gambler / steady have habits); AI pre-match talk in `applyIdentity`, at breaks in `aiBreakDecision`. The player's `orders.talk` undefined = « Au choix de l'assistant » (`withAssistantTalk` in `fixtureSetup`). UI `components/TeamTalk.tsx` (`TalkPicker`: pre-match panel `data-tip="talk"`, break panel), icons `talk-*`, Encyclopedia rule `talks`, analysis « discours » per break. Measured (`sim:talks`, vs a reading opponent): reading +3 to +9 points, random 0 to +4, each talk best in its own situation, all or nothing early ≈ −6. **Team risk taking was removed** (it duplicated the approach: low always beat high, and no setting made it situational).
+- **Elements made visible**: a blow on a weakness / resistance (`elementEdge`: `elementMult` ≥ 1.2 / ≤ 0.85, same thresholds as the commentary) puts a chevron mark beside the damage number on the target card (`.float .elem-mark`: double chevron up, green with a glow in the attacking element's colour = effective; chevron down, grey = resisted) and an « Efficace ! » / « Résiste » `.edge-chip` on its chronicle line; Analysis › « Éléments » (`SideAnalysis.elements`, `elementCreatures`: effective / resisted blows, damage added / lost per side and per creature, taken extra / spared) + insights `elementsFor` / `elementsAgainst` (net gap ≥ 40).
 - **Live match visuals**: `ui/screens/arena/matchFx.ts` turns events into card reactions (attacker glow/lunge,
-  target shake + floating number, ghost HP bar); hovering a commentary line highlights actor & target
+  target shake + floating number, ghost HP bar; a floating number lives `FLOAT_MS` 1.9 s and stays on its card while later blows land elsewhere: `keepRecent` in `LiveMatch`); hovering a commentary line highlights actor & target
   (`CommentaryLine.actor/target`).
 - **Builds**: `Tactic.favorites[creatureId]` = one favourite ability (`cfg.combat.favorites.max` = 1); the combat AI multiplies their score
   (`cfg.combat.favorites`, scaled by discipline). Chosen with ★ in the creature sheet (Tactics « Build » column).
@@ -365,7 +368,7 @@ tests/       Vitest
 - **AI identities & difficulty** (`data/config/identity.ts`, `engine/team/identity.ts`): each AI stable has
   `Team.identity = { style, manager }` (17 styles, 5 temperaments: cautious, aggressive, tactician, gambler, steady),
   drawn so styles are varied. The style sets the squad share (`favoured` in `generateTeam`), signings bias, target
-  order and favourite abilities; the manager sets aggression / risk and break behaviour (`Tactic.ai`, read by
+  order and favourite abilities; the manager sets aggression and break behaviour (team risk taking was removed: it duplicated the approach) (`Tactic.ai`, read by
   `Combat.sides[].ai` so `aiBreakDecision` uses it everywhere). Managers who "read" the opponent pick the target
   from its line-up (`counterTarget`) before the match and at breaks. `GameState.difficulty` (easy / normal / hard,
   chosen at start) sets division tiers, style share, identities on/off, who reads, favourites, AI rest threshold,

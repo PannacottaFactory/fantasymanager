@@ -202,6 +202,13 @@ const UI = {
   'arena-eclipse': 'eclipse',
   'arena-sandstorm': 'sandstorm',
   'arena-eruption': 'volcano',
+  'talk-rally': 'rally-the-troops',
+  'talk-secondWind': 'lungs',
+  'talk-focus': 'bullseye',
+  'talk-ranks': 'roman-shield',
+  'talk-evade': 'dodging',
+  'talk-fury': 'enrage',
+  'talk-assistant': 'light-bulb',
 };
 
 /** Competition definition → icon name. */

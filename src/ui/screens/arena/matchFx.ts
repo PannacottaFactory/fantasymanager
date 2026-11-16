@@ -17,6 +17,17 @@ export interface CardFx {
   text: string;
   /** Changes on every new reaction so animations replay. */
   nonce: number;
+  /** Elemental matchup of the blow: strong (×1.5) or resisted (×0.67). */
+  elem?: ElementEdge;
+  /** Colour of the attacking element (label border). */
+  elemColor?: string;
+}
+
+export type ElementEdge = 'strong' | 'weak';
+/** Elemental matchup of an event worth showing (same thresholds as the commentary). */
+export function elementEdge(e: MatchEvent): ElementEdge | undefined {
+  if (e.type !== 'attack' || !e.hit) return undefined;
+  return e.elementMult >= 1.2 ? 'strong' : e.elementMult <= 0.85 ? 'weak' : undefined;
 }
 
 /** Something flying from one card to another (arrow, spell orb, healing light…). */
@@ -145,6 +156,8 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
     case 'enrage':
     case 'transform':
       return 'crit';
+    case 'teamTalk':
+      return 'buff';
     case 'substitution':
     case 'ordersChanged':
     case 'break':
@@ -174,10 +187,10 @@ export function addEventFx(
   const mark = (m: Mark) => {
     if (!batch.marks.some((x) => x.id === m.id && x.kind === m.kind && x.from === m.from)) batch.marks.push(m);
   };
-  const put = (id: string, kind: FxKind, text: string) => {
+  const put = (id: string, kind: FxKind, text: string, extra?: Pick<CardFx, 'elem' | 'elemColor'>) => {
     const prev = batch.targets[id];
     if (prev && PRIORITY[prev.kind] > PRIORITY[kind]) return;
-    batch.targets[id] = { kind, text, nonce: ++counter };
+    batch.targets[id] = { kind, text, nonce: ++counter, ...extra };
   };
   switch (e.type) {
     case 'spend':
@@ -188,7 +201,11 @@ export function addEventFx(
       if (e.kind === 'melee') batch.lunge = ['charge', 'quake', 'sweep'].includes(abilityMotif(e.ability)) ? 'big' : 'small';
       shoot(e.actor, e.target, e.ability, e.kind === 'melee' ? 'melee' : e.kind === 'ranged' ? 'ranged' : 'spell', !e.hit, e.crit, e.aoe);
       if (!e.hit) put(e.target, 'miss', missLabel);
-      else put(e.target, e.crit ? 'crit' : 'hit', `-${e.damage}`);
+      else {
+        const edge = elementEdge(e);
+        const el = shotElement(e.ability, elementsOf, e.actor);
+        put(e.target, e.crit ? 'crit' : 'hit', `-${e.damage}`, edge ? { elem: edge, elemColor: el !== 'physical' ? ELEMENTS[el].color : undefined } : undefined);
+      }
       if (e.healed) {
         put(e.actor, 'heal', `+${e.healed}`);
         mark({ id: e.actor, kind: 'siphon', from: e.target });
@@ -246,6 +263,10 @@ export function addEventFx(
       batch.actor = { id: e.actor, nonce: ++counter };
       batch.lunge = 'none';
       mark({ id: e.actor, kind: 'rest' });
+      break;
+    case 'teamTalk':
+      // Rally lifts every creature on the field, second wind breathes into them.
+      for (const ch of e.changes) mark({ id: ch.id, kind: e.talk === 'rally' ? 'rally' : 'rest' });
       break;
     case 'showboat':
       batch.actor = { id: e.actor, nonce: ++counter };

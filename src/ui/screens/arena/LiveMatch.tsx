@@ -12,12 +12,15 @@ import { hpColor } from '../../format.ts';
 import { CreatureModal } from './CreatureModal.tsx';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import { BreakPanel } from './BreakPanel.tsx';
-import { addEventFx, emptyFx, lineTone, reducedMotion, type FxBatch, type LineTone } from './matchFx.ts';
+import { addEventFx, elementEdge, emptyFx, lineTone, reducedMotion, type CardFx, type ElementEdge, type FxBatch, type LineTone } from './matchFx.ts';
 import { Projectiles } from './Projectiles.tsx';
 import { fxLayer } from '../../fx/FxLayer.tsx';
 import { Scoreboard, type Focus } from './Scoreboard.tsx';
 import { play } from '../../sound/sfx.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
+
+/** How long a floating number (and its element mark) lives: the .float animation in styles.css. */
+const FLOAT_MS = 1900;
 
 /** Margin mark of a chronicle line, by its colour family. */
 const TONE_ICON: Partial<Record<LineTone, string>> = {
@@ -135,7 +138,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   const highlight = useNameHighlighter(roster);
   const [view, setView] = useState<MatchView>(() => initialView(roster));
   const viewRef = useRef(view);
-  const [lines, setLines] = useState<(CommentaryLine & { tone?: LineTone })[]>([]);
+  const [lines, setLines] = useState<(CommentaryLine & { tone?: LineTone; edge?: ElementEdge })[]>([]);
   const [speed, setSpeedState] = useState<Speed>(loadSpeed);
   const [paused, setPaused] = useState(false);
   const [atBreak, setAtBreak] = useState(false);
@@ -160,6 +163,19 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   };
   const feedRef = useRef<HTMLDivElement>(null);
   const landing = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Card reactions stay on their card until their floating number has finished (the next blow elsewhere must not
+  // wipe it): the same object is kept, so its animations do not replay.
+  const recentFx = useRef<Record<string, { fx: CardFx; at: number }>>({});
+  const keepRecent = (fresh: Record<string, CardFx>): Record<string, CardFx> => {
+    const now = performance.now();
+    for (const [id, f] of Object.entries(fresh)) recentFx.current[id] = { fx: f, at: now };
+    const out: Record<string, CardFx> = {};
+    for (const [id, x] of Object.entries(recentFx.current)) {
+      if (now - x.at < FLOAT_MS) out[id] = x.fx;
+      else delete recentFx.current[id];
+    }
+    return out;
+  };
   useEffect(
     () => () => {
       if (landing.current) clearTimeout(landing.current);
@@ -222,7 +238,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
   const pump = (budget: number, forceAi = false) => {
     const { combat, commentator, queue } = session;
     let v = viewRef.current;
-    const out: (CommentaryLine & { tone?: LineTone })[] = [];
+    const out: (CommentaryLine & { tone?: LineTone; edge?: ElementEdge })[] = [];
     const batch = emptyFx();
     let shown = 0;
     let stop = false;
@@ -252,7 +268,8 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
       if (budget !== Infinity) addEventFx(batch, e, t('fx.miss'), t('fx.ko'), (id) => SPECIES[roster[id]?.speciesId ?? '']?.elements ?? []);
       const ls = commentator.narrate(e);
       const tone = lineTone(e);
-      out.push(...ls.map((l) => (tone && l.kind !== 'crowd' ? { ...l, tone } : l)));
+      const edge = elementEdge(e);
+      out.push(...ls.map((l) => (l.kind === 'crowd' ? l : { ...l, ...(tone ? { tone } : {}), ...(edge ? { edge } : {}) })));
       if (ls.length) shown++;
     }
     viewRef.current = v;
@@ -263,15 +280,15 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
     const flight = budget === Infinity || reducedMotion() ? 0 : FLIGHT[speed];
     if (flight && batch.shots.length) {
       // Launch first; the hit lands (reaction, health bar) when the projectile arrives.
-      setFx({ ...batch, targets: {} });
+      setFx({ ...batch, targets: keepRecent({}) });
       landing.current = setTimeout(() => {
         landing.current = null;
         setView(viewRef.current);
-        setFx({ ...batch, shots: [] });
+        setFx({ ...batch, shots: [], targets: keepRecent(batch.targets) });
       }, flight);
     } else {
       setView(v);
-      setFx(batch);
+      setFx({ ...batch, targets: budget === Infinity ? batch.targets : keepRecent(batch.targets) });
     }
     if (out.length) setLines((l) => [...l, ...out]);
   };
@@ -475,7 +492,10 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
                       onMouseEnter={hoverable ? () => setFocus({ actor: l.actor, target: l.target }) : undefined}
                     >
                       <span className="line-mark" aria-hidden="true">{icon && <UiIcon name={icon} />}</span>
-                      <span className="line-text">{highlight(l.text)}</span>
+                      <span className="line-text">
+                        {highlight(l.text)}
+                        {l.edge && <span className={`edge-chip ${l.edge}`}>{t(l.edge === 'strong' ? 'fx.strong' : 'fx.weak')}</span>}
+                      </span>
                     </div>
                   );
                 })}

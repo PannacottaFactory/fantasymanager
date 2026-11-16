@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ABILITIES } from '../../../data/abilities.ts';
 import { EFFECTS } from '../../../data/effects.ts';
 import { SPECIES } from '../../../data/species.ts';
@@ -191,6 +191,18 @@ function FighterCard({ c, r, side, fx, acting, lunge, cast, focus, onSelect, ent
       {acting !== null && <span key={`glow${acting}`} className="flash act" aria-hidden="true" />}
       {fx?.text && (
         <span key={`num${fx.nonce}`} className={`float ${fx.kind}`} aria-hidden="true">
+          {fx.elem && (
+            // Elemental matchup beside the number: double chevron up = effective (×1.5), chevron down = resisted (×0.67).
+            <span className={`elem-mark ${fx.elem}`} style={fx.elemColor ? ({ '--elc': fx.elemColor } as CSSProperties) : undefined}>
+              <svg viewBox="0 0 16 16" width="1em" height="1em">
+                {fx.elem === 'strong' ? (
+                  <path d="M3 9.5 8 4.5l5 5M3 13.5l5-5 5 5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                ) : (
+                  <path d="M3.5 6 8 10.5 12.5 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                )}
+              </svg>
+            </span>
+          )}
           {fx.text}
         </span>
       )}

@@ -2,9 +2,12 @@
  * How much each manager decision weighs: the same squad with one change against itself unchanged.
  * Goal: good calls ≈ +8–15 points of win rate, gross mistakes ≈ −20 or worse.
  *   npm run sim:levers -- --matches 400
+ *   --only target,stance      only the levers whose label contains one of these words
+ *   --set combat.orders.ascendancy.bonus=0.1,…   config variant (both sides)
  */
 import { Rng, deriveSeed } from '../core/rng.ts';
 import { simulateMatch } from '../engine/combat/simulate.ts';
+import { DEFAULT_CONFIG, type GameConfig } from '../data/config/index.ts';
 import { aiBreakDecision } from '../engine/combat/decisions.ts';
 import type { BreakDecider } from '../engine/combat/types.ts';
 import { cloneTeam, generateTeam } from '../engine/team/team.ts';
@@ -14,6 +17,16 @@ import { parseArgs } from './args.ts';
 const args = parseArgs(process.argv.slice(2));
 const N = Math.max(40, Number(args.matches ?? 400));
 const t0 = performance.now();
+const only = args.only ? args.only.split(',') : null;
+const CFG: GameConfig = structuredClone(DEFAULT_CONFIG);
+for (const kv of args.set ? args.set.split(',') : []) {
+  const [path, value] = kv.split('=');
+  const keys = path!.split('.');
+  let o = CFG as unknown as Record<string, unknown>;
+  for (const k of keys.slice(0, -1)) o = o[k] as Record<string, unknown>;
+  if (!o || !(keys.at(-1)! in o)) throw new Error(`unknown config key ${path}`);
+  o[keys.at(-1)!] = Number(value);
+}
 
 type Mod = (t: Team) => Team;
 interface Lever {
@@ -22,6 +35,8 @@ interface Lever {
   /** Opponent squad (default: the same squad). */
   opponent?: (i: number) => Team;
   decider?: BreakDecider;
+  /** Our break decisions without the change (default: the assistant's). */
+  baseDecider?: BreakDecider;
   opponentDecider?: BreakDecider;
   /** Situation applied to our squad with and without the change. */
   prep?: Mod;
@@ -41,7 +56,7 @@ const noBreaks: BreakDecider = () => ({});
 const subsOnly: BreakDecider = (c, side) => ({ substitutions: aiBreakDecision(c, side).substitutions });
 const lastPeriodAllOut: BreakDecider = (c, side) => {
   const d = aiBreakDecision(c, side);
-  return c.round >= 15 ? { ...d, orders: { ...c.sides[side].orders, aggression: 'aggressive', risk: 'high' } } : d;
+  return c.round >= 15 ? { ...d, orders: { ...c.sides[side].orders, aggression: 'aggressive' } } : d;
 };
 
 const LEVERS: Lever[] = [
@@ -106,9 +121,9 @@ function rate(lever: Lever, changed: boolean): number {
     const a = changed && lever.mod ? lever.mod(own) : own;
     const b = lever.opponent ? lever.opponent(i) : squad(i + 100000);
     const swap = i % 2 === 1;
-    const mine = changed ? lever.decider : undefined;
+    const mine = changed ? lever.decider : lever.baseDecider;
     const deciders: [BreakDecider?, BreakDecider?] = swap ? [lever.opponentDecider, mine] : [mine, lever.opponentDecider];
-    const r = simulateMatch({ seed: deriveSeed('lever-m', i), teams: swap ? [b, a] : [a, b] }, { deciders });
+    const r = simulateMatch({ seed: deriveSeed('lever-m', i), teams: swap ? [b, a] : [a, b] }, { deciders, cfg: CFG });
     if (r.outcome.winner === (swap ? 1 : 0)) wins++;
   }
   return wins / N;
@@ -116,8 +131,8 @@ function rate(lever: Lever, changed: boolean): number {
 const base = rate({ label: '' }, false);
 const pct = (x: number) => `${(x * 100).toFixed(1)} %`;
 console.log(`${'unchanged'.padEnd(34)} ${pct(base)}`);
-for (const lever of LEVERS) {
-  const before = lever.opponent ? rate(lever, false) : base;
+for (const lever of LEVERS.filter((l) => !only || only.some((w) => l.label.includes(w)))) {
+  const before = lever.opponent || lever.prep || lever.baseDecider ? rate(lever, false) : base;
   const after = rate(lever, true);
   const gap = (after - before) * 100;
   console.log(`${lever.label.padEnd(34)} ${pct(before)} → ${pct(after)}  (${gap >= 0 ? '+' : ''}${gap.toFixed(1)})`);

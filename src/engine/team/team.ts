@@ -8,7 +8,7 @@ import { bestRole, isInjured, roleFit } from '../creature/derived.ts';
 import { generateTeamName } from '../creature/names.ts';
 import type { Creature, LineupSlot, Tactic, Team, TeamOrders } from '../model.ts';
 
-export const DEFAULT_ORDERS: TeamOrders = { aggression: 'balanced', target: 'nearest', risk: 'normal' };
+export const DEFAULT_ORDERS: TeamOrders = { aggression: 'balanced', target: 'nearest' };
 
 /** Selection value used by the assistant: ability, discounted by fatigue. */
 export function selectionScore(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): number {

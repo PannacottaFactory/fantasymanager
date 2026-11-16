@@ -82,6 +82,12 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
     case 'roundStart':
       view.round = e.round;
       break;
+    case 'teamTalk':
+      for (const ch of e.changes) {
+        const c = touch(ch.id);
+        if (c) Object.assign(c, { morale: ch.morale, stamina: ch.stamina });
+      }
+      break;
     case 'spend': {
       const a = touch(e.actor);
       if (a) {

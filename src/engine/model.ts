@@ -113,13 +113,16 @@ export interface CreatureGrowth {
 }
 
 export type Aggression = 'cautious' | 'balanced' | 'aggressive';
-export type Risk = 'low' | 'normal' | 'high';
 export type Stance = 'normal' | 'conserve' | 'allOut';
+
+/** Team talk: what the manager works on for the coming period (prototype). */
+export type Talk = 'rally' | 'secondWind' | 'focus' | 'ranks' | 'evade' | 'fury';
 
 export interface TeamOrders {
   aggression: Aggression;
   target: TargetPriority;
-  risk: Risk;
+  /** Team talk for the period. The player's tactic leaves it empty to let the assistant choose. */
+  talk?: Talk;
 }
 
 export interface LineupSlot {
@@ -141,6 +144,8 @@ export interface AiManagerStyle {
   reads?: boolean;
   /** Orders to come back to when the score is level. */
   base?: TeamOrders;
+  /** How it picks its team talks: reads the game, or by temperament (default: reads the game). */
+  talker?: 'read' | 'cautious' | 'aggressive' | 'gambler' | 'steady';
 }
 
 export interface Tactic {

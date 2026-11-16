@@ -32,6 +32,23 @@ export interface SideAnalysis {
   onBackline: number;
   onBackers: number;
   topTargetShare: number;
+  /** Elements: blows that hit a weakness (×1.5) / a resistance (×0.67) and the damage they added / lost. */
+  elements: ElementTally;
+}
+
+export interface ElementTally {
+  strong: number;
+  weak: number;
+  gained: number;
+  lost: number;
+}
+
+/** What the elements did for one creature (as an attacker and as a target). */
+export interface ElementCreature extends ElementTally {
+  id: string;
+  /** Extra damage taken because its elements were weak / damage spared by its resistances. */
+  taken: number;
+  spared: number;
 }
 
 export interface Period {
@@ -60,7 +77,7 @@ export interface LostTurns {
 
 export type InsightKey =
   | 'dotShare' | 'enemyDot' | 'healersUntouched' | 'healersFocused' | 'breakPaid' | 'breakFailed' | 'turnsLost'
-  | 'thornsHurt' | 'spread' | 'enemySustain' | 'backlineHit' | 'cleansed' | 'curses';
+  | 'thornsHurt' | 'spread' | 'enemySustain' | 'backlineHit' | 'cleansed' | 'curses' | 'elementsFor' | 'elementsAgainst';
 
 export interface Insight {
   tone: 'good' | 'bad' | 'info';
@@ -78,12 +95,15 @@ export interface MatchAnalysis {
   duels: Duel[];
   lostTurns: LostTurns[];
   insights: Insight[];
+  /** Creatures the elements mattered for, biggest effect first. */
+  elementCreatures: ElementCreature[];
 }
 
 function emptySide(): SideAnalysis {
   return {
     sources: { melee: 0, ranged: 0, spell: 0, overTime: 0, thorns: 0 }, overTimeBy: {}, total: 0, healing: 0, lifesteal: 0,
     regeneration: 0, absorbed: 0, inflicted: {}, cleansed: 0, sacrificed: 0, onBackline: 0, onBackers: 0, topTargetShare: 0,
+    elements: { strong: 0, weak: 0, gained: 0, lost: 0 },
   };
 }
 
@@ -98,6 +118,12 @@ export function analyzeMatch(result: MatchResult, perspective: Side = 0, cfg: Ga
   const duels = new Map<string, number>();
   const byTarget: [Map<string, number>, Map<string, number>] = [new Map(), new Map()];
   const lost = new Map<string, LostTurns>();
+  const elem = new Map<string, ElementCreature>();
+  const ec = (id: string) => {
+    let x = elem.get(id);
+    if (!x) elem.set(id, (x = { id, strong: 0, weak: 0, gained: 0, lost: 0, taken: 0, spared: 0 }));
+    return x;
+  };
   const lt = (id: string) => {
     let x = lost.get(id);
     if (!x) lost.set(id, (x = { id, stunned: 0, frozen: 0, hesitated: 0, rested: 0 }));
@@ -131,6 +157,24 @@ export function analyzeMatch(result: MatchResult, perspective: Side = 0, cfg: Ga
         dealt(side, e.target, e.damage, e.round);
         duels.set(`${e.actor}|${e.target}`, (duels.get(`${e.actor}|${e.target}`) ?? 0) + e.damage);
         if (e.healed) sides[side].lifesteal += e.healed;
+        // Elements: the share of the blow due to the matchup (×1.5 adds a third of the damage, ×0.67 cost half of it).
+        if (e.elementMult >= 1.2) {
+          const extra = Math.round(e.damage * (1 - 1 / e.elementMult));
+          const t = sides[side].elements;
+          t.strong++;
+          t.gained += extra;
+          ec(e.actor).strong++;
+          ec(e.actor).gained += extra;
+          ec(e.target).taken += extra;
+        } else if (e.elementMult <= 0.85) {
+          const missing = Math.round(e.damage * (1 / e.elementMult - 1));
+          const t = sides[side].elements;
+          t.weak++;
+          t.lost += missing;
+          ec(e.actor).weak++;
+          ec(e.actor).lost += missing;
+          ec(e.target).spared += missing;
+        }
         break;
       }
       case 'thorns': {
@@ -248,6 +292,7 @@ export function analyzeMatch(result: MatchResult, perspective: Side = 0, cfg: Ga
     duels: duelList,
     lostTurns,
     insights: buildInsights(result, perspective, sides, played, lostTurns),
+    elementCreatures: [...elem.values()].sort((a, b) => b.gained + b.lost + b.taken + b.spared - (a.gained + a.lost + a.taken + a.spared)),
   };
 }
 
@@ -259,6 +304,12 @@ function buildInsights(result: MatchResult, me: Side, sides: [SideAnalysis, Side
   const theirs = sides[them];
   const out: Insight[] = [];
   const topEffect = (s: SideAnalysis) => Object.entries(s.overTimeBy).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
+
+  // Elements: net damage they brought each side (gained − lost), compared.
+  const net = (s: SideAnalysis) => s.elements.gained - s.elements.lost;
+  const edge = net(mine) - net(theirs);
+  if (edge >= 40) out.push({ tone: 'good', key: 'elementsFor', vars: { n: edge, strong: mine.elements.strong } });
+  else if (edge <= -40) out.push({ tone: 'bad', key: 'elementsAgainst', vars: { n: -edge, strong: theirs.elements.strong, weak: mine.elements.weak } });
 
   // Damage over time.
   const dot = pct(mine.sources.overTime, mine.total);

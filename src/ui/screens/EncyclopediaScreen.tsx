@@ -35,7 +35,7 @@ const cfg = DEFAULT_CONFIG;
 export type Tab = 'bestiary' | 'species' | 'abilities' | 'effects' | 'traits' | 'roles' | 'elements' | 'attributes' | 'injuries' | 'rules';
 const TABS: Tab[] = ['species', 'abilities', 'effects', 'traits', 'roles', 'elements', 'attributes', 'injuries', 'rules'];
 const ROLE_IDS = Object.keys(ROLES) as RoleId[];
-export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'stamina', 'morale', 'injury', 'levels', 'age', 'arena'] as const;
+export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'talks', 'stamina', 'morale', 'injury', 'levels', 'age', 'arena'] as const;
 
 /**
  * Accent-insensitive, case-insensitive form of a text, one character for one character (so a position found in the
@@ -983,7 +983,11 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       asc: p(c.orders.ascendancy.bonus),
       sad: mult(c.stances.allOut.damageMult), sam: pct(c.stances.allOut.mitigation), sas: mult(c.stances.allOut.staminaCostMult),
       scd: mult(c.stances.conserve.damageMult), scs: mult(c.stances.conserve.staminaCostMult),
-      rhc: p(c.orders.riskHigh.critBonus), rhh: pct(c.orders.riskHigh.hitBonus), rlc: pct(c.orders.riskLow.critBonus), rlh: p(c.orders.riskLow.hitBonus),
+    },
+    talks: {
+      rp: p(c.orders.talks.rally.share), rt: c.orders.talks.rally.target, sw: p(c.orders.talks.secondWind.share), fo: p(c.orders.talks.focus.hit),
+      rm: p(c.orders.talks.ranks.mitigation), ri: p(c.orders.talks.ranks.intercept), ev: p(c.orders.talks.evade.dodge),
+      fd: p(c.orders.talks.fury.damage), fc: p(c.orders.talks.fury.cost),
     },
     stamina: {
       large: mult(c.stamina.sizeCostMult.large), huge: mult(c.stamina.sizeCostMult.huge), threshold: p(c.fatigue.threshold), max: p(c.fatigue.maxPenalty),

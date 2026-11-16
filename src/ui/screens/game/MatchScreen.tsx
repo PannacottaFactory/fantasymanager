@@ -21,6 +21,8 @@ import { speciesName } from '../../../engine/text/localize.ts';
 import { frontFirst } from '../../../engine/team/edit.ts';
 import { Versus } from './Versus.tsx';
 import { arenaActive, arenaFor } from '../../../engine/league/arena.ts';
+import { preMatchSituation, readTalk } from '../../../engine/combat/talks.ts';
+import { TalkPicker } from '../../components/TeamTalk.tsx';
 
 function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
   const { t, lang } = useT();
@@ -72,7 +74,7 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
 function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
   const tr = useT();
   const { t } = tr;
-  const { playLive, simulate, setScreen, repair, setPlayerControls } = useGame.getState();
+  const { playLive, simulate, setScreen, repair, setPlayerControls, setPlayerTeam } = useGame.getState();
   const playerControls = useGame((s) => s.playerControls);
   const f = game.fixtures.find((x) => x.id === match.fixtureId)!;
   const mine = playerTeam(game);
@@ -153,6 +155,18 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           {!canFill && <p className="faint">{t('bench.noneLeft')}</p>}
         </Modal>
       )}
+      <section className="panel talk-panel" data-tip="talk">
+        <div className="panel-head">
+          <h3>{t('talk.heading')}</h3>
+          <span className="muted talk-intro">{t('talk.intro')}</span>
+        </div>
+        <TalkPicker
+          assistant
+          value={mine.tactic.orders.talk}
+          advice={readTalk(preMatchSituation(playerPrepare(mine), opp))}
+          onChange={(talk) => setPlayerTeam({ ...mine, tactic: { ...mine.tactic, orders: { ...mine.tactic.orders, talk } } })}
+        />
+      </section>
       <section className="match-cta" data-tip="prematch">
         <button className="cta-tactics" onClick={() => setScreen('tactics')}>
           <span className="cta-tactics-icon"><UiIcon name="nav-tactics" size="1.2em" /></span>

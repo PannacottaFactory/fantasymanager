@@ -39,6 +39,7 @@ import { matchdayCount, roundRobin } from './schedule.ts';
 import { computeStandings } from './standings.ts';
 import type { Fixture, FixtureResult, GameState } from './types.ts';
 import { championsFrom, cupKey, finishTournamentRound, midweekKey, startTournaments, tournamentFixture, tournamentsAt } from './tournaments.ts';
+import { preMatchSituation, readTalk } from '../combat/talks.ts';
 
 export interface NewGameOptions {
   seed: string;
@@ -233,6 +234,13 @@ export function aiPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG, difficul
   return { ...team, tactic: team.identity ? applyIdentity(team, tactic, difficulty, opponent, cfg) : tactic };
 }
 
+/** The player left the team talk to the assistant: it reads the two line-ups. */
+function withAssistantTalk(team: Team, opponent: Team): Team {
+  if (team.tactic.orders.talk) return team;
+  const talk = readTalk(preMatchSituation(team, opponent)).talk;
+  return { ...team, tactic: { ...team.tactic, orders: { ...team.tactic.orders, talk } } };
+}
+
 /** Player's tactic as it will be used: the assistant repairs it if it is not valid for a league match. */
 export function playerPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team {
   return validateTactic(team, cfg, true).length ? repairTactic(team, cfg) : team;
@@ -247,7 +255,7 @@ export function fixtureSetup(state: GameState, fixture: Fixture, cfg: GameConfig
   const difficulty = state.difficulty ?? 'normal';
   // The player's tactic is fixed first, so AI managers can read it; between two AI stables, each reads the other's usual line-up.
   const base = (id: string) => (id === state.playerTeamId ? playerPrepare(teamById(state, id), cfg) : teamById(state, id));
-  const prep = (id: string, oppId: string) => (id === state.playerTeamId ? base(id) : aiPrepare(teamById(state, id), cfg, difficulty, base(oppId)));
+  const prep = (id: string, oppId: string) => (id === state.playerTeamId ? withAssistantTalk(base(id), base(oppId)) : aiPrepare(teamById(state, id), cfg, difficulty, base(oppId)));
   const home = prep(fixture.home, fixture.away);
   const away = prep(fixture.away, fixture.home);
   const swapped = fixture.away === state.playerTeamId;

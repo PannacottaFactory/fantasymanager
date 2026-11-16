@@ -139,7 +139,7 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const awareness = (actor.attrs.tactics / 20) * cfg.combat.ai.elementAwareness;
   const perceivedMult = 1 + (trueMult - 1) * awareness;
   const mit = mitigation(target, attackKind(ability), ctx.orders(target), cfg);
-  const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders }, cfg);
+  const p = hitChance(actor, target, ability, { flank, combo: ctx.comboOn(actor, target), orders, foeOrders: ctx.orders(target) }, cfg);
   const pack = packMult(ability, ctx.alliesOn(actor, target), cfg);
   const cover = coverMult(attackKind(ability), target, ctx.coverPoints(target.side), cfg);
   // The weather is plain to see: everyone takes it into account.
@@ -213,8 +213,6 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
   const options: ChosenAction[] = [];
   const stFrac = staminaFraction(actor);
   const silenced = hasEffectFlag(actor, 'silence');
-  const riskBias =
-    orders.risk === 'high' ? cfg.combat.orders.riskHigh.bigAbilityBias : orders.risk === 'low' ? cfg.combat.orders.riskLow.bigAbilityBias : 0;
 
   for (const id of actor.abilities) {
     const ability = ABILITIES[id];
@@ -236,11 +234,10 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
       bigMult *= 1 + f.bonus * (0.4 + (0.6 * actor.attrs.discipline) / 20);
     }
     if (ability.staminaCost >= 12) {
-      bigMult += riskBias;
       if (actor.stance === 'conserve') bigMult *= 0.7;
       if (actor.stance === 'allOut') bigMult *= 1.2;
-      // Don't burn the last of the energy on a big move unless willing to risk it.
-      if (stFrac < 0.4 && orders.risk !== 'high') bigMult *= 0.7;
+      // Don't burn the last of the energy on a big move.
+      if (stFrac < 0.4) bigMult *= 0.7;
     }
 
     const damaging = ability.power > 0 && (ability.kind === 'melee' || ability.kind === 'ranged' || ability.kind === 'spell' || ability.kind === 'debuff');

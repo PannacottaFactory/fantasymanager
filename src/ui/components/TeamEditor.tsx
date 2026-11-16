@@ -11,7 +11,7 @@ import { getSpecies } from '../../engine/creature/derived.ts';
 import { AbilityCard, KindIcon, abilityColor } from './AbilityCard.tsx';
 import { isUnlocked, levelOf, maxLevelOf, unlockLevel } from '../../engine/progression/levels.ts';
 import { ABILITIES } from '../../data/abilities.ts';
-import type { Aggression, Creature, Risk, Stance, Team } from '../../engine/model.ts';
+import type { Aggression, Creature, Stance, Team } from '../../engine/model.ts';
 import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
 import { ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
@@ -37,13 +37,10 @@ export function issueText(tr: Translator, team: Team, issue: TacticIssue): strin
   }
 }
 
-/** Team orders: approach, target priority, risk. */
+/** Team orders: approach and target priority. */
 export function OrdersFields({ team, onChange }: { team: Team; onChange: (t: Team) => void }) {
   const { t } = useT();
   const o = team.tactic.orders;
-  const r = DEFAULT_CONFIG.combat.orders;
-  const pc = (x: number) => String(Math.round(x * 100)).replace('-', '−');
-  const riskTip = t('orders.risk.title', { hc: pc(r.riskHigh.critBonus), hh: pc(r.riskHigh.hitBonus), lc: pc(r.riskLow.critBonus), lh: pc(r.riskLow.hitBonus) });
   return (
     <>
       <label className="field order-field" title={t('orders.approach.title')}>
@@ -62,14 +59,6 @@ export function OrdersFields({ team, onChange }: { team: Team; onChange: (t: Tea
               {t(`target.${x}`)}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="field order-field" title={riskTip}>
-        <span className="of-label">{t('orders.risk')} <span className="of-info">ⓘ</span></span>
-        <select value={o.risk} onChange={(e) => onChange(setOrders(team, { risk: e.target.value as Risk }))}>
-          <option value="low">{t('risk.low')}</option>
-          <option value="normal">{t('risk.normal')}</option>
-          <option value="high">{t('risk.high')}</option>
         </select>
       </label>
     </>

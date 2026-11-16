@@ -387,6 +387,8 @@ export class Commentator {
         const vars: Vars = { aTeam: this.teams[e.side], in: this.ref(e.inId), out: this.ref(e.outId), oE: this.fem(e.outId) };
         return this.line(e, 'substitution', wasDown ? ['ko'] : [], vars, 1, e.side);
       }
+      case 'teamTalk':
+        return this.line(e, 'teamTalk', [e.talk], { aTeam: this.teams[e.side] }, 1, e.side);
       case 'ordersChanged':
         return this.line(e, 'ordersChanged', [e.orders.aggression], { aTeam: this.teams[e.side] }, 0, e.side);
       case 'matchEnd': {

@@ -8,10 +8,11 @@ import { counterTarget } from '../team/identity.ts';
 import { other, type Combat } from './combat.ts';
 import { counterApproach, hpFraction, staminaFraction } from './formulas.ts';
 import type { BreakDecision, Combatant, Side, SubstitutionDecision } from './types.ts';
+import { breakSituation, managerTalk } from './talks.ts';
 
 export type { AiManagerStyle };
 
-export const DEFAULT_AI_STYLE: AiManagerStyle = { tiredBelow: 0.25, hurtBelow: 0.25, adaptOrders: true };
+export const DEFAULT_AI_STYLE: AiManagerStyle = { tiredBelow: 0.25, hurtBelow: 0.25, adaptOrders: true, talker: 'read' };
 
 function benchScore(c: Combatant, wantedRole: string): number {
   return c.ability + (c.role === wantedRole ? 25 : 0);
@@ -42,10 +43,10 @@ export function suggestOrders(combat: Combat, side: Side, base?: TeamOrders): Te
   const current = combat.sides[side].orders;
   const diff = combat.teamHealth(side) - combat.teamHealth(other(side));
   const aliveDiff = combat.active(side).length - combat.active(other(side)).length;
-  if (diff < -0.2 || aliveDiff <= -2) return { ...current, aggression: 'aggressive', risk: 'high' };
-  if (diff > 0.3 && aliveDiff >= 1) return { ...current, aggression: 'cautious', risk: 'low' };
-  if (base) return { ...current, aggression: base.aggression, risk: base.risk };
-  return { ...current, aggression: 'balanced', risk: 'normal' };
+  if (diff < -0.2 || aliveDiff <= -2) return { ...current, aggression: 'aggressive' };
+  if (diff > 0.3 && aliveDiff >= 1) return { ...current, aggression: 'cautious' };
+  if (base) return { ...current, aggression: base.aggression };
+  return { ...current, aggression: 'balanced' };
 }
 
 /** A manager who reads the game picks the target order against what is still standing. */
@@ -61,5 +62,7 @@ export function aiBreakDecision(combat: Combat, side: Side, style: AiManagerStyl
     const foe = combat.sides[other(side)].orders;
     d.orders = { ...(d.orders ?? combat.sides[side].orders), target: readTarget(combat, side), aggression: counterApproach(foe.aggression, combat.cfg) };
   }
+  // A talk at every break.
+  d.orders = { ...(d.orders ?? combat.sides[side].orders), talk: managerTalk(style, breakSituation(combat, side)) };
   return d;
 }

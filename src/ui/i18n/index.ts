@@ -72,7 +72,7 @@ export const useSettings = create<SettingsState>()((set) => ({
   })(),
   theme: (() => {
     const v = read(THEME_KEY);
-    return v === 'parchment' || v === 'dark' || v === 'night' || v === 'slate' ? v : 'night';
+    return v === 'parchment' || v === 'dark' || v === 'night' || v === 'slate' ? v : 'slate';
   })(),
   layout: read(LAYOUT_KEY) === 'top' ? 'top' : 'side',
   setLayout: (layout) => {

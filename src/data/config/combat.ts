@@ -153,9 +153,21 @@ export const COMBAT_CONFIG = {
      * Ascendancy: an approach that "beats" the opponent's deals more damage.
      * Cautious thwarts aggressive, aggressive overwhelms balanced, balanced wears down cautious.
      */
+    /**
+     * Team talks (one per period, given before the match and at each break). Rally and second wind act once when given
+     * (morale towards `target`, a share of the missing stamina); the others last the period.
+     */
+    talks: {
+      rally: { share: 0.3, target: 75 },
+      secondWind: { share: 0.1 },
+      focus: { hit: 0.018 },
+      /** Front-line armour against melee only, plus interceptions. */
+      ranks: { mitigation: 0.05, intercept: 0.06 },
+      /** Against ranged attacks and spells. */
+      evade: { dodge: 0.045 },
+      fury: { damage: 0.08, cost: 0.2 },
+    },
     ascendancy: { bonus: 0.08, beats: { cautious: 'aggressive', aggressive: 'balanced', balanced: 'cautious' } as Record<'cautious' | 'balanced' | 'aggressive', 'cautious' | 'balanced' | 'aggressive'> },
-    riskHigh: { critBonus: 0.02, hitBonus: -0.03, bigAbilityBias: 0.3 },
-    riskLow: { critBonus: -0.01, hitBonus: 0.02, bigAbilityBias: -0.3 },
   },
   /**
    * Individual instruction of a creature. Each one away from normal trades something:

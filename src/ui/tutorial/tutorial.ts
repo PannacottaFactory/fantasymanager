@@ -23,6 +23,7 @@ export const STEPS: TutorialStep[] = [
   { id: 'sheetAttrs', anchor: 'sheet-attrs' },
   { id: 'lineup', anchor: 'lineup', placement: 'above' },
   { id: 'prematch', anchor: 'prematch' },
+  { id: 'talk', anchor: 'talk' },
   { id: 'liveCards', anchor: 'live-cards', placement: 'right' },
   { id: 'break', anchor: 'break' },
   { id: 'report', anchor: 'report' },

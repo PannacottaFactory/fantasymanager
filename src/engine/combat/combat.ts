@@ -135,7 +135,6 @@ export class Combat {
         if (c) c.morale = clamp(c.morale + relationMorale(cr, starters, cfg), 5, 100);
       }
     });
-
     this.ai = {
       cfg,
       rng: this.rng,
@@ -164,6 +163,8 @@ export class Combat {
       if (c.state === 'active') for (const p of SPECIES[c.speciesId]?.passives ?? []) this.addEffect(c, p, 999, undefined, true);
     }
     this.emit({ type: 'matchStart', round: 0, teams: [t0.name, t1.name], snapshot: this.snapshot(), ...(setup.arena ? { arena: setup.arena } : {}) });
+    this.giveTalk(0);
+    this.giveTalk(1);
   }
 
   // ——— Public API ———
@@ -204,7 +205,26 @@ export class Combat {
   }
 
   resume(): void {
-    if (this.phase === 'break') this.phase = 'running';
+    if (this.phase !== 'break') return;
+    this.phase = 'running';
+    this.giveTalk(0);
+    this.giveTalk(1);
+  }
+
+  /** A team talk is given (before the match and at each break): announced, with its one-off part (rally, second wind). */
+  private giveTalk(side: Side): void {
+    const talk = this.sides[side].orders.talk;
+    if (!talk) return;
+    const tk = this.cfg.combat.orders.talks;
+    const changes: { id: string; morale: number; stamina: number }[] = [];
+    for (const c of this.combatants) {
+      if (c.side !== side || c.state !== 'active') continue;
+      if (talk === 'rally') c.morale = clamp(c.morale + Math.max(0, tk.rally.target - c.morale) * tk.rally.share, 0, 100);
+      else if (talk === 'secondWind') c.stamina = Math.min(c.maxStamina, c.stamina + (c.maxStamina - c.stamina) * tk.secondWind.share);
+      else continue;
+      changes.push({ id: c.id, morale: Math.round(c.morale), stamina: Math.round(c.stamina) });
+    }
+    this.emit({ type: 'teamTalk', round: this.round, side, talk, changes });
   }
 
   /** Validates and applies a manager's decisions at a break. Returns error messages (empty = ok). */
@@ -247,10 +267,13 @@ export class Combat {
       this.emit({ type: 'substitution', round: this.round, side, outId: out.id, inId: inc.id, role: inc.role, line: inc.line });
     }
     if (d.orders) {
-      const changed = JSON.stringify(d.orders) !== JSON.stringify(st.orders);
+      // A new talk alone is not a change of orders (it is announced when the fight resumes).
+      const strip = (o: TeamOrders) => JSON.stringify({ ...o, talk: undefined });
+      const changed = strip(d.orders) !== strip(st.orders);
+      const talkChanged = d.orders.talk !== st.orders.talk;
       st.orders = { ...d.orders };
+      if (changed || talkChanged) applied.orders = { ...d.orders };
       if (changed) {
-        applied.orders = { ...d.orders };
         this.emit({ type: 'ordersChanged', round: this.round, side, orders: { ...d.orders } });
       }
     }
@@ -803,7 +826,7 @@ export class Combat {
         .filter((g) => g.id !== target.id && g.role === 'tank' && g.line === 'front' && !hasEffect(g, 'stunned'))
         .sort((a, b) => Number(b.guarding) - Number(a.guarding));
       for (const g of guards) {
-        if (this.rng.chance(interceptChance(g, cfg))) {
+        if (this.rng.chance(interceptChance(g, cfg, this.sides[g.side].orders))) {
           interceptedFrom = target.id;
           target = g;
           flank = false;
@@ -814,7 +837,7 @@ export class Combat {
 
     const combo = this.ai.comboOn(actor, target);
     const friendCombo = [...(this.hitThisRound.get(target.id) ?? [])].some((id) => actor.bonds[id] === 'friend');
-    let p = hitChance(actor, target, ability, { flank, combo, orders, friendCombo }, cfg);
+    let p = hitChance(actor, target, ability, { flank, combo, orders, friendCombo, foeOrders: this.sides[target.side].orders }, cfg);
     const arenaHit = kind === 'ranged' ? (this.arena?.rangedHit ?? 0) : kind === 'melee' ? (this.arena?.meleeHit ?? 0) : 0;
     if (arenaHit) p = clamp(p + arenaHit, cfg.combat.hit.min, cfg.combat.hit.max);
     const ambush = hasEffectFlag(actor, 'hidden');
@@ -837,7 +860,7 @@ export class Combat {
 
     const element = resolveElement(ability.element, actor);
     const elementMult = elementMultiplier(element, target.elements, cfg);
-    const crit = this.rng.chance(critChance(actor, ability, orders, cfg) + (this.arena?.critBonus ?? 0));
+    const crit = this.rng.chance(critChance(actor, ability, cfg) + (this.arena?.critBonus ?? 0));
     const d = cfg.combat.damage;
     let dmg = rawDamage(actor, ability, { orders, foeOrders: this.sides[target.side].orders, behind: this.ai.behind(actor), solo: !combo }, cfg);
     dmg *= this.rng.range(1 - d.variance, 1 + d.variance);
@@ -1033,7 +1056,7 @@ export class Combat {
    * Judges: share of the opponents' health actually removed — every opponent that entered the arena (those taken off
    * count with the health they had left), healing deducted. A side that heals well keeps its health and the points.
    */
-  private judgeScore(side: Side): number {
+  judgeScore(side: Side): number {
     const opp = this.combatants.filter((c) => c.side === other(side) && c.enteredRound !== null);
     const total = opp.reduce((s, c) => s + c.maxHp, 0);
     const left = opp.reduce((s, c) => s + (c.state === 'ko' ? 0 : Math.max(0, Math.round(c.hp))), 0);

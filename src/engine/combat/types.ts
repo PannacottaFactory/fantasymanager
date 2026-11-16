@@ -1,7 +1,7 @@
 import type { ArenaConditionId } from '../../data/config/arena.ts';
 import type { Attributes } from '../../data/attributes.ts';
 import type { ElementId, Line, RoleId, SizeClass } from '../../data/schema.ts';
-import type { Stance, Team, TeamOrders } from '../model.ts';
+import type { Stance, Talk, Team, TeamOrders } from '../model.ts';
 
 export type Side = 0 | 1;
 export type CombatantState = 'active' | 'bench' | 'ko' | 'fled' | 'withdrawn';
@@ -199,6 +199,8 @@ export type MatchEvent =
   | { type: 'break'; round: number; index: number }
   | { type: 'substitution'; round: number; side: Side; outId: string; inId: string; role: RoleId; line: Line }
   | { type: 'ordersChanged'; round: number; side: Side; orders: TeamOrders }
+  /** A manager's team talk (before the match, at each break), with the morale / stamina it gave back. */
+  | { type: 'teamTalk'; round: number; side: Side; talk: Talk; changes: { id: string; morale: number; stamina: number }[] }
   | { type: 'matchEnd'; round: number; winner: Side; method: MatchMethod; score: [number, number] };
 
 export type MatchEventType = MatchEvent['type'];

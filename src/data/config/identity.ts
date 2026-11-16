@@ -3,7 +3,7 @@
  *
  * Play styles are a design tool: the game never names them. Each AI stable leans towards one (its squad, its
  * signings, the abilities it favours, its target orders) and is run by a manager with a temperament (aggression,
- * risk, when to substitute, whether it reads the opponent).
+ * when to substitute, whether it reads the opponent).
  */
 import type { TargetPriority } from '../schema.ts';
 
@@ -46,7 +46,6 @@ export type ManagerId = 'cautious' | 'aggressive' | 'tactician' | 'gambler' | 's
 
 export interface ManagerDef {
   aggression: 'cautious' | 'balanced' | 'aggressive';
-  risk: 'low' | 'normal' | 'high';
   /** Substitute creatures below this stamina / health fraction at a break. */
   tiredBelow: number;
   hurtBelow: number;
@@ -57,11 +56,11 @@ export interface ManagerDef {
 }
 
 export const MANAGERS: Record<ManagerId, ManagerDef> = {
-  cautious: { aggression: 'cautious', risk: 'low', tiredBelow: 0.35, hurtBelow: 0.35, adaptOrders: true, reads: false },
-  aggressive: { aggression: 'aggressive', risk: 'high', tiredBelow: 0.15, hurtBelow: 0.15, adaptOrders: false, reads: false },
-  tactician: { aggression: 'balanced', risk: 'normal', tiredBelow: 0.25, hurtBelow: 0.3, adaptOrders: true, reads: true },
-  gambler: { aggression: 'balanced', risk: 'high', tiredBelow: 0.2, hurtBelow: 0.2, adaptOrders: true, reads: false },
-  steady: { aggression: 'balanced', risk: 'normal', tiredBelow: 0.25, hurtBelow: 0.25, adaptOrders: true, reads: false },
+  cautious: { aggression: 'cautious', tiredBelow: 0.35, hurtBelow: 0.35, adaptOrders: true, reads: false },
+  aggressive: { aggression: 'aggressive', tiredBelow: 0.15, hurtBelow: 0.15, adaptOrders: false, reads: false },
+  tactician: { aggression: 'balanced', tiredBelow: 0.25, hurtBelow: 0.3, adaptOrders: true, reads: true },
+  gambler: { aggression: 'balanced', tiredBelow: 0.2, hurtBelow: 0.2, adaptOrders: true, reads: false },
+  steady: { aggression: 'balanced', tiredBelow: 0.25, hurtBelow: 0.25, adaptOrders: true, reads: false },
 };
 
 export const MANAGER_IDS = Object.keys(MANAGERS) as ManagerId[];

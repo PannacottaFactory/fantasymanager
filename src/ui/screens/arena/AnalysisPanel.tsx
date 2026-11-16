@@ -7,13 +7,13 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import type { MatchResult, Side } from '../../../engine/combat/types.ts';
 import { analyzeMatch, DAMAGE_SOURCES, type DamageSource, type MatchAnalysis } from '../../../engine/report/analysis.ts';
 import { effectText } from '../../../engine/text/localize.ts';
-import { Crest } from '../../components/common.tsx';
+import { Crest, ElementDots } from '../../components/common.tsx';
 import { anaT, type AnaKey } from '../../i18n/analysis.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 
-type Tab = 'summary' | 'sources' | 'flow' | 'periods' | 'duels' | 'turns';
-const TABS: Tab[] = ['summary', 'sources', 'flow', 'periods', 'duels', 'turns'];
+type Tab = 'summary' | 'sources' | 'elements' | 'flow' | 'periods' | 'duels' | 'turns';
+const TABS: Tab[] = ['summary', 'sources', 'elements', 'flow', 'periods', 'duels', 'turns'];
 
 /** Categorical slots for damage sources (validated palette, see .viz-* tokens in styles.css). */
 const SOURCE_VAR: Record<DamageSource, string> = {
@@ -43,6 +43,7 @@ export function AnalysisPanel({ result }: { result: MatchResult }) {
       </div>
       {tab === 'summary' && <Summary analysis={analysis} />}
       {tab === 'sources' && <Sources analysis={analysis} result={result} />}
+      {tab === 'elements' && <Elements analysis={analysis} result={result} />}
       {tab === 'flow' && <Flow analysis={analysis} result={result} />}
       {tab === 'periods' && <Periods analysis={analysis} result={result} />}
       {tab === 'duels' && <Duels analysis={analysis} result={result} />}
@@ -306,6 +307,7 @@ export function Periods({ analysis, result }: { analysis: MatchAnalysis; result:
             ? [
                 ...mine.subs.map((s) => a('per.sub', { out: name(s.outId), in: name(s.inId) })),
                 ...(mine.orders ? [a('per.orders', { aggression: t(`orders.${mine.orders.aggression}` as StringKey).toLowerCase(), target: t(`target.${mine.orders.target}` as StringKey).toLowerCase() })] : []),
+                ...(mine.orders?.talk ? [a('per.talk', { talk: t(`talk.${mine.orders.talk}` as StringKey) })] : []),
               ]
             : [];
           return (
@@ -394,6 +396,104 @@ export function Turns({ analysis, result }: { analysis: MatchAnalysis; result: M
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** What the elements did: per side (effective / resisted blows, damage added / lost) and creature by creature. */
+export function Elements({ analysis, result }: { analysis: MatchAnalysis; result: MatchResult }) {
+  const { lang } = useT();
+  const a = anaT(lang);
+  const sides = analysis.sides.map((s) => s.elements);
+  if (!sides.some((x) => x.strong || x.weak)) return <div className="muted">{a('el.none')}</div>;
+  const max = Math.max(1, ...sides.flatMap((x) => [x.gained, x.lost]));
+  const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');
+  return (
+    <div className="ana-elements">
+      <p className="muted" style={{ marginTop: 0 }}>
+        {a('el.intro')}
+      </p>
+      <div className="el-sides">
+        {([0, 1] as Side[]).map((side) => {
+          const x = sides[side]!;
+          const net = x.gained - x.lost;
+          return (
+            <div key={side} className="el-side">
+              <div className={teamClass(side)}>
+                <b>{result.teams[side].name}</b>
+              </div>
+              <div className="el-line good">
+                <span>
+                  {a('el.strong')} <b className="mono">{x.strong}</b>
+                </span>
+                <span className="ana-bar">
+                  <i style={{ width: `${(100 * x.gained) / max}%` }} />
+                </span>
+                <span className="mono" title={a('el.gained')}>
+                  {x.gained ? `+${x.gained}` : '0'}
+                </span>
+              </div>
+              <div className="el-line bad">
+                <span>
+                  {a('el.weak')} <b className="mono">{x.weak}</b>
+                </span>
+                <span className="ana-bar">
+                  <i style={{ width: `${(100 * x.lost) / max}%` }} />
+                </span>
+                <span className="mono" title={a('el.lost')}>
+                  {x.lost ? `−${x.lost}` : '0'}
+                </span>
+              </div>
+              <div className="el-net">
+                {a('el.net')} <b className={`mono ${net > 0 ? 'good-text' : net < 0 ? 'bad-text' : ''}`}>{signed(net)}</b>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {analysis.elementCreatures.length > 0 && (
+        <>
+          <h4 style={{ margin: '12px 0 6px' }}>{a('el.creatures')}</h4>
+          <table className="data compare">
+            <thead>
+              <tr>
+                <th></th>
+                <th className="num">{a('el.col.dealt')}</th>
+                <th className="num">{a('el.col.taken')}</th>
+                <th className="num">{a('el.col.spared')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {analysis.elementCreatures.slice(0, 12).map((c) => {
+                const r = result.roster[c.id];
+                if (!r) return null;
+                return (
+                  <tr key={c.id}>
+                    <td>
+                      <span className={teamClass(r.side)}>●</span> {r.name} <ElementDots speciesId={r.speciesId} />
+                    </td>
+                    <td className="num">
+                      {c.strong > 0 && (
+                        <span className="good-text">
+                          +{c.gained} <span className="faint">({c.strong})</span>
+                        </span>
+                      )}
+                      {c.strong > 0 && c.weak > 0 && ' / '}
+                      {c.weak > 0 && (
+                        <span className="bad-text">
+                          −{c.lost} <span className="faint">({c.weak})</span>
+                        </span>
+                      )}
+                    </td>
+                    <td className="num">{c.taken ? <span className="bad-text">+{c.taken}</span> : ''}</td>
+                    <td className="num">{c.spared ? <span className="good-text">{c.spared}</span> : ''}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   );
 }

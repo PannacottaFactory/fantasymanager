@@ -154,6 +154,8 @@ export interface HitContext {
   /** A friend already hit the target this round. */
   friendCombo?: boolean;
   orders: TeamOrders;
+  /** The target side's orders (team talk « evade »). */
+  foeOrders?: TeamOrders;
 }
 
 export function hitChance(
@@ -177,19 +179,18 @@ export function hitChance(
   // Composure steadies the blow, speed makes the target harder to catch, the best leader on the field guides the strikes
   // (all centred on 10).
   p += (attacker.attrs.composure - 10) * h.perComposure - (defender.attrs.speed - 10) * h.dodgePerSpeed + (attacker.led ?? 0);
-  if (ctx.orders.risk === 'high') p += cfg.combat.orders.riskHigh.hitBonus;
-  if (ctx.orders.risk === 'low') p += cfg.combat.orders.riskLow.hitBonus;
+  const tk = cfg.combat.orders.talks;
+  if (ctx.orders.talk === 'focus') p += tk.focus.hit;
+  if (kind !== 'melee' && ctx.foeOrders?.talk === 'evade') p -= tk.evade.dodge;
   p -= fatiguePenalty(attacker, cfg);
   p *= moraleFactor(attacker, cfg);
   return clamp(p, h.min, h.max);
 }
 
-export function critChance(attacker: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {
+export function critChance(attacker: Combatant, ability: AbilityDef, cfg: GameConfig): number {
   const d = cfg.combat.damage;
   let p = d.critBase + attacker.attrs.technique * d.critPerTechnique + attacker.attrs.composure * d.critPerComposure;
   p += (ability.critMod ?? 0) + traitSum(attacker, 'critBonus') + effectMod(attacker, 'critBonus');
-  if (orders.risk === 'high') p += cfg.combat.orders.riskHigh.critBonus;
-  if (orders.risk === 'low') p += cfg.combat.orders.riskLow.critBonus;
   return clamp(p, 0, 0.5);
 }
 
@@ -261,6 +262,7 @@ export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageC
   dmg *= cfg.combat.orders[ctx.orders.aggression].damageMult;
   dmg *= ascendancyMult(ctx.orders, ctx.foeOrders, cfg);
   dmg *= cfg.combat.stances[attacker.stance].damageMult;
+  if (ctx.orders.talk === 'fury') dmg *= 1 + cfg.combat.orders.talks.fury.damage;
   if (ctx.solo) dmg *= traitMult(attacker, 'soloDamageMult');
   dmg *= 1 - fatiguePenalty(attacker, cfg);
   dmg *= moraleFactor(attacker, cfg);
@@ -322,6 +324,7 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
   m += cfg.combat.orders[orders.aggression].mitigation;
   m += cfg.combat.stances[defender.stance].mitigation;
   if (defender.guarding) m += cfg.combat.guard.guardMitigation;
+  if (orders.talk === 'ranks' && kind === 'melee' && defender.line === 'front') m += cfg.combat.orders.talks.ranks.mitigation;
   return clamp(m, d.minMitigation, d.maxMitigation);
 }
 
@@ -334,6 +337,7 @@ export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrder
   let cost = ability.staminaCost * cfg.combat.stamina.sizeCostMult[c.size];
   cost *= cfg.combat.orders[orders.aggression].staminaCostMult;
   cost *= cfg.combat.stances[c.stance].staminaCostMult;
+  if (orders.talk === 'fury') cost *= 1 + cfg.combat.orders.talks.fury.cost;
   // Discipline: a disciplined fighter spends its strength sparingly (centred on 10, so the average does not move).
   cost *= 1 - (c.attrs.discipline - 10) * cfg.combat.stamina.disciplinePerPoint;
   return Math.round(cost);
@@ -345,9 +349,9 @@ export function staminaRegen(c: Combatant, cfg: GameConfig): number {
   return Math.max(s.regenMin, s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina) * effectMod(c, 'staminaRegenMult');
 }
 
-export function interceptChance(guard: Combatant, cfg: GameConfig): number {
+export function interceptChance(guard: Combatant, cfg: GameConfig, orders?: TeamOrders): number {
   const g = cfg.combat.guard;
-  const base = guard.guarding ? g.activeBase : g.passiveBase;
+  const base = (guard.guarding ? g.activeBase : g.passiveBase) + (orders?.talk === 'ranks' ? cfg.combat.orders.talks.ranks.intercept : 0);
   const p = base + guard.attrs.anticipation * g.perAnticipation + guard.attrs.teamwork * g.perTeamwork + traitSum(guard, 'interceptBonus');
   const role = guard.role === 'tank' ? guard.roleFactor : 1;
   return clamp(p * role * (1 - fatiguePenalty(guard, cfg)), 0, g.max);
