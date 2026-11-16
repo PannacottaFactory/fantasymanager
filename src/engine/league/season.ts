@@ -31,7 +31,7 @@ import { seedRelations, weeklyRelations } from '../club/relations.ts';
 import { earn, seasonPrizes, ticketRevenue, trimLedgers, weeklyFinances } from '../economy/finance.ts';
 import { bury, contractsTurnover, contractWarning, ensureSquads, fillFreeAgents, weeklyMarket, weeklyScouting } from '../economy/market.ts';
 import { initEconomy } from '../economy/setup.ts';
-import { ageing, initTraining, refreshCoachMarket, releaseYouth, snapshotSeasonStart, trainingReport, weeklyTraining, youthIntake } from '../progression/training.ts';
+import { ageing, initTraining, refreshCoachMarket, weeklyCoachMarket, releaseYouth, snapshotSeasonStart, trainingReport, weeklyTraining, youthIntake } from '../progression/training.ts';
 import { divisionFixtures, divisionOf } from './divisions.ts';
 import { pushMessage } from './messages.ts';
 import { addNews, divisionTables, isStar, newsFromResults } from './news.ts';
@@ -491,6 +491,7 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
   }
   weeklyScouting(next, seen, cfg);
   weeklyMarket(next, cfg);
+  weeklyCoachMarket(next, cfg);
   weeklyFacilities(next, cfg);
   contractWarning(next, cfg);
   weeklyBoardStanding(next, cfg);

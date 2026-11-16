@@ -92,6 +92,14 @@ export function refreshCoachMarket(state: GameState, rng: Rng, cfg: GameConfig =
   ).sort((a, b) => a.domain.localeCompare(b.domain) || b.quality - a.quality);
 }
 
+/** League week: a few candidates take a job elsewhere, newcomers of the same domain replace them (own stream). Mutates. */
+export function weeklyCoachMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
+  const rng = new Rng(deriveSeed(state.worldSeed, 'coachMarket', state.season, state.matchday));
+  state.coachMarket = state.coachMarket
+    .map((c) => (rng.chance(cfg.training.coaches.marketTurnover) ? newCoach(state, rng, c.domain, rng.normal(9, 4), cfg) : c))
+    .sort((a, b) => a.domain.localeCompare(b.domain) || b.quality - a.quality);
+}
+
 /** Staff, plans and youth for a state that has none (new game / migration). Mutates. */
 export function initTraining(state: GameState, qualities: Record<string, QualityId>, cfg: GameConfig = DEFAULT_CONFIG) {
   const rng = new Rng(deriveSeed(state.worldSeed, 'staff', state.season));

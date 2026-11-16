@@ -95,8 +95,8 @@ tests/       Vitest
 - UI: four themes — night (black, default), dark (brown), parchment (light), slate (dark blue-grey) — via CSS tokens in `src/ui/styles.css`; localStorage only for
   per-viewer prefs (theme, language, commentary speed, layout).
 - **Layout** (⚙ « Disposition », `useSettings().layout`): `side` (default, manager-game style) = sidebar `SideNav` (`NavBar.tsx`,
-  same `NAV_ENTRIES` as the tabs; stable identity `ClubIdentity` on top, foldable, icons only < 1100 px), top bar with the
-  stable colour (`--club`) along its top edge; `top` = the former tabs (`NavBar`). The start screen follows the setting too
+  same `NAV_ENTRIES` as the tabs, foldable, icons only < 1100 px), top bar with the
+  stable colour (`--club`) along its top edge and the stable identity `ClubIdentity` (crest, name, league · place) beside the title; `top` = the former tabs (`NavBar`). The start screen follows the setting too
   (without a game only the tools are enabled).
 - **Manager-game screens**: dashboard `NextMatchBanner` (face-off with form, last meeting, assistant tips from
   `nextMatchAdvice` worded with `useTipVars`, arena, starters, Prepare / Tactics / Squad in its header) beside the club card
@@ -245,6 +245,10 @@ tests/       Vitest
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
+- **Scout hold** (`scouting.holdWeeks` 3, `scoutHeld`, `ScoutingState.held`): a creature under a scout mission and for 3 weeks after the
+  report neither drifts away nor gets cut from the free agents, no AI stable signs / buys it, and it stays in « Sélection pour vous ».
+- **Coach market turnover** (`weeklyCoachMarket`, `coaches.marketTurnover` 0.12): each league week a candidate may leave, replaced by a
+  newcomer of the same domain (own stream `coachMarket`); the whole market is still redrawn at the season change.
 - **Market size**: at most `freeAgents.max` (10) free agents (20 % leave each week, the least valuable go when crowded;
   refill to `pool` 8); `GameState.freeAgentsBefore` = ids before the last weekly market → « Nouveau » badge. Home ambitions:
   one line with the current one, the list on demand.
@@ -591,7 +595,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   `continueGame` waits while it is open. **Bench not full** (fewer than `match.benchSize`, lineup valid): amber remark on
   the pre-match screen + a confirmation (« Compléter le banc » via `repair` / « Jouer quand même ») before live or simulate.
 - **Bonds** (discreet, mostly lore; `cfg.combat.bonds`, `Combatant.bonds` from relations ≥ `club.relations.friend` / ≤ `rival`): a friend knocked out makes the other **avenging** (effect, damage ×1.1, 4 rounds; `enrage` event with `reason: 'friendKo'` + `friend`, commentary `friendKo`, rage mark/aura); a friend who already hit the target this round gives +4 % to hit; a rival's hit never counts as teamwork (combo). Match-start morale from relations as before. Encyclopedia › Morale explains it in one sentence.
-- **Fatigue retuned** (training no longer adds any): match fatigue = 12 + 52 × stamina spent, weekly recovery 20 + 0.6 × recovery → starters ~19–25 % fatigued before a match (sim:balance), rotation matters.
+- **Fatigue retuned** (training no longer adds any): match fatigue = 10 + 34 × stamina emptied + 14 × share of the rounds on the field + 10 if knocked out (time and KOs tire too: cheap-blow, quick-recovery species such as skeletons no longer come back fresh every week; spread per species 28–47 instead of 22–49), weekly recovery 20 + 0.6 × recovery → starters ~27 % fatigued before a match (sim:balance), rotation matters.
 - **Creature records & medals** (`engine/team/record.ts`, `cfg.collection.medals`): `Creature.record` (matches, starts,
   wins, KOs, times KO, damage, healing, best of the match, best / average rating, trophies with season) filled after every
   league / cup / tournament match (`recordSide` in `playFixtures`) and trophy (`awardTrophy`: every creature of the

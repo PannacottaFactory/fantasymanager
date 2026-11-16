@@ -280,7 +280,14 @@ export class Combat {
       return {
         creatureId: c.id,
         played,
-        fatigueGained: played ? Math.round(pm.fatigueBase + (1 - staminaFraction(c)) * pm.fatigueFromStamina) : 0,
+        fatigueGained: played
+          ? Math.round(
+              pm.fatigueBase +
+                (1 - staminaFraction(c)) * pm.fatigueFromStamina +
+                Math.min(1, ((c.leftRound ?? this.round) - (c.enteredRound ?? 1) + 1) / this.cfg.match.maxRounds) * pm.fatigueFromRounds +
+                (c.state === 'ko' ? pm.fatigueOnKo : 0),
+            )
+          : 0,
         injuries: this.injuries.get(c.id) ?? [],
       };
     });

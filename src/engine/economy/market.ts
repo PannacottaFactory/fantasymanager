@@ -68,7 +68,20 @@ export function transferOffers(state: GameState, cfg: GameConfig = DEFAULT_CONFI
     picks = near.filter((x) => x.price <= balance * reach).sort(byValue);
     if (picks.length >= want) break;
   }
-  return [...picks.slice(0, want), ...dreams].sort(byValue).map(({ creature, team }) => ({ creature, team }));
+  const shown = [...picks.slice(0, want), ...dreams];
+  // Creatures a scout is watching stay in the selection whatever the week's prices.
+  const held = scoutHeld(state);
+  const ids = new Set(shown.map((x) => x.creature.id));
+  for (const team of others) for (const creature of team.creatures) if (held.has(creature.id) && !ids.has(creature.id)) shown.push({ creature, team });
+  return shown.sort(byValue).map(({ creature, team }) => ({ creature, team }));
+}
+
+/** Creatures the player's scouts are watching (mission under way or report just in): nobody else moves them. */
+export function scoutHeld(state: GameState): Set<string> {
+  const ids = new Set<string>();
+  for (const m of state.scouting.missions) if (m.target === 'creature') ids.add(m.targetId);
+  for (const h of state.scouting.held ?? []) ids.add(h.creatureId);
+  return ids;
 }
 
 /** What an AI stable wants for one of its creatures. */
@@ -266,9 +279,13 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   // Who was on the market before this week's moves (the UI marks the newcomers).
   state.freeAgentsBefore = state.freeAgents.map((c) => c.id);
   // Free agents drift away; newcomers arrive. A crowded market keeps only its most valuable creatures.
-  state.freeAgents = state.freeAgents.filter(() => !rng.chance(cfg.economy.freeAgents.leaveChance));
+  // Creatures under a scout's eye stay put (the draw is still made, so the stream does not shift).
+  const held = scoutHeld(state);
+  state.freeAgents = state.freeAgents.filter((c) => !rng.chance(cfg.economy.freeAgents.leaveChance) || held.has(c.id));
   if (state.freeAgents.length > cfg.economy.freeAgents.max)
-    state.freeAgents = [...state.freeAgents].sort((a, b) => creatureValue(b, cfg) - creatureValue(a, cfg) || a.id.localeCompare(b.id)).slice(0, cfg.economy.freeAgents.max);
+    state.freeAgents = [...state.freeAgents]
+      .sort((a, b) => Number(held.has(b.id)) - Number(held.has(a.id)) || creatureValue(b, cfg) - creatureValue(a, cfg) || a.id.localeCompare(b.id))
+      .slice(0, cfg.economy.freeAgents.max);
 
   const ai = state.teams.filter((x) => x.id !== state.playerTeamId);
   const styleBias = cfg.identity.difficulties[state.difficulty ?? 'normal'].styleBias;
@@ -286,7 +303,7 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
       const bar = need ? 0 : nthAbility(team, 8) + 15;
       const budget = need ? club.balance - 2000 : aiBudget(state, team, cfg);
       const pick = state.freeAgents
-        .filter((c) => fit(c) > bar && signingBonus(c, cfg) <= budget)
+        .filter((c) => !held.has(c.id) && fit(c) > bar && signingBonus(c, cfg) <= budget)
         .sort((a, b) => fit(b) - fit(a))[0];
       if (pick) {
         const fee = signingBonus(pick, cfg);
@@ -304,7 +321,7 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
       for (const seller of ai) {
         if (seller.id === team.id || !canLose(seller, cfg)) continue;
         for (const c of seller.creatures) {
-          if (fit(c) <= bar || importance(seller, c.id) === 1) continue;
+          if (held.has(c.id) || fit(c) <= bar || importance(seller, c.id) === 1) continue;
           const price = askingPrice(seller, c, cfg);
           if (price <= budget) options.push({ c, seller, price });
         }
@@ -319,7 +336,7 @@ export function weeklyMarket(state: GameState, cfg: GameConfig = DEFAULT_CONFIG)
   // Stables in the red sell one of their better creatures to the richest stable that can afford it.
   for (const seller of ai) {
     if (clubOf(state, seller.id).balance >= 0 || !canLose(seller, cfg) || !rng.chance(t.distressSellChance)) continue;
-    const forSale = [...seller.creatures].sort((a, b) => creatureValue(b, cfg) - creatureValue(a, cfg)).slice(1, 6);
+    const forSale = [...seller.creatures].sort((a, b) => creatureValue(b, cfg) - creatureValue(a, cfg)).slice(1, 6).filter((c) => !held.has(c.id));
     for (const c of forSale) {
       const fee = roundTo(creatureValue(c, cfg) * t.distressPrice, cfg.economy.value.round);
       const buyer = ai
@@ -379,6 +396,9 @@ export function weeklyScouting(state: GameState, opponentsSeen: string[], cfg: G
     if (m.weeksLeft <= 0) done.push(m);
   }
   state.scouting.missions = state.scouting.missions.filter((m) => m.weeksLeft > 0);
+  // Reports already in: the hold wears off.
+  const held = (state.scouting.held ?? []).map((h) => ({ ...h, weeksLeft: h.weeksLeft - 1 })).filter((h) => h.weeksLeft > 0);
+  state.scouting.held = held;
   // Gems found earlier: quiet weeks, then the world notices them, then the excitement fades.
   const gems = (state.scouting.gems ??= []);
   for (const g of gems) g.weeksLeft--;
@@ -398,6 +418,10 @@ export function weeklyScouting(state: GameState, opponentsSeen: string[], cfg: G
       if (!c) continue;
       const before = knowledgeOf(state, c.id, cfg);
       learn(state, c.id, s.creatureKnowledge, cfg);
+      if (!isOwn(state, c.id)) {
+        state.scouting.held = held.filter((h) => h.creatureId !== c.id);
+        state.scouting.held.push({ creatureId: c.id, weeksLeft: s.holdWeeks });
+      }
       const verdict = scoutVerdict(state, c, knowledgeOf(state, c.id, cfg), cfg);
       // A gem nobody else has spotted yet: a window before its price climbs.
       const quiet = verdict === 'gem' && !c.hype && !state.scouting.gems.some((g) => g.creatureId === c.id) ? s.gem.quietWeeks : undefined;

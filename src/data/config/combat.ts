@@ -208,9 +208,15 @@ export const COMBAT_CONFIG = {
     pronenessWeight: 1,
   },
   postMatch: {
-    /** Fatigue (0–100) gained = (1 − staminaFraction) × this + base. */
-    fatigueBase: 12,
-    fatigueFromStamina: 52,
+    /**
+     * Fatigue (0–100) gained = base + (1 − staminaFraction) × fromStamina + share of the rounds on the field × fromRounds
+     * + onKo when knocked out. Time in the arena and a KO tire too, so creatures with cheap blows and quick recovery
+     * (skeletons, goblins…) no longer come back fresh every week.
+     */
+    fatigueBase: 10,
+    fatigueFromStamina: 34,
+    fatigueFromRounds: 14,
+    fatigueOnKo: 10,
   },
 };
 

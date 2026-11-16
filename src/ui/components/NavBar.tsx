@@ -241,8 +241,8 @@ const readCollapsed = () => {
 };
 
 /**
- * Sidebar navigation (manager-game layout): every screen always visible, grouped under small headings, the stable's
- * identity on top (`head`). Can fold down to its icons (remembered per viewer).
+ * Sidebar navigation (manager-game layout): every screen always visible, grouped under small headings, optional
+ * `head` on top (the stable's identity lives in the top bar). Can fold down to its icons (remembered per viewer).
  */
 export function SideNav({ screen, hasGame, badges, onSelect, head }: Props & { head?: ReactNode }) {
   const { t } = useT();

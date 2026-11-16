@@ -54,6 +54,9 @@ const DELAY: Record<Speed, number> = {
 /** Projectile flight time; the target reacts (and its health drops) when it lands. */
 const FLIGHT: Record<Speed, number> = { slow: 560, normal: 420, fast: 180, instant: 0 };
 const SPEED_KEY = 'arena.speed';
+/** How long a round title card holds the action (the card fades out over 1.6 s). */
+/** A round title card lasts 1.6 s (`stage-in`): the next blow waits until it has faded. */
+const STAGE_HOLD = 1650;
 
 function loadSpeed(): Speed {
   try {
@@ -209,6 +212,12 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
     return true;
   };
 
+  /** Rounds that open with a title card (see `stage` below). */
+  const staged = (round: number) => {
+    const mc = DEFAULT_CONFIG.match;
+    return round === 1 || round === mc.maxRounds || (mc.breakRounds as readonly number[]).includes(round - 1);
+  };
+
   /** Processes queued events; `budget` = number of commentary-producing events to show. */
   const pump = (budget: number, forceAi = false) => {
     const { combat, commentator, queue } = session;
@@ -234,6 +243,8 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
       }
       const e = queue.shift()!;
       v = applyEvent(v, e);
+      // A round that opens with a title card ends the step here: its first blow waits for the card to fade.
+      if (e.type === 'roundStart' && budget !== Infinity && staged(e.round)) stop = true;
       if (e.type === 'break') {
         const fallen = Object.values(v.creatures).filter((c) => c.state === 'ko' || c.state === 'fled').map((c) => c.id);
         if (fallen.length) setRetired((s) => new Set([...s, ...fallen]));
@@ -265,19 +276,6 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
     if (out.length) setLines((l) => [...l, ...out]);
   };
 
-  useEffect(() => {
-    if (paused || atBreak || ended) return;
-    const timer = setTimeout(
-      () => {
-        pump(speed === 'instant' ? Infinity : 1);
-        setTick((x) => x + 1);
-      },
-      tick === 0 ? 300 : DELAY[speed],
-    );
-    return () => clearTimeout(timer);
-    // pump reads refs/session only; re-run on every tick.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick, paused, atBreak, ended, speed]);
 
   useEffect(() => {
     const el = feedRef.current;
@@ -363,6 +361,24 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
               : (m.breakRounds as readonly number[]).includes(view.round - 1)
                 ? { key: `r${view.round}`, title: t('live.round', { n: view.round }), sub: t('live.stage.after') }
                 : null;
+  // A round title card holds the action until it fades, so the first blows are not hidden behind it.
+  const stageKey = stage && !stage.tone?.match(/^(win|loss|break)$/) ? stage.key : null;
+  const heldFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (paused || atBreak || ended) return;
+    let delay = tick === 0 ? 300 : DELAY[speed];
+    if (stageKey && heldFor.current !== stageKey) {
+      heldFor.current = stageKey;
+      delay = Math.max(delay, STAGE_HOLD);
+    }
+    const timer = setTimeout(() => {
+      pump(speed === 'instant' ? Infinity : 1);
+      setTick((x) => x + 1);
+    }, delay);
+    return () => clearTimeout(timer);
+    // pump reads refs/session only; re-run on every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick, paused, atBreak, ended, speed, stageKey]);
 
   return (
     <>

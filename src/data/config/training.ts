@@ -71,6 +71,8 @@ export const TRAINING_CONFIG = {
     hireWeeks: 12,
     /** Coaches on the market at the start of each season. */
     market: 9,
+    /** Each league week, every candidate finds a job elsewhere with this chance and a newcomer of the same domain takes the place. */
+    marketTurnover: 0.12,
     /** Starting coach quality by club quality tier (mean). */
     startQuality: { novice: 5, regional: 7, professional: 9, elite: 12, legendary: 15 },
   },

@@ -231,7 +231,7 @@ function FighterCard({ c, r, side, fx, acting, lunge, cast, focus, onSelect, ent
             </span>
             <div className="vital">
               <Bar value={c.hp} max={c.maxHp} color={hpColor(c.hp / c.maxHp)} title={t('bar.health', { v: c.hp, max: c.maxHp })} ghost />
-              <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" thin ghost title={t('bar.stamina', { v: c.stamina, max: c.maxStamina })} />
+              <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" thin ghost ticks title={t('bar.stamina', { v: c.stamina, max: c.maxStamina })} />
             </div>
           </div>
         )}

@@ -200,6 +200,8 @@ export interface ScoutingState {
   knowledge: Record<string, number>;
   missions: ScoutMission[];
   gems?: ScoutGem[];
+  /** Creatures a scout just reported on: kept on the market (no drifting away, no AI move) for a few weeks. */
+  held?: { creatureId: string; weeksLeft: number }[];
 }
 
 /** Negotiation memory for the player's bids (per creature, per week). */

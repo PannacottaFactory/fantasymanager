@@ -65,10 +65,11 @@ export function Knowledge({ k }: { k: number }) {
  * Horizontal gauge. With `ghost`, a lighter layer trails behind when the value drops
  * (fighting-game style), so recent damage stays visible for a moment.
  */
-export function Bar({ value, max, color, thin, title, ghost }: { value: number; max: number; color: string; thin?: boolean; title?: string; ghost?: boolean }) {
+/** `ticks`: discreet marks at 25 / 50 / 75 %. */
+export function Bar({ value, max, color, thin, title, ghost, ticks }: { value: number; max: number; color: string; thin?: boolean; title?: string; ghost?: boolean; ticks?: boolean }) {
   const pct = max > 0 ? Math.max(0, Math.min(100, (100 * value) / max)) : 0;
   return (
-    <div className={`bar${thin ? ' thin' : ''}`} title={title} role="meter" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
+    <div className={`bar${thin ? ' thin' : ''}${ticks ? ' ticks' : ''}`} title={title} role="meter" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
       {ghost && <i className="ghost" style={{ width: `${pct}%` }} />}
       <i className="fill" style={{ width: `${pct}%`, background: color }} />
     </div>

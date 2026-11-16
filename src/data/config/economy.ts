@@ -127,6 +127,11 @@ export const ECONOMY_CONFIG = {
      * look harder at it (+`aiFit` aptitude points in their choices) for `hypeWeeks`.
      */
     gem: { quietWeeks: 3, hype: 1.3, aiFit: 25, hypeWeeks: 8 },
+    /**
+     * A creature under a scout's eye stays on the market: during the mission and `holdWeeks` after the report, a free
+     * agent neither drifts away nor signs elsewhere, and no AI stable buys it (the player gets time to decide).
+     */
+    holdWeeks: 3,
     teamWeeks: 3,
     teamKnowledge: 70,
     /** Starting knowledge (0–100) of league creatures and free agents. */

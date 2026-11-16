@@ -35,8 +35,17 @@ if (await tips.count()) await tips.first().uncheck();
 await page.locator('.start .btn.primary').last().click();
 await wait(800);
 await close();
+/** Welcome window, board meeting, recaps…: whatever opens over the screen at the start of a game. */
+const clearOverlays = async () => {
+  for (let k = 0; k < 6 && (await page.locator('.overlay').count()); k++) {
+    const primary = page.locator('.overlay .btn.primary');
+    if (await primary.count()) await primary.last().click();
+    else await close();
+    await wait(400);
+  }
+};
 for (let i = 0; i < 4 && !(await page.locator('button.cta-live').count()); i++) {
-  while (await page.locator('.recap').count()) await close();
+  await clearOverlays();
   await page.locator('.topbar .btn.primary').first().click();
   await wait(1000);
 }

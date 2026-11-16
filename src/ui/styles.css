@@ -332,6 +332,9 @@ table.data tr.warn-row td { background: color-mix(in srgb, var(--bad) 12%, trans
 /* Damage trail: follows the value late, so the chunk just lost stays visible for a moment. */
 .bar > i.ghost { background: #fff; opacity: 0.9; transition: width 0.7s ease-in 0.5s; }
 .bar.thin { height: 5px; }
+.bar.ticks::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, transparent calc(25% - var(--tick-w, 1px)), var(--tick-c, var(--panel)) calc(25% - var(--tick-w, 1px)) calc(25% + var(--tick-w, 1px)), transparent calc(25% + var(--tick-w, 1px)) calc(50% - var(--tick-w, 1px)),
+    var(--tick-c, var(--panel)) calc(50% - var(--tick-w, 1px)) calc(50% + var(--tick-w, 1px)), transparent calc(50% + var(--tick-w, 1px)) calc(75% - var(--tick-w, 1px)), var(--tick-c, var(--panel)) calc(75% - var(--tick-w, 1px)) calc(75% + var(--tick-w, 1px)), transparent calc(75% + var(--tick-w, 1px))); }
 
 /* Crests (creature initials on an element-coloured shield) */
 .crest { flex: none; display: block; overflow: visible; }
@@ -2755,7 +2758,10 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 }
 .live > .panel.fighters { padding: 10px 10px 12px; }
 .scoreboard { display: flex; flex-direction: column; overflow-y: auto; gap: 6px; padding: 2px; }
-.line-block { display: flex; flex-direction: column; gap: 4px; }
+.line-block { display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: var(--r-md); }
+/* The two lines read as two zones: the front tinted with the side's colour, the back a quieter shade. */
+.line-block.front { background: color-mix(in srgb, var(--side-c, var(--home)) 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--side-c, var(--home)) 18%, transparent); }
+.line-block.back { background: color-mix(in srgb, var(--side-c, var(--home)) 3%, color-mix(in srgb, var(--panel-3) 35%, transparent)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border) 50%, transparent); }
 .line-head { display: flex; align-items: center; gap: 6px; padding: 2px 4px; font: 600 var(--fs-xs) var(--font-body); text-transform: uppercase;
   letter-spacing: 0.1em; color: var(--faint); }
 .line-head .gicon { width: 1rem; height: 1rem; color: var(--muted); }
@@ -2888,6 +2894,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 /* Health bar with the stamina just under it, small. */
 .fighter .bars .vital { display: grid; gap: 2px; min-width: 0; }
 .fighter .bars .vital .bar.thin { height: 3px; opacity: 0.9; }
+.fighter .bars .vital .bar.thin.ticks { height: 4px; opacity: 1; --tick-c: color-mix(in srgb, var(--panel-2) 55%, transparent); --tick-w: 0.5px; }
 .fighter .bars > span { font-size: var(--fs-xs); white-space: nowrap; }
 .fighter .skills { margin-top: 2px; }
 .fighter.line-back { margin-inline-start: 0; }
@@ -3472,6 +3479,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .side-nav { display: flex; flex-direction: column; width: 188px; min-height: 0; background: var(--panel); border-right: 1px solid var(--border);
   transition: width 0.2s ease; position: relative; z-index: 15; }
 .side-head { padding: var(--sp-3); border-bottom: 1px solid var(--border); }
+.topbar > .club-id { width: auto; max-width: 340px; flex: 0 1 auto; min-width: 0; padding-left: var(--sp-4); margin-left: var(--sp-2); border-left: 1px solid var(--border); }
 .club-id { display: flex; align-items: center; gap: 8px; width: 100%; padding: 0; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
 .club-id > svg, .club-id > span:first-child { flex: none; }
 .club-id-text { display: grid; min-width: 0; }

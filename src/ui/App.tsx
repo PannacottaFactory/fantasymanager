@@ -131,7 +131,7 @@ function ContinueButton() {
   );
 }
 
-/** The stable's identity at the top of the sidebar: crest, name, league and position (manager-game style). */
+/** The stable's identity in the top bar beside the title (side layout): crest, name, league and position. */
 function ClubIdentity({ game }: { game: GameState }) {
   const tr = useT();
   const team = playerTeam(game);
@@ -265,6 +265,7 @@ export function App() {
             </small>
           </div>
         </button>
+        {side && inGame && game && <ClubIdentity game={game} />}
         {!side && <NavBar {...navProps} />}
         {side && <span className="spacer" />}
         {!launch && <ContinueButton />}
@@ -278,7 +279,7 @@ export function App() {
         {game && !launch && !newGameOpen && screen !== 'arena' && screen !== 'encyclopedia' && screen !== 'help' && <SeasonRibbon game={game} />}
         {saveError && <div className="save-error">{t('save.failed')}</div>}
       </div>
-      {side && <SideNav {...navProps} head={inGame && game ? <ClubIdentity game={game} /> : undefined} />}
+      {side && <SideNav {...navProps} />}
       <main className="main">
         <ErrorBoundary key={`${screen}-${viewing ? 'report' : ''}-${replaying ? 'replay' : ''}`}>
           <div className="screen-enter">{content}</div>
