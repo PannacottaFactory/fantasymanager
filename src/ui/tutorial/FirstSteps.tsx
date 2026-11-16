@@ -96,7 +96,7 @@ export function FirstSteps() {
         {next && !open && (
           <span className="fs-next grow">
             <span className="fs-arrow">➤</span> <b>{t(`quest.${next}` as StringKey)}</b>
-            <span className="muted"> — {t(`quest.${next}.hint` as StringKey)}</span>
+            <span className="muted"> · {t(`quest.${next}.hint` as StringKey)}</span>
           </span>
         )}
         {open && <span className="grow" />}
@@ -122,7 +122,7 @@ export function FirstSteps() {
                   <span className="fs-check">{ok ? '✓' : ''}</span>
                   <span className="grow">
                     <b>{t(`quest.${q}` as StringKey)}</b>
-                    {!ok && <span className="muted"> — {t(`quest.${q}.hint` as StringKey)}</span>}
+                    {!ok && <span className="muted"> · {t(`quest.${q}.hint` as StringKey)}</span>}
                   </span>
                   {!ok && (
                     <button className={`btn small ${q === next ? 'primary' : ''}`} onClick={() => go(q)}>

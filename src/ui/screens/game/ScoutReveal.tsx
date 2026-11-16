@@ -190,7 +190,7 @@ function Reveal({ m }: { m: Report }) {
           </div>
           <div className="reveal-known faint">{t('scout.reveal.known', { from: before, to: Math.round(k) })}</div>
           <blockquote className="reveal-quote">
-            « {quote} »<cite>— {t('scout.reveal.signed')}</cite>
+            « {quote} »<cite>{t('scout.reveal.signed')}</cite>
           </blockquote>
           <div className="reveal-foot">
             <div ref={stampRef} className={`reveal-verdict v-${verdict}`}>

@@ -52,7 +52,7 @@ function TierBar({ list, count, total }: { list: 'seen' | 'owned'; count: number
             key={x.n}
             className={`bst-tick ${count >= x.n ? 'done' : ''}`}
             style={{ left: `${(x.n / total) * 100}%` }}
-            title={`${x.n} — ${money(x.gold)}${x.rep ? ` · ${t('bestiary.repShort', { rep: x.rep })}` : ''}`}
+            title={`${x.n} · ${money(x.gold)}${x.rep ? ` · ${t('bestiary.repShort', { rep: x.rep })}` : ''}`}
           />
         ))}
       </div>

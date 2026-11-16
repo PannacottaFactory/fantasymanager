@@ -4,7 +4,7 @@ import type { ASSISTANT_REMARKS, HEADLINES, KEY_MOMENT_TEXT, REPORT_WORDS } from
 export const ASSISTANT_REMARKS_FR: Record<keyof typeof ASSISTANT_REMARKS, string[]> = {
   exhaustedEarly: [
     '{name} tournait à vide dès le round {round}. Une consigne de repos ou un changement à la pause aurait aidé.',
-    'Notre {species} {name} était à bout dès le round {round} — bien trop tôt. Surveillez les barres d’endurance.',
+    'Notre {species} {name} était à bout dès le round {round}, bien trop tôt. Surveillez les barres d’endurance.',
     '{name} a manqué de souffle au round {round} et n’a plus servi à grand-chose ensuite.',
   ],
   lowAccuracy: [
@@ -17,11 +17,11 @@ export const ASSISTANT_REMARKS_FR: Record<keyof typeof ASSISTANT_REMARKS, string
   ],
   typeAdvantage: [
     'Nos affinités élémentaires ont payé : ×{mult} de dégâts en moyenne contre leur composition {enemyElements}.',
-    'Bonne préparation sur les éléments — on les a frappés à ×{mult} en moyenne.',
+    'Bonne préparation sur les éléments, on les a frappés à ×{mult} en moyenne.',
   ],
   backlineExposed: [
     'Leurs attaquants ont atteint notre deuxième ligne : {pct} % des dégâts subis y ont été encaissés. Un tank en garde aiderait.',
-    'Notre deuxième ligne était à découvert — {pct} % de leurs dégâts sont passés par-dessus la première ligne.',
+    'Notre deuxième ligne était à découvert, {pct} % de leurs dégâts sont passés par-dessus la première ligne.',
   ],
   disobedient: [
     '{name} a ignoré vos consignes {n} fois. La discipline va devenir un problème.',
@@ -29,7 +29,7 @@ export const ASSISTANT_REMARKS_FR: Record<keyof typeof ASSISTANT_REMARKS, string
   ],
   moraleBreak: [
     '{name} a perdu ses nerfs pendant le combat. Une créature plus courageuse tiendrait mieux.',
-    '{name} a craqué sous la pression — le moral s’est effondré en plein combat.',
+    '{name} a craqué sous la pression, le moral s’est effondré en plein combat.',
   ],
   fled: [
     '{name} a pris la fuite ! On va en parler dans les tavernes.',
@@ -37,12 +37,12 @@ export const ASSISTANT_REMARKS_FR: Record<keyof typeof ASSISTANT_REMARKS, string
   ],
   unusedSubs: [
     'On a terminé avec {subs} non utilisés alors que des créatures étaient à terre ou épuisées.',
-    'On a laissé {subs} sur le banc — il y avait des jambes fraîches disponibles.',
+    'On a laissé {subs} sur le banc, il y avait des jambes fraîches disponibles.',
   ],
   mvp: [
     '{name} a livré une prestation exceptionnelle (note {rating}). À choyer.',
     'Vedette du jour : {name}, avec une note de {rating}.',
-    '{name} nous a portés aujourd’hui — {rating}/10.',
+    '{name} nous a portés aujourd’hui, {rating}/10.',
   ],
   worst: [
     '{name} a vécu une journée à oublier ({rating}).',
@@ -52,8 +52,8 @@ export const ASSISTANT_REMARKS_FR: Record<keyof typeof ASSISTANT_REMARKS, string
     'Tout s’est joué sur la décision des juges : {score}. Des marges infimes.',
     'Décision aux points, {score}. Un bon coup de plus aurait tout changé.',
   ],
-  healing: ['Nos soigneurs ont rendu {n} PV pendant le combat — ça nous a maintenus dans le match.'],
-  outmatched: ['Ils étaient simplement plus forts aujourd’hui. Pas de honte — mais il nous faudra de meilleures créatures pour rivaliser à ce niveau.'],
+  healing: ['Nos soigneurs ont rendu {n} PV pendant le combat, ça nous a maintenus dans le match.'],
+  outmatched: ['Ils étaient simplement plus forts aujourd’hui. Pas de honte, mais il nous faudra de meilleures créatures pour rivaliser à ce niveau.'],
 };
 
 export const KEY_MOMENT_TEXT_FR: typeof KEY_MOMENT_TEXT = {

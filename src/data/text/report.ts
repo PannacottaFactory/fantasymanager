@@ -5,7 +5,7 @@
 export const ASSISTANT_REMARKS = {
   exhaustedEarly: [
     '{name} was running on empty from round {round}. A rest order or a substitution at the break would have helped.',
-    'Our {species} {name} was spent by round {round} — far too early. Watch the stamina bars.',
+    'Our {species} {name} was spent by round {round}, far too early. Watch the stamina bars.',
     '{name} ran out of breath in round {round} and was a passenger after that.',
   ],
   lowAccuracy: [
@@ -18,11 +18,11 @@ export const ASSISTANT_REMARKS = {
   ],
   typeAdvantage: [
     'Our elemental matchups paid off: {mult}× damage on average against their {enemyElements} line-up.',
-    'Good preparation on elements — we hit them at {mult}× on average.',
+    'Good preparation on elements, we hit them at {mult}× on average.',
   ],
   backlineExposed: [
     'Their attackers got at our back line: {pct}% of the damage we took landed there. A tank set to guard would help.',
-    'Our back line was left open — {pct}% of their damage went straight past the front.',
+    'Our back line was left open, {pct}% of their damage went straight past the front.',
   ],
   disobedient: [
     '{name} ignored your orders {n} times. Discipline is going to be a problem.',
@@ -30,7 +30,7 @@ export const ASSISTANT_REMARKS = {
   ],
   moraleBreak: [
     '{name} lost their nerve during the fight. A creature with more courage might hold firmer.',
-    '{name} cracked under pressure — morale collapsed mid-fight.',
+    '{name} cracked under pressure, morale collapsed mid-fight.',
   ],
   fled: [
     '{name} fled the arena! That will be talked about in the taverns.',
@@ -38,12 +38,12 @@ export const ASSISTANT_REMARKS = {
   ],
   unusedSubs: [
     'We finished with {subs} unused while creatures were down or exhausted.',
-    'We left {subs} on the bench — fresh legs were available.',
+    'We left {subs} on the bench, fresh legs were available.',
   ],
   mvp: [
     '{name} was outstanding (rating {rating}). Keep that one happy.',
     'Star of the show: {name}, rated {rating}.',
-    '{name} carried us today — {rating}/10.',
+    '{name} carried us today, {rating}/10.',
   ],
   worst: [
     '{name} had a day to forget ({rating}).',
@@ -54,10 +54,10 @@ export const ASSISTANT_REMARKS = {
     'Decided on points, {score}. One more good blow would have changed everything.',
   ],
   healing: [
-    'Our healers restored {n} health over the fight — that kept us in it.',
+    'Our healers restored {n} health over the fight, that kept us in it.',
   ],
   outmatched: [
-    'They were simply stronger today. No shame in that — but we need better creatures to compete at this level.',
+    'They were simply stronger today. No shame in that, but we need better creatures to compete at this level.',
   ],
 };
 

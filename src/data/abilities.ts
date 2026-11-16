@@ -4,7 +4,7 @@ const list: AbilityDef[] = [
   // ——— Goblin ———
   { id: 'stab', name: 'Rusty Stab', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 5, cooldown: 0, critMod: 0.05, verb: 'stabs at', description: 'Quick jab looking for a weak spot.' },
   { id: 'sling', name: 'Sling Stone', kind: 'ranged', element: 'physical', target: 'enemy', power: 10, staminaCost: 4, cooldown: 0, verb: 'slings a stone at', description: 'Pebble to the head. Works more often than it should.' },
-  { id: 'dirty-trick', name: 'Dirty Trick', kind: 'melee', element: 'physical', target: 'enemy', power: 6, staminaCost: 6, cooldown: 3, accuracyMod: 0.1, verb: 'throws sand in the eyes of', description: 'Sand, kicks, bites — whatever weakens the foe.', effects: [{ effect: 'weakened', chance: 0.75, on: 'target' }] },
+  { id: 'dirty-trick', name: 'Dirty Trick', kind: 'melee', element: 'physical', target: 'enemy', power: 6, staminaCost: 6, cooldown: 3, accuracyMod: 0.1, verb: 'throws sand in the eyes of', description: 'Sand, kicks, bites, whatever weakens the foe.', effects: [{ effect: 'weakened', chance: 0.75, on: 'target' }] },
   { id: 'scurry', name: 'Scurry', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 4, cooldown: 4, verb: 'scurries away from', description: 'Darts around, becoming hard to hit.', effects: [{ effect: 'evasive', chance: 1, on: 'self' }] },
 
   // ——— Orc ———
@@ -137,7 +137,7 @@ const list: AbilityDef[] = [
   { id: 'carapace', name: 'Carapace', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 6, cooldown: 4, effects: [{ effect: 'fortified', chance: 1, on: 'self', duration: 3 }], verb: 'hunkers down behind its carapace', description: 'Takes much less damage for a while.' },
 
   // ——— Myconid ———
-  { id: 'fungal-slam', name: 'Fungal Slam', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.3, on: 'target' }], verb: 'slams its spongy bulk into', description: 'Soft, heavy, damp — and sometimes toxic.' },
+  { id: 'fungal-slam', name: 'Fungal Slam', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.3, on: 'target' }], verb: 'slams its spongy bulk into', description: 'Soft, heavy, damp, and sometimes toxic.' },
   { id: 'toxic-spores', name: 'Toxic Spores', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 3, effects: [{ effect: 'poisoned', chance: 0.75, on: 'target' }], verb: 'releases a cloud of toxic spores over', description: 'Poisons the whole enemy team.' },
   { id: 'mycelial-mend', name: 'Mycelial Mend', kind: 'heal', element: 'nature', target: 'ally', power: 16, staminaCost: 9, cooldown: 2, effects: [{ effect: 'regenerating', chance: 1, on: 'target' }], verb: 'knits fungal threads into the wounds of', description: 'Heals an ally, and the threads keep working.' },
 

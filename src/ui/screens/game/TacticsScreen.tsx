@@ -45,7 +45,7 @@ export function TacticsScreen() {
         header={
           <>
             <h2>
-              {t('tactics.title')} — {team.name}
+              {t('tactics.title')} · {team.name}
             </h2>
             <span className="spacer" />
             <span className="muted" style={{ fontSize: '0.857rem' }}>

@@ -133,7 +133,7 @@ export function SquadScreen() {
       <section className="panel side-home" data-tip="squad">
         <div className="panel-head">
           <h2>
-            {t('squad.title')} — {team.name}
+            {t('squad.title')} · {team.name}
           </h2>
         </div>
         <p className="muted" style={{ marginTop: 0, fontSize: '0.929rem' }}>

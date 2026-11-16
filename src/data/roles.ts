@@ -12,7 +12,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
   striker: {
     id: 'striker',
     name: 'Striker',
-    description: 'Deals heavy melee damage — just as much from the back line, but in the front line it also shields the back line. +15 % melee damage, −5 % armour.',
+    description: 'Deals heavy melee damage. +15 % melee damage, −5 % armour.',
     defaultLine: 'front',
     fit: { strength: 3, attack: 3, technique: 1, aggression: 1, speed: 1, stamina: 1 },
     ai: { damage: 1.4, heal: 0, buff: 0.6, debuff: 0.6, guard: 0, backlineHunter: 0.2 },
@@ -20,7 +20,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
   support: {
     id: 'support',
     name: 'Support',
-    description: 'Heals and empowers allies from the back line. +15 % healing, −15 % damage.',
+    description: 'Heals and empowers allies. +15 % healing, −15 % damage.',
     defaultLine: 'back',
     fit: { magic: 2.5, focus: 2, teamwork: 2, tactics: 1.5, composure: 1, leadership: 1 },
     ai: { damage: 0.5, heal: 1.8, buff: 1.5, debuff: 1, guard: 0, backlineHunter: 0 },
@@ -28,7 +28,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
   caster: {
     id: 'caster',
     name: 'Spellcaster',
-    description: 'Hurls spells from the back line, exploiting elemental weaknesses. +15 % spell damage, −5 % armour.',
+    description: 'Hurls spells, exploiting elemental weaknesses. +15 % spell damage, −5 % armour.',
     defaultLine: 'back',
     fit: { magic: 3.5, focus: 2.5, tactics: 1.5, composure: 1 },
     ai: { damage: 1.4, heal: 0.4, buff: 0.6, debuff: 1, guard: 0, backlineHunter: 0.3 },

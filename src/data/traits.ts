@@ -99,7 +99,7 @@ const list: TraitDef[] = [
   },
   {
     id: 'stubborn', name: 'Stubborn', polarity: 'mixed',
-    description: 'Never gives up — and never listens either.',
+    description: 'Never gives up, and never listens either.',
     combat: { attrMods: { determination: 3 }, disobeyMult: 1.5, moraleLossMult: 0.8 },
   },
   {
@@ -150,7 +150,7 @@ const list: TraitDef[] = [
   },
   {
     id: 'cheerful', name: 'Cheerful', polarity: 'positive',
-    description: 'Always in a good mood — and it rubs off on the others.',
+    description: 'Always in a good mood, and it rubs off on the others.',
     combat: { auraMorale: 0.5 },
   },
   {

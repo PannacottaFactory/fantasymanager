@@ -322,7 +322,7 @@ function Ambitions({ game }: { game: GameState }) {
           {cur ? (
             <>
               <span className="amb-ico">➤</span> <b>{t(`amb.${cur}` as StringKey)}</b>
-              <span className="muted"> — {t(`amb.${cur}.desc` as StringKey)}</span>
+              <span className="muted"> · {t(`amb.${cur}.desc` as StringKey)}</span>
               {p && <span className="faint mono"> ({p.n}/{p.of})</span>}
             </>
           ) : (
@@ -353,7 +353,7 @@ function Ambitions({ game }: { game: GameState }) {
               <span className="amb-ico">{reached !== undefined ? '✓' : id === next[0] ? '➤' : '○'}</span>
               <span className="grow">
                 <b>{t(`amb.${id}` as StringKey)}</b>
-                <span className="muted"> — {t(`amb.${id}.desc` as StringKey)}</span>
+                <span className="muted"> · {t(`amb.${id}.desc` as StringKey)}</span>
                 {p && reached === undefined && <span className="faint mono"> ({p.n}/{p.of})</span>}
               </span>
               {reached !== undefined && <span className="faint">{t('amb.season', { s: reached })}</span>}

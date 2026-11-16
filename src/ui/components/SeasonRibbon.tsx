@@ -26,7 +26,7 @@ export function SeasonRibbon({ game }: { game: GameState }) {
     const when = week === 0 ? t('cal.before') : t('cal.week', { d: week });
     const vs = x.opp ? ` · ${t('common.vs')} ${x.opp}` : '';
     const res = x.played && x.score ? ` · ${t(x.outcome === 'win' ? 'ribbon.win' : 'ribbon.loss')} ${x.score[0]}–${x.score[1]}` : x.maybe ? ` · ${t('ribbon.ifThrough')}` : ` · ${t('ribbon.toPlay')}`;
-    return `${when} — ${itemLabel(t, x)}${vs}${res}`;
+    return `${when} · ${itemLabel(t, x)}${vs}${res}`;
   };
   const state = (x: SeasonItem) => (x.played ? x.outcome! : x.maybe ? 'maybe' : 'todo');
   const oppTeam = next?.oppId ? teamById(game, next.oppId) : undefined;

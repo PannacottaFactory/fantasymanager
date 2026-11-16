@@ -7,7 +7,7 @@ import type { SpeciesDef } from './schema.ts';
 const list: SpeciesDef[] = [
   {
     id: 'goblin', name: 'Goblin', plural: 'Goblins', size: 'small', elements: ['earth', 'shadow'],
-    description: 'Cheap, quick and sneaky. Blooms early, fades fast — and often runs when it gets ugly.',
+    description: 'Cheap, quick and sneaky. Blooms early, fades fast, and often runs when it gets ugly.',
     attributes: {
       strength: [2, 10], stamina: [6, 15], speed: [8, 18], agility: [8, 18], toughness: [3, 10], recovery: [6, 15],
       attack: [6, 15], accuracy: [5, 15], defense: [2, 10], magic: [1, 8], focus: [2, 9], technique: [5, 16],
@@ -72,7 +72,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'golem', name: 'Stone Golem', plural: 'Stone Golems', size: 'large', elements: ['earth'],
-    description: 'An animated statue: tireless, obedient, nearly unbreakable — and painfully slow.',
+    description: 'An animated statue: tireless, obedient, nearly unbreakable, and painfully slow.',
     attributes: {
       strength: [10, 19], stamina: [10, 20], speed: [1, 7], agility: [1, 6], toughness: [13, 20], recovery: [3, 10],
       attack: [5, 14], accuracy: [1, 6], defense: [9, 19], magic: [1, 6], focus: [3, 12], technique: [2, 9],
@@ -105,7 +105,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'dragon', name: 'Dragon', plural: 'Dragons', size: 'huge', elements: ['fire'], flying: true,
-    description: 'The apex of the arena. Matures for a decade, reigns for half a century — and eats a fortune.',
+    description: 'The apex of the arena. Matures for a decade, reigns for half a century, and eats a fortune.',
     attributes: {
       strength: [9, 19], stamina: [8, 18], speed: [6, 15], agility: [3, 11], toughness: [9, 19], recovery: [5, 15],
       attack: [7, 18], accuracy: [3, 11], defense: [7, 17], magic: [8, 20], focus: [6, 17], technique: [6, 16],
@@ -299,7 +299,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'djinn', name: 'Djinn', plural: 'Djinns', size: 'medium', elements: ['air', 'fire'], flying: true,
-    description: 'A spirit of smokeless fire. Fast, clever and capricious — wishes come at a price.',
+    description: 'A spirit of smokeless fire. Fast, clever and capricious, wishes come at a price.',
     attributes: {
       strength: [4, 11], stamina: [7, 15], speed: [10, 19], agility: [10, 19], toughness: [3, 10], recovery: [7, 16],
       attack: [6, 14], accuracy: [6, 14], defense: [4, 11], magic: [10, 20], focus: [8, 18], technique: [7, 16],
@@ -493,7 +493,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'unicorn', name: 'Unicorn', plural: 'Unicorns', size: 'large', elements: ['light', 'nature'],
-    description: 'A proud creature of pure light. Its horn heals and purifies: poisons, cold and stuns melt away — curses do not.',
+    description: 'A proud creature of pure light. Its horn heals and purifies: poisons, cold and stuns melt away, curses do not.',
     attributes: {
       strength: [8, 16], stamina: [8, 16], speed: [10, 19], agility: [8, 17], toughness: [7, 15], recovery: [8, 17],
       attack: [6, 15], accuracy: [3, 10], defense: [6, 14], magic: [9, 18], focus: [8, 17], technique: [5, 13],
@@ -574,7 +574,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'vampire', name: 'Vampire', plural: 'Vampires', size: 'medium', elements: ['shadow'],
-    description: 'An ageless aristocrat of the night. Every blow it lands feeds it — fighting it means outpacing its thirst.',
+    description: 'An ageless aristocrat of the night. Every blow it lands feeds it, fighting it means outpacing its thirst.',
     attributes: {
       strength: [8, 16], stamina: [7, 15], speed: [9, 17], agility: [9, 17], toughness: [7, 14], recovery: [7, 15],
       attack: [8, 17], accuracy: [5, 12], defense: [7, 15], magic: [8, 17], focus: [7, 16], technique: [8, 17],
@@ -606,7 +606,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'giant-mantis', name: 'Giant Mantis', plural: 'Giant Mantises', size: 'medium', elements: ['nature'],
-    description: 'A patient green killer. Ordinary blows at first — then, when a foe weakens, its scythes finish the job.',
+    description: 'A patient green killer. Ordinary blows at first, then, when a foe weakens, its scythes finish the job.',
     attributes: {
       strength: [7, 15], stamina: [6, 14], speed: [9, 18], agility: [9, 18], toughness: [4, 11], recovery: [6, 14],
       attack: [9, 18], accuracy: [3, 9], defense: [5, 13], magic: [2, 7], focus: [6, 14], technique: [9, 18],
@@ -638,7 +638,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'magma-golem', name: 'Magma Golem', plural: 'Magma Golems', size: 'large', elements: ['fire', 'earth'],
-    description: 'A golem of cooling lava. Holds the front line like any golem — and every blow it lands keeps burning.',
+    description: 'A golem of cooling lava. Holds the front line like any golem, and every blow it lands keeps burning.',
     attributes: {
       strength: [9, 18], stamina: [8, 17], speed: [3, 9], agility: [2, 8], toughness: [10, 19], recovery: [4, 11],
       attack: [6, 15], accuracy: [3, 10], defense: [7, 16], magic: [4, 12], focus: [4, 12], technique: [3, 10],
@@ -655,7 +655,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'banshee', name: 'Banshee', plural: 'Banshees', size: 'medium', elements: ['shadow', 'air'],
-    description: 'A weeping spirit whose cry announces death. Barely hurts the body, but breaks the nerve — frightened foes hesitate, then flee.',
+    description: 'A weeping spirit whose cry announces death. Barely hurts the body, but breaks the nerve, frightened foes hesitate, then flee.',
     attributes: {
       strength: [2, 7], stamina: [7, 15], speed: [8, 16], agility: [8, 16], toughness: [5, 11], recovery: [6, 14],
       attack: [3, 9], accuracy: [5, 12], defense: [3, 9], magic: [9, 18], focus: [9, 18], technique: [5, 13],
@@ -769,7 +769,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'blood-demon', name: 'Blood Demon', plural: 'Blood Demons', size: 'large', elements: ['fire', 'shadow'],
-    description: 'A demon that pays for power with its own blood. Devastating blows — as long as it has blood left to spend.',
+    description: 'A demon that pays for power with its own blood. Devastating blows, as long as it has blood left to spend.',
     attributes: {
       strength: [9, 16], stamina: [7, 15], speed: [8, 16], agility: [7, 15], toughness: [6, 13], recovery: [7, 15],
       attack: [8, 17], accuracy: [3, 10], defense: [5, 13], magic: [8, 16], focus: [6, 14], technique: [6, 14],
@@ -802,7 +802,7 @@ const list: SpeciesDef[] = [
   // ——— Classics, undead, air & light, small folk ———
   {
     id: 'hydra', name: 'Hydra', plural: 'Hydras', size: 'large', elements: ['water', 'nature'],
-    description: 'A many-headed marsh serpent. Each head bites on its own — and the wounds close almost as fast as they open.',
+    description: 'A many-headed marsh serpent. Each head bites on its own, and the wounds close almost as fast as they open.',
     attributes: {
       strength: [9, 17], stamina: [8, 16], speed: [4, 11], agility: [5, 11], toughness: [9, 17], recovery: [7, 15],
       attack: [8, 16], accuracy: [5, 11], defense: [7, 15], magic: [2, 7], focus: [4, 10], technique: [6, 13],
@@ -900,7 +900,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'skeleton', name: 'Skeleton Warrior', plural: 'Skeleton Warriors', size: 'medium', elements: ['shadow', 'earth'],
-    description: 'Old bones bound by necromancy. Fearless and cheap to keep — and the first time it falls, it pulls itself back together.',
+    description: 'Old bones bound by necromancy. Fearless and cheap to keep, and the first time it falls, it pulls itself back together.',
     attributes: {
       strength: [7, 15], stamina: [6, 14], speed: [3, 10], agility: [3, 9], toughness: [7, 15], recovery: [7, 15],
       attack: [6, 14], accuracy: [2, 8], defense: [5, 13], magic: [1, 5], focus: [2, 8], technique: [3, 10],
@@ -1078,7 +1078,7 @@ const list: SpeciesDef[] = [
   },
   {
     id: 'satyr', name: 'Satyr', plural: 'Satyrs', size: 'medium', elements: ['nature'],
-    description: 'A goat-legged reveller. Its pipes lull foes, its songs mend friends — and its horns still hurt.',
+    description: 'A goat-legged reveller. Its pipes lull foes, its songs mend friends, and its horns still hurt.',
     attributes: {
       strength: [3, 9], stamina: [6, 14], speed: [7, 15], agility: [7, 15], toughness: [4, 10], recovery: [7, 15],
       attack: [4, 11], accuracy: [4, 11], defense: [4, 11], magic: [7, 15], focus: [7, 15], technique: [4, 11],
