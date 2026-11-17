@@ -24,6 +24,7 @@ import { errorText } from './CreatureSheet.tsx';
 import { RoleLabel, SpeciesIcon } from '../../icons/Icon.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { flyScout } from '../../fx/scoutFlight.ts';
+import { SaleList } from './SaleList.tsx';
 
 const SC = DEFAULT_CONFIG.economy.scouting;
 
@@ -78,7 +79,7 @@ function GemBadge({ game, c }: { game: GameState; c: Creature }) {
   return null;
 }
 
-type Tab = 'free' | 'stables' | 'scouts';
+type Tab = 'free' | 'stables' | 'sell' | 'scouts';
 type View = 'cards' | 'table';
 const VIEW_KEY = 'fm.recruitView';
 const readView = (): View => {
@@ -417,6 +418,15 @@ export function RecruitScreen() {
               { value: 'free', label: t('recruit.tab.free') },
               { value: 'stables', label: t('recruit.tab.stables') },
               {
+                value: 'sell',
+                label: (
+                  <span className="sell-tab">
+                    {t('recruit.tab.sell')}
+                    {game.offers.length > 0 && <span className="sell-badge" title={t('sale.offersWaiting', { n: game.offers.length })}>{game.offers.length}</span>}
+                  </span>
+                ),
+              },
+              {
                 value: 'scouts',
                 label: (
                   <span data-scout-tab className="scout-tab">
@@ -451,7 +461,7 @@ export function RecruitScreen() {
               {note && <span className="muted" style={{ fontSize: '0.857rem' }}>{note}</span>}
             </>
           )}
-          {tab !== 'scouts' && (
+          {tab !== 'scouts' && tab !== 'sell' && (
             <>
               <span className="spacer" />
               <Seg<View>
@@ -489,6 +499,7 @@ export function RecruitScreen() {
             )}
           </>
         )}
+        {tab === 'sell' && <SaleList game={game} />}
       </section>
       {tab === 'scouts' && <Scouts game={game} />}
     </div>

@@ -2690,6 +2690,8 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .jr-row:not(.unread) .jr-row-text b { font-weight: 500; color: color-mix(in srgb, var(--text) 85%, var(--muted)); }
 .jr-row.unread .jr-row-text b { color: var(--text); }
 .jr-row-text small { font-size: var(--fs-xs); color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Match results: the competition as a small badge before the preview. */
+.jr-comp-line .comp-badge.jr-comp { font-size: var(--fs-xs); padding: 0 7px; gap: 4px; vertical-align: 1px; margin-right: 4px; }
 .jr-pill { flex: none; padding: 1px 8px; border-radius: var(--r-lg); font-size: var(--fs-xs); font-weight: 700; font-variant-numeric: tabular-nums; }
 .jr-pill.won { color: var(--good); background: color-mix(in srgb, var(--good) 16%, transparent); }
 .jr-pill.lost { color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); }
@@ -3205,6 +3207,14 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 @keyframes gem-shine { to { background-position: -200% 0; } }
 .scout-tab { display: inline-flex; align-items: center; gap: 5px; border-radius: var(--r-sm); }
 .scout-tab.scout-landed { animation: scout-land 0.9s ease-out; }
+/* Recruitment › Sell: offers waiting on the tab, creatures listed for sale, offers beside each creature. */
+.sell-tab { display: inline-flex; align-items: center; gap: 6px; }
+.sell-badge { min-width: 1.5em; padding: 0 5px; border-radius: var(--r-lg); background: var(--gold); color: #1a1408;
+  font-size: var(--fs-xs); font-weight: 700; line-height: 1.5; text-align: center; }
+tr.sale-listed > td { background: color-mix(in srgb, var(--gold) 7%, transparent); }
+.sale-offers { display: flex; flex-direction: column; gap: 4px; }
+.sale-offer { display: inline-flex; align-items: center; gap: 6px; }
+.sale-offer .ellipsis { max-width: 160px; }
 @keyframes scout-land { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 70%, transparent); color: var(--gold); }
   100% { box-shadow: 0 0 0 12px transparent; } }
 .scout-flyer { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; color: var(--gold); font-size: var(--fs-2xl); line-height: 0;

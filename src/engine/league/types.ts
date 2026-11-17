@@ -22,6 +22,17 @@ export interface FixtureResult {
   seed: number;
 }
 
+/** Competition of a played match, kept in its result message: a league division, or the cup / a tournament round. */
+export interface MatchComp {
+  /** League match: division index (0 = top). */
+  division?: number;
+  /** Cup or tournament tie. */
+  competition?: 'cup' | 'tournament';
+  tournamentId?: string;
+  round?: number;
+  rounds?: number;
+}
+
 export interface Fixture {
   id: string;
   /** 1-based. Cup ties carry the league matchday they follow. */
@@ -59,7 +70,11 @@ export interface StandingRow {
 /** Inbox messages are stored as structured data and worded by the UI in the player's language. */
 export type InboxMessage = { id: string; matchday: number; season: number; read: boolean } & (
   | { kind: 'welcome'; teamName: string; teams: number; matchdays: number }
-  | { kind: 'matchResult'; opponent: string; won: boolean; method: MatchMethod; score: [number, number]; rounds: number; fixtureId: string }
+  | {
+      kind: 'matchResult'; opponent: string; won: boolean; method: MatchMethod; score: [number, number]; rounds: number; fixtureId: string;
+      /** Where it was played (absent in old saves): league division, or the cup / a tournament and its round. */
+      comp?: MatchComp;
+    }
   | { kind: 'injury'; creatureId: string; name: string; injuryId: string; weeks: number }
   | { kind: 'recovered'; creatureId: string; name: string }
   | { kind: 'tired'; names: string[] }

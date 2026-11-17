@@ -37,7 +37,7 @@ import { pushMessage } from './messages.ts';
 import { addNews, divisionTables, isStar, newsFromResults } from './news.ts';
 import { matchdayCount, roundRobin } from './schedule.ts';
 import { computeStandings } from './standings.ts';
-import type { Fixture, FixtureResult, GameState } from './types.ts';
+import type { Fixture, FixtureResult, GameState, MatchComp } from './types.ts';
 import { championsFrom, cupKey, finishTournamentRound, midweekKey, startTournaments, tournamentFixture, tournamentsAt } from './tournaments.ts';
 import { preMatchSituation, readTalk } from '../combat/talks.ts';
 
@@ -246,6 +246,13 @@ export function playerPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Tea
   return validateTactic(team, cfg, true).length ? repairTactic(team, cfg) : team;
 }
 
+/** Where a fixture is played: its league division, or its cup / tournament and round (with the number of rounds). */
+export function matchComp(state: GameState, f: Fixture): MatchComp {
+  if (!f.competition) return { division: f.division ?? 0 };
+  const rounds = f.competition === 'cup' ? state.cup.rounds : (state.tournaments ?? []).find((x) => x.id === f.tournamentId)?.rounds;
+  return { competition: f.competition, ...(f.tournamentId ? { tournamentId: f.tournamentId } : {}), round: f.round ?? 0, ...(rounds ? { rounds } : {}) };
+}
+
 export function fixtureSeed(state: GameState, fixture: Fixture): number {
   return deriveSeed(state.worldSeed, 'match', fixture.id);
 }
@@ -425,6 +432,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
         score: [o.score[side], o.score[side === 0 ? 1 : 0]],
         rounds: o.rounds,
         fixtureId: fixture.id,
+        comp: matchComp(next, fixture),
       });
       for (const x of dead) {
         pushMessage(next, { kind: 'death', creatureId: x.id, name: x.name, speciesId: x.speciesId, injuryId: x.injuryId, opponent: opp.name, friends: x.friends });

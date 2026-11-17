@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { RequestActions } from './Requests.tsx';
-import { teamById } from '../../../engine/league/season.ts';
-import type { GameState, InboxMessage, ObjectiveId } from '../../../engine/league/types.ts';
+import { matchComp, teamById } from '../../../engine/league/season.ts';
+import type { GameState, InboxMessage, MatchComp, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { Gold } from '../../components/common.tsx';
 import type { StringKey } from '../../i18n/strings.ts';
-import { compName, divName, roundKey } from '../../competitions.ts';
+import { compDef, compName, divName, roundKey } from '../../competitions.ts';
 import { JobOfferActions } from './Career.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
@@ -14,7 +14,7 @@ import { abilityText, attributeText, categoryName, injuryText, speciesName } fro
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { UiIcon } from '../../icons/Icon.tsx';
+import { CompIcon, DivIcon, UiIcon } from '../../icons/Icon.tsx';
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { medalDesc, medalName } from '../../components/CreatureRecord.tsx';
 import { levelOfAbility, totalXpOfAbility } from '../../../engine/progression/levels.ts';
@@ -578,6 +578,32 @@ function ResultBoard({ game, m }: { game: GameState; m: Extract<InboxMessage, { 
   );
 }
 
+type ResultMessage = Extract<InboxMessage, { kind: 'matchResult' }>;
+
+/** Competition of a result: stored in the message, or (older saves) found from its fixture while the season lasts. */
+function resultComp(game: GameState, m: ResultMessage): MatchComp | null {
+  if (m.comp) return m.comp;
+  const f = game.fixtures.find((x) => x.id === m.fixtureId);
+  return f && m.season === game.season ? matchComp(game, f) : null;
+}
+
+/** « Pit League » or « Shadow Cup · Quarter-finals », in the competition's colour with its emblem. */
+function CompTag({ game, m, big }: { game: GameState; m: ResultMessage; big?: boolean }) {
+  const { t } = useT();
+  const c = resultComp(game, m);
+  if (!c) return null;
+  const league = !c.competition;
+  const def = league ? 'league' : compDef(c.tournamentId);
+  const label = league
+    ? divName(t, c.division ?? 0)
+    : `${compName(t, c.tournamentId)}${c.rounds ? ` · ${t(roundKey(c.round ?? 0, c.rounds))}` : ''}`;
+  return (
+    <span className={`comp-badge def-${def}${big ? '' : ' jr-comp'}`}>
+      {league ? <DivIcon d={c.division ?? 0} /> : <CompIcon def={def} />} {label}
+    </span>
+  );
+}
+
 function weekLabel(tr: Translator, m: InboxMessage): string {
   return m.matchday > 0 ? tr.t('inbox.week', { season: m.season, d: m.matchday }) : tr.t('inbox.weekZero', { season: m.season });
 }
@@ -704,7 +730,13 @@ export function InboxScreen() {
                   </span>
                   <span className="jr-row-text">
                     <b>{mw.title}</b>
-                    {preview && <small>{preview}</small>}
+                    {m.kind === 'matchResult' ? (
+                      <small className="jr-comp-line">
+                        <CompTag game={game} m={m} /> {preview}
+                      </small>
+                    ) : (
+                      preview && <small>{preview}</small>
+                    )}
                   </span>
                   {m.kind === 'matchResult' && (
                     <span className={`jr-pill ${m.won ? 'won' : 'lost'}`}>
@@ -730,6 +762,7 @@ export function InboxScreen() {
                     <UiIcon name={CATEGORY_STYLE[cat].icon} /> {t(`inbox.cat.${cat}` as StringKey)}
                   </span>
                   <span className="faint">{weekLabel(tr, selected)}</span>
+                  {selected.kind === 'matchResult' && <CompTag game={game} m={selected} big />}
                 </span>
                 <h3 className={`jr-title ${w.tone}`}>
                   <Gold>{w.title}</Gold>
