@@ -271,10 +271,11 @@ export class Combat {
       const strip = (o: TeamOrders) => JSON.stringify({ ...o, talk: undefined });
       const changed = strip(d.orders) !== strip(st.orders);
       const talkChanged = d.orders.talk !== st.orders.talk;
+      const before = { ...st.orders };
       st.orders = { ...d.orders };
       if (changed || talkChanged) applied.orders = { ...d.orders };
       if (changed) {
-        this.emit({ type: 'ordersChanged', round: this.round, side, orders: { ...d.orders } });
+        this.emit({ type: 'ordersChanged', round: this.round, side, orders: { ...d.orders }, before });
       }
     }
     for (const lc of d.lineChanges ?? []) {

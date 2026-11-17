@@ -198,7 +198,7 @@ export type MatchEvent =
   | { type: 'roundEnd'; round: number; snapshot: CombatantSnapshot[] }
   | { type: 'break'; round: number; index: number }
   | { type: 'substitution'; round: number; side: Side; outId: string; inId: string; role: RoleId; line: Line }
-  | { type: 'ordersChanged'; round: number; side: Side; orders: TeamOrders }
+  | { type: 'ordersChanged'; round: number; side: Side; orders: TeamOrders; /** Orders before the change (absent in old replays). */ before?: TeamOrders }
   /** A manager's team talk (before the match, at each break), with the morale / stamina it gave back. */
   | { type: 'teamTalk'; round: number; side: Side; talk: Talk; changes: { id: string; morale: number; stamina: number }[] }
   | { type: 'matchEnd'; round: number; winner: Side; method: MatchMethod; score: [number, number] };

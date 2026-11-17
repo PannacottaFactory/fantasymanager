@@ -387,6 +387,10 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['balanced', 'Chez {aTeam}, retour à une approche équilibrée.'],
     ['', 'Chez {aTeam}, on change d’approche.'],
   ],
+  targetChanged: [
+    ['', 'Chez {aTeam}, on change de cibles.'],
+    ['', 'Nouvelle consigne pour {aTeam} : viser ailleurs.'],
+  ],
   matchEnd: [
     ['ko', 'C’est terminé ! {winner} l’emporte par KO au round {round} !'],
     ['ko', 'Le dernier combattant adverse tombe, victoire pour {winner} !'],

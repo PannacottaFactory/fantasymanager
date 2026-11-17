@@ -384,6 +384,10 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['balanced', '{aTeam} settle into a balanced approach.'],
     ['', '{aTeam} change their approach.'],
   ],
+  targetChanged: [
+    ['', '{aTeam} pick out new targets.'],
+    ['', 'Fresh instructions for {aTeam}: aim elsewhere.'],
+  ],
   matchEnd: [
     ['ko', 'It’s over! {winner} win by knockout in round {round}!'],
     ['ko', 'The last creature of {loser} falls, {winner} take it!'],

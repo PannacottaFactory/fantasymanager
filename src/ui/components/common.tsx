@@ -77,10 +77,13 @@ export function Bar({ value, max, color, thin, title, ghost, ticks }: { value: n
 }
 
 /**
- * « Condition » of an own creature in one cell: injured → « Injury · n weeks »; otherwise a freshness bar (as wide as
- * the injury label, so the column stays aligned): full and green when fresh, shorter and amber → red as fatigue grows.
+ * « Fatigue » of an own creature in one cell: injured → « Injury · n weeks »; otherwise a fatigue bar (as wide as
+ * the injury label, so the column stays aligned): a small green sliver when rested, longer and amber → red as fatigue grows.
  * Exact fatigue in the tooltip.
  */
+/** Width (%) of the fatigue bar of a rested creature, so the gauge is never invisible. */
+const FATIGUE_SLIVER = 5;
+
 export function ConditionCell({ c }: { c: Creature }) {
   const tr = useT();
   const { t, lang } = tr;
@@ -96,7 +99,8 @@ export function ConditionCell({ c }: { c: Creature }) {
   const f = c.condition.fatigue;
   return (
     <span className="cond-cell" title={`${t('col.fatigue')} ${f} %`}>
-      <Bar value={100 - f} max={100} color={fatigueColor(f)} />
+      {/* Fatigue gauge: a small green sliver when rested, longer and amber → red as fatigue grows. */}
+      <Bar value={Math.max(f, FATIGUE_SLIVER)} max={100} color={fatigueColor(f)} />
     </span>
   );
 }

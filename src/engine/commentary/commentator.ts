@@ -390,6 +390,8 @@ export class Commentator {
       case 'teamTalk':
         return this.line(e, 'teamTalk', [e.talk], { aTeam: this.teams[e.side] }, 1, e.side);
       case 'ordersChanged':
+        // Only the target changed: say so, never announce an approach that did not move.
+        if (e.before && e.before.aggression === e.orders.aggression) return this.line(e, 'targetChanged', [], { aTeam: this.teams[e.side] }, 0, e.side);
         return this.line(e, 'ordersChanged', [e.orders.aggression], { aTeam: this.teams[e.side] }, 0, e.side);
       case 'matchEnd': {
         const tags: string[] = [e.method];
