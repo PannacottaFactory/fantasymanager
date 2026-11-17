@@ -124,7 +124,7 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
           {spText.description && <p className="species-desc">{spText.description}</p>}
           <div className="stat-strip" data-tip="sheet-tiles">
             <StatTile label={t('cr.overall')} value={known ? overallRating(creature) : `${ovr.low}–${ovr.high}`} big />
-            {known && <StatTile label={t('sheet.level')} value={<LevelBadge c={creature} />} />}
+            {known && <StatTile label={t('sheet.level')} value={<LevelBadge c={creature} compact />} />}
             <StatTile label={t('col.potentialFull')} value={<PotentialStars c={creature} k={knowledge} />} title={t('stars.potentialCol')} />
             {known && <StatTile label={t('sheet.hp')} value={maxHp(creature, DEFAULT_CONFIG)} />}
             {known && <StatTile label={t('sheet.stamina')} value={maxStamina(creature, DEFAULT_CONFIG)} />}

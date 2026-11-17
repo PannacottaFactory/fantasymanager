@@ -2484,6 +2484,8 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .sheet { display: flex; flex-direction: column; gap: 10px; }
 .sheet .species-desc { margin: 0; }
 .sheet .stat-tile { padding-block: 3px; }
+/* Level tile: the number only (the XP track below the tiles shows the progress; the bar overflowed the tile). */
+.sheet .stat-tile .level-badge .xp-bar { display: none; }
 
 /* ——— Creature sheet: a box per section, each with its colour ——— */
 .sec-physical { --sec: #d98a4a; } .sec-combat { --sec: #d9645a; } .sec-mental { --sec: #9a8ae0; }
