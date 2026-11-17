@@ -192,7 +192,7 @@ export function ElementDots({ speciesId }: { speciesId: string }) {
   const { lang } = useT();
   const els = SPECIES[speciesId]?.elements ?? [];
   return (
-    <span title={els.map((e) => elementName(e, lang)).join(' / ')}>
+    <span className="elem-dots" title={els.map((e) => elementName(e, lang)).join(' / ')}>
       {els.map((e: ElementId) => (
         <i key={e} className="elem" style={{ background: ELEMENTS[e].color }} />
       ))}

@@ -2239,6 +2239,23 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 
 /* ——— Tactics: the assistant's pick ——— */
 .assistant-btn { position: relative; overflow: hidden; isolation: isolate; }
+/* Break: looking at the field. A clear shield takes every click (above the ticker, below tutorial tips and toasts);
+   a bar at the bottom, in the accent colour, brings the break window back. */
+.peek-btn { border-color: var(--accent); color: var(--accent); }
+.peek-shield { position: fixed; inset: 0; z-index: 45; cursor: default; box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent); }
+.break-peek { position: fixed; left: 50%; bottom: 56px; transform: translateX(-50%); z-index: 46; display: flex; align-items: center; gap: var(--sp-4);
+  padding: 12px 14px 12px 14px; border-radius: var(--r-lg); max-width: calc(100vw - 32px);
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel)); border: 2px solid var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent), 0 12px 36px rgb(0 0 0 / 0.55);
+  animation: peek-glow 2.4s ease-in-out infinite; }
+.break-peek-ico { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex: none; border-radius: 50%; color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.break-peek-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.break-peek-text b { font: 700 var(--fs-lg) var(--font-title, var(--font-body)); letter-spacing: 0.03em; white-space: nowrap; }
+.break-peek-text small { color: var(--muted); font-size: var(--fs-md); }
+.break-peek .btn { flex: none; }
+@keyframes peek-glow { 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 10%, transparent), 0 12px 36px rgb(0 0 0 / 0.55); } }
+:root[data-effects='reduced'] .break-peek { animation: none; }
 .assistant-btn.cast { animation: assist-glow 1s ease-out; border-color: var(--accent); }
 .assistant-btn.cast::after { content: ''; position: absolute; inset: -2px; pointer-events: none; mix-blend-mode: screen;
   background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--gold) 55%, transparent) 50%, transparent 70%);
@@ -2628,11 +2645,11 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 /* Pre-match line-ups: fixed columns so every row lines up; the opponent's card is the mirror image. */
 .prematch-lineups .lineup-row {
   display: grid; align-items: center; column-gap: 8px;
-  grid-template-columns: auto minmax(0, 1fr) 44px 4.5rem 10rem 5.5rem;
+  grid-template-columns: auto minmax(0, 1fr) 44px 4.5rem 11rem 5.5rem;
   grid-template-areas: 'crest name fat line sp role';
 }
 .prematch-lineups .side-away .lineup-row {
-  grid-template-columns: 5.5rem 10rem 4.5rem 44px minmax(0, 1fr) auto;
+  grid-template-columns: 5.5rem 11rem 4.5rem 44px minmax(0, 1fr) auto;
   grid-template-areas: 'role sp line fat name crest';
 }
 .lr-crest { grid-area: crest; display: flex; }
@@ -2645,6 +2662,10 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .prematch-lineups .lineup-row > .lr-bench { grid-column: 3 / -1; justify-self: end; }
 .prematch-lineups .side-away .lineup-row > .lr-bench { grid-column: 1 / 5; justify-self: start; }
 .prematch-lineups .side-away .lineup-species { flex-direction: row-reverse; }
+/* Bench rows: the name, then the element dots (mirrored on the opponent's card). */
+.lr-bench-name { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.lineup-row .elem-dots { flex: none; white-space: nowrap; }
+.prematch-lineups .side-away .lr-bench-name { flex-direction: row-reverse; }
 .prematch-lineups .side-away .lineup-head small { margin-left: 0; margin-right: auto; }
 .prematch-lineups .side-away .lineup-row .grow { text-align: right; }
 .prematch-lineups .side-away .lineup-row .bar { transform: scaleX(-1); }

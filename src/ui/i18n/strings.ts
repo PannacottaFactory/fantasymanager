@@ -816,6 +816,10 @@ export const en = {
   'break.subLine.title': 'Line the substitute takes',
   'break.noBench': 'No creatures left on the bench.',
   'break.resume': 'Resume the fight',
+  'break.peek': 'Look at the field',
+  'break.peek.title': 'Hide this window to look at the fight as it stands (cards, chronicle), then come back: your choices are kept.',
+  'break.peekBar': 'You are looking at the field: your decisions are waiting.',
+  'break.back': 'Back to the break',
 
   // Report
   'report.victory': 'VICTORY',
@@ -2766,6 +2770,10 @@ export const fr: Record<StringKey, string> = {
   'break.subLine.title': 'Ligne que prendra le remplaçant',
   'break.noBench': 'Plus personne sur le banc.',
   'break.resume': 'Reprendre le combat',
+  'break.peek': 'Voir le terrain',
+  'break.peek.title': 'Masquer cette fenêtre pour regarder le combat en cours (cartes, chronique), puis revenir : vos choix sont gardés.',
+  'break.peekBar': 'Vous regardez le terrain : vos décisions vous attendent.',
+  'break.back': 'Retour à la pause',
 
   'report.victory': 'VICTOIRE',
   'report.defeat': 'DÉFAITE',

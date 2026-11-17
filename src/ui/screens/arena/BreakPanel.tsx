@@ -13,7 +13,7 @@ import { abilityText, roleText, speciesName } from '../../../engine/text/localiz
 import { Bar, Crest, ElementDots, Modal } from '../../components/common.tsx';
 import { hpColor, moraleKey, moraleColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
-import { RoleLabel } from '../../icons/Icon.tsx';
+import { RoleLabel, UiIcon } from '../../icons/Icon.tsx';
 import { breakSituation, readTalk } from '../../../engine/combat/talks.ts';
 import { TalkPicker } from '../../components/TeamTalk.tsx';
 import { ROLE_IDS } from '../../../data/roles.ts';
@@ -83,6 +83,28 @@ export function BreakPanel({ combat, onResume }: Props) {
   const ours = combat.teamHealth(0);
   const theirs = combat.teamHealth(1);
   const stateTag = (s: string) => (s === 'ko' ? t('tag.ko') : s === 'fled' ? t('tag.fled') : s.toUpperCase());
+  // Looking at the field: the window gives way to a small bar; the choices made so far stay (same component).
+  const [peek, setPeek] = useState(false);
+
+  // A clear shield over the page: the field can be looked at, nothing else can be clicked.
+  if (peek)
+    return (
+      <>
+        <div className="peek-shield" aria-hidden="true" onMouseDown={(e) => e.preventDefault()} />
+        <div className="break-peek" role="dialog" aria-label={t('break.title', { n: combat.round })}>
+          <span className="break-peek-ico">
+            <UiIcon name="scout" size="1.5rem" />
+          </span>
+          <span className="break-peek-text">
+            <b>{t('break.title', { n: combat.round })}</b>
+            <small>{t('break.peekBar')}</small>
+          </span>
+          <button className="btn primary" onClick={() => setPeek(false)} autoFocus>
+            {t('break.back')} ▶
+          </button>
+        </div>
+      </>
+    );
 
   return (
     <Modal
@@ -92,6 +114,9 @@ export function BreakPanel({ combat, onResume }: Props) {
       wide
       actions={
         <>
+          <button className="btn small peek-btn" onClick={() => setPeek(true)} title={t('break.peek.title')}>
+            <UiIcon name="scout" /> {t('break.peek')}
+          </button>
           <button ref={adviceBtn} className="btn small assistant-btn" onClick={suggest} title={t('break.advice.title')}>
             {t('break.advice')}
           </button>

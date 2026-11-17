@@ -463,7 +463,8 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
             </button>
             <span className="spacer" />
             {!ended && (
-              <button className="btn small" onClick={skip} title={t('live.skip.title')}>
+              // At a break (looking at the field), the break window decides: no skipping past it from here.
+              <button className="btn small" onClick={skip} title={t('live.skip.title')} disabled={atBreak}>
                 {t('live.skip')}
               </button>
             )}

@@ -9,7 +9,7 @@ import type { GameState } from '../../../engine/league/types.ts';
 import type { Team } from '../../../engine/model.ts';
 import { validateTactic } from '../../../engine/team/team.ts';
 import { useState } from 'react';
-import { Bar, Crest, Modal } from '../../components/common.tsx';
+import { Bar, Crest, ElementDots, Modal } from '../../components/common.tsx';
 import { issueText } from '../../components/TeamEditor.tsx';
 import { fatigueColor } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -47,7 +47,7 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
               </span>
               <span className="lr-line tag">{s.line === 'front' ? t('tag.front') : t('tag.back')}</span>
               <span className="lr-sp lineup-species faint">
-                <span className="ellipsis">{speciesName(c.speciesId, lang)}</span> <SpeciesIcon id={c.speciesId} size="1.1em" />
+                <span className="ellipsis">{speciesName(c.speciesId, lang)}</span> <SpeciesIcon id={c.speciesId} size="1.1em" /> <ElementDots speciesId={c.speciesId} />
               </span>
               <span className="lr-role tag">
                 <RoleLabel role={s.role} short />
@@ -61,7 +61,9 @@ function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 
           return (
             <div key={id} className="lineup-row dim">
               <span className="lr-crest"><Crest speciesId={c.speciesId} name={c.name} /></span>
-              <span className="lr-name grow ellipsis">{c.name}</span>
+              <span className="lr-name grow lr-bench-name">
+                <span className="ellipsis">{c.name}</span> <ElementDots speciesId={c.speciesId} />
+              </span>
               <span className="lr-bench tag">{t('tag.bench')}</span>
             </div>
           );
