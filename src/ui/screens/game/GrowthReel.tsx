@@ -17,8 +17,13 @@ import { play } from '../../sound/sfx.ts';
 
 const PER = DEFAULT_CONFIG.training.levels.xpPerLevel;
 
-export function GrowthReel({ before, after }: { before: GameState; after: GameState }) {
+export function GrowthReel({ before, after, onOpen }: { before: GameState; after: GameState; onOpen?: () => void }) {
   const { t, lang } = useT();
+  // Opening a sheet (to place points) closes the window holding the reel first, so the sheet is not hidden under it.
+  const openSheet = (id: string) => {
+    onOpen?.();
+    useGame.getState().openSheet(id);
+  };
   const list = weekGrowth(before, after);
   const refs = useRef(new Map<string, HTMLElement>());
   const ups = list.filter((g) => g.lv1 > g.lv0).map((g) => g.c.id);
@@ -56,7 +61,7 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
               else refs.current.delete(g.c.id);
             }}
           >
-            <button className="grow-head link-plain" onClick={() => useGame.getState().openSheet(g.c.id)}>
+            <button className="grow-head link-plain" onClick={() => openSheet(g.c.id)}>
               <Crest speciesId={g.c.speciesId} name={g.c.name} size={30} level={levelOf(g.c)} />
               <span className="grow-name">
                 <b>{g.c.name}</b>
@@ -83,7 +88,7 @@ export function GrowthReel({ before, after }: { before: GameState; after: GameSt
                   </span>
                 ))}
                 {up && (g.c.growth?.freePoints ?? 0) > 0 && (
-                  <button className="grow-chip point" style={{ animationDelay: `calc(var(--delay) + 1300ms)` }} onClick={() => useGame.getState().openSheet(g.c.id)}>
+                  <button className="grow-chip point" style={{ animationDelay: `calc(var(--delay) + 1300ms)` }} onClick={() => openSheet(g.c.id)}>
                     + {t('grow.point')}
                   </button>
                 )}
@@ -115,7 +120,7 @@ export function MatchProgress() {
         </button>
       }
     >
-      <GrowthReel before={progress.before} after={progress.after} />
+      <GrowthReel before={progress.before} after={progress.after} onOpen={close} />
     </Modal>
   );
 }

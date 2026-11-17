@@ -27,6 +27,8 @@ export type TipKey =
   | 'replaceWeak' | 'accuracy' | 'cleanseDot' | 'watchLive' | 'useSubs' | 'antiControl' | 'thornsRanged' | 'focus' | 'tank'
   | 'targetHealers' | 'cautious' | 'calm' | 'discipline' | 'improve' | 'keepGoing' | 'favourites' | 'finishKo'
   | 'starFavourite' | 'reachBack' | 'subsEarly' | 'closeLoss'
+  // running the stable
+  | 'deepenSquad' | 'fillBench' | 'injuryCover' | 'spendPoints'
   // next match (see advice.ts)
   | 'nextElements' | 'nextVulnerable' | 'nextHealers' | 'nextTanks' | 'nextThorns' | 'nextRest' | 'nextInjured'
   | 'nextPoints' | 'nextDouble';
@@ -72,7 +74,8 @@ function counterTo(a: Aggression, cfg: GameConfig): Aggression {
   return (Object.keys(beats) as Aggression[]).find((k) => beats[k] === a) ?? 'balanced';
 }
 
-export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup, cfg: GameConfig = DEFAULT_CONFIG): Verdict {
+/** `stable`: the match belongs to a stable the player runs (league), so tips about running it (squad depth…) apply. */
+export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup, cfg: GameConfig = DEFAULT_CONFIG, opts: { stable?: boolean } = {}): Verdict {
   const opp: Side = side === 0 ? 1 : 0;
   const won = result.outcome.winner === side;
   const report = buildReport(result, side, cfg);
@@ -157,6 +160,21 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
       tip('counterApproach', 4, 'tactics', { theirs: b, counter: counterTo(b, cfg) });
     }
     if (!Object.keys(team.tactic.favorites ?? {}).length && won === false) tip('favourites', 1, 'tactics');
+
+    // Running the stable (after a defeat): squad depth, bench, injuries, points left unplaced.
+    if (!won && opts.stable) {
+      const startIds = new Set(team.tactic.lineup.map((s) => s.creatureId));
+      const others = team.creatures.filter((c) => !startIds.has(c.id));
+      const fresh = others.filter((c) => !isInjured(c) && c.condition.fatigue < 30);
+      // Tired starters and not enough rested creatures to rotate: the squad is too short.
+      if (tired.length && fresh.length < tired.length + 1) tip('deepenSquad', 2 + 1.5 * tired.length, 'recruit', { n: fresh.length });
+      const benchSize = team.tactic.bench.length;
+      if (benchSize < cfg.match.benchSize) tip('fillBench', 4 + 2 * (cfg.match.benchSize - benchSize), 'tactics', { n: benchSize, max: cfg.match.benchSize });
+      const injured = team.creatures.filter((c) => isInjured(c)).length;
+      if (injured >= 3) tip('injuryCover', 1 + injured, 'recruit', { n: injured });
+      const waiting = ourStart.filter((c) => (c.growth?.freePoints ?? 0) > 0);
+      if (waiting.length) tip('spendPoints', 3 + waiting.length, 'squad', { names: waiting.map((c) => c.name).join(', ') });
+    }
   }
 
   // ——— During the match ———

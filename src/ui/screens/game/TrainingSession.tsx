@@ -251,7 +251,9 @@ export function AfterMatchTraining() {
   const match = useGame((s) => s.match);
   const game = useGame((s) => s.game);
   const progress = useGame((s) => s.progress);
-  if (!drill || match || progress || !game) return null;
+  const sheet = useGame((s) => s.sheet);
+  // Waits while a creature sheet is open (points being placed from the progress window).
+  if (!drill || match || progress || sheet || !game) return null;
   const close = () => useGame.getState().closeDrill();
   const left = sessionsReady(game);
   return (

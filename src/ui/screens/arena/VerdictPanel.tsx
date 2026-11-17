@@ -64,7 +64,8 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
   const { t } = useT();
   const game = useGame((s) => s.game);
   const before = useSetup(result, setup);
-  const v = useMemo(() => explainMatch(result, 0, before), [result, before]);
+  // A league match (line-ups found in the stable's history): tips about running the stable apply too.
+  const v = useMemo(() => explainMatch(result, 0, before, undefined, { stable: !setup && !!game }), [result, before, setup, game]);
   const next = useNextTips(result, game);
   // Lessons of the match first; at most five tips in all, with something about the next opponent when there is.
   const lessons = next?.tips.length ? v.tips.filter((x) => x.key !== 'keepGoing').slice(0, 5 - Math.min(2, next.tips.length)) : v.tips;

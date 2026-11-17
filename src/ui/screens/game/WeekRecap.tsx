@@ -30,8 +30,9 @@ export function WeekRecap() {
   const viewing = useGame((s) => s.viewing);
   const drill = useGame((s) => s.drill);
   const progress = useGame((s) => s.progress);
-  // Shown once the match report, its progress and the after-match training are closed.
-  if (!recap || match || viewing || drill || progress) return null;
+  const sheet = useGame((s) => s.sheet);
+  // Shown once the match report, its progress and the after-match training are closed (and hidden while a sheet is open).
+  if (!recap || match || viewing || drill || progress || sheet) return null;
   const { before, after } = recap;
   const st = useGame.getState();
   const close = () => st.closeRecap();
