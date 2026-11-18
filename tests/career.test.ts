@@ -7,6 +7,7 @@ import { newGame, playMatchday, playerFixture, playerTeam, playCupRound, seasonO
 import { divisionOf } from '../src/engine/league/divisions.ts';
 import { managerName } from '../src/engine/team/identity.ts';
 import type { GameState, SeasonRecord } from '../src/engine/league/types.ts';
+import { playerSeason } from '../src/ui/season.ts';
 
 const C = DEFAULT_CONFIG.career;
 const game = (career = true, seed = 'career') => newGame({ seed, teamName: 'Test', lang: 'en', career, ironman: career });
@@ -116,6 +117,26 @@ describe('career mode', () => {
     expect(playMatchday(state)).not.toBe(state);
     // The stable that sacked the manager never calls back.
     expect(jobCandidates(state).some((t) => t.id === g.playerTeamId)).toBe(false);
+  });
+
+  it('after a change of stable mid-season, the season shows the matches the manager played: former stable, then new', () => {
+    let g = game(true, 'ribbon');
+    while (g.matchday < 6) g = playMatchday(g);
+    const oldId = g.playerTeamId;
+    const target = elsewhere(g);
+    g = takeOver(g, target.id);
+    const start = g.manager!.jobs.at(-1)!.from.matchday;
+    while (g.matchday < 9) g = playMatchday(g);
+    const items = playerSeason(g).filter((x) => x.played && x.league);
+    const fixture = (id?: string) => g.fixtures.find((f) => f.id === id)!;
+    const before = items.filter((x) => x.week < start);
+    const after = items.filter((x) => x.week >= start);
+    expect(before.length).toBe(start - 1);
+    expect(after.length).toBe(g.matchday - start);
+    for (const x of before) expect([fixture(x.fixtureId).home, fixture(x.fixtureId).away]).toContain(oldId);
+    for (const x of after) expect([fixture(x.fixtureId).home, fixture(x.fixtureId).away]).toContain(target.id);
+    // One league match a week, none twice.
+    expect(new Set(items.map((x) => x.week)).size).toBe(items.length);
   });
 
   it('a manager may resign in career mode: the job ends, offers come, never from the stable left', () => {

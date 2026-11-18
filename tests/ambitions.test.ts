@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { AMBITION_IDS } from '../src/engine/club/ambitions.ts';
+import { AMBITION_IDS, checkAmbitions } from '../src/engine/club/ambitions.ts';
+import { takeOver } from '../src/engine/club/career.ts';
+import { divisionOf } from '../src/engine/league/divisions.ts';
 import { newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
 import { dropOnCreature, dropOnto, insertInGroup, moveToZone, zoneOf } from '../src/engine/team/edit.ts';
 import { managerName } from '../src/engine/team/identity.ts';
@@ -18,6 +20,28 @@ describe('ambitions', () => {
     // A season of matches almost surely brings a first win.
     expect(done).toContain('firstWin');
   }, 30000);
+
+  it('taking a job is no promotion, and the new stable’s wins before the manager came do not count', () => {
+    let g = newGame({ seed: 'amb-job', teamName: 'Test', lang: 'en', career: true });
+    while (g.matchday < 6) g = playMatchday(g);
+    // A stable of a higher division that has already won this season.
+    const me = g.playerTeamId;
+    const winner = g.teams.find(
+      (t) =>
+        t.id !== me &&
+        divisionOf(g, t.id) < divisionOf(g, me) &&
+        g.fixtures.some((f) => f.result && ((f.home === t.id && f.result.winner === 0) || (f.away === t.id && f.result.winner === 1))),
+    )!;
+    g.ambitions = {};
+    g = takeOver(g, winner.id);
+    checkAmbitions(g);
+    expect(g.ambitions).not.toHaveProperty('promotion');
+    expect(g.ambitions).not.toHaveProperty('firstWin');
+    // A promotion won on the field still counts.
+    g.career = [{ season: 1, teamId: g.playerTeamId, division: 2, position: 2, points: 30, cupWon: false, trophies: [] }];
+    checkAmbitions(g);
+    expect(g.ambitions).toHaveProperty('promotion');
+  });
 });
 
 describe('line-up board', () => {

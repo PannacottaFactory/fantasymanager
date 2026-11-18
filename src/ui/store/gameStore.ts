@@ -164,6 +164,12 @@ export const useGame = create<GameStore>()((set, get) => {
     if (next.inbox.some((m) => !known.has(m.id) && m.kind === 'contractExpiring')) set({ contractTalks: true });
     queueBoard(prev, next);
     if (completedWeek(next) <= completedWeek(prev)) return false;
+    // A week finished by a stable the manager just took over: nothing of it was theirs, no summary.
+    const job = next.manager?.jobs.at(-1);
+    if (job && next.manager!.jobs.length > 1 && job.from.season === next.season && job.from.matchday > 1 && job.from.matchday === next.matchday) {
+      set({ weekStart: next });
+      return false;
+    }
     set({ recap: { before: get().weekStart ?? prev, after: next }, weekStart: next });
     return true;
   };

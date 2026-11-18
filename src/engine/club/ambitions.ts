@@ -37,6 +37,12 @@ export const DYNASTY_TITLES = 3;
 
 const career = (s: GameState): SeasonRecord[] => s.career ?? [];
 
+/** First league week of the current job this season (career mode: a stable's results before the manager came do not count). */
+const jobStart = (s: GameState): number => {
+  const job = s.manager?.jobs.at(-1);
+  return job && job.from.season === s.season && s.manager!.jobs.length > 1 ? job.from.matchday : 0;
+};
+
 /** Whether an ambition is met by the current state (and the seasons logged so far). */
 function met(s: GameState, id: AmbitionId, cfg: GameConfig): boolean {
   const me = s.playerTeamId;
@@ -56,14 +62,15 @@ function met(s: GameState, id: AmbitionId, cfg: GameConfig): boolean {
     case 'championsCup':
       return won('champions');
     case 'firstWin':
-      return s.fixtures.some((f) => f.result && ((f.home === me && f.result.winner === 0) || (f.away === me && f.result.winner === 1)));
+      return s.fixtures.some((f) => f.result && f.matchday >= jobStart(s) && ((f.home === me && f.result.winner === 0) || (f.away === me && f.result.winner === 1)));
     case 'topHalf':
       return career(s).some((r) => r.position <= size(r.division) / 2);
     case 'cupRun':
       // Into the semi-finals (or beyond).
       return s.cup.winner === me || (s.cup.alive.includes(me) && s.cup.alive.length <= 4);
     case 'promotion':
-      return div < cfg.league.playerDivision;
+      // Won on the field (a season in the promotion places), not by taking a job in a higher league.
+      return career(s).some((r) => r.division > 0 && r.position <= cfg.league.promoted);
     case 'star':
       return s.teams.find((t) => t.id === me)!.creatures.some((c) => levelOf(c, cfg) >= STAR_LEVEL);
     case 'survive':

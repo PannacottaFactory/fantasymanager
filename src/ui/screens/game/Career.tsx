@@ -22,7 +22,7 @@ function take(game: GameState, offerId: string) {
   const known = new Set(game.inbox.map((m) => m.id));
   const notes = state.inbox.filter((m) => !known.has(m.id) && BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id);
   useGame.getState().update(() => state);
-  useGame.setState({ weekStart: state, boardNotes: notes, screen: 'dashboard', sheet: null });
+  useGame.setState({ weekStart: state, boardNotes: [...useGame.getState().boardNotes, ...notes], screen: 'dashboard', sheet: null });
 }
 
 function OfferCard({ game, offer, canDecline }: { game: GameState; offer: JobOffer; canDecline: boolean }) {
@@ -83,7 +83,8 @@ export function JobOfferActions({ game, m }: { game: GameState; m: Extract<Inbox
 export function JobCentre() {
   const { t } = useT();
   const game = useGame((s) => s.game);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap);
+  // The board tells the sacking first (meeting), then the offers.
+  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || s.boardNotes.length > 0);
   const [, refresh] = useState(0);
   const m = game?.manager;
   if (!game || !m?.unemployed || blocked) return null;
@@ -144,7 +145,11 @@ export function ManagerCard({ game }: { game: GameState }) {
       </div>
       <div className="career-lines">
         {job && <span className="muted">{t('career.since', { team: job.teamName, s: job.from.season, w: week(job.from.matchday) })}</span>}
-        {lastWarning(game) && <span className="board-chip bad">{t('career.warning')}</span>}
+        {lastWarning(game) && (
+          <span className="board-chip bad" title={t('career.warning')}>
+            {t('career.warning.short')}
+          </span>
+        )}
         {offers > 0 && (
           <button className="board-chip good link-chip" onClick={() => useGame.getState().setScreen('inbox')}>
             {t('career.offers', { n: offers })} · {t('career.offers.open')} →

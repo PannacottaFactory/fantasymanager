@@ -37,12 +37,30 @@ export interface SeasonItem {
 
 const orderKey = (k: number) => (Number.isInteger(k) && k > 0 ? k + 0.01 : k);
 
+/**
+ * The stable the manager ran in a week of this season: a change of stable mid-season (career mode) leaves the weeks
+ * before it to the former one, so the season shows the matches the manager actually played.
+ */
+export function stableAt(game: GameState): (week: number) => string {
+  const jobs = game.manager?.jobs ?? [];
+  return (week) => {
+    let id = game.playerTeamId;
+    for (let i = jobs.length - 1; i > 0; i--) {
+      const j = jobs[i]!;
+      if (j.from.season !== game.season || j.from.matchday <= 1 || week >= j.from.matchday) break;
+      id = jobs[i - 1]!.teamId;
+    }
+    return id;
+  };
+}
+
 export function playerSeason(game: GameState): SeasonItem[] {
   const me = game.playerTeamId;
+  const owner = stableAt(game);
   const items: SeasonItem[] = [];
-  const mineF = (f: Fixture) => f.home === me || f.away === me;
-  const played = (f: Fixture, base: Omit<SeasonItem, 'played' | 'opp' | 'oppId' | 'fixtureId'>): SeasonItem => {
-    const side = f.home === me ? 0 : 1;
+  const mineF = (f: Fixture, who = me) => f.home === who || f.away === who;
+  const played = (f: Fixture, base: Omit<SeasonItem, 'played' | 'opp' | 'oppId' | 'fixtureId'>, who = me): SeasonItem => {
+    const side = f.home === who ? 0 : 1;
     return {
       ...base,
       fixtureId: f.id,
@@ -55,21 +73,28 @@ export function playerSeason(game: GameState): SeasonItem[] {
     };
   };
   for (const f of game.fixtures) {
-    if (f.competition || !mineF(f)) continue;
-    items.push(played(f, { key: f.matchday, week: f.matchday, league: true, def: 'league', division: f.division ?? 0 }));
+    // Played weeks: the stable run that week; weeks to come: the current one.
+    const who = f.result ? owner(f.matchday) : me;
+    if (f.competition || !mineF(f, who)) continue;
+    items.push(played(f, { key: f.matchday, week: f.matchday, league: true, def: 'league', division: f.division ?? 0 }, who));
   }
   const comps = [
     { id: undefined as string | undefined, keys: DEFAULT_CONFIG.league.cup.after as readonly number[], round: game.cup.round, rounds: game.cup.rounds, entrants: null as string[] | null, alive: game.cup.alive, winner: game.cup.winner, fixtures: game.fixtures.filter((f) => f.competition === 'cup') },
     ...(game.tournaments ?? []).map((x) => ({ id: x.id as string | undefined, keys: x.keys, round: x.round, rounds: x.rounds, entrants: x.entrants, alive: x.alive, winner: x.winner, fixtures: game.fixtures.filter((f) => f.tournamentId === x.id) })),
   ];
   for (const c of comps) {
-    if (c.entrants && !c.entrants.includes(me)) continue;
     const def = compDef(c.id);
     const base = (r: number) => {
       const k = c.keys[r] ?? 0;
       return { key: orderKey(k), week: Math.floor(k), league: false, def, tournamentId: c.id, round: r, rounds: c.rounds };
     };
-    for (const f of c.fixtures) if (mineF(f) && f.result) items.push(played(f, base(f.round ?? 0)));
+    for (const f of c.fixtures) {
+      if (!f.result) continue;
+      const b = base(f.round ?? 0);
+      const who = owner(b.week);
+      if (mineF(f, who)) items.push(played(f, b, who));
+    }
+    if (c.entrants && !c.entrants.includes(me)) continue;
     if (c.winner || !c.alive.includes(me)) continue;
     for (let r = c.round; r < c.rounds; r++) {
       if (c.keys[r] === undefined) continue;
