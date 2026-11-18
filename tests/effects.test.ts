@@ -69,6 +69,7 @@ describe('curses and purification', () => {
   it('a purifying heal removes poison and cold but not curses', () => {
     const c = new Combat(setup(4));
     const [healer, ally] = c.active(0);
+    ally!.effects = []; // whatever passive it starts with (a rune ward…)
     addEffect(c, ally!, 'poisoned', 3);
     addEffect(c, ally!, 'chilled');
     addEffect(c, ally!, 'blighted');

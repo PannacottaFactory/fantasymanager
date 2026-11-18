@@ -40,7 +40,13 @@ function leagueStanding(game: GameState, id: FacilityId) {
   const ids = game.divisions?.[divisionOf(game, game.playerTeamId)] ?? [game.playerTeamId];
   const levels = ids.map((t) => facilityLevel(game, t, id));
   const mine = facilityLevel(game, game.playerTeamId, id);
-  return { avg: levels.reduce((a, b) => a + b, 0) / Math.max(1, levels.length), rank: 1 + levels.filter((l) => l > mine).length, size: levels.length };
+  return {
+    avg: levels.reduce((a, b) => a + b, 0) / Math.max(1, levels.length),
+    rank: 1 + levels.filter((l) => l > mine).length,
+    size: levels.length,
+    // Every stable at the same level: no rank to speak of (it used to say « 1st of 10 » with nothing built).
+    level: levels.every((l) => l === mine),
+  };
 }
 
 function FacilityCard({ game, id, onNote }: { game: GameState; id: FacilityId; onNote: (n: { text: string; tone: 'good' | 'bad' }) => void }) {
@@ -110,7 +116,7 @@ function FacilityCard({ game, id, onNote }: { game: GameState; id: FacilityId; o
       </div>
 
       <div className="fac-rivals">
-        <span>{t('fac.rivals', { avg: tr.dec(st.avg), rank: tr.ordinal(st.rank), n: st.size })}</span>
+        <span>{st.level ? t('fac.rivals.level', { avg: tr.dec(st.avg) }) : t('fac.rivals', { avg: tr.dec(st.avg), rank: tr.ordinal(st.rank), n: st.size })}</span>
         <span className="fac-rivals-bar" aria-hidden="true">
           <i style={{ width: `${(st.avg / max) * 100}%` }} className="avg" />
           <i style={{ width: `${(level / max) * 100}%` }} className="mine" />

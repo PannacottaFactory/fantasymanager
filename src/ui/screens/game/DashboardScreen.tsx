@@ -11,7 +11,7 @@ import { useState, type ReactNode } from 'react';
 import { FirstSteps } from '../../tutorial/FirstSteps.tsx';
 import { overallRating } from '../../../engine/creature/derived.ts';
 import { AMBITION_IDS, ambitionProgress } from '../../../engine/club/ambitions.ts';
-import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
+import { clubOf, weeklyCosts } from '../../../engine/economy/finance.ts';
 import { divisionOf } from '../../../engine/league/divisions.ts';
 import { playerTeam, standings, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -208,7 +208,7 @@ function Money({ game }: { game: GameState }) {
         )}
       </div>
       <div className="muted" style={{ fontSize: '0.857rem' }}>
-        <Gold>{t('dash.moneyLine', { bill: money(weeklyBill(game, game.playerTeamId)), rep: club.reputation })}</Gold>
+        <Gold>{t('dash.moneyLine', { bill: money(weeklyCosts(game, game.playerTeamId).total), rep: club.reputation })}</Gold>
         {last && (
           <>
             {' · '}

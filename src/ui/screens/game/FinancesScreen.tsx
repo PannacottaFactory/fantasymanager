@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { FansMeter } from '../../components/Fans.tsx';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { clubOf, weeklyBill } from '../../../engine/economy/finance.ts';
+import { clubOf, weeklyCosts } from '../../../engine/economy/finance.ts';
 import { creatureValue } from '../../../engine/economy/value.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
 import type { ExpenseKind, IncomeKind, LedgerEntry } from '../../../engine/league/types.ts';
@@ -210,7 +210,8 @@ export function FinancesScreen() {
   const first = season[0];
   const start = first ? first.balance - Object.values(first.income).reduce((s, v) => s + (v ?? 0), 0) + Object.values(first.expense).reduce((s, v) => s + (v ?? 0), 0) : club.balance;
   const wages = team.creatures.reduce((s, c) => s + (c.contract?.wage ?? 0), 0);
-  const bill = weeklyBill(game, team.id);
+  const costs = weeklyCosts(game, team.id);
+  const bill = costs.total;
   const prizes = DEFAULT_CONFIG.economy.income.seasonPrize;
   const reputation = useCountUp(club.reputation, 900);
   const [period, setPeriod] = useState<'week' | 'season' | 'prev'>('season');
@@ -249,7 +250,11 @@ export function FinancesScreen() {
     },
   ];
 
-  const detail = t('fin.weekly.detail', { w: money(wages), u: money(bill - wages) });
+  // Wages and keep, then coaches, facilities and scouts when there are any.
+  const detail = [
+    t('fin.weekly.detail', { w: money(costs.wages), u: money(costs.upkeep) }),
+    ...(['staff', 'facilities', 'scouts'] as const).filter((k) => costs[k] > 0).map((k) => t(`fin.weekly.${k}`, { v: money(costs[k]) })),
+  ].join(' + ');
   return (
     <div className="stack fin">
       <section className="panel fin-hero" data-tip="finances">

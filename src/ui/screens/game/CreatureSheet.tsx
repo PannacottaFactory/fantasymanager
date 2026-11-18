@@ -10,6 +10,7 @@ import { divisionOf } from '../../../engine/league/divisions.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
+import { recruitmentBudget } from '../../../engine/club/board.ts';
 import { isPlayerTeam, locate, renewalDemand, signingBonus } from '../../../engine/economy/market.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
@@ -124,6 +125,9 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
   const rep = clubOf(game, game.playerTeamId).reputation;
   const fee = signingBonus(creature);
   const wage = askingWage(creature, rep, years);
+  // Said before the click (it used to answer « not enough gold » only once pressed).
+  const short = fee - clubOf(game, game.playerTeamId).balance;
+  const blocked = short > 0 ? t('sign.short', { v: money(short) }) : fee > recruitmentBudget(game) ? t('err.board') : null;
   return (
     <div className="market-panel">
       <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
@@ -133,6 +137,7 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
         </span>
         <button
           className="btn primary"
+          disabled={!!blocked}
           onClick={() => {
             const o = useGame.getState().act((g) => signFreeAgent(g, creature.id, years));
             if (!o) return;
@@ -143,7 +148,7 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
           <Gold>{t('sign.confirm', { fee: money(fee) })}</Gold>
         </button>
       </div>
-      {answer && <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div>}
+      {answer ? <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div> : blocked && <div className="answer bad"><Gold>{blocked}</Gold></div>}
     </div>
   );
 }

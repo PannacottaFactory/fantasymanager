@@ -50,7 +50,7 @@ export const CLUB_CONFIG = {
     /** At most this many requests per season, at least `gapWeeks` league weeks apart, one open at a time. */
     maxPerSeason: 3,
     gapWeeks: 4,
-    /** The player's best `stars` creatures (by aptitude) may ask. */
+    /** The player's best `stars` creatures (by overall rating) may ask. */
     stars: 4,
     /** Weekly chance that a star with a reason speaks up. */
     chance: 0.35,

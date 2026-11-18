@@ -132,7 +132,26 @@ export function trimLedgers(state: GameState) {
   for (const club of Object.values(state.clubs)) club.ledger = club.ledger.filter((e) => e.season >= state.season - 1);
 }
 
-/** Weekly wage bill + upkeep of a team (for display and AI budgeting). */
+/**
+ * Everything a stable pays every week, as charged by `weeklyFinances` (medical care aside: it depends on the injured):
+ * creature wages and upkeep, coaches, facilities, and the player's scouts out on a mission.
+ */
+export function weeklyCosts(state: GameState, teamId: string, cfg: GameConfig = DEFAULT_CONFIG) {
+  const team = state.teams.find((t) => t.id === teamId);
+  let wages = 0;
+  let upkeep = 0;
+  for (const c of team?.creatures ?? []) {
+    const w = weeklyCost(c);
+    wages += w.wage;
+    upkeep += w.upkeep;
+  }
+  const staff = Object.values(state.staff?.[teamId] ?? {}).reduce((s, c) => s + (c?.wage ?? 0), 0);
+  const facilities = facilitiesUpkeep(state, teamId, cfg);
+  const scouts = teamId === state.playerTeamId ? state.scouting.missions.length * cfg.economy.expense.scoutPerWeek : 0;
+  return { wages, upkeep, staff, facilities, scouts, total: wages + upkeep + staff + facilities + scouts };
+}
+
+/** Weekly wage bill + upkeep of a team's creatures (AI budgeting). */
 export function weeklyBill(state: GameState, teamId: string): number {
   const team = state.teams.find((t) => t.id === teamId);
   if (!team) return 0;

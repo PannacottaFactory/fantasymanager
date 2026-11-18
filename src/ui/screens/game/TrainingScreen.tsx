@@ -128,7 +128,7 @@ export function TrainingScreen() {
                 onClick={() => setScreen('staff')}
                 title={t('staff.effectFull', { xp: tr.dec(coachFactor(game, team.id, d), 2), p: Math.round(jackpotChance(game, team.id, d) * 100) })}
               >
-                <UiIcon name={`dom-${d}`} /> {categoryName(d, lang)} {staff[d] ? `${staff[d]!.quality}/20` : '—'}
+                <UiIcon name={`dom-${d}`} /> {categoryName(d, lang)} {staff[d] ? <Stars n={staff[d]!.quality / 2} /> : '—'}
               </button>
             ))}
           </span>

@@ -86,6 +86,20 @@ describe('imperfect information', () => {
     expect(knowledgeOf(g, c.id)).toBeGreaterThanOrEqual(DEFAULT_CONFIG.economy.scouting.creatureKnowledge);
     expect(g.inbox.some((m) => m.kind === 'scoutReport')).toBe(true);
   });
+
+  it('signing the creature a scout is watching calls the scout home: no report on your own creature', () => {
+    let g = game();
+    g.board.confidence = 90;
+    const fa = [...g.freeAgents].sort((a, b) => a.ability - b.ability)[0]!;
+    g = sendScout(g, 'creature', fa.id).state;
+    expect(g.scouting.missions).toHaveLength(1);
+    const r = signFreeAgent(g, fa.id, 1);
+    expect(r.outcome.kind).toBe('signed');
+    g = r.state;
+    expect(g.scouting.missions).toHaveLength(0);
+    for (let i = 0; i < DEFAULT_CONFIG.economy.scouting.creatureWeeks + 1; i++) g = playMatchday(g);
+    expect(g.inbox.some((m) => m.kind === 'scoutReport' && m.targetId === fa.id)).toBe(false);
+  });
 });
 
 describe('transfers', () => {

@@ -4,15 +4,20 @@ import type { Rng } from '../../core/rng.ts';
 import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/config/index.ts';
 import { ROLES } from '../../data/roles.ts';
 import { generateCreature } from '../creature/generate.ts';
-import { bestRole, isInjured, roleFit } from '../creature/derived.ts';
+import { bestRole, isInjured, overallRating, roleFit } from '../creature/derived.ts';
 import { generateTeamName } from '../creature/names.ts';
 import type { Creature, LineupSlot, Tactic, Team, TeamOrders } from '../model.ts';
 
 export const DEFAULT_ORDERS: TeamOrders = { aggression: 'balanced', target: 'nearest' };
 
-/** Selection value used by the assistant: ability, discounted by fatigue. */
+/**
+ * Selection value used by the assistant and the AI managers: the overall rating (what the creature brings in the
+ * arena, species included), discounted by fatigue. The hidden aptitude is a step within its species' range, so a
+ * gifted kobold has a high aptitude but weaker attributes than an average death knight: picking on it lost ≈ 7 points
+ * of win rate and the match verdict, which reads the ratings, then blamed the assistant's own choice.
+ */
 export function selectionScore(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): number {
-  return c.ability * (1 - (c.condition.fatigue / 100) * cfg.league.ai.fatigueWeight);
+  return overallRating(c) * (1 - (c.condition.fatigue / 100) * cfg.league.ai.fatigueWeight);
 }
 
 /**

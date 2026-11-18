@@ -7,7 +7,7 @@
 import { clamp } from '../../core/math.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
-import { isInjured } from '../creature/derived.ts';
+import { isInjured, overallRating } from '../creature/derived.ts';
 import { clubOf } from '../economy/finance.ts';
 import { canAdd, canLose, transfer } from '../economy/market.ts';
 import { askingWage, creatureValue, roundTo } from '../economy/value.ts';
@@ -18,9 +18,14 @@ import type { Creature, Team } from '../model.ts';
 
 const playerTeamOf = (state: GameState) => state.teams.find((t) => t.id === state.playerTeamId)!;
 
-/** The player's stars: its best creatures by aptitude. */
+/**
+ * The player's stars: its best creatures by overall rating — the ones it fields (the assistant picks on the rating),
+ * so a playtime request comes from a creature that deserves to play, not from a high aptitude in a weak species.
+ */
 export function starsOf(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): Creature[] {
-  return [...playerTeamOf(state).creatures].sort((a, b) => b.ability - a.ability || a.id.localeCompare(b.id)).slice(0, cfg.club.requests.stars);
+  return [...playerTeamOf(state).creatures]
+    .sort((a, b) => overallRating(b) - overallRating(a) || a.id.localeCompare(b.id))
+    .slice(0, cfg.club.requests.stars);
 }
 
 /** Choices offered for a kind of request. */

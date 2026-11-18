@@ -157,8 +157,11 @@ export function transfer(
     c.contract = contract ? { wage: contract.wage, untilSeason: state.season + contract.years - 1 } : c.contract;
     c.condition.morale = Math.min(100, c.condition.morale + 5);
     to.creatures.push(c);
-    if (to.id === state.playerTeamId) to.tactic = repairTactic(to, cfg).tactic;
-    else to.tactic = autoTactic(to.creatures, cfg, to.tactic.orders);
+    if (to.id === state.playerTeamId) {
+      to.tactic = repairTactic(to, cfg).tactic;
+      // Signed while a scout was watching it: the scout comes home (and stops being paid for it).
+      state.scouting.missions = state.scouting.missions.filter((m) => m.targetId !== c.id);
+    } else to.tactic = autoTactic(to.creatures, cfg, to.tactic.orders);
   } else {
     c.stableId = null;
     delete c.contract;
@@ -415,7 +418,8 @@ export function weeklyScouting(state: GameState, opponentsSeen: string[], cfg: G
   for (const m of done) {
     if (m.target === 'creature') {
       const c = locate(state, m.targetId)?.creature;
-      if (!c) continue;
+      // Gone, or ours by now (a change of stable in career mode): nothing left to report.
+      if (!c || isOwn(state, c.id)) continue;
       const before = knowledgeOf(state, c.id, cfg);
       learn(state, c.id, s.creatureKnowledge, cfg);
       if (!isOwn(state, c.id)) {

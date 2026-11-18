@@ -14,8 +14,10 @@ export type { AiManagerStyle };
 
 export const DEFAULT_AI_STYLE: AiManagerStyle = { tiredBelow: 0.25, hurtBelow: 0.25, adaptOrders: true, talker: 'read' };
 
+/** Who comes on: the overall rating (×2, on the old aptitude scale), plus a bonus for the role to fill. */
 function benchScore(c: Combatant, wantedRole: string): number {
-  return c.ability + (c.role === wantedRole ? 25 : 0);
+  const values = Object.values(c.attrs);
+  return (values.reduce((s, v) => s + v, 0) / values.length) * 10 + (c.role === wantedRole ? 25 : 0);
 }
 
 export function suggestSubstitutions(combat: Combat, side: Side, style: AiManagerStyle = DEFAULT_AI_STYLE): SubstitutionDecision[] {

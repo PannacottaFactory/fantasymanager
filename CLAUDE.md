@@ -42,6 +42,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:fatigue -- --worlds 6` | fatigue spiral: the player's season with no rotation / the assistant's rotation / rotation + pace yourself (starters' fatigue, ≥ 50 / ≥ 70, points, place) |
 | `npm run sim:judges -- --matches 4000` | fairness of the judges: points won by the side with more health / that healed more / made more substitutions, last-break dilution trick |
 | `npm run sim:injuries -- --worlds 6 --seasons 2` | injuries on autopilot: injured per stable and week, weeks with 2+ / 3+ / 4+ / 5+ out, new injuries per match, weeks out, squad size |
+| `node scripts/play-check.mjs <outDir> [url] [loops]` (dev server running; `LIVE_EVERY=n`) | plays like a player: default layout, tutorial on, career mode, every window answered, some matches live with breaks, scout / signing / facility, a season and more; logs windows seen, stuck states, console errors |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
 | `node scripts/steam-check.mjs <outDir> [url] [1920x1080,1366x768,1280x800]` | Steam formats (dev server running): screenshots of every main screen per resolution + pixels each one overflows (0 = fits) |
 | `npm run dev` → top-bar dev tools (dev builds only, `ui/dev/DevTools.tsx`) | window size · screen-size test (the game in an iframe at 1920×1080 / 2560×1440 / 1366×768 / 1280×800 Steam Deck / 1280×720, scaled to fit; the frame skips the start screen; closing reloads to pick up its save) · full screen like a PC game |
@@ -218,6 +219,7 @@ tests/       Vitest
   most famous still in / winner), next round + week, tie, trophy, registration, draw), Honours (trophy cabinet with greyed trophies still to win, season by season).
   Competition colours: `.def-<id>` sets `--comp` (league, shadow, champions, division, or, argent, marches, preseason),
   used by `.comp-badge` (schedule, pre-match title). Emblems are game-icons: `<CompIcon def>` / `<DivIcon d>` (`COMP_ICONS`, `DIV_ICONS` in `scripts/extract-icons.mjs`: crown, fleur-de-lys, castle, watchtower), no emojis.
+- **Selection** (`selectionScore`, assistant + AI line-ups, `repairTactic`; break substitutions `benchScore`; star requests `starsOf`): the overall rating (attribute average, species included) × fatigue, never the hidden aptitude — picking on the aptitude lost ≈ 7 points of win rate (a gifted kobold over an average death knight) and the verdict's « better creature on the bench » blamed the assistant's own choice.
 - **Starting squad**: the player's creatures keep their drawn strength but little room to grow
   (`generation.startingSquad`: potential = ability + gap × 0.35, at most 101 = 6★); stars come later (market, prospects).
 - **Stable names** (`generateTeamName`): six kinds (adjective + noun, noun of place, order of emblem, order of place,
