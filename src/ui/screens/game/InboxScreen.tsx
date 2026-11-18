@@ -468,6 +468,14 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
       </div>
     );
   }
+  if (m.kind === 'contractExpiring')
+    return (
+      <div className="row wrap" style={{ gap: 6 }}>
+        <button className="btn small" onClick={() => useGame.getState().openContractTalks()}>
+          {t('talks.open')}
+        </button>
+      </div>
+    );
   if (m.kind === 'scoutReport' && m.target === 'creature' && locate(game, m.targetId))
     return (
       <div className="row wrap" style={{ gap: 6 }}>
@@ -506,10 +514,10 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
         {t('msg.openRecruit')}
       </button>
     );
-  if (m.kind === 'scoutReport' || m.kind === 'contractExpiring')
+  if (m.kind === 'scoutReport')
     return (
-      <button className="btn small ghost" onClick={() => setScreen(m.kind === 'scoutReport' ? 'recruit' : 'finances')}>
-        {m.kind === 'scoutReport' ? t('msg.openRecruit') : t('nav.finances')}
+      <button className="btn small ghost" onClick={() => setScreen('recruit')}>
+        {t('msg.openRecruit')}
       </button>
     );
   return null;

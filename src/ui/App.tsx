@@ -25,6 +25,8 @@ import { GameSheet } from './screens/game/CreatureSheet.tsx';
 import { IntroModal } from './screens/game/IntroModal.tsx';
 import { WeekRecap } from './screens/game/WeekRecap.tsx';
 import { ScoutReveal } from './screens/game/ScoutReveal.tsx';
+import { SigningReveal } from './screens/game/SigningReveal.tsx';
+import { ContractTalks } from './screens/game/ContractTalks.tsx';
 import { BoardMeeting } from './screens/game/Board.tsx';
 import { JobCentre } from './screens/game/Career.tsx';
 import { SeasonRibbon } from './components/SeasonRibbon.tsx';
@@ -91,12 +93,14 @@ function BalanceChip({ balance, worldSeed }: { balance: number; worldSeed: strin
   );
 }
 
-/** What the top-bar button will do, in words. */
-function continueLabel(t: (k: StringKey) => string, game: GameState, match: { phase: string } | null): string {
-  if (seasonOver(game)) return t('continue.nextSeason');
-  if (match && match.phase !== 'report') return t('continue.back');
-  // A midweek without our match passes on its own up to the next match.
-  return playerFixture(game) || cupDue(game) ? t('continue.next') : t('continue.week');
+/** What the top-bar button will do, in words (label and tooltip). */
+function continueLabel(t: (k: StringKey) => string, game: GameState, match: { phase: string } | null): { label: string; title: string } {
+  if (seasonOver(game)) return { label: t('continue.nextSeason'), title: t('continue.title') };
+  if (match && match.phase !== 'report') return { label: t('continue.back'), title: t('continue.nextTitle') };
+  if (playerFixture(game)) return { label: t('continue.next'), title: t('continue.nextTitle') };
+  // No match of ours left this week (out of that cup, say): the other ties are played and the week ends, no match opens.
+  if (cupDue(game)) return { label: t('continue.finishWeek'), title: t('continue.finishWeekTitle') };
+  return { label: t('continue.week'), title: t('continue.weekTitle') };
 }
 
 function ContinueButton() {
@@ -105,6 +109,7 @@ function ContinueButton() {
   const match = useGame((s) => s.match);
   if (!game) return null;
   const over = seasonOver(game);
+  const action = continueLabel(t, game, match);
   const onClick = () => {
     const st = useGame.getState();
     if (match && match.phase !== 'report') return st.setScreen('match');
@@ -125,8 +130,8 @@ function ContinueButton() {
             ? t('status.cup', { season: game.season, round: midweekLabel(t, game) })
             : t('status.season', { season: game.season, w: weekText(t, game) })}
       </span>
-      <button className="btn primary" onClick={onClick} title={over ? t('continue.title') : t('continue.nextTitle')}>
-        {continueLabel(t, game, match)} ▶
+      <button className="btn primary" onClick={onClick} title={action.title}>
+        {action.label} ▶
       </button>
     </div>
   );
@@ -297,6 +302,8 @@ export function App() {
       {game && !newGameOpen && !launch && <WeekRecap />}
       {game && !newGameOpen && !launch && <ScoutReveal />}
       {game && !newGameOpen && !launch && <BoardMeeting />}
+      {game && !newGameOpen && !launch && <SigningReveal />}
+      {game && !newGameOpen && !launch && <ContractTalks />}
       {game && !newGameOpen && !launch && <JobCentre />}
       {game && !launch && !newGameOpen && <NewsTicker />}
       <Embers />

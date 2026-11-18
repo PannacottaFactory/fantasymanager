@@ -138,7 +138,7 @@ export function SquadScreen() {
           <SquadCount n={team.creatures.length} />
         </div>
         {waiting.length > 0 && (
-          <div className="points-banner">
+          <div className="points-banner" data-tip="points">
             <span className="pb-icon">+{waiting.reduce((n, c) => n + (c.growth?.freePoints ?? 0), 0)}</span>
             <div className="grow">
               <b>{t('points.banner.title')}</b>

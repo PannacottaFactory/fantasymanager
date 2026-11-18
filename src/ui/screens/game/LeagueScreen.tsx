@@ -5,7 +5,7 @@
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { useEffect, useState, type ReactNode } from 'react';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { clubOf } from '../../../engine/economy/finance.ts';
+import { clubOf, seasonPrizeFor } from '../../../engine/economy/finance.ts';
 import { divisionFixtures, divisionOf } from '../../../engine/league/divisions.ts';
 import { lastMatchday, playerDivision, playerFixture, seasonOver, standings, teamById } from '../../../engine/league/season.ts';
 import { computeStandings } from '../../../engine/league/standings.ts';
@@ -186,6 +186,9 @@ function Standings({ game, division }: { game: GameState; division: number }) {
               </th>
               <th>{t('col.lastForm')}</th>
               <th className="num">{t('col.points')}</th>
+              <th className="num" title={t('col.prize.title')}>
+                {t('col.prize')}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -219,6 +222,9 @@ function Standings({ game, division }: { game: GameState; division: number }) {
                   </td>
                   <td className="num">
                     <b className="pts">{r.points}</b>
+                  </td>
+                  <td className="num lg-prize">
+                    <Money v={seasonPrizeFor(i, division)} compact />
                   </td>
                 </tr>
               );
@@ -446,7 +452,11 @@ interface CompView {
   alive: string[];
   winner?: string;
   fixtures: Fixture[];
+  /** What the winner takes home in all (every round's prize). */
   trophy: number;
+  /** Prize for winning each round (paid to every winner of that round). */
+  prizes: number[];
+  fee?: number;
 }
 
 function views(game: GameState): CompView[] {
@@ -461,8 +471,10 @@ function views(game: GameState): CompView[] {
     alive: game.cup.alive,
     winner: game.cup.winner,
     fixtures: game.fixtures.filter((f) => f.competition === 'cup'),
-    trophy: c.prize[c.prize.length - 1] ?? 0,
+    trophy: 0,
+    prizes: Array.from({ length: game.cup.rounds }, (_, r) => c.prize[r] ?? 0),
   };
+  shadow.trophy = shadow.prizes.reduce((a, b) => a + b, 0);
   const tours = (game.tournaments ?? []).map(
     (x): CompView => ({
       id: x.id,
@@ -475,7 +487,9 @@ function views(game: GameState): CompView[] {
       alive: x.alive,
       winner: x.winner,
       fixtures: game.fixtures.filter((f) => f.tournamentId === x.id),
-      trophy: tournamentPrize(game, x, x.rounds - 1),
+      trophy: Array.from({ length: x.rounds }, (_, r) => tournamentPrize(game, x, r)).reduce((a, b) => a + b, 0),
+      prizes: Array.from({ length: x.rounds }, (_, r) => tournamentPrize(game, x, r)),
+      fee: tournamentDef(x).fee,
     }),
   );
   return [shadow, ...tours];
@@ -716,6 +730,47 @@ function CompRow({ game, v, on, onPick }: { game: GameState; v: CompView; on: bo
 }
 
 /** The chosen competition: banner in its colour, trophy, status, the player's next tie, registration, the tree. */
+/** What each round pays (to every side that wins it), what the winner and the runner-up take home, what you won. */
+function Prizes({ game, v }: { game: GameState; v: CompView }) {
+  const { t, money } = useT();
+  const me = game.playerTeamId;
+  if (!v.prizes.some((p) => p > 0)) return null;
+  const won = v.fixtures
+    .filter((f) => f.result && (f.home === me || f.away === me) && (f.result.winner === 0 ? f.home : f.away) === me)
+    .reduce((sum, f) => sum + (v.prizes[f.round ?? 0] ?? 0), 0);
+  const runnerUp = v.trophy - (v.prizes.at(-1) ?? 0);
+  return (
+    <div className="cp-prizes">
+      <span className="cp-prizes-head">
+        <UiIcon name="nav-finances" /> {t('comp.prizes')}
+      </span>
+      {v.prizes.map((p, r) => (
+        <span key={r} className={`cp-prize ${r === v.prizes.length - 1 ? 'final' : ''}`}>
+          <small>{t(roundKey(r, v.prizes.length))}</small>
+          <Money v={p} />
+        </span>
+      ))}
+      <span className="cp-prize sum">
+        <small>{t('comp.prize.winner')}</small>
+        <Money v={v.trophy} />
+      </span>
+      {v.prizes.length > 1 && (
+        <span className="cp-prize sum">
+          <small>{t('comp.prize.runnerUp')}</small>
+          <Money v={runnerUp} />
+        </span>
+      )}
+      {!!v.fee && (
+        <span className="cp-prize fee">
+          <small>{t('comp.prize.fee')}</small>
+          <Money v={v.fee} />
+        </span>
+      )}
+      {won > 0 && <span className="cp-prize mine good-text"><Gold>{t('comp.prize.mine', { v: money(won) })}</Gold></span>}
+    </div>
+  );
+}
+
 function CompDetail({ game, v }: { game: GameState; v: CompView }) {
   const { t, money } = useT();
   const c = useCompInfo(game, v);
@@ -736,10 +791,10 @@ function CompDetail({ game, v }: { game: GameState; v: CompView }) {
             <Gold>{c.desc}</Gold>
           </span>
         </div>
-        <div className="cp-trophy" title={t('comp.trophy', { prize: money(v.trophy) })}>
+        <div className="cp-trophy" title={t('comp.trophy.total', { prize: money(v.trophy) })}>
           <UiIcon name="honours" size="1.6em" />
           <span>
-            <small>{t('comp.col.trophy')}</small>
+            <small>{t('comp.winnerTakes')}</small>
             <b>
               <Money v={v.trophy} />
             </b>
@@ -758,6 +813,7 @@ function CompDetail({ game, v }: { game: GameState; v: CompView }) {
         )}
         {v.def === 'champions' && !c.inIt && <span className="faint">{t('comp.req.champions')}</span>}
       </div>
+      <Prizes game={game} v={v} />
       {(oppId || c.registerButton || c.note) && (
         <div className="cp-action">
           {oppId && (

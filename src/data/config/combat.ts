@@ -221,6 +221,21 @@ export const COMBAT_CONFIG = {
     restWeight: 1.2,
     /** How much tactics lets a creature weigh type matchups (0 = ignores them). */
     elementAwareness: 1,
+    /**
+     * Abilities that deal no damage (curses, cries, snares): share of the target-priority bonus they get (the priority
+     * says whom to hit, not whom to hex), and weight of their effects against a plain attack. Calibrated with
+     * `sim:abilities` so that a control ability, when chosen, is worth the attack it replaces.
+     */
+    debuffPriority: 0.3,
+    debuffWeight: 1,
+    /** Same for cries and auras on a whole line or every foe (roars, screeches, blights). */
+    cryWeight: 0.7,
+    /**
+     * Stamina reserve: a cheaper action that would leave too little stamina to cast, next round, an ability costing at
+     * least `reserveMinCost` that is ready (or back next round) has its score × `staminaReserve` (1 = no reserve).
+     */
+    staminaReserve: 0.5,
+    reserveMinCost: 12,
   },
   rage: { duration: 3 },
   /**

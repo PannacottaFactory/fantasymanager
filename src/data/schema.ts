@@ -153,6 +153,8 @@ export interface EffectDef {
   taunt?: boolean;
   /** Camouflage: single-target abilities cannot pick it (area attacks still hit); its next hostile action reveals it. */
   hidden?: boolean;
+  /** Spent by the creature's next hostile action (its mods still apply to that action): a stance that sets up one blow. */
+  consumedOnAttack?: boolean;
   /** Passive shield that comes back at full strength at every break. */
   rechargeAtBreak?: boolean;
   /** Metamorphosis passive: below this health fraction the creature turns into `transformInto` (permanent effect). */

@@ -30,6 +30,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:match -- --seed 42 --a professional --b regional` | one match in the terminal with commentary + report |
 | `npm run sim:batch -- --matches 1000 --a elite --b novice` | balancing stats over many headless matches |
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
+| `npm run sim:abilities -- --matches 1000 [--only a,b] [--part 1/4]` | what each ability is worth: uses by the AI and win rate added (same matches with / without it); flags rarely used / costly ones |
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
 | `npm run sim:board -- --worlds 10 --seasons 2` | board, supporters & star requests over seasons on autopilot: weeks per mood / tier, ultimatums, tickets, requests per kind, per difficulty |
@@ -123,6 +124,23 @@ tests/       Vitest
   write `de {x}` / `à {x}` / `que {x}` before a creature (elision), use `{aE}/{tE}/{oE}` for gender agreement;
   `tests/i18n.test.ts` checks this on real matches. Inbox messages are stored as data and worded by the UI.
 - **Team talks** (`TeamOrders.talk`, `cfg.combat.orders.talks`, `engine/combat/talks.ts`): before the match and at each break each manager gives one talk to the creatures on the field: rally (morale climbs a share of the way to a target, once), second wind (a share of the missing stamina back, once), focus (+to hit), close ranks (front-line armour vs melee + interceptions), keep moving (ranged / spell hit −), all or nothing (+damage, +stamina costs). Given in `Combat.giveTalk` (constructor after `matchStart`, and `resume()` after every break) → `teamTalk` event (with the morale / stamina it set: view, commentator `teamTalk.<talk>`, marks rally / rest). A talk-only change is recorded in `decisions` but emits no `ordersChanged`. `readTalk(situation)` = the assistant (tired → second wind, shaken → rally, behind in the last period → all or nothing, then the foe's melee share: ≤ 0.4 keep moving, ≥ 0.7 close ranks, else focus); `managerTalk(style, …)` by `AiManagerStyle.talker` (readers and tacticians read, cautious / aggressive / gambler / steady have habits); AI pre-match talk in `applyIdentity`, at breaks in `aiBreakDecision`. The player's `orders.talk` undefined = « Au choix de l'assistant » (`withAssistantTalk` in `fixtureSetup`). UI `components/TeamTalk.tsx` (`TalkPicker`: pre-match panel `data-tip="talk"`, break panel), icons `talk-*`, Encyclopedia rule `talks`, analysis « discours » per break. Measured (`sim:talks`, vs a reading opponent): reading +3 to +9 points, random 0 to +4, each talk best in its own situation, all or nothing early ≈ −6. **Team risk taking was removed** (it duplicated the approach: low always beat high, and no setting made it situational).
+- **Ability balance pass** (Nov 2026, `npm run sim:abilities`: per ability, uses by the AI and win rate added — same
+  matches with / without it; `--only`, `--part i/n` for parallel runs, `--set`; at 1000 matches the noise is ±2 points,
+  confirm a suspect at 3000). Rule: no useless ability (never used, or costs matches). AI fixes in `ai.ts` /
+  `cfg.combat.ai`: no-damage abilities keep only `debuffPriority` (0.3) of the target-priority bonus (curses used to beat
+  attacks on the priority target); area attacks get the priority bonus when they catch the priority target (a plain
+  blow nearly always beat a breath); cries / auras on a line or every foe weighed by `cryWeight` (0.7); stamina reserve
+  (`staminaReserve` 0.5, `reserveMinCost` 12: a filler that would leave too little for a big ability back next round
+  scores less — the dragon used to fritter its breath away on Rend); healing cuts worth little without a foe healer,
+  silences without foe spells; a stun weighs ×3; ally fury buffs go to the hardest hitter, spell mirrors only vs casters;
+  self evasion / rage / camouflage / frenzy scored by line and wounds. Mantis Stance = effect `poised` (dodge +15 %,
+  next attack ×1.6, crit +20 %, `EffectDef.consumedOnAttack`). Data: slowed −12 % dodge −4 % hit, terrified −12 % hit,
+  evasive +22 % dodge; a few weak abilities buffed or cheaper (Rend cost 5, Constrict, Lance Charge, Tail Crush, Life
+  Drain, Crimson Feast, Chill Touch, Gale Wings, Boulder Throw, Screech, Pan Pipes, Death Wail) and four control spells
+  deal a little damage (Harrowing Shriek, Evil Eye, Curse of Frailty, Hypnotic Gaze). Result: abilities add +3.75 points
+  on average, none measurably negative, the rarest are situational self-buffs (0.3–0.6 uses a match). League KO ≈ 49 %.
+  Species 35–70 % in `sim:species`; shade, vampire, lich, giant bat, sphinx, seraph, banshee, myconid repriced up,
+  kraken down. Ability cards and the Encyclopedia show each effect's duration (`effectDuration`, ⧗).
 - **Elements made visible**: a blow on a weakness / resistance (`elementEdge`: `elementMult` ≥ 1.2 / ≤ 0.85, same thresholds as the commentary) puts a chevron mark beside the damage number on the target card (`.float .elem-mark`: double chevron up, green with a glow in the attacking element's colour = effective; chevron down, grey = resisted) and an « Efficace ! » / « Résiste » `.edge-chip` on its chronicle line; Analysis › « Éléments » (`SideAnalysis.elements`, `elementCreatures`: effective / resisted blows, damage added / lost per side and per creature, taken extra / spared) + insights `elementsFor` / `elementsAgainst` (net gap ≥ 40).
 - **Live match visuals**: `ui/screens/arena/matchFx.ts` turns events into card reactions (attacker glow/lunge,
   target shake + floating number, ghost HP bar; a floating number lives `FLOAT_MS` 1.9 s and stays on its card while later blows land elsewhere: `keepRecent` in `LiveMatch`); hovering a commentary line highlights actor & target
@@ -260,6 +278,17 @@ tests/       Vitest
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
   `engine/economy/actions.ts` return `{ state, outcome }` (UI words the outcome; `useGame().act(f)` saves).
   AI bid answers are deterministic (`deriveSeed(world, 'bid', season, matchday, creature, attempt)`).
+- **New signing unveiled** (`ui/screens/game/SigningReveal.tsx`, store `signings` = `{ id, before }`, not saved): any creature
+  joining the player's stable (bid, free agent, emergency signing; not a change of stable) is queued by `commit` with its
+  knowledge before; its card turns, the 21 attributes then the rating and potential close in from the ranges to the truth
+  (staggered), a stamp says lucky / as expected / disappointing (where the truth sat in the range the player knew). Shown
+  over the creature sheet, after the match / training / weekly windows.
+- **Contract talks** (`ui/screens/game/ContractTalks.tsx`, store `contractTalks`): opens with the `contractExpiring` warning
+  (4 league weeks before the end) and from that Journal message: every contract ending this season, value, wage, demand per
+  1/2/3 seasons (delta vs the wage), Extend (`renew`) / Let go (display only: the contract simply runs out).
+- **Competition prizes**: each round's prize is paid to every winner of that round; `CompDetail` shows `Prizes` (per round,
+  winner in all, runner-up, entry fee, what the player won so far) and the banner's « Le vainqueur empoche » = sum of rounds.
+- Pre-match « Pauses » toggle (`.manage-breaks`, role switch, icon `breaks`) replaces the old checkbox.
 - **Scout hold** (`scouting.holdWeeks` 3, `scoutHeld`, `ScoutingState.held`): a creature under a scout mission and for 3 weeks after the
   report neither drifts away nor gets cut from the free agents, no AI stable signs / buys it, and it stays in « Sélection pour vous ».
 - **Coach market turnover** (`weeklyCoachMarket`, `coaches.marketTurnover` 0.12): each league week a candidate may leave, replaced by a
@@ -417,7 +446,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   quarrels, match-start morale, friends mourn departures), grouped navigation, save migration v3→v4. 77 tests.
 - [x] **Tutorial** (reworked for new players): `ui/tutorial/FirstSteps.tsx` = « Premiers pas » checklist on the home
   screen (6 quests ticked automatically by `useFirstStepsTracker`: open a sheet, tactics, first match, report, training,
-  market; stored with the tutorial in localStorage); the dashboard always shows everything. 13 short tips (one or two sentences, no step counter). Originally: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
+  market; stored with the tutorial in localStorage); the dashboard always shows everything. 22 short tips (no step counter), incl. board, points to place, orders cycle, how a match is won (score band `scoreband`), training sessions. Originally: 19 contextual tips (`ui/tutorial/`: steps anchored to `data-tip="…"` elements, the first
   unseen one whose anchor is visible is shown; progress in localStorage; only during a game), Help page (`?` button)
   with the manual and tutorial controls, opt-out checkbox on the start screen. Adding a screen ⇒ add a `data-tip`
   anchor + a step + `tut.<id>.title/body` strings if it needs explaining.

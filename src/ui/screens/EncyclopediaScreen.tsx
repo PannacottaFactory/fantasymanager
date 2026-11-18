@@ -3,7 +3,7 @@
  * rules — all generated from the game data and config, so the numbers are always the real ones.
  * Play styles are never named: only mechanics.
  */
-import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { Lang } from '../../core/i18n.ts';
@@ -24,7 +24,7 @@ import {
 import { RoleIcon, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
-import { KindIcon } from '../components/AbilityCard.tsx';
+import { durationLabel, effectDuration, KindIcon } from '../components/AbilityCard.tsx';
 import { unlockLevel } from '../../engine/progression/levels.ts';
 import { coverReduction } from '../../engine/combat/formulas.ts';
 import { useGame } from '../store/gameStore.ts';
@@ -516,7 +516,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
 // ——— Abilities ———
 
 export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) {
-  const { lang } = useT();
+  const { lang, t } = useT();
   const e = encT(lang);
   const pct = usePct();
   const mult = useMult();
@@ -559,14 +559,14 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
       <List
         title={e('ab.effects')}
         items={(a.effects ?? []).map((x) => {
-          const def = EFFECTS[x.effect];
           return (
             <>
               {e('ab.effectChance', {
                 chance: Math.round(x.chance * 100),
                 effect: '§',
                 stacks: (x.stacks ?? 1) > 1 ? e('ab.effectStacks', { n: x.stacks! }) : '',
-                duration: x.duration && def && x.duration !== def.defaultDuration ? e('ab.effectDuration', { n: x.duration }) : '',
+                // Always said: rounds, the target's next turns, until the break, or the whole match.
+                duration: ` (${durationLabel(t, effectDuration(x))})`,
                 self: x.on === 'self' ? e('ab.effectSelf') : '',
               })
                 .split('§')
@@ -640,6 +640,7 @@ export function EffectEntry({ id, go }: { id: string; go: (l: Link) => void }) {
   if (fx.silence) lines.push(e('fx.silence'));
   if (fx.taunt) lines.push(e('fx.taunt'));
   if (fx.hidden) lines.push(e('fx.hidden'));
+  if (fx.consumedOnAttack) lines.push(e('fx.consumed'));
   if (fx.rechargeAtBreak) lines.push(e('fx.recharge'));
   if (fx.transformInto)
     lines.push(
@@ -790,37 +791,77 @@ export function RoleEntry({ id, go }: { id: RoleId; go: (l: Link) => void }) {
 
 // ——— Elements, attributes, injuries, rules ———
 
+/** An element as a round medallion in its colour (icon), with its name or not. */
+function ElementBadge({ id, named, size = 'md' }: { id: ElementId; named?: boolean; size?: 'sm' | 'md' | 'lg' }) {
+  const { lang } = useT();
+  return (
+    <span className={`el-badge ${size}`} style={{ '--el': ELEMENTS[id].color } as CSSProperties} title={named ? undefined : elementName(id, lang)}>
+      <span className="el-medal">
+        <UiIcon name={`el-${id}`} size="1em" />
+      </span>
+      {named && <span className="el-badge-name">{elementName(id, lang)}</span>}
+    </span>
+  );
+}
+
 export function ElementsChart() {
   const { lang } = useT();
   const e = encT(lang);
   const mult = useMult();
   const el = cfg.elements;
+  // Row / column under the pointer in the chart (both light up).
+  const [hover, setHover] = useState<{ a: ElementId | null; d: ElementId | null }>({ a: null, d: null });
+  const fears = (d: ElementId) => ELEMENT_IDS.filter((a) => el.strong[a].includes(d));
+  const resists = (d: ElementId) => ELEMENT_IDS.filter((a) => el.weak[a].includes(d));
+  const speciesWith = (x: ElementId) => SPECIES_IDS.filter((sid) => SPECIES[sid]!.elements.includes(x)).length;
+  const line = (label: string, tone: string, list: ElementId[]) => (
+    <div className={`el-line ${tone}`}>
+      <span className="el-line-label">{label}</span>
+      <span className="el-line-list">
+        {list.length ? list.map((x) => <ElementBadge key={x} id={x} named size="sm" />) : <span className="faint">{e('el.none')}</span>}
+      </span>
+    </div>
+  );
   return (
-    <div>
+    <div className="el-page">
       <h3 className="enc-title">{e('tab.elements')}</h3>
       <p>{e('el.intro', { strong: mult(el.strongMult), weak: mult(el.weakMult), min: mult(el.minMult), max: mult(el.maxMult) })}</p>
-      <div style={{ overflowX: 'auto' }}>
-        <table className="data enc-elements">
+      <div className="el-legend">
+        <span className="el-cell strong">▲ ×{mult(el.strongMult)}</span> {e('el.effective')}
+        <span className="el-cell weak">▼ ×{mult(el.weakMult)}</span> {e('el.resisted')}
+        <span className="el-cell neutral">·</span> {e('el.neutral')}
+      </div>
+
+      <p className="faint" style={{ marginTop: 0 }}>
+        {e('el.matrixHint')} {e('el.dual', { max: mult(el.maxMult), min: mult(el.minMult) })}
+      </p>
+      <div className="el-matrix-wrap">
+        <table className="el-matrix" onMouseLeave={() => setHover({ a: null, d: null })}>
           <thead>
             <tr>
-              <th>{e('el.attacker')}</th>
+              <th className="el-corner">{e('el.attacker')}</th>
               {ELEMENT_IDS.map((d) => (
-                <th key={d} style={{ color: ELEMENTS[d].color }}>
-                  {elementName(d, lang)}
+                <th key={d} className={hover.d === d ? 'lit' : ''}>
+                  <ElementBadge id={d} />
+                  <small>{elementName(d, lang)}</small>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {ELEMENT_IDS.map((a) => (
-              <tr key={a}>
-                <th style={{ color: ELEMENTS[a].color, textAlign: 'left' }}>{elementName(a, lang)}</th>
+              <tr key={a} className={hover.a === a ? 'lit' : ''}>
+                <th>
+                  <ElementBadge id={a} named />
+                </th>
                 {ELEMENT_IDS.map((d) => {
                   const strong = el.strong[a].includes(d);
                   const weak = el.weak[a].includes(d);
                   return (
-                    <td key={d} className={`num ${strong ? 'good-text' : weak ? 'bad-text' : 'faint'}`}>
-                      {strong ? `×${mult(el.strongMult)}` : weak ? `×${mult(el.weakMult)}` : '—'}
+                    <td key={d} className={hover.d === d ? 'lit' : ''} onMouseEnter={() => setHover({ a, d })}>
+                      <span className={`el-cell ${strong ? 'strong' : weak ? 'weak' : 'neutral'}`}>
+                        {strong ? `▲ ×${mult(el.strongMult)}` : weak ? `▼ ×${mult(el.weakMult)}` : '·'}
+                      </span>
                     </td>
                   );
                 })}
@@ -828,6 +869,25 @@ export function ElementsChart() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <h4 className="el-section">{e('el.each')}</h4>
+      <div className="el-cards">
+        {ELEMENT_IDS.map((x) => (
+          <article key={x} className="el-card" style={{ '--el': ELEMENTS[x].color } as CSSProperties}>
+            <header className="el-card-head">
+              <ElementBadge id={x} size="lg" />
+              <span>
+                <b>{elementName(x, lang)}</b>
+                <small className="faint">{e('el.species', { n: speciesWith(x) })}</small>
+              </span>
+            </header>
+            {line(e('el.hitsHard'), 'good', el.strong[x])}
+            {line(e('el.hitsPoorly'), 'bad', el.weak[x])}
+            {line(e('el.fears'), 'bad', fears(x))}
+            {line(e('el.resists'), 'good', resists(x))}
+          </article>
+        ))}
       </div>
     </div>
   );

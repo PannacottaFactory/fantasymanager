@@ -188,10 +188,23 @@ function PreMatch({ game, match }: { game: GameState; match: MatchFlow }) {
           <b><UiIcon name="simulate" /> {t('match.simulate')}</b>
           <small>{t('match.simulateSub')}</small>
         </button>
-        <label className="manage-breaks">
-          <input type="checkbox" checked={playerControls} onChange={(e) => setPlayerControls(e.target.checked)} />
-          {t('match.manageBreaks')}
-        </label>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={playerControls}
+          className={`manage-breaks ${playerControls ? 'on' : ''}`}
+          onClick={() => setPlayerControls(!playerControls)}
+          title={t('match.manageBreaks')}
+        >
+          <span className="mb-icon">
+            <UiIcon name="breaks" size="1.25em" />
+          </span>
+          <span className="mb-text">
+            <b>{t('match.breaks.title')}</b>
+            <small>{playerControls ? t('match.breaks.me') : t('match.breaks.assistant')}</small>
+          </span>
+          <i className="mb-switch" aria-hidden="true" />
+        </button>
       </section>
       <div className="two-cols prematch-lineups">
         <LineupCard team={mine} title={t('match.lineup')} side={0} />

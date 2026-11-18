@@ -26,7 +26,7 @@ const FLIP_MS = 750;
 const NARROW_MS = 2600;
 const LINES = 3;
 
-function colorOf(speciesId: string, i: 0 | 1): string {
+export function colorOf(speciesId: string, i: 0 | 1): string {
   const els = SPECIES[speciesId]?.elements ?? [];
   const e = els[i] ?? els[0];
   return e ? ELEMENTS[e].color : '#8a7a62';
@@ -62,7 +62,7 @@ function useKnowledgeTween(from: number, to: number, key: string): { k: number; 
   return state;
 }
 
-function StarRange({ low, high }: { low: number; high: number }) {
+export function StarRange({ low, high }: { low: number; high: number }) {
   return (
     <span className="reveal-stars" aria-label={`${low}–${high}★`}>
       {Array.from({ length: 10 }, (_, i) => {
@@ -78,7 +78,7 @@ function StarRange({ low, high }: { low: number; high: number }) {
   );
 }
 
-function RangeBar({ low, high, max }: { low: number; high: number; max: number }) {
+export function RangeBar({ low, high, max }: { low: number; high: number; max: number }) {
   return (
     <span className="reveal-bar">
       <i style={{ left: `${((low - 1) / (max - 1)) * 100}%`, width: `${Math.max(2.5, ((high - low) / (max - 1)) * 100)}%` }} />

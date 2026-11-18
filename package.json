@@ -17,6 +17,7 @@
     "sim:season": "tsx src/sim/season.ts",
     "sim:balance": "tsx src/sim/balance.ts",
     "sim:species": "tsx src/sim/species.ts",
+    "sim:abilities": "tsx src/sim/abilities.ts",
     "sim:archetypes": "tsx src/sim/archetypes.ts",
     "sim:ai": "tsx src/sim/ai.ts",
     "sim:board": "tsx src/sim/board.ts",

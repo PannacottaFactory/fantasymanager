@@ -33,7 +33,7 @@ const list: AbilityDef[] = [
   { id: 'dive', name: 'Dive', kind: 'melee', element: 'air', target: 'enemy', power: 19, staminaCost: 12, cooldown: 2, reachBack: true, verb: 'dives out of the sky onto', description: 'Plunges onto any target, even in the back line.' },
 
   // ——— Dragon ———
-  { id: 'rend', name: 'Rend', kind: 'melee', element: 'physical', target: 'enemy', power: 19, staminaCost: 8, cooldown: 0, verb: 'rends', description: 'Claws like swords.' },
+  { id: 'rend', name: 'Rend', kind: 'melee', element: 'physical', target: 'enemy', power: 19, staminaCost: 5, cooldown: 0, verb: 'rends', description: 'Claws like swords.' },
   { id: 'fire-breath', name: 'Fire Breath', kind: 'spell', element: 'fire', target: 'allEnemies', power: 14, staminaCost: 22, cooldown: 4, verb: 'breathes a torrent of fire over', description: 'Engulfs the whole enemy team.', effects: [{ effect: 'burning', chance: 0.4, on: 'target' }] },
   { id: 'tail-sweep', name: 'Tail Sweep', kind: 'melee', element: 'physical', target: 'enemyFront', power: 13, staminaCost: 12, cooldown: 3, verb: 'sweeps its tail through', description: 'Knocks the front line about.', effects: [{ effect: 'slowed', chance: 0.35, on: 'target' }] },
   { id: 'terrifying-roar', name: 'Terrifying Roar', kind: 'debuff', element: 'physical', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 5, fear: 14, verb: 'unleashes a terrifying roar at', description: 'Shakes the courage of every foe.', effects: [{ effect: 'terrified', chance: 0.4, on: 'target' }] },
@@ -45,12 +45,12 @@ const list: AbilityDef[] = [
 
   // ——— Harpy ———
   { id: 'rake', name: 'Rake', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 5, cooldown: 0, verb: 'rakes at', description: 'Swift slashing pass.', effects: [{ effect: 'bleeding', chance: 0.2, on: 'target' }] },
-  { id: 'screech', name: 'Screech', kind: 'debuff', element: 'air', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 6, verb: 'lets out a piercing screech at', description: 'Deafening cry that slows every foe.', effects: [{ effect: 'slowed', chance: 0.5, on: 'target' }] },
+  { id: 'screech', name: 'Screech', kind: 'debuff', element: 'air', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 10, verb: 'lets out a piercing screech at', description: 'Deafening cry that slows every foe.', effects: [{ effect: 'slowed', chance: 0.8, on: 'target' }] },
 
   // ——— Shade ———
-  { id: 'chill-touch', name: 'Chill Touch', kind: 'melee', element: 'shadow', target: 'enemy', power: 11, staminaCost: 5, cooldown: 0, verb: 'lays a chilling hand on', description: 'Cold that seeps into the soul.' },
+  { id: 'chill-touch', name: 'Chill Touch', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, effects: [{ effect: 'weakened', chance: 0.3, on: 'target' }], verb: 'lays a chilling hand on', description: 'Cold that seeps into the soul and may sap its strength.' },
   { id: 'shadow-bolt', name: 'Shadow Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'hurls a shadow bolt at', description: 'Darkness given force.' },
-  { id: 'life-drain', name: 'Life Drain', kind: 'spell', element: 'shadow', target: 'enemy', power: 13, staminaCost: 10, cooldown: 2, lifesteal: 0.6, verb: 'drains the life from', description: 'Steals vitality from the target.' },
+  { id: 'life-drain', name: 'Life Drain', kind: 'spell', element: 'shadow', target: 'enemy', power: 16, staminaCost: 10, cooldown: 2, lifesteal: 0.6, verb: 'drains the life from', description: 'Steals vitality from the target.' },
   { id: 'dread', name: 'Dread', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 8, cooldown: 3, fear: 18, verb: 'fills the mind of', description: 'Whispers of doom that crush morale.', effects: [{ effect: 'terrified', chance: 0.9, on: 'target' }] },
 
   // ——— Treant ———
@@ -62,7 +62,7 @@ const list: AbilityDef[] = [
   // ——— Naga ———
   { id: 'trident', name: 'Trident Thrust', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, verb: 'thrusts a trident at', description: 'Three points of pain.' },
   { id: 'tidal-lash', name: 'Tidal Lash', kind: 'spell', element: 'water', target: 'enemy', power: 16, staminaCost: 8, cooldown: 0, verb: 'whips a lash of water at', description: 'Pressurized brine.' },
-  { id: 'constrict', name: 'Constrict', kind: 'melee', element: 'physical', target: 'enemy', power: 9, staminaCost: 10, cooldown: 3, verb: 'coils around', description: 'Squeezes the target into helplessness.', effects: [{ effect: 'stunned', chance: 0.5, on: 'target' }] },
+  { id: 'constrict', name: 'Constrict', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 8, cooldown: 3,verb: 'coils around', description: 'Squeezes the target into helplessness.', effects: [{ effect: 'stunned', chance: 0.5, on: 'target' }] },
   { id: 'healing-waters', name: 'Healing Waters', kind: 'heal', element: 'water', target: 'allAllies', power: 9, staminaCost: 14, cooldown: 4, verb: 'washes healing waters over', description: 'Heals every ally a little.' },
 
   // ——— Griffin ———
@@ -96,7 +96,7 @@ const list: AbilityDef[] = [
 
   // ——— Basilisk ———
   { id: 'venom-fang', name: 'Venom Fang', kind: 'melee', element: 'nature', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.6, on: 'target' }], verb: 'sinks venomous fangs into', description: 'A bite that keeps hurting.' },
-  { id: 'tail-crush', name: 'Tail Crush', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 10, cooldown: 2, verb: 'brings its tail crashing down on', description: 'A stone-scaled tail like a mace.' },
+  { id: 'tail-crush', name: 'Tail Crush', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 8, cooldown: 2, verb: 'brings its tail crashing down on', description: 'A stone-scaled tail like a mace.' },
   { id: 'stone-gaze', name: 'Petrifying Gaze', kind: 'debuff', element: 'earth', target: 'enemy', power: 0, staminaCost: 12, cooldown: 4, fear: 6, effects: [{ effect: 'stunned', chance: 0.6, on: 'target' }], verb: 'fixes its petrifying gaze on', description: 'One look, and limbs turn to stone.' },
 
   // ——— Djinn ———
@@ -108,7 +108,7 @@ const list: AbilityDef[] = [
   // ——— Centaur ———
   { id: 'recurve-bow', name: 'Recurve Bow', kind: 'ranged', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, accuracyMod: 0.05, verb: 'looses a recurve arrow at', description: 'Shot at full gallop.' },
   { id: 'hoof-strike', name: 'Hoof Strike', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'kicks out at', description: 'Four hooves, one direction.' },
-  { id: 'lance-charge', name: 'Lance Charge', kind: 'melee', element: 'physical', target: 'enemy', power: 21, staminaCost: 14, cooldown: 3, reachBack: true, critMod: 0.05, verb: 'gallops lance-first into', description: 'Charges through the lines to any target.' },
+  { id: 'lance-charge', name: 'Lance Charge', kind: 'melee', element: 'physical', target: 'enemy', power: 21, staminaCost: 11, cooldown: 3, reachBack: true, critMod: 0.05, verb: 'gallops lance-first into', description: 'Charges through the lines to any target.' },
   { id: 'trample', name: 'Trample', kind: 'melee', element: 'earth', target: 'enemyFront', power: 11, staminaCost: 13, cooldown: 3, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'tramples', description: 'Rides over the enemy front line.' },
 
   // ——— Wendigo ———
@@ -157,9 +157,9 @@ const list: AbilityDef[] = [
 
   // ——— Hag ———
   { id: 'hex-bolt', name: 'Hex Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'hexed', chance: 0.45, on: 'target' }], verb: 'spits a crackling hex at', description: 'May hex the target until the next break.' },
-  { id: 'curse-of-frailty', name: 'Curse of Frailty', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 8, cooldown: 3, effects: [{ effect: 'frailty', chance: 0.9, on: 'target' }], verb: 'points a crooked finger at', description: 'Armour fails until the next break.' },
+  { id: 'curse-of-frailty', name: 'Curse of Frailty', kind: 'debuff', element: 'shadow', target: 'enemy', power: 7, staminaCost: 7, cooldown: 3, effects: [{ effect: 'frailty', chance: 0.9, on: 'target' }], verb: 'points a crooked finger at', description: 'Armour fails until the next break.' },
   { id: 'blight', name: 'Blight', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 12, cooldown: 5, effects: [{ effect: 'blighted', chance: 0.7, on: 'target' }], verb: 'calls a creeping blight down on', description: 'Halves the healing every foe receives until the next break.' },
-  { id: 'evil-eye', name: 'Evil Eye', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 10, cooldown: 4, effects: [{ effect: 'jinxed', chance: 0.9, on: 'target' }, { effect: 'hexed', chance: 0.6, on: 'target' }], verb: 'casts the evil eye on', description: 'Bad luck and weak blows until the next break.' },
+  { id: 'evil-eye', name: 'Evil Eye', kind: 'debuff', element: 'shadow', target: 'enemy', power: 8, staminaCost: 10, cooldown: 4, effects: [{ effect: 'jinxed', chance: 0.9, on: 'target' }, { effect: 'hexed', chance: 0.6, on: 'target' }], verb: 'casts the evil eye on', description: 'Bad luck and weak blows until the next break.' },
 
   // ——— Unicorn ———
   { id: 'horn-strike', name: 'Horn Strike', kind: 'melee', element: 'light', target: 'enemy', power: 17, staminaCost: 7, cooldown: 0, verb: 'drives its shining horn into', description: 'A spiral of hardened light.' },
@@ -188,7 +188,7 @@ const list: AbilityDef[] = [
   // ——— Vampire ———
   { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 16, staminaCost: 8, cooldown: 0, lifesteal: 0.75, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
   { id: 'blood-bolt', name: 'Blood Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 8, cooldown: 1, lifesteal: 0.35, verb: 'hurls a bolt of blood at', description: 'A spell that heals its caster.' },
-  { id: 'crimson-feast', name: 'Crimson Feast', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 8, staminaCost: 18, cooldown: 5, lifesteal: 0.5, verb: 'draws the blood out of', description: 'Drains every foe at once.' },
+  { id: 'crimson-feast', name: 'Crimson Feast', kind: 'spell', element: 'shadow', target: 'allEnemies', power: 10, staminaCost: 14, cooldown: 5, lifesteal: 0.5, verb: 'draws the blood out of', description: 'Drains every foe at once.' },
 
   // ——— Giant bat ———
   { id: 'leeching-bite', name: 'Leeching Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 13, staminaCost: 5, cooldown: 0, lifesteal: 0.7, verb: 'latches on to', description: 'Feeds as it bites.' },
@@ -197,7 +197,7 @@ const list: AbilityDef[] = [
   // ——— Giant mantis ———
   { id: 'scythe-arms', name: 'Scythe Arms', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, critMod: 0.05, execute: 0.5, verb: 'slices its scythes across', description: 'Hits 50 % harder on a target below 30 % health.' },
   { id: 'decapitate', name: 'Decapitate', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 12, cooldown: 3, reachBack: true, execute: 1, verb: 'strikes at the neck of', description: 'Reaches any target; deals double damage to one below 30 % health.' },
-  { id: 'mantis-stance', name: 'Mantis Stance', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'freezes into a patient stance', description: 'Waits, sways, hard to hit.' },
+  { id: 'mantis-stance', name: 'Mantis Stance', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'poised', chance: 1, on: 'self' }], verb: 'freezes into a patient stance', description: 'Waits, sways, hard to hit, then strikes: its next attack lands 60 % harder.' },
 
   // ——— Ooze ———
   { id: 'engulf', name: 'Engulf', kind: 'melee', element: 'water', target: 'enemy', power: 11, staminaCost: 6, cooldown: 0, staminaDrain: 14, effects: [{ effect: 'sapped', chance: 0.6, on: 'target' }], verb: 'engulfs', description: 'Drains 14 stamina and may sap the target’s recovery.' },
@@ -211,8 +211,8 @@ const list: AbilityDef[] = [
 
   // ——— Banshee ———
   { id: 'keening-bolt', name: 'Keening Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, fear: 8, verb: 'sends a keening bolt at', description: 'Hurts the body and the nerves.' },
-  { id: 'death-wail', name: 'Death Wail', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 4, fear: 17, effects: [{ effect: 'terrified', chance: 0.6, on: 'target' }], verb: 'wails a death-cry at', description: 'A cry that shakes the courage of every foe.' },
-  { id: 'harrowing-shriek', name: 'Harrowing Shriek', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 9, cooldown: 3, fear: 24, effects: [{ effect: 'terrified', chance: 1, on: 'target' }], verb: 'shrieks into the face of', description: 'Breaks the nerve of one foe.' },
+  { id: 'death-wail', name: 'Death Wail', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 11, cooldown: 5, fear: 20, effects: [{ effect: 'terrified', chance: 0.8, on: 'target' }], verb: 'wails a death-cry at', description: 'A cry that shakes the courage of every foe.' },
+  { id: 'harrowing-shriek', name: 'Harrowing Shriek', kind: 'debuff', element: 'shadow', target: 'enemy', power: 8, staminaCost: 9, cooldown: 3, fear: 24, effects: [{ effect: 'terrified', chance: 1, on: 'target' }], verb: 'shrieks into the face of', description: 'Breaks the nerve of one foe.' },
 
   // ——— Nightmare ———
   { id: 'nightmare-hoof', name: 'Nightmare Hoof', kind: 'melee', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, fear: 5, verb: 'brings burning hooves down on', description: 'Hooves of smoke and embers.' },
@@ -228,7 +228,7 @@ const list: AbilityDef[] = [
 
   // ——— Cyclops ———
   { id: 'cyclops-club', name: 'Giant Club', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 9, cooldown: 0, accuracyMod: -0.04, verb: 'swings a tree trunk at', description: 'A whole tree, swung.' },
-  { id: 'boulder-throw', name: 'Boulder Throw', kind: 'ranged', element: 'earth', target: 'enemyBack', power: 8, staminaCost: 15, cooldown: 4, verb: 'hurls a boulder into', description: 'Hits the whole enemy back line.' },
+  { id: 'boulder-throw', name: 'Boulder Throw', kind: 'ranged', element: 'earth', target: 'enemyBack', power: 11, staminaCost: 15, cooldown: 4, verb: 'hurls a boulder into', description: 'Hits the whole enemy back line.' },
   { id: 'earthshaker', name: 'Earthshaker', kind: 'melee', element: 'earth', target: 'enemyFront', power: 10, staminaCost: 15, cooldown: 4, effects: [{ effect: 'stunned', chance: 0.2, on: 'target' }], verb: 'stamps the ground under', description: 'Shakes the whole enemy front line; may stun.' },
 
   // ——— Storm elemental ———
@@ -259,7 +259,7 @@ const list: AbilityDef[] = [
   { id: 'goat-charge', name: 'Goat Charge', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 12, cooldown: 3, reachBack: true, effects: [{ effect: 'stunned', chance: 0.2, on: 'target' }], verb: 'lowers its goat horns and charges', description: 'Charges any target, even in the back line; may stun.' },
   { id: 'yeti-maul', name: 'Yeti Maul', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 8, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.35, on: 'target' }], verb: 'brings frozen fists down on', description: 'Fists like blocks of ice; may chill.' },
   { id: 'snow-hurl', name: 'Snow Hurl', kind: 'ranged', element: 'water', target: 'enemy', power: 12, staminaCost: 6, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.5, on: 'target' }], verb: 'hurls a packed snowball at', description: 'A snowball the size of a boulder; may chill.' },
-  { id: 'gale-wings', name: 'Gale Wings', kind: 'spell', element: 'air', target: 'enemyFront', power: 9, staminaCost: 14, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.5, on: 'target' }], verb: 'beats up a gale over', description: 'Wingbeats that batter the whole enemy front line.' },
+  { id: 'gale-wings', name: 'Gale Wings', kind: 'spell', element: 'air', target: 'enemyFront', power: 12, staminaCost: 14, cooldown: 4, effects: [{ effect: 'slowed', chance: 0.5, on: 'target' }], verb: 'beats up a gale over', description: 'Wingbeats that batter the whole enemy front line.' },
   { id: 'rusty-blade', name: 'Rusty Blade', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, verb: 'hacks with a rusty blade at', description: 'An old sword that never tires.' },
   { id: 'ghoul-claws', name: 'Ghoul Claws', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 6, cooldown: 0, pack: 0.25, effects: [{ effect: 'stunned', chance: 0.12, on: 'target' }], verb: 'rakes paralysing claws across', description: '+25 % damage per ally already on the target this round; may paralyse.' },
   { id: 'mummy-fist', name: 'Bandaged Fist', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'swings a bandaged fist at', description: 'Slow, heavy, ancient.' },
@@ -280,7 +280,7 @@ const list: AbilityDef[] = [
   { id: 'lizard-spear', name: 'Swamp Spear', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, verb: 'thrusts a spear at', description: 'Steady, patient thrust.' },
   { id: 'javelin', name: 'Javelin', kind: 'ranged', element: 'physical', target: 'enemy', power: 12, staminaCost: 6, cooldown: 0, verb: 'throws a javelin at', description: 'Bone-tipped and well aimed.' },
   { id: 'ram-butt', name: 'Ram Butt', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 5, cooldown: 0, verb: 'butts', description: 'Horns first.' },
-  { id: 'pan-pipes', name: 'Pan Pipes', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 4, effects: [{ effect: 'slowed', chance: 0.7, on: 'target' }], verb: 'plays a lulling tune at', description: 'A tune that may slow every foe.' },
+  { id: 'pan-pipes', name: 'Pan Pipes', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 10, cooldown: 4, fear: 8, effects: [{ effect: 'slowed', chance: 0.9, on: 'target' }], verb: 'plays a lulling tune at', description: 'A tune that may slow every foe.' },
   { id: 'wild-song', name: 'Wild Song', kind: 'heal', element: 'nature', target: 'ally', power: 19, staminaCost: 9, cooldown: 2, verb: 'sings a wild song for', description: 'A reveller’s song that mends an ally.' },
   // ——— Wave 5: wards, silence, provocation, camouflage, corrosion, spell mirrors, metamorphosis ———
   { id: 'rune-fist', name: 'Rune Fist', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'drives a rune-carved fist into', description: 'A fist of carved stone.' },
@@ -296,7 +296,7 @@ const list: AbilityDef[] = [
   { id: 'nine-tails', name: 'Nine Tails', kind: 'melee', element: 'physical', target: 'enemy', power: 7, staminaCost: 10, cooldown: 2, hits: 3, verb: 'lashes all its tails at', description: 'Three lashes of the tails, each rolling to hit.' },
   { id: 'acid-spit', name: 'Acid Spit', kind: 'ranged', element: 'nature', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'corroded', chance: 0.6, on: 'target' }], verb: 'spits acid at', description: 'Eats away armour: a dose of corrosion (up to 4).' },
   { id: 'coils', name: 'Crushing Coils', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 7, cooldown: 0, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'wraps its coils around', description: 'Squeezes; may slow.' },
-  { id: 'hypnotic-gaze', name: 'Hypnotic Gaze', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 8, cooldown: 3, fear: 6, effects: [{ effect: 'silenced', chance: 0.7, on: 'target' }], verb: 'locks its hypnotic gaze on', description: 'Spellbinds a foe: silenced (no spells, no heals) and shaken.' },
+  { id: 'hypnotic-gaze', name: 'Hypnotic Gaze', kind: 'debuff', element: 'shadow', target: 'enemy', power: 7, staminaCost: 8, cooldown: 3, fear: 6, effects: [{ effect: 'silenced', chance: 0.7, on: 'target' }], verb: 'locks its hypnotic gaze on', description: 'Spellbinds a foe: silenced (no spells, no heals) and shaken.' },
   { id: 'tengu-blade', name: 'Tengu Blade', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 6, cooldown: 0, verb: 'swoops down with a blade on', description: 'A short sword swung from the air.' },
   { id: 'mirror-charm', name: 'Mirror Charm', kind: 'buff', element: 'air', target: 'ally', power: 0, staminaCost: 8, cooldown: 3, effects: [{ effect: 'spell-mirror', chance: 1, on: 'target' }], verb: 'hangs a mirror charm on', description: 'For 3 rounds, an ally sends 40 % of the spell damage it takes back to the caster.' },
   { id: 'gust-cut', name: 'Gust Cut', kind: 'spell', element: 'air', target: 'enemyFront', power: 9, staminaCost: 12, cooldown: 3, verb: 'slices the wind across', description: 'A blade of wind through the whole enemy front line.' },

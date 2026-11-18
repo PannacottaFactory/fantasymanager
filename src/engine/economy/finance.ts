@@ -99,18 +99,23 @@ export function weeklyFinances(state: GameState, played: Fixture[], cfg: GameCon
   if (player.balance < 0) pushMessage(state, { kind: 'financeWarning', balance: player.balance });
 }
 
+/** Season prize for a final place (index 0 = first) in a division, with the division's money scale. */
+export function seasonPrizeFor(index: number, division: number, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const prizes = cfg.economy.income.seasonPrize;
+  return Math.round((prizes[index] ?? prizes[prizes.length - 1]!) * (cfg.league.divisionMoney[division] ?? 1));
+}
+
 /** End of season: prize money by final position and reputation changes. */
 export function seasonPrizes(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
   const eco = cfg.economy;
   state.divisions.forEach((ids, d) => {
     const table = computeStandings(ids, divisionFixtures(state, d), cfg);
     const middle = (table.length + 1) / 2;
-    const scale = cfg.league.divisionMoney[d] ?? 1;
     // Reputation: higher divisions sit higher, and each place counts.
     const divisionShift = (state.divisions.length - 1 - d) * 3 - 1.5;
     table.forEach((row, i) => {
       const pos = i + 1;
-      const amount = Math.round((eco.income.seasonPrize[i] ?? eco.income.seasonPrize[eco.income.seasonPrize.length - 1]!) * scale);
+      const amount = seasonPrizeFor(i, d, cfg);
       earn(state, row.teamId, 'prizes', amount);
       const club = clubOf(state, row.teamId);
       let rep = club.reputation + (middle - pos) * eco.club.reputationPerPlace + divisionShift;

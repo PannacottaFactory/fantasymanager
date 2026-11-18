@@ -3,7 +3,8 @@ import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ABILITIES } from '../../data/abilities.ts';
 import { ELEMENTS } from '../../data/elements.ts';
-import type { AbilityKind, ElementId } from '../../data/schema.ts';
+import { EFFECTS } from '../../data/effects.ts';
+import type { AbilityEffectRef, AbilityKind, ElementId } from '../../data/schema.ts';
 import { abilityKindName, abilityText, effectText, elementName } from '../../engine/text/localize.ts';
 import { useT } from '../i18n/index.ts';
 
@@ -21,6 +22,23 @@ export function abilityColor(abilityId: string, elements: readonly ElementId[]):
   const el = ABILITIES[abilityId]?.element;
   const id = el === 'innate' ? elements[0] : el;
   return id && id !== 'physical' ? ELEMENTS[id as ElementId].color : 'var(--muted)';
+}
+
+/** How long an effect an ability applies lasts: rounds, the target's next turns (stuns), until the break (curses), the whole match. */
+export type EffectSpan = { kind: 'rounds' | 'turns'; n: number } | { kind: 'break' | 'match' };
+
+export function effectDuration(ref: AbilityEffectRef): EffectSpan {
+  const def = EFFECTS[ref.effect];
+  const n = ref.duration ?? def?.defaultDuration ?? 1;
+  if (n >= 999) return { kind: 'match' };
+  if (def?.curse) return { kind: 'break' };
+  return { kind: def?.kind === 'stun' ? 'turns' : 'rounds', n };
+}
+
+type Tr = ReturnType<typeof useT>['t'];
+export function durationLabel(t: Tr, d: EffectSpan): string {
+  if (!('n' in d)) return t(d.kind === 'match' ? 'ab.dur.match' : 'ab.dur.break');
+  return t(d.kind === 'turns' ? 'ab.dur.turns' : 'ab.dur.rounds', { n: d.n });
 }
 
 interface Props {
@@ -87,6 +105,9 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, 
             <span key={e.effect} title={effectText(e.effect, lang).description}>
               {effectText(e.effect, lang).name}
               {(e.stacks ?? 1) > 1 ? ` ×${e.stacks}` : ''} {Math.round(e.chance * 100)} %
+              <span className="ab-dur" title={t('ab.dur.title')}>
+                {' '}⧗ {durationLabel(t, effectDuration(e))}
+              </span>
             </span>
           ))}
           {def.cleanse && <span title={t('ab.cleanse.title')}>{t('ab.cleanse')}</span>}

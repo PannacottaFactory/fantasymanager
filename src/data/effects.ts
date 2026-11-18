@@ -23,7 +23,7 @@ export const EFFECTS: Record<string, EffectDef> = {
   },
   slowed: {
     id: 'slowed', name: 'Slowed', kind: 'mods', beneficial: false, defaultDuration: 2,
-    mods: { initiativeMult: 0.6, dodgeBonus: -0.08 }, description: 'Acts later and dodges worse.',
+    mods: { initiativeMult: 0.6, dodgeBonus: -0.12, hitBonus: -0.04 }, description: 'Acts later, dodges worse and aims less well.',
   },
   weakened: {
     id: 'weakened', name: 'Weakened', kind: 'mods', beneficial: false, defaultDuration: 2,
@@ -31,7 +31,7 @@ export const EFFECTS: Record<string, EffectDef> = {
   },
   terrified: {
     id: 'terrified', name: 'Terrified', kind: 'mods', beneficial: false, defaultDuration: 2,
-    mods: { hitBonus: -0.08 }, moralePerRound: -6, description: 'Morale drains every round and aim falters.',
+    mods: { hitBonus: -0.12 }, moralePerRound: -6, description: 'Morale drains every round and aim falters.',
   },
   exposed: {
     id: 'exposed', name: 'Exposed', kind: 'mods', beneficial: false, defaultDuration: 2,
@@ -60,7 +60,13 @@ export const EFFECTS: Record<string, EffectDef> = {
   },
   evasive: {
     id: 'evasive', name: 'Evasive', kind: 'mods', beneficial: true, defaultDuration: 2,
-    mods: { dodgeBonus: 0.15, initiativeMult: 1.2 }, description: 'Darts around, hard to pin down.',
+    mods: { dodgeBonus: 0.22, initiativeMult: 1.2 }, description: 'Darts around, hard to pin down.',
+  },
+  /** Mantis stance: waits for the opening, then strikes. Spent by the next attack. */
+  poised: {
+    id: 'poised', name: 'Poised', kind: 'mods', beneficial: true, defaultDuration: 3, consumedOnAttack: true,
+    mods: { dodgeBonus: 0.15, damageMult: 1.6, critBonus: 0.2 },
+    description: 'Sways, hard to hit, waiting for the opening: its next attack deals 60 % more with a better chance of a critical hit, then the stance is spent.',
   },
   /** Three charges of cold freeze the target solid. */
   chilled: {

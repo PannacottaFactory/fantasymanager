@@ -411,7 +411,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
         )}
         <Scoreboard side={0} name={setup.teams[0].name} roster={roster} view={view} fx={fx} focus={focus} onSelect={select} retired={retired} />
         <section className="panel chronicle">
-          <div className="scoreband">
+          <div className="scoreband" data-tip="scoreband">
             <div className="sb-side home" title={t('live.judgesTip')}>
               <b className="sb-pct">{ended && outcome ? scoreA : judgesScore(view, 0)}</b>
               <small>{t('live.judges')}</small>

@@ -202,6 +202,14 @@ const UI = {
   'arena-eclipse': 'eclipse',
   'arena-sandstorm': 'sandstorm',
   'arena-eruption': 'volcano',
+  // Elements (Encyclopedia chart medallions).
+  'el-fire': 'flame',
+  'el-water': 'water-drop',
+  'el-earth': 'stone-pile',
+  'el-air': 'whirlwind',
+  'el-nature': 'oak-leaf',
+  'el-shadow': 'evil-moon',
+  'el-light': 'sun-radiations',
   'talk-rally': 'rally-the-troops',
   'talk-secondWind': 'lungs',
   'talk-focus': 'bullseye',
@@ -209,6 +217,9 @@ const UI = {
   'talk-evade': 'dodging',
   'talk-fury': 'enrage',
   'talk-assistant': 'light-bulb',
+  breaks: 'sands-of-time',
+  contract: 'quill-ink',
+  check: 'check-mark',
 };
 
 /** Competition definition → icon name. */

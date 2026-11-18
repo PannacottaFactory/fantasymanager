@@ -106,6 +106,8 @@ describe('transfers', () => {
 
   it('a low bid is rejected, a close one gets a counter-offer that can be met', () => {
     const g = game();
+    // A delighted board, so the recruitment budget never caps the counter-offer (prices follow the species' worth).
+    g.board.confidence = 90;
     const { team, c } = aiCreature(g);
     const price = askingPrice(team, c);
     expect(bid(g, c.id, Math.round(price * 0.3), 1).outcome.kind).toBe('rejected');

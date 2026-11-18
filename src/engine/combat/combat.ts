@@ -650,9 +650,9 @@ export class Combat {
     if (hostile && actor.state === 'active') this.reveal(actor);
   }
 
-  /** Camouflage ends: the creature is in plain sight again. */
+  /** Camouflage ends: the creature is in plain sight again. A stance that set up the blow is spent too. */
   private reveal(c: Combatant) {
-    for (const e of c.effects.filter((x) => EFFECTS[x.id]?.hidden)) {
+    for (const e of c.effects.filter((x) => EFFECTS[x.id]?.hidden || EFFECTS[x.id]?.consumedOnAttack)) {
       c.effects = c.effects.filter((x) => x !== e);
       this.emit({ type: 'effectExpired', round: this.round, target: c.id, effect: e.id });
     }

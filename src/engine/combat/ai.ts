@@ -34,6 +34,7 @@ import {
   resolveElement,
   staminaCost,
   staminaFraction,
+  staminaRegen,
 } from './formulas.ts';
 import type { Combatant } from './types.ts';
 
@@ -151,24 +152,34 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */
-function effectGain(effectId: string, t: Combatant): number {
+function effectGain(effectId: string, t: Combatant, foeHealers: boolean): number {
   const def = EFFECTS[effectId];
   if (!def) return 0;
   const stacks = effectStacks(t, effectId);
   if (def.onMaxStacks && hasEffect(t, def.onMaxStacks)) return 0;
-  // Curses last until the break: worth more early in the period.
-  const weight = def.curse ? 1.5 : 1;
+  // Curses last until the break: worth more early in the period. A stun takes a whole turn away.
+  let weight = def.curse ? 1.5 : def.kind === 'stun' ? 3 : 1;
+  // Cutting healing only matters against a side that heals; a silence only against spells and heals.
+  if (def.mods?.healingTaken !== undefined && !foeHealers) weight *= 0.1;
+  if (def.silence && !t.abilities.some((id) => { const ab = ABILITIES[id]; return !!ab && isSilenceable(ab); })) weight *= 0.1;
   if (!stacks) return weight;
   if (!def.maxStacks || stacks >= def.maxStacks) return 0;
   // A charge closer to a freeze is worth more; poison doses keep their value.
   return def.onMaxStacks ? 1 + stacks * 0.6 : 0.9;
 }
 
-function effectValue(ability: AbilityDef, targets: Combatant[]): number {
+/** Does the side of these creatures have a healer standing? (healing cuts are only worth it then) */
+function sideHeals(targets: Combatant[], all: Combatant[]): boolean {
+  const side = targets[0]?.side;
+  return all.some((c) => c.side === side && c.abilities.some((id) => ABILITIES[id]?.kind === 'heal'));
+}
+
+function effectValue(ability: AbilityDef, targets: Combatant[], foes: Combatant[] = targets): number {
   let v = 0;
+  const heals = sideHeals(targets, foes);
   for (const ref of ability.effects ?? []) {
     if (ref.on !== 'target') continue;
-    for (const t of targets) v += ref.chance * 0.15 * effectGain(ref.effect, t) * Math.min(2, ref.stacks ?? 1);
+    for (const t of targets) v += ref.chance * 0.15 * effectGain(ref.effect, t, heals) * Math.min(2, ref.stacks ?? 1);
   }
   return v;
 }
@@ -250,16 +261,19 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
           score += (exp / target.maxHp) * 3 * role.damage;
           if (exp >= target.hp) score += ai.killBonus;
         }
-        if (ability.kind === 'debuff') score += effectValue(ability, [target]) * role.debuff * 2 + (ability.fear ?? 0) * 0.01 * role.debuff;
-        else score += effectValue(ability, [target]) * Math.max(role.debuff, 0.5);
-        score += drainValue(ability, [target]) * Math.max(role.debuff, 0.5);
+        // Control without damage is weighed against the attack it replaces (`debuffWeight`).
+        const control = damaging ? 1 : ai.debuffWeight;
+        if (ability.kind === 'debuff') score += (effectValue(ability, [target], enemies) * role.debuff * 2 + (ability.fear ?? 0) * 0.01 * role.debuff) * control;
+        else score += effectValue(ability, [target], enemies) * Math.max(role.debuff, 0.5);
+        score += drainValue(ability, [target]) * Math.max(role.debuff, 0.5) * control;
         // Thorns hurt whoever strikes them in melee, mirrors whoever casts at them (seen in proportion to tactics).
         const thorns = attackKind(ability) === 'melee' ? effectMod(target, 'thorns') : attackKind(ability) === 'spell' ? effectMod(target, 'spellReflect') : 0;
         if (thorns > 0 && damaging) score -= ((expectedDamage(ctx, actor, ability, target, flank) * thorns) / actor.maxHp) * 3 * (actor.attrs.tactics / 20);
         // Forcing a way past a standing front line is costly for anyone but a skirmisher: the target priority only
         // pulls them there when it is really worth it.
         const reach = flank && actor.role !== 'skirmisher' ? ai.reachPriority : 1;
-        score += priorityMatch(opts.priority, target, enemies) * ai.priorityBonus * reach;
+        // The priority says whom to hit: a curse or a snare only keeps part of it.
+        score += priorityMatch(opts.priority, target, enemies) * ai.priorityBonus * reach * (damaging ? 1 : ai.debuffPriority);
         // Pack hunters converge on prey their allies are already biting.
         if (ability.pack) score += Math.min(ctx.alliesOn(actor, target), cfg.combat.damage.packMax) * ability.pack * 2;
         if (target.line === 'back') score += role.backlineHunter * 0.12;
@@ -268,6 +282,13 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     } else if (ability.target === 'enemyFront' || ability.target === 'enemyBack' || ability.target === 'allEnemies') {
       const targets = lineTargets(ability.target, enemies);
       if (!targets.length) continue;
+      if (!damaging) {
+        // Cries and auras that only shake or weaken (no damage): weighed by `cryWeight` against the attack they replace.
+        const w = Math.max(role.debuff, 0.9) * ai.cryWeight;
+        const score = targets.length * ((ability.fear ?? 0) * 0.012 + 0.12) * w + effectValue(ability, targets, enemies) * w * 1.5 + drainValue(ability, targets) * w;
+        options.push({ type: 'ability', ability, target: null, flank: false, score: score * bigMult });
+        continue;
+      }
       let score = 0;
       for (const t of targets) {
         if (damaging) {
@@ -277,7 +298,10 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         }
         score += (ability.fear ?? 0) * 0.008 * role.debuff;
       }
-      score += effectValue(ability, targets) * Math.max(role.debuff, 0.5);
+      // An area attack that catches the priority target serves the orders too (it used to get no priority bonus at all,
+      // so a plain blow on the priority target nearly always beat a breath over the whole line).
+      score += Math.max(0, ...targets.map((t) => priorityMatch(opts.priority, t, enemies))) * ai.priorityBonus;
+      score += effectValue(ability, targets, enemies) * Math.max(role.debuff, 0.5);
       score += drainValue(ability, targets) * Math.max(role.debuff, 0.5);
       options.push({ type: 'ability', ability, target: null, flank: false, score: score * bigMult });
     } else if (ability.kind === 'heal') {
@@ -300,12 +324,17 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         // Defensive self-buffs matter more once the creature is taking a beating.
         const hurt = 1 - hpFraction(actor);
         let score = 0.2 * role.buff;
-        if (effectId === 'enraged') score += 0.3 * role.damage * (0.5 + hurt);
+        if (effectId === 'enraged') score += 0.5 * role.damage * (0.5 + hurt);
         if (effectId === 'fortified') score += 0.3 * role.guard * (0.3 + hurt);
-        if (effectId === 'evasive') score += 0.3 * (0.3 + hurt);
+        // Dodging is worth it under fire: in the front line, or once wounded.
+        if (effectId === 'evasive') score += 0.8 * (0.4 + hurt) * (actor.line === 'front' ? 1.2 : 0.8);
+        // A stance that sets up one heavy blow (spent by the next attack).
+        if (effectId === 'poised') score += 0.6 * role.damage * (0.8 + hurt);
+        // Frenzy grows with the wounds: worth it once hurt.
+        if (effectId === 'frenzied') score += 0.35 * role.damage * (0.2 + 1.5 * hurt);
         if (effectId === 'shielded') score += 0.3 * role.guard * (0.3 + hurt);
         // Slipping out of sight sets up a big blow; provoking protects the back line.
-        if (effectId === 'camouflaged') score += 0.35 * role.damage * (0.4 + hurt);
+        if (effectId === 'camouflaged') score += 0.5 * role.damage * (0.6 + hurt);
         if (effectId === 'provoking') {
           const back = allies.filter((a) => a.line === 'back' && a.id !== actor.id).length;
           score += role.guard * (back ? 0.25 + 0.08 * back : 0.05) * (1.2 - hurt);
@@ -314,18 +343,27 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
       } else if (ability.target === 'allAllies') {
         const without = allies.filter((a) => !effectId || !hasEffect(a, effectId)).length;
         if (without < 2) continue;
-        options.push({ type: 'ability', ability, target: null, flank: false, score: 0.14 * without * role.buff * bigMult });
+        // Lifting the whole side is worth it whatever the caster's role.
+        options.push({ type: 'ability', ability, target: null, flank: false, score: 0.22 * without * Math.max(role.buff, 0.8) * bigMult });
       } else {
+        const def = effectId ? EFFECTS[effectId] : undefined;
+        // A spell mirror only pays against spellcasters.
+        const casters = enemies.filter((e) => e.abilities.some((id) => ABILITIES[id]?.kind === 'spell')).length;
         for (const t of allies) {
           if (effectId && hasEffect(t, effectId)) continue;
           const exposure = t.line === 'front' ? 1 : 0.5;
-          const score = (0.25 + (1 - hpFraction(t)) * 0.6) * exposure * role.buff;
-          options.push({ type: 'ability', ability, target: t, flank: false, score: score * bigMult });
+          let score = (0.25 + (1 - hpFraction(t)) * 0.6) * exposure;
+          // A fury or a boost to hit harder goes to the ally who hits hardest.
+          if ((def?.mods?.damageMult ?? 1) > 1) score = 0.25 + 0.3 * ROLES[t.role].ai.damage;
+          if (def?.mods?.spellReflect) score *= casters ? 0.6 + 0.3 * casters : 0.1;
+          options.push({ type: 'ability', ability, target: t, flank: false, score: score * Math.max(role.buff, 0.8) * bigMult });
         }
       }
     } else if (ability.kind === 'debuff') {
       // Non-damaging debuffs on all enemies (roars, screeches).
-      const score = enemies.length * ((ability.fear ?? 0) * 0.01 + 0.1) * role.debuff + effectValue(ability, enemies) * role.debuff;
+      // Shaking or weakening every foe at once is worth it whatever the caster's role.
+      const w = Math.max(role.debuff, 0.9) * ai.debuffWeight;
+      const score = enemies.length * ((ability.fear ?? 0) * 0.012 + 0.12) * w + effectValue(ability, enemies) * w * 1.5;
       options.push({ type: 'ability', ability, target: null, flank: false, score: score * bigMult });
     }
   }
@@ -347,6 +385,26 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
   }
 
   if (!options.length) return { type: 'rest', score: 0 };
+
+  // Stamina kept for a big ability coming back (ready now or next round): a cheaper action that would leave too little
+  // to cast it next round is worth less, so the creature does not fritter away its breath on small blows.
+  if (ai.staminaReserve < 1) {
+    let reserve = 0;
+    for (const id of actor.abilities) {
+      const ab = ABILITIES[id];
+      if (!ab || ab.staminaCost < ai.reserveMinCost || (actor.cooldowns[id] ?? 0) > 1) continue;
+      if (silenced && isSilenceable(ab)) continue;
+      reserve = Math.max(reserve, staminaCost(actor, ab, orders, cfg) * arenaCostMult(ctx.arena));
+    }
+    const next = actor.stamina + staminaRegen(actor, cfg) * (ctx.arena?.staminaRegen ?? 1);
+    if (reserve > 0 && next >= reserve) {
+      for (const o of options) {
+        if (o.type !== 'ability') continue;
+        const c = staminaCost(actor, o.ability, orders, cfg) * arenaCostMult(ctx.arena);
+        if (c < reserve && next - c < reserve) o.score *= ai.staminaReserve;
+      }
+    }
+  }
 
   const noise = opts.deterministic ? 0 : (1 - actor.attrs.tactics / 20) * ai.noiseMax;
   let best = options[0]!;

@@ -21,6 +21,7 @@ import type { InboxMessage } from '../../engine/league/types.ts';
 /** Inbox messages that open a board meeting. */
 export const BOARD_NOTE_KINDS = new Set<InboxMessage['kind']>(['boardObjective', 'ultimatum', 'ultimatumOver', 'boardVerdict']);
 import { sessionPool, sessionState } from '../../engine/progression/sessions.ts';
+import { knowledgeOf } from '../../engine/economy/scouting.ts';
 
 export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'career' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
@@ -102,6 +103,13 @@ interface GameStore {
   reveals: string[];
   openReveal: (messageId: string) => void;
   closeReveal: () => void;
+  /** Creatures that just joined the player's stable, with how well they were known before (not saved): their stats unveil. */
+  signings: { id: string; before: number }[];
+  closeSigning: () => void;
+  /** The contract talks window (season's expiring contracts), opened by the contract warning or from the Journal. */
+  contractTalks: boolean;
+  openContractTalks: () => void;
+  closeContractTalks: () => void;
   /** Board meetings waiting (inbox message ids: season objective, ultimatum, its outcome, verdict), not saved. */
   boardNotes: string[];
   closeBoardNote: () => void;
@@ -122,12 +130,23 @@ interface GameStore {
 export const useGame = create<GameStore>()((set, get) => {
   /** Replaces the game state and saves it (errors are surfaced, never thrown). */
   const commit = (game: GameState) => {
+    queueSignings(get().game, game);
     set({ game });
     saveGame(game, get().slot).then(
       () => get().saveError && set({ saveError: false }),
       () => set({ saveError: true }),
     );
   };
+  /** Creatures that joined the player's stable since `prev` get their unveiling (not on a change of stable). */
+  function queueSignings(prev: GameState | null, next: GameState) {
+    if (!prev || prev.playerTeamId !== next.playerTeamId || prev.worldSeed !== next.worldSeed) return;
+    const had = new Set(prev.teams.find((t) => t.id === prev.playerTeamId)?.creatures.map((c) => c.id) ?? []);
+    const fresh = (next.teams.find((t) => t.id === next.playerTeamId)?.creatures ?? [])
+      .filter((c) => !had.has(c.id))
+      .map((c) => ({ id: c.id, before: knowledgeOf(prev, c.id) }))
+      .filter((x) => x.before < 100);
+    if (fresh.length) set({ signings: [...get().signings, ...fresh] });
+  }
   /** Commits a state that may end the week: then shows its summary and starts a new week. */
   /** Board moments that just happened get their meeting. */
   const queueBoard = (prev: GameState | null, next: GameState) => {
@@ -141,6 +160,8 @@ export const useGame = create<GameStore>()((set, get) => {
     const known = new Set(prev.inbox.map((m) => m.id));
     const fresh = next.inbox.filter((m) => !known.has(m.id) && m.kind === 'scoutReport' && m.target === 'creature' && m.verdict).map((m) => m.id);
     if (fresh.length) set({ reveals: [...get().reveals, ...fresh] });
+    // The contract warning (a few weeks before the end of the season) opens the contract talks.
+    if (next.inbox.some((m) => !known.has(m.id) && m.kind === 'contractExpiring')) set({ contractTalks: true });
     queueBoard(prev, next);
     if (completedWeek(next) <= completedWeek(prev)) return false;
     set({ recap: { before: get().weekStart ?? prev, after: next }, weekStart: next });
@@ -177,7 +198,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman, managerName: mode?.managerName, squad: mode?.squad });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
-      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
+      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], signings: [], contractTalks: false, boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
       commit(game);
       void get().refreshSlots();
     },
@@ -198,7 +219,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = await loadGame(slot);
       if (!game) return;
       setCurrentSlot(slot);
-      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], boardNotes: [], boardRules: false, sheet: null });
+      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], signings: [], contractTalks: false, boardNotes: [], boardRules: false, sheet: null });
     },
     deleteSlot: async (slot) => {
       await deleteGame(slot);
@@ -334,6 +355,11 @@ export const useGame = create<GameStore>()((set, get) => {
     boardRules: false,
     openBoardRules: () => set({ boardRules: true }),
     closeBoardRules: () => set({ boardRules: false }),
+    signings: [],
+    closeSigning: () => set({ signings: get().signings.slice(1) }),
+    contractTalks: false,
+    openContractTalks: () => set({ contractTalks: true }),
+    closeContractTalks: () => set({ contractTalks: false }),
     reveals: [],
     openReveal: (id) => set({ reveals: [id, ...get().reveals.filter((x) => x !== id)] }),
     closeReveal: () => set({ reveals: get().reveals.slice(1) }),
