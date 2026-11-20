@@ -158,7 +158,19 @@ export type MatchEvent =
       pack?: number;
       /** Struck from camouflage (bonus damage, the attacker is revealed). */
       ambush?: boolean;
+      /** Chain: n-th leap of a chain ability to another enemy. */
+      chain?: number;
+      /** Riposte: a counter-attack to a melee attack. */
+      riposte?: boolean;
+      /** Charmed: the actor struck one of its own allies. */
+      charmed?: boolean;
+      /** The blow hit a mirror image (this effect lost a stack) instead of the target. */
+      decoy?: string;
+      /** The target should have fallen but an undying effect kept it at 1 health. */
+      undying?: boolean;
     }
+  /** Beneficial effects torn off `target` (and passed to the actor when `stolen`). */
+  | { type: 'dispel'; round: number; actor: string; target: string; ability: string; removed: string[]; stolen?: boolean }
   /** Sacrifice: the user paid `amount` of its own health. */
   | { type: 'sacrifice'; round: number; actor: string; ability: string; amount: number; hp: number }
   /** Thorns (or a spell mirror when `spell`): `actor` (the one hit) sends `amount` back to `target` (the attacker). */
@@ -192,8 +204,8 @@ export type MatchEvent =
   | { type: 'exhausted'; round: number; actor: string }
   | { type: 'moraleShift'; round: number; side: Side; reason: 'leader'; actor: string }
   | { type: 'ko'; round: number; target: string; by?: string }
-  /** A creature knocked out gets back up (one-time passive such as the skeleton's). */
-  | { type: 'revive'; round: number; target: string; effect: string; hp: number }
+  /** A creature knocked out gets back up: a one-time passive (`effect`, skeleton) or an ally's ability (`by`, `ability`). */
+  | { type: 'revive'; round: number; target: string; effect: string; hp: number; by?: string; ability?: string; stamina?: number }
   | { type: 'injury'; round: number; target: string; injuryId: string; weeks: number }
   | { type: 'roundEnd'; round: number; snapshot: CombatantSnapshot[] }
   | { type: 'break'; round: number; index: number }

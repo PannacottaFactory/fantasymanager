@@ -264,6 +264,64 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['', 'A storm howls over the stands: the winds favour the air, arrows drift.'],
     ['', 'Thunder and gusts today, air creatures are in their element.'],
   ],
+  // ——— Wave 6 ———
+  charmedAttack: [
+    ['', 'Spellbound, {a} turns on its own side!'],
+    ['', '{a} is not itself: it goes for {t}, a teammate!'],
+    ['', 'The charm holds: {a} attacks {t}!'],
+  ],
+  undying: [
+    ['', '{t} should be down, but refuses to fall!'],
+    ['', 'Somehow {t} is still standing, on one breath of life!'],
+    ['', 'Not yet! {t} will not go down!'],
+  ],
+  decoy: [
+    ['', '{a} strikes {t}… and the image bursts like a soap bubble.'],
+    ['', 'Only a double! {a}’s blow passes through a copy of {t}.'],
+    ['', '{a} hits nothing but an illusion of {t}.'],
+  ],
+  riposte: [
+    ['hit', '{t} attacks, {a} answers at once ({dmg})!'],
+    ['hit', 'A riposte! {a} punishes {t} for {dmg}.'],
+    ['hit crit', 'A brutal counter from {a}: {t} takes {dmg}!'],
+    ['miss', '{a} tries to strike back at {t}, but misses.'],
+    ['miss', 'The riposte from {a} finds only air.'],
+  ],
+  chain: [
+    ['hit', 'It leaps on to {t} ({dmg})!'],
+    ['hit', '{t} is caught in the chain too ({dmg}).'],
+    ['hit', 'The arc jumps to {t}: {dmg}.'],
+    ['miss', 'It leaps towards {t}, who slips aside.'],
+    ['miss', '{t} dodges the jump.'],
+  ],
+  raise: [
+    ['', '{a} calls {t} back from the brink: {t} gets up!'],
+    ['', 'Unbelievable! {a} raises {t}, who is back on the sand!'],
+    ['', '{t} was out, but {a} is having none of it: back to the fight!'],
+  ],
+  dispel: [
+    ['', '{a} tears every blessing off {t}.'],
+    ['', 'The magic around {t} comes apart in {a}’s hands.'],
+    ['stolen', '{a} steals what protected {t} and wraps itself in it!'],
+    ['stolen', '{t}’s blessings change sides: {a} keeps them!'],
+  ],
+  'blast.ticking-bomb': [
+    ['', 'BOOM! The bomb on {t} goes off ({n})!'],
+    ['', 'Tick, tick… the bomb blows up in {t}’s face ({n}).'],
+  ],
+  'blast.seed-pod': [
+    ['', 'The pod on {t} bursts in a cloud of seeds ({n})!'],
+    ['', 'Pop! The seed pod explodes on {t} ({n}).'],
+  ],
+  'blast.haunted': [
+    ['', 'The spirit lashes out at {t} ({n})!'],
+    ['', 'Something unseen strikes {t} ({n}).'],
+  ],
+  'effect.charmed': [['', '{t} is charmed!'], ['', '{t}’s eyes glaze over: charmed.']],
+  'effect.possessed': [['', '{t} is possessed!'], ['', 'Something slips inside {t}…']],
+  'effect.ticking-bomb': [['', 'A bomb is ticking on {t}!'], ['', 'Tick, tick: {t} carries a bomb now.']],
+  'effect.seed-pod': [['', 'A seed pod swells on {t}.'], ['', 'Something is sprouting on {t}…']],
+  'effect.haunted': [['', '{t} is haunted!'], ['', 'A cold presence clings to {t}.']],
   thorns: [
     ['', '{t} pays for it, {a}’s thorns bite back ({n}).'],
     ['', 'Spikes everywhere: {t} takes {n} from {a}’s thorns.'],

@@ -759,6 +759,33 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   `MatchSetup.arena` → `Combat.arena` (also seen by the AI), `matchStart.arena` (commentary `arena.<id>`), `arenaIntro`
   inbox message once. UI: `ui/components/ArenaCondition.tsx` (badge in the pre-match face-off, Encyclopedia rule
   « Conditions d'arène » with every condition), `openEncyclopedia(tab, id)` in the store.
+- [x] **Wave 6** (+20 → 97 species, 76 abilities, 15 effects): dwarf, gnome tinker, siren, valkyrie, locust swarm, rat swarm,
+  pixie, doppelganger, thunderbird, mimic, rakshasa, lamassu, sandworm, sea serpent, ettin, mandrake, giant moth,
+  poltergeist, sun lion, jackal warden (name cultures `dwarf`, `fey`). New mechanics, all drawing RNG only when present
+  (matches without them are unchanged): **undying** (`EffectDef.undying`, `lethalRoom`: health never below 1, attack
+  `undying` flag; `last-stand` self, `vowed` on an ally), **raise** (`AbilityDef.raise`, target `fallenAlly`: an ally KO'd
+  since the last break, `canRaise`; `revive` event with `by` / `ability` / `stamina`, view sets it active), **charm**
+  (`EffectDef.charm`, consumed on its turn like a stun: `takeTurn` acts with `charmedAi` = own allies as foes,
+  `hostileOnly`; attack `charmed`, no credit in damageDealt / report / analysis), **swarm** (`EffectMods.singleTaken` /
+  `areaTaken`, `takenMult`; `swarm-body`), **golden hide** (`physicalTaken`), **time bombs** (`EffectDef.detonate`: explodes
+  at expiry in `endOfRound` → `effectTick` of that effect, commentary `blast.<id>`; cleansable; `checkVictory` after
+  `endOfRound`), **mirror images** (`EffectDef.images`, stacks: each single-target strike hits a double instead, attack
+  `decoy`, view decrements; multi-strikes pop them, areas ignore them), **chain** (`AbilityDef.chain`, `chainFrom`: leaps to
+  random other enemies × `damage.chainFalloff`^k, attack `chain`), **dispel / steal** (`AbilityDef.dispel` / `steal`,
+  `isDispellable`, `dispel` event), **riposte** (`EffectMods.riposte`: basic attack back at a melee attacker, once per
+  action, attack `riposte`), **burrow** (`EffectDef.burrowed` + hidden: out of reach of everything, `inReach`), **steadfast**
+  (`two-heads`: stuns / charms × `damage.steadfastMult`). AI: kill bonus off vs undying, images / swarm in
+  `expectedDamage`, `chainValue`, `dispelValue`, riposte penalty, self-buff scores (images, undying, riposte, burrow), vow
+  for a dying ally, raise options. Marks `charm bomb blast images imagePop undying burrow riposte dispel`, auras, motifs,
+  AbilityCard chips (chain / dispel / steal / raise), Encyclopedia lines. Two AI styles `charm` and `undying`; six more
+  archetypes in `sim:archetypes` (`--only a,b` plays those rows): vs mixed teams charm 39, undying 65, illusion 39, bombs 39,
+  swarm 48, burrow 65 %; swarms are crushed by burn / area (5 %). Species 42–64 % in `sim:species` (prices set from it).
+  Self-buff skills that cost matches were turned into « hit, then effect » (mirror images, burrow, submerge, just a chest);
+  fixing a bug on the way: `reveal` now only removes the cover the creature had before its action (a strike that ends in
+  camouflage, kitsune's Vanish, used to lose it at once). Pixie passive `fey-flight` (dodge +10 %).
+  `node scripts/species-check.mjs <outDir> [url]` (dev server, dev store `window.__arena`) plays two live Test-arena matches
+  between the 20 wave-6 species with their key skill, screenshots, and counts the mechanics that fired. `sim:species --only a,b --mean m` tests a few species against a full run's mean.
+  Tests `tests/wave6.test.ts`.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

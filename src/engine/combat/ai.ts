@@ -23,6 +23,10 @@ import {
   elementMultiplier,
   hasEffect,
   hasEffectFlag,
+  imagesLeft,
+  inReach,
+  isDispellable,
+  takenMult,
   isSilenceable,
   arenaCostMult,
   arenaElementMult,
@@ -59,7 +63,11 @@ export interface AiContext {
   coverPoints(side: Combatant['side']): number;
   /** Arena condition of the match (weather), if any. */
   arena?: ArenaCondition;
+  /** Allies of this creature knocked out since the last break, that a raise could bring back. */
+  fallen?(c: Combatant): Combatant[];
 }
+
+const HOSTILE_TARGETS: readonly AbilityDef['target'][] = ['enemy', 'enemyFront', 'enemyBack', 'allEnemies'];
 
 export interface ChooseOptions {
   priority: TargetPriority;
@@ -67,6 +75,8 @@ export interface ChooseOptions {
   deterministic?: boolean;
   /** Enraged creatures neither rest nor guard. */
   attackOnly?: boolean;
+  /** Charmed: only hostile abilities (aimed at its own allies by the context). */
+  hostileOnly?: boolean;
 }
 
 /** Target preference when a creature acts on instinct rather than orders. */
@@ -98,8 +108,10 @@ export function reachableTargets(actor: Combatant, ability: AbilityDef, enemies:
  * and a provoking enemy within reach draws every such blow.
  */
 export function pickableTargets(options: { target: Combatant; flank: boolean }[]): { target: Combatant; flank: boolean }[] {
-  const seen = options.filter((o) => !hasEffectFlag(o.target, 'hidden'));
-  const visible = seen.length ? seen : options;
+  // A burrowed creature cannot be reached at all.
+  const reach = options.filter((o) => !hasEffectFlag(o.target, 'burrowed'));
+  const seen = reach.filter((o) => !hasEffectFlag(o.target, 'hidden'));
+  const visible = seen.length ? seen : reach;
   const taunting = visible.filter((o) => hasEffectFlag(o.target, 'taunt'));
   return taunting.length ? taunting : visible;
 }
@@ -131,7 +143,7 @@ export function priorityMatch(priority: TargetPriority, target: Combatant, enemi
 }
 
 /** Expected damage of an ability on a target, as the attacker perceives it. */
-export function expectedDamage(ctx: AiContext, actor: Combatant, ability: AbilityDef, target: Combatant, flank: boolean): number {
+export function expectedDamage(ctx: AiContext, actor: Combatant, ability: AbilityDef, target: Combatant, flank: boolean, aoe = false): number {
   const { cfg } = ctx;
   const orders = ctx.orders(actor);
   const raw = rawDamage(actor, ability, { orders, foeOrders: ctx.orders(target), behind: ctx.behind(actor), solo: !ctx.comboOn(actor, target) }, cfg);
@@ -148,7 +160,35 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const weather = arenaElementMult(ctx.arena, resolveElement(ability.element, actor)) * (ctx.arena?.kinds?.[kind] ?? 1);
   const arenaHit = kind === 'ranged' ? (ctx.arena?.rangedHit ?? 0) : kind === 'melee' ? (ctx.arena?.meleeHit ?? 0) : 0;
   const hit = arenaHit ? Math.max(0.05, p + arenaHit) : p;
-  return raw * perceivedMult * weather * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * hit * (ability.hits ?? 1);
+  // Mirror images soak single-target strikes: only the strikes past the images count.
+  const hits = ability.hits ?? 1;
+  const images = aoe ? 0 : imagesLeft(target);
+  const landing = images ? Math.max(0, hits - images) : hits;
+  return raw * perceivedMult * weather * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * hit * landing * takenMult(target, kind, aoe);
+}
+
+/** Beneficial effects a dispel would tear off this target (shields, hiding, undying weigh most). */
+function dispelValue(ability: AbilityDef, t: Combatant): number {
+  if (!ability.dispel && !ability.steal) return 0;
+  let v = 0;
+  for (const e of t.effects) {
+    if (!isDispellable(e.id, e.remaining)) continue;
+    const def = EFFECTS[e.id]!;
+    v += def.kind === 'shield' || def.undying || def.images || def.taunt ? 0.35 : 0.2;
+  }
+  return v * (ability.steal ? 1.4 : 1);
+}
+
+/** What the leaps of a chain ability are worth: the best other targets, weaker at each leap. */
+function chainValue(ctx: AiContext, actor: Combatant, ability: AbilityDef, first: Combatant, enemies: Combatant[]): number {
+  if (!ability.chain) return 0;
+  const others = inReach(enemies)
+    .filter((e) => e.id !== first.id)
+    .map((e) => expectedDamage(ctx, actor, ability, e, false, true) / e.maxHp)
+    .sort((a, b) => b - a);
+  let v = 0;
+  for (let k = 1; k <= ability.chain && k <= others.length; k++) v += others[k - 1]! * Math.pow(ctx.cfg.combat.damage.chainFalloff, k);
+  return v;
 }
 
 /** How much one more application of an effect is worth on a target (0 = useless). */
@@ -158,7 +198,9 @@ function effectGain(effectId: string, t: Combatant, foeHealers: boolean): number
   const stacks = effectStacks(t, effectId);
   if (def.onMaxStacks && hasEffect(t, def.onMaxStacks)) return 0;
   // Curses last until the break: worth more early in the period. A stun takes a whole turn away.
-  let weight = def.curse ? 1.5 : def.kind === 'stun' ? 3 : 1;
+  let weight = def.curse ? 1.5 : def.kind === 'stun' ? 3 : def.charm ? 3.5 : def.detonate ? def.detonate * 20 : 1;
+  // Two heads: stuns and charms land half as often.
+  if ((def.kind === 'stun' || def.charm) && hasEffectFlag(t, 'steadfast')) weight *= 0.5;
   // Cutting healing only matters against a side that heals; a silence only against spells and heals.
   if (def.mods?.healingTaken !== undefined && !foeHealers) weight *= 0.1;
   if (def.silence && !t.abilities.some((id) => { const ab = ABILITIES[id]; return !!ab && isSilenceable(ab); })) weight *= 0.1;
@@ -233,6 +275,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     if (cost > actor.stamina) continue;
     // Silenced: no spells, no heals.
     if (silenced && isSilenceable(ability)) continue;
+    if (opts.hostileOnly && !HOSTILE_TARGETS.includes(ability.target)) continue;
     let bigMult = ability.aiWeight ?? 1;
     if (ability.hpCost) {
       // Sacrifice: never at death's door, and less eagerly the more it costs.
@@ -249,14 +292,28 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
 
     const damaging = ability.power > 0 && (ability.kind === 'melee' || ability.kind === 'ranged' || ability.kind === 'spell' || ability.kind === 'debuff');
 
+    if (ability.target === 'fallenAlly') {
+      // Raising a fallen ally: worth about a heavy heal, more for a strong creature.
+      for (const t of ctx.fallen?.(actor) ?? []) {
+        options.push({ type: 'ability', ability, target: t, flank: false, score: (0.9 + (t.ability / 200) * 0.5) * Math.max(role.heal, 0.8) * bigMult });
+      }
+      continue;
+    }
+
     if (ability.target === 'enemy') {
       for (const { target, flank } of pickableTargets(reachableTargets(actor, ability, enemies))) {
         let score = 0;
         if (damaging) {
           const exp = expectedDamage(ctx, actor, ability, target, flank);
           score += (exp / target.maxHp) * 3 * role.damage;
-          if (exp >= target.hp) score += ai.killBonus;
+          // An undying foe cannot be finished off yet.
+          if (exp >= target.hp && !hasEffectFlag(target, 'undying')) score += ai.killBonus;
+          score += chainValue(ctx, actor, ability, target, enemies) * 3 * role.damage;
         }
+        score += dispelValue(ability, target) * Math.max(role.debuff, 0.5);
+        // Striking a creature on guard in melee invites a riposte.
+        const riposte = attackKind(ability) === 'melee' ? effectMod(target, 'riposte') : 0;
+        if (riposte > 0) score -= riposte * 0.3 * (actor.attrs.tactics / 20);
         // Control without damage is weighed against the attack it replaces (`debuffWeight`).
         const control = damaging ? 1 : ai.debuffWeight;
         if (ability.kind === 'debuff') score += (effectValue(ability, [target], enemies) * role.debuff * 2 + (ability.fear ?? 0) * 0.01 * role.debuff) * control;
@@ -276,7 +333,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         options.push({ type: 'ability', ability, target, flank, score: score * bigMult });
       }
     } else if (ability.target === 'enemyFront' || ability.target === 'enemyBack' || ability.target === 'allEnemies') {
-      const targets = lineTargets(ability.target, enemies);
+      const targets = lineTargets(ability.target, inReach(enemies));
       if (!targets.length) continue;
       if (!damaging) {
         // Cries and auras that only shake or weaken (no damage): weighed by `cryWeight` against the attack they replace.
@@ -288,9 +345,9 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
       let score = 0;
       for (const t of targets) {
         if (damaging) {
-          const exp = expectedDamage(ctx, actor, ability, t, false);
+          const exp = expectedDamage(ctx, actor, ability, t, false, true);
           score += (exp / t.maxHp) * 3 * role.damage;
-          if (exp >= t.hp) score += ai.killBonus * 0.7;
+          if (exp >= t.hp && !hasEffectFlag(t, 'undying')) score += ai.killBonus * 0.7;
         }
         score += (ability.fear ?? 0) * 0.008 * role.debuff;
       }
@@ -329,8 +386,18 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         // Frenzy grows with the wounds: worth it once hurt.
         if (effectId === 'frenzied') score += 0.35 * role.damage * (0.2 + 1.5 * hurt);
         if (effectId === 'shielded') score += 0.3 * role.guard * (0.3 + hurt);
-        // Slipping out of sight sets up a big blow; provoking protects the back line.
-        if (effectId === 'camouflaged') score += 0.5 * role.damage * (0.6 + hurt);
+        const self = effectId ? EFFECTS[effectId] : undefined;
+        // Slipping out of sight (or under the sand) sets up a big blow; provoking protects the back line.
+        if (self?.hidden) score += 0.5 * role.damage * (0.6 + hurt) + (self.burrowed ? 0.1 + 0.4 * hurt : 0);
+        // Mirror images soak blows: worth it under fire.
+        if (self?.images) score += 0.7 * (0.4 + hurt) * (actor.line === 'front' ? 1.2 : 0.8);
+        // Refusing to fall only matters at death's door.
+        if (self?.undying) score += hurt > 0.55 ? 1.6 * hurt : 0.02;
+        // A riposte stance pays against melee foes, in the front line.
+        if (self?.mods?.riposte) {
+          const melee = enemies.filter((e) => ABILITIES[e.abilities[0] ?? '']?.kind === 'melee').length / Math.max(1, enemies.length);
+          score += 0.7 * self.mods.riposte * melee * (actor.line === 'front' ? 1 : 0.4) * (0.6 + hurt);
+        }
         if (effectId === 'provoking') {
           const back = allies.filter((a) => a.line === 'back' && a.id !== actor.id).length;
           score += role.guard * (back ? 0.25 + 0.08 * back : 0.05) * (1.2 - hurt);
@@ -351,6 +418,8 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
           let score = (0.25 + (1 - hpFraction(t)) * 0.6) * exposure;
           // A fury or a boost to hit harder goes to the ally who hits hardest.
           if ((def?.mods?.damageMult ?? 1) > 1) score = 0.25 + 0.3 * ROLES[t.role].ai.damage;
+          // A vow that keeps an ally standing is for one at death's door.
+          if (def?.undying) score = 1 - hpFraction(t) > 0.55 ? (0.2 + 1.5 * (1 - hpFraction(t))) * exposure : 0.03;
           if (def?.mods?.spellReflect) score *= casters ? 0.6 + 0.3 * casters : 0.1;
           options.push({ type: 'ability', ability, target: t, flank: false, score: score * Math.max(role.buff, 0.8) * bigMult });
         }

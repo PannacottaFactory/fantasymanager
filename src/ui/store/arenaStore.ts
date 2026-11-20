@@ -68,3 +68,5 @@ export const useArena = create<ArenaState>()((set, get) => ({
   rematch: (newSeed) => set((s) => ({ mode: 'live', result: null, liveKey: s.liveKey + 1, seed: newSeed ? randomSeed() : s.seed })),
   backToSetup: () => set({ mode: 'setup' }),
 }));
+
+if (import.meta.env.DEV && typeof window !== 'undefined') Object.assign(window, { __arena: useArena });

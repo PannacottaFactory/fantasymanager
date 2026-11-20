@@ -79,6 +79,10 @@ export const COMBAT_CONFIG = {
     executeBelow: 0.3,
     /** Pack abilities count at most this many allies already on the target. */
     packMax: 4,
+    /** Chain abilities: each leap to another enemy deals this fraction of the previous one. */
+    chainFalloff: 0.7,
+    /** Steadfast creatures (two heads): harmful stuns, freezes and charms land this fraction of the time. */
+    steadfastMult: 0.5,
     /** Physical mitigation per point of toughness. */
     physMitigationPerToughness: 0.017,
     /** Front-line armour per point of courage above 10. */

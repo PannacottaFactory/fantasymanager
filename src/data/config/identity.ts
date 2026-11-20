@@ -9,7 +9,7 @@ import type { TargetPriority } from '../schema.ts';
 
 export type PlayStyleId =
   | 'poison' | 'frost' | 'curse' | 'purify' | 'fortress' | 'burn' | 'bleed' | 'thorns' | 'drain'
-  | 'execute' | 'exhaust' | 'terror' | 'pack' | 'area' | 'rage' | 'sacrifice' | 'skies';
+  | 'execute' | 'exhaust' | 'terror' | 'pack' | 'area' | 'rage' | 'sacrifice' | 'skies' | 'charm' | 'undying';
 
 export interface PlayStyleDef {
   /** Species this style recruits by preference. */
@@ -21,23 +21,25 @@ export interface PlayStyleDef {
 }
 
 export const PLAY_STYLES: Record<PlayStyleId, PlayStyleDef> = {
-  poison: { species: ['giant-spider', 'giant-scorpion', 'myconid', 'basilisk', 'wyvern', 'manticore', 'hydra'], abilities: ['spider-bite', 'venom-pounce', 'scorpion-sting', 'toxic-spores', 'venom-fang', 'venom-sting', 'tail-spikes'], target: 'strongest' },
+  poison: { species: ['giant-spider', 'giant-scorpion', 'myconid', 'basilisk', 'wyvern', 'manticore', 'hydra', 'rat-swarm', 'mandrake'], abilities: ['spider-bite', 'venom-pounce', 'scorpion-sting', 'toxic-spores', 'venom-fang', 'venom-sting', 'tail-spikes', 'plague-bite', 'root-rot', 'plague-tide'], target: 'strongest' },
   frost: { species: ['frost-giant', 'winter-wolf', 'frost-wraith', 'wendigo', 'yeti'], abilities: ['frost-bite', 'frost-breath', 'glacial-club', 'avalanche', 'frost-bolt', 'blizzard', 'deep-freeze', 'frost-claws', 'yeti-maul', 'snow-hurl'], target: 'threat' },
-  curse: { species: ['hag', 'lich', 'shade', 'mummy'], abilities: ['hex-bolt', 'curse-of-frailty', 'blight', 'evil-eye', 'withering-curse'], target: 'strongest' },
-  purify: { species: ['unicorn', 'dryad', 'naga', 'elf', 'seraph', 'light-elemental', 'pegasus', 'satyr'], abilities: ['purifying-light', 'sanctuary', 'bloom', 'healing-waters', 'healing-song', 'healing-wind', 'wild-song'], target: 'nearest' },
-  fortress: { species: ['golem', 'troll', 'treant', 'crystal-golem', 'naga', 'gargoyle', 'skeleton', 'lizardfolk'], abilities: ['stone-skin', 'barkskin', 'refraction', 'oak-blessing', 'healing-waters'], target: 'nearest' },
-  burn: { species: ['hellhound', 'imp', 'phoenix', 'magma-golem', 'salamander', 'chimera', 'kobold'], abilities: ['hellfire-bite', 'flame-lunge', 'firebolt', 'cinder-cloud', 'molten-fist', 'lava-burst', 'fire-spit', 'ember-talons', 'firepot'], target: 'casters' },
+  curse: { species: ['hag', 'lich', 'shade', 'mummy', 'pixie'], abilities: ['hex-bolt', 'curse-of-frailty', 'blight', 'evil-eye', 'withering-curse', 'fairy-prank'], target: 'strongest' },
+  purify: { species: ['unicorn', 'dryad', 'naga', 'elf', 'seraph', 'light-elemental', 'pegasus', 'satyr', 'jackal-warden', 'pixie'], abilities: ['purifying-light', 'sanctuary', 'bloom', 'healing-waters', 'healing-song', 'healing-wind', 'wild-song', 'embalm', 'fey-mend'], target: 'nearest' },
+  fortress: { species: ['golem', 'troll', 'treant', 'crystal-golem', 'naga', 'gargoyle', 'skeleton', 'lizardfolk', 'dwarf', 'lamassu', 'mimic'], abilities: ['stone-skin', 'barkskin', 'refraction', 'oak-blessing', 'healing-waters', 'warding-wings', 'sticky-hide'], target: 'nearest' },
+  burn: { species: ['hellhound', 'imp', 'phoenix', 'magma-golem', 'salamander', 'chimera', 'kobold', 'gnome', 'sun-lion'], abilities: ['hellfire-bite', 'flame-lunge', 'firebolt', 'cinder-cloud', 'molten-fist', 'lava-burst', 'fire-spit', 'ember-talons', 'firepot', 'forge-strike', 'solar-mane', 'clockwork-bomb'], target: 'casters' },
   bleed: { species: ['werewolf', 'minotaur', 'harpy', 'raptor', 'gnoll', 'manticore'], abilities: ['savage-claws', 'rend-flesh', 'horn-gore', 'rake', 'raptor-claw', 'gnoll-flail', 'lion-maul'], target: 'weakest' },
   thorns: { species: ['bramble-horror', 'treant', 'troll', 'golem'], abilities: ['bramble-ward', 'barkskin'], target: 'nearest' },
-  drain: { species: ['vampire', 'giant-bat', 'shade', 'wendigo', 'ghoul', 'death-knight'], abilities: ['vampiric-bite', 'blood-bolt', 'crimson-feast', 'leeching-bite', 'life-drain', 'ravenous-bite', 'runeblade'], target: 'threat' },
-  execute: { species: ['giant-mantis', 'centaur', 'griffin', 'elf', 'sphinx', 'will-o-wisp'], abilities: ['scythe-arms', 'decapitate', 'aimed-shot', 'lance-charge', 'lure'], target: 'weakest' },
-  exhaust: { species: ['ooze', 'giant-bat', 'kraken', 'naga'], abilities: ['engulf', 'sapping-spray', 'sonic-shriek', 'crushing-grip'], target: 'casters' },
-  terror: { species: ['banshee', 'nightmare', 'shade', 'wendigo', 'dragon', 'death-knight', 'sphinx'], abilities: ['death-wail', 'harrowing-shriek', 'dread-charge', 'dread', 'terrifying-roar', 'chilling-howl', 'riddle'], target: 'weakest' },
-  pack: { species: ['raptor', 'giant-hyena', 'winter-wolf', 'goblin', 'kobold', 'ghoul', 'gnoll'], abilities: ['hyena-bite', 'raptor-claw', 'pounce', 'spear-jab', 'ghoul-claws'], target: 'weakest' },
-  area: { species: ['cyclops', 'storm-elemental', 'djinn', 'kraken', 'roc', 'mummy'], abilities: ['boulder-throw', 'chain-lightning', 'thunderclap', 'earthshaker', 'whirlwind', 'maelstrom', 'gale-wings', 'sandstorm', 'firepot'], target: 'nearest' },
-  rage: { species: ['ogre', 'orc', 'minotaur', 'werewolf', 'chimera', 'yeti'], abilities: ['blood-frenzy', 'rampage', 'moon-howl', 'war-cry'], target: 'threat' },
+  drain: { species: ['vampire', 'giant-bat', 'shade', 'wendigo', 'ghoul', 'death-knight', 'locust-swarm'], abilities: ['vampiric-bite', 'blood-bolt', 'crimson-feast', 'leeching-bite', 'life-drain', 'ravenous-bite', 'runeblade', 'ravenous-swarm', 'devour'], target: 'threat' },
+  execute: { species: ['giant-mantis', 'centaur', 'griffin', 'elf', 'sphinx', 'will-o-wisp', 'lamassu', 'jackal-warden', 'valkyrie'], abilities: ['scythe-arms', 'decapitate', 'aimed-shot', 'lance-charge', 'lure', 'judgement', 'weigh-the-heart'], target: 'weakest' },
+  exhaust: { species: ['ooze', 'giant-bat', 'kraken', 'naga', 'locust-swarm'], abilities: ['engulf', 'sapping-spray', 'sonic-shriek', 'crushing-grip', 'devouring-cloud'], target: 'casters' },
+  terror: { species: ['banshee', 'nightmare', 'shade', 'wendigo', 'dragon', 'death-knight', 'sphinx', 'mandrake', 'poltergeist'], abilities: ['death-wail', 'harrowing-shriek', 'dread-charge', 'dread', 'terrifying-roar', 'chilling-howl', 'riddle', 'mandrake-shriek'], target: 'weakest' },
+  pack: { species: ['raptor', 'giant-hyena', 'winter-wolf', 'goblin', 'kobold', 'ghoul', 'gnoll', 'rat-swarm', 'locust-swarm'], abilities: ['hyena-bite', 'raptor-claw', 'pounce', 'spear-jab', 'ghoul-claws', 'mob-rush'], target: 'weakest' },
+  area: { species: ['cyclops', 'storm-elemental', 'djinn', 'kraken', 'roc', 'mummy', 'thunderbird', 'sea-serpent', 'gnome'], abilities: ['boulder-throw', 'chain-lightning', 'thunderclap', 'earthshaker', 'whirlwind', 'maelstrom', 'gale-wings', 'sandstorm', 'firepot', 'forked-lightning', 'static-web', 'tidal-wave', 'arc-coil'], target: 'nearest' },
+  rage: { species: ['ogre', 'orc', 'minotaur', 'werewolf', 'chimera', 'yeti', 'ettin'], abilities: ['blood-frenzy', 'rampage', 'moon-howl', 'war-cry', 'double-smash'], target: 'threat' },
   sacrifice: { species: ['blood-demon', 'seraph', 'phoenix'], abilities: ['blood-price', 'infernal-sacrifice', 'martyrdom', 'hymn-of-valor'], target: 'strongest' },
-  skies: { species: ['griffin', 'wyvern', 'harpy', 'giant-bat', 'phoenix', 'roc', 'pegasus', 'gargoyle', 'will-o-wisp'], abilities: ['dive', 'radiant-dive', 'flame-lunge', 'radiant-dive'], target: 'casters' },
+  charm: { species: ['siren', 'giant-moth', 'poltergeist', 'doppelganger', 'pixie'], abilities: ['siren-song', 'mesmerize', 'possession', 'drowning-chorus', 'mirror-images', 'steal-form'], target: 'strongest' },
+  undying: { species: ['dwarf', 'valkyrie', 'lamassu', 'sun-lion', 'jackal-warden', 'ettin'], abilities: ['last-stand', 'sacred-vow', 'raise-the-fallen', 'judgement'], target: 'nearest' },
+  skies: { species: ['griffin', 'wyvern', 'harpy', 'giant-bat', 'phoenix', 'roc', 'pegasus', 'gargoyle', 'will-o-wisp', 'valkyrie', 'thunderbird'], abilities: ['dive', 'radiant-dive', 'flame-lunge', 'radiant-dive'], target: 'casters' },
 };
 
 export const PLAY_STYLE_IDS = Object.keys(PLAY_STYLES) as PlayStyleId[];

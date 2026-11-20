@@ -101,6 +101,13 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
     case 'attack': {
       const t = touch(e.target);
       if (t) t.hp = e.targetHp;
+      // A mirror image took the blow: one double less.
+      if (t && e.decoy) {
+        const left = (t.stacks[e.decoy] ?? 1) - 1;
+        const rest = Object.fromEntries(Object.entries(t.stacks).filter(([k]) => k !== e.decoy));
+        t.stacks = left > 1 ? { ...rest, [e.decoy]: left } : rest;
+        if (left <= 0) t.effects = t.effects.filter((x) => x !== e.decoy);
+      }
       if (e.healed) {
         const a = touch(e.actor);
         if (a) a.hp = Math.min(a.maxHp, a.hp + e.healed);
@@ -122,6 +129,27 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
       if (t) {
         t.hp = e.hp;
         t.effects = t.effects.filter((x) => x !== e.effect);
+        // Raised by an ally: back on its feet.
+        if (e.by) {
+          t.state = 'active';
+          t.effects = [];
+          t.stacks = {};
+          if (e.stamina !== undefined) t.stamina = e.stamina;
+        }
+      }
+      break;
+    }
+    case 'dispel': {
+      const t = touch(e.target);
+      if (t) {
+        const stacks = t.stacks;
+        t.effects = t.effects.filter((x) => !e.removed.includes(x));
+        t.stacks = Object.fromEntries(Object.entries(t.stacks).filter(([k]) => !e.removed.includes(k)));
+        const a = e.stolen ? touch(e.actor) : undefined;
+        if (a) {
+          for (const id of e.removed) if (!a.effects.includes(id)) a.effects.push(id);
+          a.stacks = { ...a.stacks, ...Object.fromEntries(Object.entries(stacks).filter(([k]) => e.removed.includes(k))) };
+        }
       }
       break;
     }

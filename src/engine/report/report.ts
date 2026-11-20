@@ -124,6 +124,12 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
         teams[a.side].attacks++;
         if (e.interceptedFrom) st(e.target).intercepts++;
         if (!e.hit) break;
+        // Under a charm, a blow on its own side is nobody's credit: only the damage taken counts.
+        if (e.charmed) {
+          st(e.target).damageTaken += e.damage;
+          teams[st(e.target).side].damageTaken += e.damage;
+          break;
+        }
         a.hits++;
         a.damageDealt += e.damage;
         a.elementMults.push(e.elementMult);

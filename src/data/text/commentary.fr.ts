@@ -267,6 +267,64 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['', 'Une tempête hurle sur les tribunes : les vents portent l’air, les flèches dérivent.'],
     ['', 'Tonnerre et rafales aujourd’hui : les créatures de l’air sont dans leur élément.'],
   ],
+  // ——— Vague 6 ———
+  charmedAttack: [
+    ['', 'Ensorcelé{aE}, {a} se retourne contre son camp !'],
+    ['', '{a} ne se contrôle plus et frappe {t}, son propre coéquipier !'],
+    ['', 'Le charme opère : {a} attaque {t} !'],
+  ],
+  undying: [
+    ['', '{t} devrait être à terre, mais refuse de tomber !'],
+    ['', 'Allez savoir comment, {t} tient encore debout, sur un souffle !'],
+    ['', 'Pas encore ! {t} ne tombera pas !'],
+  ],
+  decoy: [
+    ['', '{a} frappe {t}… et l’image éclate comme une bulle.'],
+    ['', 'Un simple double ! Le coup traverse une copie, {t} est ailleurs.'],
+    ['', '{a} ne touche qu’une illusion : {t} n’était pas là.'],
+  ],
+  riposte: [
+    ['hit', '{t} attaque, {a} répond aussitôt ({dmg}) !'],
+    ['hit', 'Riposte ! {a} punit {t} pour {dmg}.'],
+    ['hit crit', 'Une riposte brutale : {t} encaisse {dmg} !'],
+    ['miss', '{a} tente de riposter, mais manque {t}.'],
+    ['miss', 'La riposte ne trouve que le vide.'],
+  ],
+  chain: [
+    ['hit', 'Ça saute sur {t} ({dmg}) !'],
+    ['hit', '{t} est pris{tE} dans la chaîne ({dmg}).'],
+    ['hit', 'L’arc bondit et frappe {t} : {dmg}.'],
+    ['miss', 'Ça saute vers {t}, qui s’écarte.'],
+    ['miss', '{t} esquive le saut.'],
+  ],
+  raise: [
+    ['', '{a} ramène {t} du bord du gouffre : {t} se relève !'],
+    ['', 'Incroyable ! {a} relève {t}, qui revient sur le sable !'],
+    ['', '{t} était à terre, mais {a} ne l’entend pas ainsi : retour au combat !'],
+  ],
+  dispel: [
+    ['', '{a} arrache toutes ses bénédictions, {t} se retrouve nu{tE}.'],
+    ['', 'La magie qui protégeait {t} se défait entre les mains du lanceur.'],
+    ['stolen', '{a} vole ce qui protégeait {t} et s’en drape !'],
+    ['stolen', 'Les bénédictions changent de camp : {a} les garde, {t} n’a plus rien.'],
+  ],
+  'blast.ticking-bomb': [
+    ['', 'BOUM ! La bombe explose sur {t} ({n}) !'],
+    ['', 'Tic, tac… la bombe saute au nez de la cible : {t} perd {n}.'],
+  ],
+  'blast.seed-pod': [
+    ['', 'La cosse éclate en nuage de graines : {t} perd {n} !'],
+    ['', 'Pop ! La cosse explose sur {t} ({n}).'],
+  ],
+  'blast.haunted': [
+    ['', 'L’esprit se déchaîne sur {t} ({n}) !'],
+    ['', 'Quelque chose d’invisible frappe {t} ({n}).'],
+  ],
+  'effect.charmed': [['', '{t} est charmé{tE} !'], ['', 'Le regard vide : {t} est sous le charme.']],
+  'effect.possessed': [['', '{t} est possédé{tE} !'], ['', 'Quelque chose se glisse dans {t}…']],
+  'effect.ticking-bomb': [['', 'Une bombe fait tic-tac sur {t} !'], ['', 'Tic, tac : {t} porte une bombe.']],
+  'effect.seed-pod': [['', 'Une cosse gonfle sur {t}.'], ['', 'Quelque chose pousse sur {t}…']],
+  'effect.haunted': [['', '{t} est hanté{tE} !'], ['', 'Une présence glacée enveloppe {t}.']],
   thorns: [
     ['', '{t} le paie cher : les épines piquent en retour ({n}).'],
     ['', 'Des pointes partout : {t} perd {n} sur les épines.'],

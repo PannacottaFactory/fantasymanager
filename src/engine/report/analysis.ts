@@ -152,7 +152,7 @@ export function analyzeMatch(result: MatchResult, perspective: Side = 0, cfg: Ga
         const side = sideOf(e.actor);
         if (side === undefined) break;
         if (e.absorbed) sides[side === 0 ? 1 : 0].absorbed += e.absorbed;
-        if (!e.hit || e.damage <= 0) break;
+        if (!e.hit || e.damage <= 0 || e.charmed) break;
         sides[side].sources[e.kind] += e.damage;
         dealt(side, e.target, e.damage, e.round);
         duels.set(`${e.actor}|${e.target}`, (duels.get(`${e.actor}|${e.target}`) ?? 0) + e.damage);

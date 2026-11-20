@@ -44,6 +44,7 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
     case 'cleanse':
     case 'thorns':
     case 'drain':
+    case 'dispel':
       return { actor: e.actor, target: e.target };
     case 'buff':
     case 'debuff':
@@ -59,7 +60,7 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
     case 'substitution':
       return { actor: e.inId, target: e.outId };
     case 'revive':
-      return { target: e.target };
+      return { actor: e.by, target: e.target };
     case 'sacrifice':
     case 'guard':
     case 'rest':
@@ -234,19 +235,27 @@ export class Commentator {
         };
         const importance: 0 | 1 | 2 = !e.hit ? 0 : e.crit || tags.includes('heavy') ? 2 : 1;
         const side = this.sideOf(e.actor);
+        const prev = this.prev;
+        // Under a charm: announced once per action (multi-strikes and chains share it).
+        const charmLine =
+          e.charmed && !(prev?.type === 'attack' && prev.actor === e.actor && prev.charmed) ? this.line(e, 'charmedAttack', [], vars, 2, side) : [];
+        // Refused to fall: told after the blow.
+        const undyingLine = e.undying ? this.line(e, 'undying', [], vars, 2, this.sideOf(e.target)) : [];
+        if (e.decoy) return [...charmLine, ...this.line(e, 'decoy', [e.kind], vars, 1, side)];
+        if (e.riposte) return [...this.line(e, 'riposte', [e.hit ? 'hit' : 'miss', ...tags], vars, e.hit ? 1 : 0, side), ...undyingLine];
+        if (e.chain) return [...charmLine, ...this.line(e, 'chain', [e.hit ? 'hit' : 'miss'], vars, e.hit ? 1 : 0, side), ...undyingLine];
         if (e.aoe) {
           const key = `${e.actor}|${e.ability}|${e.round}`;
           const out: CommentaryLine[] = [];
           if (key !== this.groupKey) out.push(...this.line(e, 'aoe.open', [e.kind], vars, 1, side));
           this.groupKey = key;
           out.push(...this.line(e, e.hit ? 'aoe.hit' : 'aoe.miss', tags, vars, importance, side));
-          return out;
+          return [...charmLine, ...out, ...undyingLine];
         }
         const key = e.interceptedFrom ? 'attack.intercept' : e.hit ? 'attack.hit' : 'attack.miss';
         // Out of nowhere: announced once per ambush (multi-strikes share it).
-        const prev = this.prev;
         const ambushLine = e.ambush && !(prev?.type === 'attack' && prev.actor === e.actor && prev.ambush) ? this.line(e, 'ambush', [], vars, 1, side) : [];
-        const out = [...ambushLine, ...this.line(e, key, e.interceptedFrom ? [...tags, e.hit ? 'hit' : 'miss'] : tags, vars, importance, side)];
+        const out = [...charmLine, ...ambushLine, ...this.line(e, key, e.interceptedFrom ? [...tags, e.hit ? 'hit' : 'miss'] : tags, vars, importance, side), ...undyingLine];
         if (e.crit && tags.includes('heavy')) out.push(...this.crowd(e, 0.35));
         return out;
       }
@@ -307,7 +316,15 @@ export class Commentator {
         if (e.effect === 'frozen') return this.line(e, 'frozen', [], this.actorVars(e.actor), 1, this.sideOf(e.actor));
         return this.line(e, 'stunned', [], this.actorVars(e.actor), 0, this.sideOf(e.actor));
       case 'revive':
+        if (e.by) {
+          const vars: Vars = { a: this.ref(e.by), t: this.ref(e.target), aE: this.fem(e.by), tE: this.fem(e.target) };
+          return [...this.line(e, 'raise', [], vars, 2, this.sideOf(e.by)), ...this.crowd(e, 0.6)];
+        }
         return [...this.line(e, 'revive', [], this.actorVars(e.target), 2, this.sideOf(e.target)), ...this.crowd(e, 0.6)];
+      case 'dispel': {
+        const vars: Vars = { a: this.ref(e.actor), t: this.ref(e.target), aE: this.fem(e.actor), tE: this.fem(e.target) };
+        return this.line(e, 'dispel', e.stolen ? ['stolen'] : [], vars, 1, this.sideOf(e.actor));
+      }
       case 'sacrifice':
         return this.line(e, 'sacrifice', [], { ...this.actorVars(e.actor), n: e.amount, ab: abilityText(e.ability, lang).name }, 1, this.sideOf(e.actor));
       case 'thorns': {
@@ -374,6 +391,11 @@ export class Commentator {
       case 'effectTick': {
         const def = EFFECTS[e.effect];
         if (!def) return [];
+        // A time bomb going off is always told.
+        if (def.detonate) {
+          const vars: Vars = { t: this.ref(e.target), effect: effectText(e.effect, lang).noun, n: -e.amount, tE: this.fem(e.target) };
+          return this.line(e, `blast.${e.effect}`, [], vars, 1, this.sideOf(e.target));
+        }
         if (def.kind === 'dot' && this.rng.chance(0.35)) {
           const vars: Vars = { t: this.ref(e.target), effect: effectText(e.effect, lang).noun, n: -e.amount, tE: this.fem(e.target) };
           return this.line(e, 'tick', ['dot'], vars, 0, this.sideOf(e.target));

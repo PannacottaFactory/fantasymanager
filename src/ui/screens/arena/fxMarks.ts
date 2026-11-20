@@ -15,6 +15,8 @@ const RAGE = ['#fff1d6', '#ff9a4a', '#e8361f', '#5a1a10'];
 const GREY = ['#eeeeee', '#b9b4aa', '#8a857c', '#4a4640'];
 const STAMINA = ['#e8f6ff', '#8fd0ff', '#3f8fd8', '#1d4f86'];
 const ACID = ['#fbffd0', '#e1f05a', '#a6b52a', '#4f5a14'];
+const CHARM = ['#fff0f6', '#ffb3d1', '#f06aa5', '#8a2a5c'];
+
 
 type Emit = Partial<Particle> & { palette: readonly string[] };
 
@@ -230,6 +232,66 @@ export function playMark(fx: FxCanvas, m: Mark) {
       break;
     case 'pack':
       fx.add(new Slash(c, BLOOD, false, { n: Math.min(5, 1 + doses), r: 18, gap: 9 }));
+      break;
+    case 'charm':
+      // Rosy motes circling the head, a soft swirl: spellbound.
+      fx.add(new Orbit({ x: c.x, y: r.top + 4 }, Math.min(44, r.width * 0.2), big ? 1300 : 900, CHARM, 'glow'));
+      fx.add(new Ring(c, CHARM[1]!, 48, 650, 2, true));
+      repeat(big ? 12 : 6, () => on({ vx: rand(-15, 15), vy: rand(-70, -30), palette: CHARM, life: rand(0.7, 1.1), size: rand(3, 5), shape: 'glow', drag: 0.98 }, 'bottom'));
+      break;
+    case 'bomb':
+      // A fuse fizzing on the card, a warning sign.
+      stream(900, 30, () => on({ vx: rand(-40, 40), vy: rand(-90, -40), palette: PALETTES.fire, life: rand(0.25, 0.45), size: rand(2, 3), shape: 'spark', drag: 0.94 }, 'top'));
+      fx.add(new Glyph({ x: c.x, y: r.top }, '!', '#ffb347'));
+      fx.add(new Ring(c, '#ff9a3c', 36, 500, 2, true));
+      break;
+    case 'blast':
+      fx.add(new Flash(c, '#ffb347', 200, true));
+      fx.add(new Ring(c, PALETTES.fire[2]!, 80, 520, 5));
+      fx.add(new Ring(c, '#ffffff', 50, 360, 2));
+      repeat(26, () => {
+        const a = rand(0, Math.PI * 2);
+        const v = rand(140, 320);
+        fx.emit({ x: c.x, y: c.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, palette: PALETTES.fire, life: rand(0.4, 0.8), size: rand(3, 6), shape: Math.random() < 0.4 ? 'chunk' : 'glow', gravity: 500, vr: rand(-8, 8) });
+      });
+      repeat(8, () => on({ vx: rand(-20, 20), vy: rand(-60, -20), palette: GREY, life: 1.2, size: rand(10, 14), shape: 'smoke', grow: 2.6 }, 'middle'));
+      shake(4, 220);
+      break;
+    case 'images':
+      // Pale copies sliding out to each side.
+      for (const dx of [-1, 1]) fx.add(new Ring({ x: c.x + dx * r.width * 0.22, y: c.y }, '#e8f2ff', 34, 700, 1.5, true));
+      repeat(14, (i) => on({ vx: (i % 2 ? 1 : -1) * rand(80, 200), vy: rand(-10, 10), palette: ['#ffffff', '#eef4ff', '#c9d8f0'], life: 0.5, size: rand(2, 4), shape: 'star', drag: 0.9 }, 'middle'));
+      break;
+    case 'imagePop':
+      fx.add(new Ring(c, '#ffffff', 58, 380, 2.5));
+      repeat(18, () => {
+        const a = rand(0, Math.PI * 2);
+        fx.emit({ x: c.x + Math.cos(a) * 20, y: c.y + Math.sin(a) * 14, vx: Math.cos(a) * rand(90, 200), vy: Math.sin(a) * rand(90, 200), palette: ['#ffffff', '#eef4ff', '#c9d8f0'], life: 0.45, size: rand(2, 4), shape: 'star', drag: 0.9 });
+      });
+      break;
+    case 'undying':
+      // Golden light holding the creature up.
+      fx.add(new Ring(c, GOLD[1]!, 54, big ? 900 : 600, 3));
+      if (big) fx.add(new Flash(c, '#fff3c4', 140, false));
+      stream(big ? 800 : 500, 35, () => on({ vx: rand(-8, 8), vy: rand(-200, -110), palette: GOLD, life: rand(0.5, 0.8), size: rand(2, 4), shape: 'spark', drag: 0.97 }, 'bottom'));
+      break;
+    case 'burrow':
+      // Sand and stones collapsing over the hole it dug.
+      repeat(20, () => on({ vx: rand(-30, 30), vy: rand(-120, -40), palette: PALETTES.earth, life: rand(0.6, 1), size: rand(3, 6), shape: 'chunk', gravity: 520, vr: rand(-8, 8) }, 'bottom'));
+      repeat(10, () => on({ vx: rand(-40, 40), vy: rand(-30, -5), palette: GREY, life: 1.2, size: rand(10, 15), shape: 'smoke', grow: 2.6 }, 'bottom'));
+      break;
+    case 'riposte':
+      fx.add(new Slash(c, ['#ffffff', '#f2f2f2', '#c9c9c9'], false, { n: 1, r: 34, angle: 0.4 }));
+      if (big) fx.add(new GuardArc(r));
+      else fx.add(new Flash(c, '#ffffff', 90, true));
+      break;
+    case 'dispel':
+      // The blessings come apart: a ring breaking up into grey dust.
+      fx.add(new Ring(c, '#d8d2ff', 56, 520, 3, true));
+      repeat(20, () => {
+        const a = rand(0, Math.PI * 2);
+        fx.emit({ x: c.x + Math.cos(a) * r.width * 0.3, y: c.y + Math.sin(a) * r.height * 0.35, vx: Math.cos(a) * rand(60, 160), vy: Math.sin(a) * rand(60, 160), palette: ['#ffffff', '#d8d2ff', '#9a93c4', '#5a5470'], life: 0.7, size: rand(2, 4), shape: 'glow', drag: 0.92 });
+      });
       break;
   }
 }

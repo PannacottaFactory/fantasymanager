@@ -15,10 +15,13 @@ import { parseArgs } from './args.ts';
 
 const args = parseArgs(process.argv.slice(2));
 const N = Math.max(20, Number(args.matches ?? 300));
+/** `--only a,b`: test these species only; `--mean m` (win %): the reference mean then (from a full run). */
+const only = args.only ? String(args.only).split(',') : undefined;
+const refMean = args.mean !== undefined ? Number(args.mean) / 100 : undefined;
 
 const results: { id: string; win: number }[] = [];
 const t0 = performance.now();
-for (const id of SPECIES_IDS) {
+for (const id of only ?? SPECIES_IDS) {
   let wins = 0;
   for (let i = 0; i < N; i++) {
     const rng = new Rng(deriveSeed('species', i));
@@ -41,7 +44,7 @@ for (const id of SPECIES_IDS) {
   }
   results.push({ id, win: wins / N });
 }
-const mean = results.reduce((s, r) => s + r.win, 0) / results.length;
+const mean = refMean ?? results.reduce((s, r) => s + r.win, 0) / results.length;
 console.log(`${N} matches per species in ${((performance.now() - t0) / 1000).toFixed(1)} s — mean win ${(mean * 100).toFixed(1)} %\n`);
 console.log('species          win%   current ×   suggested ×');
 for (const r of results.sort((x, y) => y.win - x.win)) {

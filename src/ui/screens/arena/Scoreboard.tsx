@@ -95,6 +95,8 @@ const AURA: Record<string, string> = {
   burning: 'burn', poisoned: 'poison', bleeding: 'bleed', chilled: 'chill', frozen: 'frozen', stunned: 'stun',
   shielded: 'shield', fortified: 'stone', graced: 'grace', enraged: 'rage', avenging: 'rage', frenzied: 'rage', terrified: 'fear', evasive: 'evasive', poised: 'evasive',
   regenerating: 'regen', rallied: 'rally', hexed: 'curse', frailty: 'curse', blighted: 'curse', jinxed: 'curse', sapped: 'sapped',
+  charmed: 'charm', possessed: 'charm', 'ticking-bomb': 'bomb', 'seed-pod': 'bomb', haunted: 'bomb', 'last-stand': 'undying', vowed: 'undying',
+  burrowed: 'burrow', submerged: 'burrow', 'mirror-images': 'images', 'sticky-hide': 'riposte', parrying: 'riposte',
 };
 function auras(c: CombatantView): string[] {
   if (c.state !== 'active') return [];

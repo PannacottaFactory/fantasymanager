@@ -57,7 +57,8 @@ export type MarkKind =
   | 'shield' | 'shieldBreak' | 'stone' | 'rally' | 'rage' | 'grace' | 'evasive' | 'curse' | 'regen' | 'sapped' | 'thornsUp'
   | 'silence' | 'taunt' | 'camo' | 'corrode' | 'mirror'
   | 'drain' | 'siphon' | 'thorns' | 'reflect' | 'cleanse' | 'guard' | 'rest' | 'transform' | 'sacrifice' | 'flee'
-  | 'hesitate' | 'swapIn' | 'exhausted' | 'execute' | 'ambush' | 'pack';
+  | 'hesitate' | 'swapIn' | 'exhausted' | 'execute' | 'ambush' | 'pack'
+  | 'charm' | 'bomb' | 'blast' | 'images' | 'imagePop' | 'undying' | 'burrow' | 'riposte' | 'dispel';
 export interface Mark {
   id: string;
   kind: MarkKind;
@@ -78,6 +79,8 @@ const EFFECT_MARK: Record<string, MarkKind> = {
   trollblood: 'regen', regrowth: 'regen', sapped: 'sapped', thorned: 'thornsUp', thornhide: 'thornsUp',
   'rune-ward': 'shield', silenced: 'silence', provoking: 'taunt', camouflaged: 'camo', corroded: 'corrode',
   'spell-mirror': 'mirror', 'mirror-hide': 'mirror',
+  charmed: 'charm', possessed: 'charm', 'ticking-bomb': 'bomb', 'seed-pod': 'bomb', haunted: 'bomb', 'mirror-images': 'images',
+  'last-stand': 'undying', vowed: 'undying', 'fey-flight': 'evasive', burrowed: 'burrow', submerged: 'burrow', 'sticky-hide': 'riposte', parrying: 'riposte',
 };
 export function effectMark(effect: string): MarkKind | undefined {
   return EFFECT_MARK[effect];
@@ -139,6 +142,7 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
     case 'stunned':
     case 'hesitate':
     case 'drain':
+    case 'dispel':
       return 'debuff';
     case 'thorns':
     case 'sacrifice':
@@ -214,6 +218,16 @@ export function addEventFx(
       if (e.hit && e.execute) mark({ id: e.target, kind: 'execute' });
       if (e.hit && e.ambush) mark({ id: e.target, kind: 'ambush' });
       if (e.hit && e.pack) mark({ id: e.target, kind: 'pack', stacks: e.pack });
+      // A double burst instead of the creature; a riposte; a blow that should have felled it; a charmed creature.
+      if (e.decoy) mark({ id: e.target, kind: 'imagePop' });
+      if (e.riposte) mark({ id: e.actor, kind: 'riposte', tick: true });
+      if (e.undying) mark({ id: e.target, kind: 'undying', tick: true });
+      if (e.charmed) mark({ id: e.actor, kind: 'charm', tick: true });
+      break;
+    case 'dispel':
+      put(e.target, 'debuff', '');
+      mark({ id: e.target, kind: 'dispel' });
+      if (e.stolen) mark({ id: e.actor, kind: 'siphon', from: e.target });
       break;
     case 'heal':
       batch.actor = { id: e.actor, nonce: ++counter };
@@ -248,6 +262,10 @@ export function addEventFx(
       mark({ id: e.actor, kind: 'sacrifice' });
       break;
     case 'revive':
+      if (e.by && e.ability) {
+        batch.actor = { id: e.by, nonce: ++counter };
+        shoot(e.by, e.target, e.ability, 'heal');
+      }
       put(e.target, 'revive', `+${e.hp}`);
       batch.bursts.push({ id: e.target, kind: 'revive' });
       break;
@@ -317,7 +335,13 @@ export function addEventFx(
     case 'effectTick': {
       if (e.amount < 0) put(e.target, 'dot', `${e.amount}`);
       else if (e.amount > 0) put(e.target, 'heal', `+${e.amount}`);
+      // A time bomb going off.
+      if (EFFECTS[e.effect]?.detonate) {
+        mark({ id: e.target, kind: 'blast' });
+        break;
+      }
       const k = effectMark(e.effect);
+
       if (k) mark({ id: e.target, kind: k, tick: true });
       else if (e.amount > 0) mark({ id: e.target, kind: 'regen', tick: true });
       break;

@@ -108,7 +108,7 @@ export function AbilityCard({ id, elements, locked, unlockAt, current, badge, ba
         </span>
         {def.cooldown > 0 && <span title={t('ab.cooldown.title')}>⟳ {t('ab.cooldown', { n: def.cooldown })}</span>}
       </div>
-      {((def.effects && def.effects.length > 0) || def.cleanse) && (
+      {((def.effects && def.effects.length > 0) || def.cleanse || def.chain || def.dispel || def.steal || def.raise) && (
         <div className="ability-stats">
           {def.effects?.map((e) => (
             <span key={e.effect} title={effectText(e.effect, lang).description}>
@@ -120,6 +120,9 @@ export function AbilityCard({ id, elements, locked, unlockAt, current, badge, ba
             </span>
           ))}
           {def.cleanse && <span title={t('ab.cleanse.title')}>{t('ab.cleanse')}</span>}
+          {def.chain && <span title={t('ab.chain.title', { n: def.chain })}>{t('ab.chain', { n: def.chain })}</span>}
+          {def.steal ? <span title={t('ab.steal.title')}>{t('ab.steal')}</span> : def.dispel && <span title={t('ab.dispel.title')}>{t('ab.dispel')}</span>}
+          {def.raise && <span title={t('ab.raise.title')}>{t('ab.raise', { v: Math.round(def.raise * 100) })}</span>}
         </div>
       )}
       <div className="muted ability-desc">{txt.description}</div>

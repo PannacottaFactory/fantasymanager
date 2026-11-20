@@ -44,7 +44,8 @@ describe('scouts', () => {
     const g = game();
     const c = structuredClone(aiCreature(g));
     expect(['gem', 'star']).toContain(scoutVerdict(g, { ...c, ability: 150, potential: 195, age: 3 }, 90));
-    expect(scoutVerdict(g, { ...c, ability: 20, potential: 22 }, 90)).toBe('below');
+    const weak = Object.fromEntries(Object.keys(c.attributes).map((k) => [k, 2])) as typeof c.attributes;
+    expect(scoutVerdict(g, { ...c, ability: 20, potential: 22, attributes: weak }, 90)).toBe('below');
   });
 
   it('a gem stays quiet for a few weeks, then the world notices it (price up), then forgets it', () => {

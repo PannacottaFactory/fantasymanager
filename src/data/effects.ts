@@ -213,4 +213,86 @@ export const EFFECTS: Record<string, EffectDef> = {
     mods: { damageMult: 1.15, mitigation: 0.12, initiativeMult: 0.85 },
     description: 'A huge bear: hits harder and takes less damage, but acts later.',
   },
+  // ——— Wave 6: undying, charm, swarms, time bombs, mirror images, burrowing, ripostes, two heads ———
+  /** Dwarf / sun lion: cannot fall for a while. */
+  'last-stand': {
+    id: 'last-stand', name: 'Last Stand', kind: 'mods', beneficial: true, defaultDuration: 3, undying: true,
+    mods: { damageMult: 1.15 },
+    description: 'Refuses to fall: its health cannot drop below 1 while it lasts, and it hits 15 % harder.',
+  },
+  /** Valkyrie / lamassu blessing on an ally. */
+  vowed: {
+    id: 'vowed', name: 'Sacred Vow', kind: 'mods', beneficial: true, defaultDuration: 3, undying: true,
+    description: 'Sworn to stand: its health cannot drop below 1 while the vow lasts.',
+  },
+  charmed: {
+    id: 'charmed', name: 'Charmed', kind: 'mods', beneficial: false, defaultDuration: 1, charm: true,
+    description: 'Spellbound: on its next turn it attacks one of its own allies (it helps and heals nobody).',
+  },
+  possessed: {
+    id: 'possessed', name: 'Possessed', kind: 'mods', beneficial: false, defaultDuration: 1, charm: true,
+    mods: { dodgeBonus: -0.05 },
+    description: 'A spirit has taken hold of it: on its next turn it attacks one of its own allies.',
+  },
+  'ticking-bomb': {
+    id: 'ticking-bomb', name: 'Ticking Bomb', kind: 'mods', beneficial: false, defaultDuration: 3, detonate: 0.18,
+    description: 'A clockwork bomb ticks on it: when the time runs out it explodes for 18 % of its health. Purifying defuses it.',
+  },
+  'seed-pod': {
+    id: 'seed-pod', name: 'Seed Pod', kind: 'mods', beneficial: false, defaultDuration: 3, detonate: 0.14,
+    mods: { initiativeMult: 0.9 },
+    description: 'A pod swells on it, slowing it a little: when the time runs out it bursts for 14 % of its health. Purifying removes it.',
+  },
+  haunted: {
+    id: 'haunted', name: 'Haunted', kind: 'mods', beneficial: false, defaultDuration: 2, detonate: 0.11,
+    mods: { hitBonus: -0.05 },
+    description: 'A spirit clings to it and spoils its aim: next round it lashes out for 11 % of its health. Purifying drives it off.',
+  },
+  'mirror-images': {
+    id: 'mirror-images', name: 'Mirror Images', kind: 'mods', beneficial: true, defaultDuration: 4, images: true, maxStacks: 3,
+    description: 'Illusory doubles (up to 3): each one takes a single-target blow in its place and vanishes. Area attacks ignore them.',
+  },
+  burrowed: {
+    id: 'burrowed', name: 'Burrowed', kind: 'mods', beneficial: true, defaultDuration: 2, hidden: true, burrowed: true,
+    mods: { damageMult: 1.4 },
+    description: 'Under the sand: no attack can reach it, not even area ones (damage over time still does). Its next attack bursts out for 40 % more.',
+  },
+  submerged: {
+    id: 'submerged', name: 'Submerged', kind: 'mods', beneficial: true, defaultDuration: 2, hidden: true, burrowed: true,
+    mods: { damageMult: 1.4 },
+    description: 'Under the water: no attack can reach it, not even area ones (damage over time still does). Its next attack surges out for 40 % more.',
+  },
+  /** Locusts / rats passive. */
+  'swarm-body': {
+    id: 'swarm-body', name: 'Swarm', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { singleTaken: 0.55, areaTaken: 1.35 },
+    description: 'Thousands of little bodies: a single blow only catches some of them (−45 % damage), but area attacks sweep through (+35 %).',
+  },
+  'sticky-hide': {
+    id: 'sticky-hide', name: 'Sticky Hide', kind: 'mods', beneficial: true, defaultDuration: 3,
+    mods: { riposte: 0.5, mitigation: 0.08 },
+    description: 'Glue and teeth: takes a little less damage, and half the time it bites back at whoever comes at it in melee.',
+  },
+  parrying: {
+    id: 'parrying', name: 'Parrying', kind: 'mods', beneficial: true, defaultDuration: 3,
+    mods: { riposte: 0.65, dodgeBonus: 0.06 },
+    description: 'On guard: harder to hit, and most melee attacks against it are answered by a counter-attack.',
+  },
+  /** Ettin passive. */
+  'two-heads': {
+    id: 'two-heads', name: 'Two Heads', kind: 'mods', beneficial: true, defaultDuration: 999, steadfast: true,
+    description: 'One head always keeps watch: stuns, freezes and charms land on it half as often.',
+  },
+  /** Pixie passive. */
+  'fey-flight': {
+    id: 'fey-flight', name: 'Fey Flight', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { dodgeBonus: 0.1 },
+    description: 'Tiny and never still: harder to hit.',
+  },
+  /** Sun lion passive. */
+  'golden-hide': {
+    id: 'golden-hide', name: 'Golden Hide', kind: 'mods', beneficial: true, defaultDuration: 999,
+    mods: { physicalTaken: 0.88 },
+    description: 'Blades and arrows slide off its golden hide: 12 % less damage from melee and ranged attacks (spells hit it normally).',
+  },
 };

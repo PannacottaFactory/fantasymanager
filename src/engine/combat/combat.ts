@@ -38,6 +38,9 @@ import {
   elementMultiplier,
   hasEffect,
   hasEffectFlag,
+  inReach,
+  isDispellable,
+  takenMult,
   arenaCostMult,
   arenaElementMult,
   hitChance,
@@ -102,7 +105,11 @@ export class Combat {
   private readonly injuries = new Map<string, { injuryId: string; weeks: number }[]>();
   /** target id → ids of attackers who hit it this round. */
   private hitThisRound = new Map<string, Set<string>>();
+  /** Defenders that already struck back during the current action (one riposte per action). */
+  private riposted = new Set<string>();
   private readonly ai: AiContext;
+  /** What a charmed creature sees: its own allies as the foes. */
+  private readonly charmedAi: AiContext;
   /** Arena condition of the match (weather, hour), if any. */
   readonly arena: ArenaCondition | undefined;
   readonly arenaId: ArenaConditionId | undefined;
@@ -162,6 +169,14 @@ export class Combat {
       behind: (c) => Math.max(0, this.teamHealth(other(c.side)) - this.teamHealth(c.side)),
       coverPoints: (side) => this.coverPoints(side),
       arena: this.arena,
+      fallen: (c) => this.combatants.filter((x) => this.canRaise(x, c.side)),
+    };
+    this.charmedAi = {
+      ...this.ai,
+      allies: (c) => [c],
+      enemies: (c) => this.active(c.side).filter((x) => x.id !== c.id),
+      behind: () => 0,
+      fallen: () => [],
     };
 
     for (const c of this.combatants) {
@@ -467,6 +482,8 @@ export class Combat {
       if (this.checkVictory()) return;
     }
     this.endOfRound();
+    // A bomb going off at the end of the round may have knocked out a side's last creature.
+    if (this.checkVictory()) return;
     if (this.round >= this.cfg.match.maxRounds) this.endByPoints();
   }
 
@@ -478,7 +495,7 @@ export class Combat {
         if (!def) continue;
         if (def.kind === 'dot') {
           const dmg = Math.max(1, Math.round(c.maxHp * (def.magnitude ?? 0) * (e.stacks ?? 1) * (this.arena?.dot ?? 1)));
-          const real = Math.min(dmg, c.hp);
+          const real = Math.min(dmg, this.lethalRoom(c));
           c.hp -= real;
           const src = e.sourceId ? this.byId.get(e.sourceId) : undefined;
           if (src && src.side !== c.side) src.damageDealt += real;
@@ -533,13 +550,17 @@ export class Combat {
       for (const k of Object.keys(c.cooldowns)) if (c.cooldowns[k]! > 0) c.cooldowns[k]!--;
       for (const e of [...c.effects]) {
         const def = EFFECTS[e.id];
-        if (!def || def.kind === 'stun' || def.curse || e.remaining >= 999) continue;
+        if (!def || def.kind === 'stun' || def.charm || def.curse || e.remaining >= 999) continue;
         e.remaining--;
         if (e.remaining <= 0) {
           c.effects = c.effects.filter((x) => x !== e);
+          // A time bomb goes off when its count runs out.
+          if (def.detonate) this.detonate(c, e.id, def.detonate, e.sourceId);
           this.emit({ type: 'effectExpired', round: this.round, target: c.id, effect: e.id });
+          if (c.state !== 'active') break;
         }
       }
+      if (c.state !== 'active') continue;
       // Morale drifts back toward neutral.
       const m = cfg.combat.morale;
       c.morale += c.morale < 50 ? Math.min(m.driftPerRound, 50 - c.morale) : -Math.min(m.driftPerRound, c.morale - 50);
@@ -587,6 +608,19 @@ export class Combat {
       stun.remaining--;
       if (stun.remaining <= 0) actor.effects = actor.effects.filter((e) => e !== stun);
       this.emit({ type: 'stunned', round: this.round, actor: actor.id, effect: stun.id });
+      return;
+    }
+
+    // Charmed: this turn it strikes one of its own allies.
+    const charm = actor.effects.find((e) => EFFECTS[e.id]?.charm);
+    if (charm) {
+      charm.remaining--;
+      const action = chooseAction(this.charmedAi, actor, { priority: 'nearest', attackOnly: true, hostileOnly: true });
+      this.execute(actor, action, true);
+      if (charm.remaining <= 0 && actor.effects.includes(charm)) {
+        actor.effects = actor.effects.filter((e) => e !== charm);
+        this.emit({ type: 'effectExpired', round: this.round, target: actor.id, effect: charm.id });
+      }
       return;
     }
 
@@ -641,8 +675,9 @@ export class Combat {
     this.execute(actor, action);
   }
 
-  private execute(actor: Combatant, action: ChosenAction) {
+  private execute(actor: Combatant, action: ChosenAction, charmed = false) {
     const cfg = this.cfg;
+    this.riposted = new Set();
     if (action.type === 'rest') {
       const gained = Math.round(Math.min(actor.maxStamina - actor.stamina, staminaRegen(actor, cfg) * cfg.combat.stamina.restMult * (this.arena?.staminaRegen ?? 1)));
       actor.stamina += gained;
@@ -672,23 +707,27 @@ export class Combat {
     }
 
     const hostile = ability.target === 'enemy' || ability.target === 'enemyFront' || ability.target === 'enemyBack' || ability.target === 'allEnemies';
-    this.resolveAbility(actor, action, ability);
+    // Only what hid it before the blow is given away (a strike that ends in camouflage keeps it).
+    const cover = actor.effects.filter((x) => EFFECTS[x.id]?.hidden || EFFECTS[x.id]?.consumedOnAttack);
+    this.resolveAbility(actor, action, ability, charmed);
     // Striking from cover gives the hidden creature away.
-    if (hostile && actor.state === 'active') this.reveal(actor);
+    if (hostile && actor.state === 'active') this.reveal(actor, cover);
   }
 
   /** Camouflage ends: the creature is in plain sight again. A stance that set up the blow is spent too. */
-  private reveal(c: Combatant) {
-    for (const e of c.effects.filter((x) => EFFECTS[x.id]?.hidden || EFFECTS[x.id]?.consumedOnAttack)) {
+  private reveal(c: Combatant, cover: Combatant['effects']) {
+    for (const e of c.effects.filter((x) => cover.includes(x))) {
       c.effects = c.effects.filter((x) => x !== e);
       this.emit({ type: 'effectExpired', round: this.round, target: c.id, effect: e.id });
     }
   }
 
-  private resolveAbility(actor: Combatant, action: Extract<ChosenAction, { type: 'ability' }>, ability: AbilityDef) {
+  private resolveAbility(actor: Combatant, action: Extract<ChosenAction, { type: 'ability' }>, ability: AbilityDef, charmed = false) {
     const cfg = this.cfg;
-    const enemies = this.active(other(actor.side));
+    // A charmed creature takes its own allies for the foes.
+    const enemies = charmed ? this.active(actor.side).filter((c) => c.id !== actor.id) : this.active(other(actor.side));
     const allies = this.active(actor.side);
+    const opts = charmed ? { charmed: true } : {};
     switch (ability.target) {
       case 'enemy': {
         if (!action.target || action.target.state !== 'active') return;
@@ -696,17 +735,25 @@ export class Combat {
           // Multi-strike abilities hit again while both are still standing.
           for (let i = 0; i < (ability.hits ?? 1); i++) {
             if (action.target.state !== 'active' || actor.state !== 'active') break;
-            this.attack(actor, action.target, ability, false, action.flank);
+            this.attack(actor, action.target, ability, false, action.flank, opts);
           }
+          if (ability.chain) this.chainFrom(actor, action.target, ability, enemies, charmed);
         } else this.debuff(actor, ability, [action.target]);
         return;
       }
       case 'enemyFront':
       case 'enemyBack':
       case 'allEnemies': {
-        const targets = lineTargets(ability.target, enemies);
-        if (ability.power > 0) for (const t of targets) if (t.state === 'active') this.attack(actor, t, ability, true, false);
+        // A burrowed creature is out of reach even of area attacks.
+        const targets = lineTargets(ability.target, inReach(enemies));
+        if (!targets.length) return;
+        if (ability.power > 0) for (const t of targets) if (t.state === 'active') this.attack(actor, t, ability, true, false, opts);
         if (ability.power <= 0) this.debuff(actor, ability, targets);
+        return;
+      }
+      case 'fallenAlly': {
+        const t = action.target;
+        if (t && this.canRaise(t, actor.side)) this.raise(actor, ability, t);
         return;
       }
       case 'ally':
@@ -747,6 +794,7 @@ export class Combat {
         this.changeMorale(t, -ability.fear);
         hit = true;
       }
+      if ((ability.dispel || ability.steal) && this.dispel(actor, ability, t)) hit = true;
       if (this.applyAbilityEffects(actor, ability, t, 'target')) hit = true;
       if (ability.staminaDrain && this.drainStamina(actor, ability, t)) hit = true;
       if (hit) affected.push(t.id);
@@ -763,6 +811,8 @@ export class Combat {
       if (!def) continue;
       let p = ref.chance;
       if (!def.beneficial && target.side !== actor.side) p *= 1 - target.attrs.focus * 0.015;
+      // Two heads: one always keeps watch against stuns and charms.
+      if (!def.beneficial && (def.kind === 'stun' || def.charm) && hasEffectFlag(target, 'steadfast')) p *= this.cfg.combat.damage.steadfastMult;
       if (this.rng.chance(p)) {
         this.addEffect(target, ref.effect, ref.duration ?? def.defaultDuration, actor.id, false, ref.stacks ?? 1);
         any = true;
@@ -841,7 +891,14 @@ export class Combat {
     }
   }
 
-  private attack(actor: Combatant, initialTarget: Combatant, ability: AbilityDef, aoe: boolean, flank: boolean) {
+  private attack(
+    actor: Combatant,
+    initialTarget: Combatant,
+    ability: AbilityDef,
+    aoe: boolean,
+    flank: boolean,
+    opts: { chain?: number; riposte?: boolean; charmed?: boolean } = {},
+  ) {
     const cfg = this.cfg;
     const kind = attackKind(ability);
     const orders = this.sides[actor.side].orders;
@@ -849,9 +906,9 @@ export class Combat {
     let interceptedFrom: string | undefined;
 
     // A guard may throw itself in front of a single-target physical attack.
-    if (!aoe && kind !== 'spell' && !(target.role === 'tank' && target.line === 'front')) {
+    if (!aoe && !opts.riposte && kind !== 'spell' && !(target.role === 'tank' && target.line === 'front')) {
       const guards = this.active(target.side)
-        .filter((g) => g.id !== target.id && g.role === 'tank' && g.line === 'front' && !hasEffect(g, 'stunned'))
+        .filter((g) => g.id !== target.id && g.id !== actor.id && g.role === 'tank' && g.line === 'front' && !hasEffect(g, 'stunned') && !hasEffectFlag(g, 'burrowed'))
         .sort((a, b) => Number(b.guarding) - Number(a.guarding));
       for (const g of guards) {
         if (this.rng.chance(interceptChance(g, cfg, this.sides[g.side].orders))) {
@@ -880,9 +937,25 @@ export class Combat {
       flank,
       interceptedFrom,
       ...(ambush ? { ambush: true } : {}),
+      ...(opts.chain ? { chain: opts.chain } : {}),
+      ...(opts.riposte ? { riposte: true } : {}),
+      ...(opts.charmed ? { charmed: true } : {}),
     };
+    // A mirror image takes a single-target blow in the creature's place.
+    const image = aoe ? undefined : target.effects.find((e) => EFFECTS[e.id]?.images);
+    if (image) {
+      image.stacks = (image.stacks ?? 1) - 1;
+      this.emit({ ...base, hit: false, damage: 0, crit: false, elementMult: 1, absorbed: 0, targetHp: Math.round(target.hp), decoy: image.id });
+      if (image.stacks <= 0) {
+        target.effects = target.effects.filter((e) => e !== image);
+        this.emit({ type: 'effectExpired', round: this.round, target: target.id, effect: image.id });
+      }
+      this.maybeRiposte(actor, target, kind, aoe, opts);
+      return;
+    }
     if (!this.rng.chance(p)) {
       this.emit({ ...base, hit: false, damage: 0, crit: false, elementMult: 1, absorbed: 0, targetHp: Math.round(target.hp) });
+      this.maybeRiposte(actor, target, kind, aoe, opts);
       return;
     }
 
@@ -896,6 +969,10 @@ export class Combat {
     dmg *= arenaElementMult(this.arena, element) * (this.arena?.kinds?.[kind] ?? 1);
     if (crit) dmg *= d.critMult;
     if (aoe) dmg *= d.aoeFactor;
+    // Each leap of a chain loses some of its strength.
+    if (opts.chain) dmg *= Math.pow(d.chainFalloff, opts.chain);
+    // Swarms scatter around a single blow but are swept by area attacks; a golden hide turns blades.
+    dmg *= takenMult(target, kind, aoe);
     const exec = executeMult(ability, target, cfg);
     dmg *= exec;
     dmg *= coverMult(kind, target, this.coverPoints(target.side), cfg);
@@ -915,9 +992,12 @@ export class Combat {
         this.emit({ type: 'effectExpired', round: this.round, target: target.id, effect: shield.id });
       }
     }
-    const real = Math.min(damage, target.hp);
+    const room = this.lethalRoom(target);
+    const held = damage >= target.hp && room < target.hp;
+    const real = Math.min(damage, room);
     target.hp -= real;
-    actor.damageDealt += real;
+    // Blows on its own side (charmed) are no credit to the attacker.
+    if (target.side !== actor.side) actor.damageDealt += real;
     target.lastDamageElement = element;
 
     let healed: number | undefined;
@@ -926,10 +1006,12 @@ export class Combat {
       actor.hp += healed;
     }
 
-    if (!this.hitThisRound.has(target.id)) this.hitThisRound.set(target.id, new Set());
-    this.hitThisRound.get(target.id)!.add(actor.id);
+    if (target.side !== actor.side) {
+      if (!this.hitThisRound.has(target.id)) this.hitThisRound.set(target.id, new Set());
+      this.hitThisRound.get(target.id)!.add(actor.id);
+    }
 
-    this.emit({ ...base, hit: true, damage: real, crit, elementMult: round(elementMult, 2), absorbed, targetHp: Math.round(target.hp), healed, ...(exec > 1 ? { execute: true } : {}), ...(pack > 0 ? { pack } : {}) });
+    this.emit({ ...base, hit: true, damage: real, crit, elementMult: round(elementMult, 2), absorbed, targetHp: Math.round(target.hp), healed, ...(exec > 1 ? { execute: true } : {}), ...(pack > 0 ? { pack } : {}), ...(held ? { undying: true } : {}) });
     // Thorns: part of a melee blow comes back to the attacker.
     const thorns = kind === 'melee' && real > 0 ? Math.round(real * effectMod(target, 'thorns')) : 0;
     if (thorns > 0) this.reflect(target, actor, thorns);
@@ -950,6 +1032,7 @@ export class Combat {
     }
     if (ability.fear) this.changeMorale(target, -ability.fear);
     if (ability.staminaDrain) this.drainStamina(actor, ability, target);
+    if (ability.dispel || ability.steal) this.dispel(actor, ability, target);
     this.applyAbilityEffects(actor, ability, target, 'target');
     if (!aoe && actor.state === 'active') this.applyAbilityEffects(actor, ability, actor, 'self');
     this.checkLowHpRage(target);
@@ -958,6 +1041,81 @@ export class Combat {
       this.checkLowHpRage(actor);
       this.checkTransform(actor);
     }
+    this.maybeRiposte(actor, target, kind, aoe, opts);
+  }
+
+  /** Health a blow may take before the creature falls: all of it, or all but 1 while an undying effect holds. */
+  private lethalRoom(c: Combatant): number {
+    return hasEffectFlag(c, 'undying') ? Math.max(0, c.hp - 1) : c.hp;
+  }
+
+  /** Riposte: a defender on guard may answer a melee attack with its basic attack (once per action, never a riposte to a riposte). */
+  private maybeRiposte(attacker: Combatant, defender: Combatant, kind: string, aoe: boolean, opts: { riposte?: boolean }) {
+    if (kind !== 'melee' || aoe || opts.riposte || defender.side === attacker.side) return;
+    if (defender.state !== 'active' || attacker.state !== 'active' || this.riposted.has(defender.id)) return;
+    const p = effectMod(defender, 'riposte');
+    if (p <= 0 || defender.effects.some((e) => EFFECTS[e.id]?.kind === 'stun')) return;
+    this.riposted.add(defender.id);
+    if (!this.rng.chance(p)) return;
+    const basic = SPECIES[defender.speciesId]?.basic[0];
+    const ab = basic ? ABILITIES[basic] : undefined;
+    if (ab) this.attack(defender, attacker, ab, false, false, { riposte: true });
+  }
+
+  /** Chain: the blow leaps from its first target to other enemies, weaker at each leap. */
+  private chainFrom(actor: Combatant, first: Combatant, ability: AbilityDef, foes: Combatant[], charmed: boolean) {
+    let pool = inReach(foes).filter((c) => c.state === 'active' && c.id !== first.id);
+    for (let k = 1; k <= (ability.chain ?? 0) && pool.length && actor.state === 'active'; k++) {
+      const next = this.rng.pick(pool);
+      pool = pool.filter((c) => c !== next);
+      this.attack(actor, next, ability, true, false, { chain: k, ...(charmed ? { charmed: true } : {}) });
+    }
+  }
+
+  /** Dispel: tears the target's beneficial effects off (a steal hands them to the user). Returns true if any. */
+  private dispel(actor: Combatant, ability: AbilityDef, target: Combatant): boolean {
+    if (target.state !== 'active') return false;
+    const gone = target.effects.filter((e) => isDispellable(e.id, e.remaining));
+    if (!gone.length) return false;
+    target.effects = target.effects.filter((e) => !gone.includes(e));
+    const stolen = Boolean(ability.steal) && actor.state === 'active' && actor.side !== target.side;
+    this.emit({ type: 'dispel', round: this.round, actor: actor.id, target: target.id, ability: ability.id, removed: gone.map((e) => e.id), ...(stolen ? { stolen: true } : {}) });
+    if (stolen) for (const e of gone) this.addEffect(actor, e.id, e.remaining, actor.id, true, e.stacks ?? 1);
+    return true;
+  }
+
+  /** A time bomb goes off: a share of the creature's health, armour does not help. */
+  private detonate(c: Combatant, effect: string, share: number, sourceId?: string) {
+    const real = Math.min(Math.max(1, Math.round(c.maxHp * share)), this.lethalRoom(c));
+    c.hp -= real;
+    const src = sourceId ? this.byId.get(sourceId) : undefined;
+    if (src && src.side !== c.side) src.damageDealt += real;
+    this.emit({ type: 'effectTick', round: this.round, target: c.id, effect, amount: -real, hp: c.hp });
+    if (c.hp <= 0) this.knockOut(c, src);
+    else this.checkTransform(c);
+  }
+
+  /** Round of the last break before now (0 before the first). */
+  private lastBreakRound(): number {
+    return Math.max(0, ...this.cfg.match.breakRounds.filter((r) => r < this.round));
+  }
+
+  /** A creature of this side knocked out since the last break, still lying in its line. */
+  canRaise(c: Combatant, side: Side): boolean {
+    return c.side === side && c.state === 'ko' && !c.replaced && (c.leftRound ?? 0) > this.lastBreakRound();
+  }
+
+  /** Raise: a fallen ally gets back on its feet. */
+  private raise(actor: Combatant, ability: AbilityDef, t: Combatant) {
+    t.state = 'active';
+    t.leftRound = null;
+    t.effects = [];
+    t.hp = Math.max(1, Math.round(t.maxHp * (ability.raise ?? 0.3)));
+    t.morale = Math.max(t.morale, 50);
+    // Species passives come back (a one-time revive already used stays used).
+    for (const p of SPECIES[t.speciesId]?.passives ?? []) if (!EFFECTS[p]?.revive) this.addEffect(t, p, 999, undefined, true);
+    this.emit({ type: 'revive', round: this.round, target: t.id, effect: ability.id, hp: t.hp, by: actor.id, ability: ability.id, stamina: Math.round(t.stamina) });
+    for (const ally of this.active(actor.side)) if (ally.id !== t.id) this.changeMorale(ally, this.cfg.combat.morale.critDealt);
   }
 
   /** Metamorphosis: below the threshold, the passive gives way to the creature's true form (once). */
@@ -982,7 +1140,7 @@ export class Combat {
 
   private reflect(from: Combatant, to: Combatant, amount: number, spell = false) {
     if (to.state !== 'active') return;
-    const real = Math.min(amount, to.hp);
+    const real = Math.min(amount, this.lethalRoom(to));
     to.hp -= real;
     from.damageDealt += real;
     this.emit({ type: 'thorns', round: this.round, actor: from.id, target: to.id, amount: real, hp: Math.round(to.hp), ...(spell ? { spell: true } : {}) });

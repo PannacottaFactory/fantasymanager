@@ -2,7 +2,7 @@
  * Play styles head to head: teams built around one style (poison, frost, curses…) against each other and
  * against mixed teams, at equal potential (creatures at their prime). Checks that every style is viable and
  * that the counters work. Styles are a design tool only — the game never names them.
- *   npm run sim:archetypes -- --matches 200
+ *   npm run sim:archetypes -- --matches 200 [--detail] [--only swarm,bombs]
  */
 import { Rng, deriveSeed } from '../core/rng.ts';
 import { SPECIES, SPECIES_IDS } from '../data/species.ts';
@@ -36,6 +36,12 @@ const STYLES: Record<string, string[]> = {
   area: ['cyclops', 'storm-elemental', 'golem', 'storm-elemental', 'cyclops', 'naga', 'orc', 'elf'],
   rage: ['ogre', 'ogre', 'orc', 'werewolf', 'orc', 'ogre', 'troll', 'orc'],
   sacrifice: ['blood-demon', 'seraph', 'blood-demon', 'golem', 'seraph', 'troll', 'blood-demon', 'elf'],
+  charm: ['siren', 'giant-moth', 'poltergeist', 'golem', 'siren', 'troll', 'giant-moth', 'orc'],
+  undying: ['dwarf', 'valkyrie', 'lamassu', 'jackal-warden', 'dwarf', 'valkyrie', 'lamassu', 'sun-lion'],
+  illusion: ['pixie', 'doppelganger', 'pixie', 'troll', 'doppelganger', 'golem', 'pixie', 'orc'],
+  bombs: ['gnome', 'mandrake', 'gnome', 'golem', 'mandrake', 'troll', 'gnome', 'orc'],
+  swarm: ['locust-swarm', 'rat-swarm', 'locust-swarm', 'rat-swarm', 'troll', 'rat-swarm', 'locust-swarm', 'orc'],
+  burrow: ['sandworm', 'sea-serpent', 'mimic', 'rakshasa', 'sandworm', 'ettin', 'mimic', 'thunderbird'],
 };
 
 for (const list of Object.values(STYLES)) for (const id of list) if (!SPECIES[id]) throw new Error(`Unknown species ${id}`);
@@ -75,12 +81,14 @@ function collect(style: string, r: MatchResult, side: Side) {
 }
 
 const names = Object.keys(STYLES);
+/** `--only a,b`: play these styles' rows only (against every style). */
+const rows = args.only ? String(args.only).split(',') : names;
 const t0 = performance.now();
 const win: Record<string, Record<string, number>> = {};
 const ko: Record<string, number> = {};
 const rounds: Record<string, number> = {};
 const played: Record<string, number> = {};
-for (const a of names) {
+for (const a of rows) {
   win[a] = {};
   for (const b of names) {
     if (a === b) continue;
@@ -105,7 +113,7 @@ for (const a of names) {
 const pct = (x: number) => `${(x * 100).toFixed(0)}%`.padStart(6);
 console.log(`${N} matches per pairing in ${((performance.now() - t0) / 1000).toFixed(1)} s (row = win rate against column)\n`);
 console.log(''.padEnd(10) + names.map((n) => n.slice(0, 7).padStart(8)).join('') + '     avg    KO%  rounds');
-for (const a of names) {
+for (const a of rows) {
   const cells = names.map((b) => (a === b ? '—'.padStart(8) : pct(win[a]![b]!).padStart(8)));
   const others = names.filter((b) => b !== a).map((b) => win[a]![b]!);
   const avg = others.reduce((s, x) => s + x, 0) / others.length;
@@ -114,7 +122,7 @@ for (const a of names) {
 
 if (args.detail) {
   console.log('\nstyle      dot share  freezes/m  curses/m  cleansed/m  max poison  — most used abilities');
-  for (const a of names) {
+  for (const a of rows) {
     const d = details[a]!;
     const top = Object.entries(d.abilities).sort((x, y) => y[1] - x[1]).slice(0, 6).map(([k, v]) => `${k} ${(v / d.matches).toFixed(1)}`).join(', ');
     console.log(

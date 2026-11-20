@@ -58,7 +58,9 @@ export function hasTraitFlag(c: Combatant, key: keyof TraitCombatEffects): boole
 
 /** Sum (additive mods) or product (multiplier mods) of active effect modifiers. */
 export function effectMod(c: Combatant, key: keyof EffectMods): number {
-  const multiplicative = key === 'damageMult' || key === 'initiativeMult' || key === 'healingTaken' || key === 'staminaRegenMult';
+  const multiplicative =
+    key === 'damageMult' || key === 'initiativeMult' || key === 'healingTaken' || key === 'staminaRegenMult' ||
+    key === 'singleTaken' || key === 'areaTaken' || key === 'physicalTaken';
   let v = multiplicative ? 1 : 0;
   for (const e of c.effects) {
     const m = EFFECTS[e.id]?.mods?.[key];
@@ -69,9 +71,33 @@ export function effectMod(c: Combatant, key: keyof EffectMods): number {
   return v;
 }
 
-/** Does any effect on the creature carry this flag (silence, provocation, camouflage)? */
-export function hasEffectFlag(c: Combatant, flag: 'silence' | 'taunt' | 'hidden'): boolean {
+export type EffectFlag = 'silence' | 'taunt' | 'hidden' | 'undying' | 'charm' | 'images' | 'burrowed' | 'steadfast';
+
+/** Does any effect on the creature carry this flag (silence, provocation, camouflage, undying…)? */
+export function hasEffectFlag(c: Combatant, flag: EffectFlag): boolean {
   return c.effects.some((e) => EFFECTS[e.id]?.[flag]);
+}
+
+/** Enemies an attack can reach at all: a burrowed creature is out of reach of everything. */
+export function inReach<T extends Combatant>(foes: T[]): T[] {
+  return foes.filter((c) => !hasEffectFlag(c, 'burrowed'));
+}
+
+/** Mirror images left on a creature (0 when none). */
+export function imagesLeft(c: Combatant): number {
+  const e = c.effects.find((x) => EFFECTS[x.id]?.images);
+  return e ? (e.stacks ?? 1) : 0;
+}
+
+/** Beneficial effects a dispel tears off: not species passives, not grace. */
+export function isDispellable(id: string, remaining: number): boolean {
+  const def = EFFECTS[id];
+  return Boolean(def && def.beneficial && remaining < 999 && id !== 'graced');
+}
+
+/** Damage taken multiplier from the target's own effects: swarms (single / area) and hides (melee / ranged). */
+export function takenMult(target: Combatant, kind: AttackKind, aoe: boolean): number {
+  return effectMod(target, aoe ? 'areaTaken' : 'singleTaken') * (kind === 'spell' ? 1 : effectMod(target, 'physicalTaken'));
 }
 
 /** Weather multiplier on an attack's element (1 on an ordinary day or for physical blows). */

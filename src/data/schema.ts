@@ -67,7 +67,8 @@ export interface SpeciesDef {
 
 export type AbilityKind = 'melee' | 'ranged' | 'spell' | 'heal' | 'buff' | 'debuff';
 /** enemyFront / enemyBack hit a whole line (everyone if that line is empty). */
-export type AbilityTarget = 'enemy' | 'enemyFront' | 'enemyBack' | 'allEnemies' | 'ally' | 'allAllies' | 'self';
+/** fallenAlly = an ally knocked out but still lying in its line (until the next break): raised by `raise`. */
+export type AbilityTarget = 'enemy' | 'enemyFront' | 'enemyBack' | 'allEnemies' | 'ally' | 'allAllies' | 'self' | 'fallenAlly';
 
 export interface AbilityEffectRef {
   effect: string;
@@ -111,6 +112,14 @@ export interface AbilityDef {
   hpCost?: number;
   /** Several strikes in one action (single target): each one rolls to hit and deals `power`. */
   hits?: number;
+  /** Chain: after the first target, the blow leaps to this many other enemies (each jump × `combat.damage.chainFalloff`). */
+  chain?: number;
+  /** Dispel: removes the target's beneficial effects (not species passives). */
+  dispel?: boolean;
+  /** Steal: the effects dispelled pass to the user (implies dispel). */
+  steal?: boolean;
+  /** Raise: gets a knocked-out ally lying in its line back on its feet with this fraction of its max health. */
+  raise?: number;
   /** Morale damage inflicted on targets. */
   fear?: number;
   effects?: AbilityEffectRef[];
@@ -135,6 +144,14 @@ export interface EffectMods {
   fury?: number;
   /** Fraction of spell damage taken that is sent back to the caster (additive). */
   spellReflect?: number;
+  /** Riposte: chance (additive) to strike back with its basic attack when a melee attack aims at it. */
+  riposte?: number;
+  /** Multiplier on damage taken from single-target attacks (a swarm scatters around the blow). */
+  singleTaken?: number;
+  /** Multiplier on damage taken from line and area attacks (and chain jumps). */
+  areaTaken?: number;
+  /** Multiplier on damage taken from melee and ranged attacks (spells are untouched). */
+  physicalTaken?: number;
 }
 
 export interface EffectDef {
@@ -168,6 +185,18 @@ export interface EffectDef {
   consumedOnAttack?: boolean;
   /** Passive shield that comes back at full strength at every break. */
   rechargeAtBreak?: boolean;
+  /** Undying: its health cannot drop below 1 while the effect lasts. */
+  undying?: boolean;
+  /** Charm: its attacks aim at its own allies while the effect lasts (it heals and helps nobody). */
+  charm?: boolean;
+  /** Time bomb: when the effect runs out, it explodes for this fraction of the target's max health (purifying defuses it). */
+  detonate?: number;
+  /** Mirror images: each stack takes one single-target blow instead of the creature (the blow misses). */
+  images?: boolean;
+  /** Burrowed: out of reach of every attack, area ones included (its next hostile action brings it out). */
+  burrowed?: boolean;
+  /** Steadfast: harmful stuns, freezes and charms land half as often (the other head keeps watch). */
+  steadfast?: boolean;
   /** Metamorphosis passive: below this health fraction the creature turns into `transformInto` (permanent effect). */
   transformBelow?: number;
   transformInto?: string;

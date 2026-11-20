@@ -369,10 +369,11 @@ function useModLines() {
     if (!mods) return [];
     const out: string[] = [];
     for (const [k, v] of Object.entries(mods) as [keyof EffectMods, number][]) {
-      if (k === 'damageMult' || k === 'healingTaken' || k === 'staminaRegenMult') out.push(e(`mod.${k}`, { v: mult(v) }));
+      if (k === 'damageMult' || k === 'healingTaken' || k === 'staminaRegenMult' || k === 'singleTaken' || k === 'areaTaken' || k === 'physicalTaken')
+        out.push(e(`mod.${k}`, { v: mult(v) }));
       else if (k === 'initiativeMult') out.push(e('mod.initiativeMult', { v: mult(v), when: e(v < 1 ? 'mod.later' : 'mod.earlier') }));
       else if (k === 'dodgeBonus') out.push(e('mod.dodgeBonus', { v: pct(-v) }));
-      else if (k === 'thorns' || k === 'fury' || k === 'spellReflect') out.push(e(`mod.${k}`, { v: pct(v, false) }));
+      else if (k === 'thorns' || k === 'fury' || k === 'spellReflect' || k === 'riposte') out.push(e(`mod.${k}`, { v: pct(v, false) }));
       else out.push(e(`mod.${k}` as EncKey, { v: pct(v) }));
     }
     return out;
@@ -530,6 +531,10 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
   if (a.execute) special.push(e('spec.execute', { v: mult(1 + a.execute), t: Math.round(cfg.combat.damage.executeBelow * 100) }));
   if (a.staminaDrain) special.push(e('spec.staminaDrain', { v: a.staminaDrain }));
   if (a.hits && a.hits > 1) special.push(e('spec.hits', { n: a.hits }));
+  if (a.chain) special.push(e('spec.chain', { n: a.chain, v: Math.round(cfg.combat.damage.chainFalloff * 100) }));
+  if (a.steal) special.push(e('spec.steal'));
+  else if (a.dispel) special.push(e('spec.dispel'));
+  if (a.raise) special.push(e('spec.raise', { v: pct(a.raise, false) }));
   if (a.pack) special.push(e('spec.pack', { v: pct(a.pack, false), max: cfg.combat.damage.packMax }));
   if (a.hpCost) special.push(e('spec.hpCost', { v: pct(a.hpCost, false) }));
   if (a.fear) special.push(e('spec.fear', { v: a.fear }));
@@ -639,9 +644,16 @@ export function EffectEntry({ id, go }: { id: string; go: (l: Link) => void }) {
         {e('fx.converts', { n: fx.maxStacks ?? 0, to: '§' }).split('§')[1]}
       </>,
     );
+  if (fx.undying) lines.push(e('fx.undying'));
+  if (fx.charm) lines.push(e('fx.charm'));
+  if (fx.detonate) lines.push(e('fx.detonate', { v: pct(fx.detonate, false) }));
+  if (fx.images) lines.push(e('fx.images'));
+  if (fx.burrowed) lines.push(e('fx.burrowed'));
+  if (fx.steadfast) lines.push(e('fx.steadfast', { v: Math.round(cfg.combat.damage.steadfastMult * 100) }));
   if (fx.silence) lines.push(e('fx.silence'));
   if (fx.taunt) lines.push(e('fx.taunt'));
-  if (fx.hidden) lines.push(e('fx.hidden'));
+  if (fx.hidden && !fx.burrowed) lines.push(e('fx.hidden'));
+
   if (fx.consumedOnAttack) lines.push(e('fx.consumed'));
   if (fx.rechargeAtBreak) lines.push(e('fx.recharge'));
   if (fx.transformInto)
