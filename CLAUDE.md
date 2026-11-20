@@ -318,7 +318,8 @@ tests/       Vitest
   teamwork combo (`comboBase` + per point), recovery regen ×2 (`regenBase` −1, `regenMin`). A level (+2) on one creature
   ≈ +1.5, on the five starters ≈ +5; five levels on all ≈ +22.
 - **Fatigue**: pre-match fatigue removes up to 70 % of the stamina pool, penalties start below 60 % stamina (up to
-  −40 % hit/damage/initiative/interception) and injuries are ×(1 + fatigue/100).
+  −40 % hit/damage/initiative/interception) — on the chance to hit only `fatigue.hitShare` (0.57) of it, ≤ −20 % (late-match misses felt unfair:
+  rounds 16–20 hit 57 % → 62.5 %, whole match 67 → 70 %; tired squad lever −22 → −18; base HP 65 → 68 keeps the KO rate, regional batch 42.5 → 41 %) and injuries are ×(1 + fatigue/100).
 - **Training intensity** (`cfg.training.intensity`): light ×0.6 growth, −8 fatigue, +1 morale; intense ×1.4 growth,
   +16 fatigue a week (after recovery, so carried into the match), −2 morale, 3 % injury a week (× proneness/10).
   The select's tooltip shows these numbers (`intensityDesc`). Match injuries: KO 8 %, heavy hit 1 % (≈ 0.8 per match, `sim:injuries`: ≈ 1.4 injured per stable, 4+ out ≈ 7 % of weeks); squads up to 20 (`economy.club.maxSquad`, AI stables keep ≈ 12–13);
@@ -547,7 +548,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   `cloneTeam()` gives fresh ids and `Combat` now refuses duplicate ids. Measured against varied opponents
   (`sim:levers`, paired with/without): counter approach +14, aggressive vs balanced +16, wrong roles −17, all back
   line −16, best starters benched −13, tired squad (60) −22, no break management −36. Fatigue softened (pre-match
-  loss 50 %, penalties below 50 % stamina, max −35 %), base HP 60 (65 since the veteran XP rework) (league KO ≈ 49 %). AI managers now matter
+  loss 50 %, penalties below 50 % stamina, max −35 %), base HP 60 (65 since the veteran XP rework, 68 since the fatigue hit share) (league KO ≈ 49 %). AI managers now matter
   (tactician vs plain 64 %); autopilot finishes ~4th / 7th / 8–9th (easy / normal / hard). 110 tests.
 - [x] **Style balance pass** (on correct measurements): fury 30 % / frenzy 40 %, thorns 20 % / thorn hide 15 %,
   burn 5.6 %/round, poison 3.2 %/dose, frost giant / ogre / bramble horror toned down, vampire / bat / hyena / banshee

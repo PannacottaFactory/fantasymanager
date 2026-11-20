@@ -3,7 +3,7 @@ import type { RoleId, SizeClass } from '../schema.ts';
 /** All combat balancing numbers. Attributes are on a 1–20 scale. */
 export const COMBAT_CONFIG = {
   hp: {
-    base: 65,
+    base: 68,
     perToughness: 3,
     perStrength: 1,
     sizeMult: { small: 0.8, medium: 1, large: 1.35, huge: 1.75 } as Record<SizeClass, number>,
@@ -29,6 +29,8 @@ export const COMBAT_CONFIG = {
     threshold: 0.5,
     /** Penalty (hit, damage, initiative) at 0 stamina. */
     maxPenalty: 0.35,
+    /** Share of that penalty taken on the chance to hit (0.57 → −20 % at most): spent creatures hit softer, they miss less. */
+    hitShare: 0.57,
     /** Fatigue penalties × (1 − (determination − 10) × this). */
     determinationPerPoint: 0.08,
     /** Injury chances × (1 + pre-match fatigue/100 × this). */

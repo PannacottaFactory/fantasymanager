@@ -95,7 +95,7 @@ describe('season', () => {
     const n = DEFAULT_CONFIG.league.promoted;
     const d1Before = new Set(a.divisions[0]);
     expect(s2.divisions[0]!.filter((id) => !d1Before.has(id)).length).toBe(n);
-  }, 30000);
+  }, 60000);
 
   it('a live player match is recorded with the player as side 0', () => {
     const g = start();

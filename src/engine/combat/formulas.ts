@@ -208,7 +208,7 @@ export function hitChance(
   const tk = cfg.combat.orders.talks;
   if (ctx.orders.talk === 'focus') p += tk.focus.hit;
   if (kind !== 'melee' && ctx.foeOrders?.talk === 'evade') p -= tk.evade.dodge;
-  p -= fatiguePenalty(attacker, cfg);
+  p -= fatiguePenalty(attacker, cfg) * cfg.combat.fatigue.hitShare;
   p *= moraleFactor(attacker, cfg);
   return clamp(p, h.min, h.max);
 }
