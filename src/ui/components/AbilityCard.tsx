@@ -56,10 +56,12 @@ interface Props {
   /** When set, the whole card is a button that equips the skill. */
   onEquip?: () => void;
   equipTitle?: string;
+  /** Replaces the plain name (e.g. a link to the ability's Encyclopedia entry). */
+  name?: ReactNode;
 }
 
 /** Full description of an ability (creature sheet). */
-export function AbilityCard({ id, elements, locked, unlockAt, current, badge, badgeTitle, equipped, onEquip, equipTitle }: Props) {
+export function AbilityCard({ id, elements, locked, unlockAt, current, badge, badgeTitle, equipped, onEquip, equipTitle, name }: Props) {
   const { t, lang } = useT();
   const def = ABILITIES[id]!;
   const txt = abilityText(id, lang);
@@ -85,10 +87,10 @@ export function AbilityCard({ id, elements, locked, unlockAt, current, badge, ba
         <span className="glyph" title={abilityKindName(def.kind, lang)}>
           <KindIcon kind={def.kind} />
         </span>
-        <b className="grow">{txt.name}</b>
+        <b className="grow">{name ?? txt.name}</b>
         {locked ? (
-          <span className="faint" style={{ fontSize: '0.786rem' }}>
-            {unlockAt ? (current !== undefined ? t('cr.lockedAtNow', { n: unlockAt, c: current }) : t('cr.lockedAt', { n: unlockAt })) : t('cr.locked')}
+          <span className="ab-locked" title={unlockAt ? (current !== undefined ? t('cr.lockedAtNow', { n: unlockAt, c: current }) : t('cr.lockedAt', { n: unlockAt })) : t('cr.locked')}>
+            {t('sk.locked')}
           </span>
         ) : (
           equipped && <span className="ab-equipped">{t('sk.equipped')}</span>
@@ -97,6 +99,9 @@ export function AbilityCard({ id, elements, locked, unlockAt, current, badge, ba
       <div className="ability-stats">
         <b>{abilityKindName(def.kind, lang)}</b>
         {el && el !== 'physical' && <span style={{ color }}>{elementName(el as ElementId, lang)}</span>}
+        <span className="ab-target" title={t('ab.tgt.title')}>
+          <UiIcon name="help-goal" size="0.95em" /> {t(`ab.tgt.${def.target}`)}
+        </span>
         {def.power > 0 && (
           <span title={t('ab.power.title')}>
             <span style={{ color: 'var(--bad)' }}><UiIcon name="power" size="0.95em" /></span> {def.power}
@@ -106,7 +111,7 @@ export function AbilityCard({ id, elements, locked, unlockAt, current, badge, ba
         <span className="cost" title={t('ab.cost.title')}>
           <UiIcon name="stamina" size="0.95em" /> {def.staminaCost}
         </span>
-        {def.cooldown > 0 && <span title={t('ab.cooldown.title')}>⟳ {t('ab.cooldown', { n: def.cooldown })}</span>}
+        {def.cooldown > 0 && <span title={t('ab.cooldown.title')}><span className="ab-cd">⟳</span> {t('ab.cooldown', { n: def.cooldown })}</span>}
       </div>
       {((def.effects && def.effects.length > 0) || def.cleanse || def.chain || def.dispel || def.steal || def.raise) && (
         <div className="ability-stats">

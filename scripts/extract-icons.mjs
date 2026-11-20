@@ -239,6 +239,7 @@ const UI = {
   'talk-assistant': 'light-bulb',
   breaks: 'sands-of-time',
   contract: 'quill-ink',
+  money: 'banknote',
   check: 'check-mark',
 };
 

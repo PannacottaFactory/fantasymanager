@@ -170,20 +170,29 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
   const listed = game.forSale.includes(creature.id);
   const cost = releaseCost(game, creature.id);
   return (
-    <div className="market-panel">
-      <div className="row wrap" style={{ gap: 10 }}>
-        <b>{t('contract.title')}</b>
-        {c && <span><Gold>{t('contract.current', { wage: money(c.wage), s: c.untilSeason })}</Gold></span>}
+    <div className="market-panel contract-panel">
+      <div className="cp-head">
+        <b className="row" style={{ gap: 6 }}>
+          <span style={{ color: 'var(--gold)', display: 'inline-flex' }}><UiIcon name="money" /></span> {t('contract.title')}
+        </b>
         {c && c.untilSeason <= game.season && <span className="tag bad">{t('contract.expiring')}</span>}
+        <span className="spacer" />
         <span className="muted"><Gold>{t('cr.value', { v: money(creatureValue(creature)) })}</Gold></span>
       </div>
-      <div className="row wrap" style={{ gap: 12, alignItems: 'end' }}>
-        <YearsPicker value={years} onChange={setYears} />
-        <span className="muted" style={{ fontSize: '0.929rem' }}>
-          <Gold>{t('contract.renewAsk', { wage: money(renewalDemand(game, creature, years)), n: years })}</Gold>
+      {c && <div className="cp-line"><Gold>{t('contract.short', { wage: money(c.wage), s: c.untilSeason })}</Gold></div>}
+      <div className="cp-renew">
+        <select className="compact" value={years} onChange={(e) => setYears(Number(e.target.value))} aria-label={t('bid.years')} title={t('bid.years')}>
+          {YEARS.map((n) => (
+            <option key={n} value={n}>
+              {t('bid.yearsN', { n })}
+            </option>
+          ))}
+        </select>
+        <span className="muted grow" title={t('contract.renewAsk', { wage: money(renewalDemand(game, creature, years)), n: years })}>
+          <Gold>{t('contract.ask', { wage: money(renewalDemand(game, creature, years)) })}</Gold>
         </span>
         <button
-          className="btn"
+          className="btn small"
           onClick={() => {
             const o = useGame.getState().act((g) => renew(g, creature.id, years));
             if (!o) return;
@@ -194,11 +203,10 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
           {t('contract.renew')}
         </button>
       </div>
-      <div className="row wrap" style={{ gap: 8 }}>
+      <div className="cp-actions">
         <button className={`btn small ${listed ? 'active' : ''}`} onClick={() => useGame.getState().update((g) => toggleForSale(g, creature.id))}>
           {listed ? t('sale.unlist') : t('sale.list')}
         </button>
-        {listed && <span className="muted" style={{ fontSize: '0.857rem' }}>{t('sale.listed')}</span>}
         <span className="spacer" />
         <button
           className={`btn small ${confirmRelease ? 'danger' : 'ghost'}`}
@@ -212,6 +220,7 @@ function ContractPanel({ game, creature }: { game: GameState; creature: Creature
           <Gold>{t('release.btn', { cost: money(cost) })}</Gold>
         </button>
       </div>
+      {listed && <div className="faint cp-note">{t('sale.listed')}</div>}
       {confirmRelease && <div className="answer bad"><Gold>{t('release.confirm', { name: creature.name, cost: money(cost) })}</Gold></div>}
       {answer && <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div>}
     </div>
@@ -250,7 +259,9 @@ function TrainingRow({ game, creature }: { game: GameState; creature: Creature }
   const gain = creature.growth?.season ?? 0;
   return (
     <div className="row wrap training-row">
-      <b>{t('cr.training')}</b>
+      <b className="row" style={{ gap: 6 }}>
+        <span style={{ color: 'var(--accent)', display: 'inline-flex' }}><UiIcon name="nav-training" /></span> {t('cr.training')}
+      </b>
       <ProgramSelect value={program} onChange={(program) => update((g) => setPlan(g, [creature.id], { program }))} />
       <span className="spacer" />
       <span className={gain > 0 ? 'good-text' : 'muted'} style={{ fontSize: '0.857rem' }}>

@@ -24,7 +24,7 @@ import {
 import { RoleIcon, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
-import { durationLabel, effectDuration, KindIcon } from '../components/AbilityCard.tsx';
+import { AbilityCard, durationLabel, effectDuration, KindIcon } from '../components/AbilityCard.tsx';
 import { skillLevel, skillUnlockLevel } from '../../engine/creature/derived.ts';
 import { coverReduction } from '../../engine/combat/formulas.ts';
 import { useGame } from '../store/gameStore.ts';
@@ -327,11 +327,12 @@ function A({ to, go, children }: { to: Link; go: (l: Link) => void; children: Re
   );
 }
 
-function Facts({ rows }: { rows: [string, ReactNode][] }) {
+/** Labelled facts; `compact` = a dense four-column grid (species header) where a row may span 2 or 4 columns. */
+function Facts({ rows, compact }: { rows: ([string, ReactNode] | [string, ReactNode, 2 | 4])[]; compact?: boolean }) {
   return (
-    <dl className="enc-facts">
-      {rows.map(([k, v]) => (
-        <div key={k}>
+    <dl className={`enc-facts ${compact ? 'compact' : ''}`}>
+      {rows.map(([k, v, wide]) => (
+        <div key={k} className={wide ? `span-${wide}` : undefined}>
           <dt>{k}</dt>
           <dd>{v}</dd>
         </div>
@@ -399,6 +400,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
       </h3>
       <p>{txt.description}</p>
       <Facts
+        compact
         rows={[
           [e('sp.size'), sizeName(sp.size, lang)],
           [
@@ -409,21 +411,21 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
               </span>
             )),
           ],
+          [e('sp.rarity'), e(rarityKey(sp.rarity))],
+          [e('sp.upkeep'), e('sp.upkeepText', { v: tr.money(sp.upkeep) })],
           [
             e('sp.roles'),
             sp.roles.map((r) => (
-              <span key={r} style={{ marginRight: 8 }}>
+              <span key={r} style={{ marginRight: 8, whiteSpace: 'nowrap' }}>
                 <A to={{ tab: 'roles', id: r }} go={go}>
                   <RoleIcon role={r} /> {roleText(r, lang).name}
                 </A>
               </span>
             )),
           ],
-          [e('sp.life'), e('sp.lifeText', { min: lc.minAge, peak: lc.peakStart, end: lc.peakEnd, decline: Math.round(lc.declineRate * cfg.training.ageing.lossMult * 100), max: lc.maxAge })],
-          [e('sp.growth'), e('sp.growthText', { p: mult(sp.growth.physical), c: mult(sp.growth.combat), m: mult(sp.growth.mental) })],
-          [e('sp.upkeep'), e('sp.upkeepText', { v: tr.money(sp.upkeep) })],
-          [e('sp.rarity'), e(rarityKey(sp.rarity))],
           [e('sp.price'), e('sp.priceText', { v: mult(sp.valueMult ?? 1) })],
+          [e('sp.growth'), e('sp.growthText', { p: mult(sp.growth.physical), c: mult(sp.growth.combat), m: mult(sp.growth.mental) }), 2],
+          [e('sp.life'), e('sp.lifeText', { min: lc.minAge, peak: lc.peakStart, end: lc.peakEnd, decline: Math.round(lc.declineRate * cfg.training.ageing.lossMult * 100), max: lc.maxAge }), 4],
         ]}
       />
       {sp.flying && <p className="muted"><UiIcon name="flying" /> {e('sp.flying')}</p>}
@@ -441,20 +443,23 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
         />
       ) : null}
       <h4>{e('sp.abilities')}</h4>
-      <ul className="enc-lines">
-        {[...sp.basic.map((id) => ({ id, lv: 0 })), ...sp.skills.map((id, i) => ({ id, lv: skillLevel(i, cfg) }))].map((a) => {
-          const def = ABILITIES[a.id]!;
-          return (
-            <li key={a.id}>
-              <span style={{ color: elColor(def.element) }}><KindIcon kind={def.kind} /></span>{' '}
+      {/* The whole kit in full: basic attack, then the five skills in unlock order (name = link to the ability's entry). */}
+      <div className="ability-grid enc-skills">
+        {[...sp.basic.map((id) => ({ id, lv: 0 })), ...sp.skills.map((id, i) => ({ id, lv: skillLevel(i, cfg) }))].map((a) => (
+          <AbilityCard
+            key={a.id}
+            id={a.id}
+            elements={sp.elements}
+            badge={tr.t('sk.level', { n: Math.max(1, a.lv) })}
+            badgeTitle={a.lv === 0 ? e('sp.basic') : a.lv > 1 ? e('sp.unlock', { n: a.lv }) : e('sp.always')}
+            name={
               <A to={{ tab: 'abilities', id: a.id }} go={go}>
                 {abilityText(a.id, lang).name}
-              </A>{' '}
-              <span className="faint">— {a.lv === 0 ? e('sp.basic') : a.lv > 1 ? e('sp.unlock', { n: a.lv }) : e('sp.always')}</span>
-            </li>
-          );
-        })}
-      </ul>
+              </A>
+            }
+          />
+        ))}
+      </div>
       <h4>{e('sp.attributes')}</h4>
       <div className="enc-attrs">
         {(Object.keys(ATTRIBUTE_CATEGORIES) as AttributeCategory[]).map((cat) => (

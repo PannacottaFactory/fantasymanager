@@ -733,7 +733,11 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   break, final round, break, result), crit punch
   (`.live.crit-punch` + `.crit-jolt`), line-ups deal in during the first second (`.live.dealing`).
   Creature sheet fits one screen (1440×900): `Modal className="sheet-dialog"`, `.sheet-cols.three` = attributes, traits,
-  roles, record (`aside`) | abilities | management (`footer`); one column below 1250 px. Competitions list: `CompLine`
+  roles | skills (`.sheet-skills`: the six kit entries as `AbilityCard`s on two columns, « k/n équipées » and a « ? » hint in
+  the heading, kind · element · target · power · cost · cooldown, effects, description; locked = dashed « Verrouillée » chip) |
+  management (`footer`: training, relations, compact `ContractPanel`) then record (`aside`); one column below 1250 px.
+  Encyclopedia species pages show the same cards (name = link to the ability). `node scripts/sheet-shots.mjs <dir> [url] [sizes]`
+  screenshots the sheets + a species page and prints the sheet's overflow. Competitions list: `CompLine`
   rows grouped by `compGroup` (still in / registration / the rest), description as the name's tooltip. Season tab:
   `.chain` (next 5 matches) + `.season-table` (week | league | cups). The « Fantasy Manager » title always shows (top
   bar and start screen, also when coming back from a game). Recruit cards: element medallion (`--c1/--c2`), rating box,

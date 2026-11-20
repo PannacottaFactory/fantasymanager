@@ -20,6 +20,7 @@ Verification: `node scripts/style-shots.mjs <dir>` takes 20 screens × 3 themes 
 
 | Token | Size (× 14 px × text scale) | Use |
 |---|---|---|
+| `--fs-2xs` | 0.643rem (9 px) | tiny state chips that must not push a name (« Équipée » on a skill card) |
 | `--fs-xs` | 0.714rem (10 px) | badges, axis labels, corner marks |
 | `--fs-sm` | 0.786rem (11 px) | captions, table headers, chip text |
 | `--fs-md` | 0.857rem (12 px) | secondary text, hints, buttons « small » |

@@ -20,9 +20,11 @@ interface Props {
   onEquip?: (abilityId: string) => void;
   /** The creature's level is known (own creatures): locked skills say how far it is. */
   knowsLevel?: boolean;
+  /** Shows the « k/n equipped » line (false when the caller shows it elsewhere). */
+  showCount?: boolean;
 }
 
-export function SkillPanel({ creature, chosen, showEquipped, onEquip, knowsLevel = true }: Props) {
+export function SkillPanel({ creature, chosen, showEquipped, onEquip, knowsLevel = true, showCount = true }: Props) {
   const { t, lang } = useT();
   const sp = getSpecies(creature);
   const lv = levelOf(creature);
@@ -41,7 +43,7 @@ export function SkillPanel({ creature, chosen, showEquipped, onEquip, knowsLevel
         locked={locked}
         unlockAt={at ?? undefined}
         current={knowsLevel ? lv : undefined}
-        badge={at === null ? t('sk.basic') : t('sk.level', { n: at })}
+        badge={t('sk.level', { n: at ?? 1 })}
         badgeTitle={at === null ? t('sk.basicTitle') : undefined}
         equipped={on}
         onEquip={onEquip && !locked ? () => onEquip(id) : undefined}
@@ -51,7 +53,7 @@ export function SkillPanel({ creature, chosen, showEquipped, onEquip, knowsLevel
   };
   return (
     <div className="skill-panel">
-      {shown && (
+      {shown && showCount && (
         <div className={`skill-sub ${equipped.length ? '' : 'bad-text'}`}>
           <span>{equipped.length ? t('sk.count', { k: equipped.length, n: max }) : t('sk.none')}</span>
         </div>

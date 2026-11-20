@@ -5,7 +5,7 @@ import { ELEMENTS } from '../../../data/elements.ts';
 import { ProfileRadar } from '../../components/ProfileRadar.tsx';
 import { ROLE_IDS } from '../../../data/roles.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { getSpecies, maxHp, maxStamina, overallRating, roleFit } from '../../../engine/creature/derived.ts';
+import { equippedSkills, getSpecies, maxHp, maxStamina, overallRating, roleFit } from '../../../engine/creature/derived.ts';
 import {
   attributeText,
   categoryName,
@@ -78,6 +78,8 @@ export function CreatureModal({ creature, onClose, showHidden = true, skills, sh
   const lc = sp.lifeCurve;
   const stage = creature.age < lc.peakStart ? t('cr.developing') : creature.age <= lc.peakEnd ? t('cr.prime') : t('cr.declining');
   const injuries = creature.condition.injuries.filter((i) => i.weeksLeft > 0);
+  const showEq = (showSkills ?? skills !== undefined) || !!onEquip;
+  const equippedNow = showEq ? equippedSkills(creature, skills) : [];
   const known = knowledge >= 100;
   const ovr = overallRange(creature, knowledge);
   // The profile radar: true values for known creatures, the middle of the estimated ranges otherwise.
@@ -239,23 +241,38 @@ export function CreatureModal({ creature, onClose, showHidden = true, skills, sh
 
         {showHidden && <HiddenBlock creature={creature} />}
         </div>
-        <div className="sheet-col">
+        <div className="sheet-col sheet-skills">
           <div className="sheet-box-head sec-abilities">
             <h4 className="sheet-box-title">{t('cr.abilities')}</h4>
-            {onEquip && <span className="muted fav-hint">{t('sk.hint', { n: DEFAULT_CONFIG.combat.skills.equipped })}</span>}
+            {showEq && (
+              <span className={equippedNow.length ? 'muted' : 'bad-text'} style={{ fontSize: 'var(--fs-md)' }}>
+                {equippedNow.length ? t('sk.count', { k: equippedNow.length, n: DEFAULT_CONFIG.combat.skills.equipped }) : t('sk.none')}
+              </span>
+            )}
+            {onEquip && (
+              <span className="sk-help" title={t('sk.hint', { n: DEFAULT_CONFIG.combat.skills.equipped })} aria-label={t('sk.hint', { n: DEFAULT_CONFIG.combat.skills.equipped })}>
+                ?
+              </span>
+            )}
           </div>
-          <SkillPanel creature={creature} chosen={skills} showEquipped={showSkills ?? skills !== undefined} onEquip={onEquip} knowsLevel={knowledge >= 100} />
+          <SkillPanel creature={creature} chosen={skills} showEquipped={showEq} onEquip={onEquip} knowsLevel={knowledge >= 100} showCount={false} />
           {sp.passives?.map((p) => (
-            <div key={p} style={{ marginTop: 6 }}>
+            <div key={p} className="passive-line">
               <b>{effectText(p, lang).name}</b>{' '}
-              <span className="muted" style={{ fontSize: '0.857rem' }}>
+              <span className="muted">
                 {t('cr.passive')} {effectText(p, lang).description}
               </span>
             </div>
           ))}
-          {aside}
+          {!footer && aside}
         </div>
-        {footer && <div className="sheet-col sheet-manage">{footer}</div>}
+        {/* With management, the record goes under it: the skills column keeps its room for the six skills. */}
+        {footer && (
+          <div className="sheet-col sheet-manage">
+            {footer}
+            {aside}
+          </div>
+        )}
         </div>
       </div>
     </Modal>
