@@ -165,6 +165,12 @@ tests/       Vitest
   cauterize, tempest, snare); `oni-challenge` (« Défi », taunt) is shared by most tanks; sling and tide kick were
   dropped. `sim:abilities` measures each (species, kit entry, basic included): equipped with a partner vs the partner
   alone, and its rank among the species' six.
+  Measured (1000–1500 paired matches): an equipped second option adds +7.8 points on average; the near-zero ones were
+  reworked into « hit and … » attacks with a self effect (blink / mirage / scurry → evasive, vanish → camouflage,
+  blood frenzy → frenzied, rampage / moon howl → enraged) or got a little damage (dread 9, strangling vines 8, deep
+  freeze 8, web 6, chilling howl 5, blight 5); bramble horror got barkskin instead of sap mend, crystal golem seismic
+  slam instead of blinding flash. Every kit entry now ≥ +1 except brace on the skeleton (−0.7, noise) and dread on the
+  hellhound (−0.5, noise). Species prices (`valueMult`) not recalibrated yet.
 - **Stamina gauges**: abilities cost stamina (no mana). A `spend` event (cost, stamina left, cooldown) precedes each
   ability/guard so the live view drains gauges and refills cooldown chips; the commentator ignores it.
 - **Visual effects** (display only): setting `effects` (full / reduced, ✨ button, default = system reduced-motion,

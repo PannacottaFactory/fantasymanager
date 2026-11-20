@@ -4,7 +4,7 @@ const list: AbilityDef[] = [
   // ——— Goblin ———
   { id: 'stab', name: 'Rusty Stab', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 5, cooldown: 0, critMod: 0.05, verb: 'stabs at', description: 'Quick jab looking for a weak spot.' },
   { id: 'dirty-trick', name: 'Dirty Trick', kind: 'melee', element: 'physical', target: 'enemy', power: 6, staminaCost: 6, cooldown: 2, aiWeight: 1.6, accuracyMod: 0.1, verb: 'throws sand in the eyes of', description: 'Sand, kicks, bites, whatever weakens the foe.', effects: [{ effect: 'weakened', chance: 0.75, on: 'target' }] },
-  { id: 'scurry', name: 'Scurry', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 3, cooldown: 4, aiWeight: 0.96, verb: 'scurries away from', description: 'Darts around, becoming hard to hit.', effects: [{ effect: 'evasive', chance: 1, on: 'self', duration: 3 }] },
+  { id: 'scurry', name: 'Scurry', kind: 'melee', element: 'physical', target: 'enemy', power: 11, staminaCost: 5, cooldown: 3, verb: 'darts in, nips and scurries away from', description: 'Hit and run: a quick nip, then hard to hit for 2 rounds.', effects: [{ effect: 'evasive', chance: 1, on: 'self', duration: 2 }] },
 
   // ——— Orc ———
   { id: 'axe-swing', name: 'Axe Swing', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 7, cooldown: 0, verb: 'swings an axe at', description: 'Brutal overhead swing.' },
@@ -40,7 +40,7 @@ const list: AbilityDef[] = [
   // ——— Minotaur ———
   { id: 'horn-gore', name: 'Horn Gore', kind: 'melee', element: 'physical', target: 'enemy', power: 18, staminaCost: 8, cooldown: 0, verb: 'gores', description: 'Horns first.', effects: [{ effect: 'bleeding', chance: 0.3, on: 'target' }] },
   { id: 'bull-charge', name: 'Bull Charge', kind: 'melee', element: 'physical', target: 'enemy', power: 24, staminaCost: 15, cooldown: 2, aiWeight: 0.6, reachBack: true, accuracyMod: -0.05, verb: 'charges headlong into', description: 'Bulldozes through the lines to any target.', effects: [{ effect: 'exposed', chance: 0.5, on: 'target' }] },
-  { id: 'rampage', name: 'Rampage', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 5, cooldown: 6, aiWeight: 0.6, verb: 'snorts and works itself into a rampage', description: 'Deliberately enrages itself.', effects: [{ effect: 'enraged', chance: 1, on: 'self', duration: 4 }] },
+  { id: 'rampage', name: 'Rampage', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 8, cooldown: 4, verb: 'snorts and rampages into', description: 'A blind charge that sends it into a rage for 3 rounds.', effects: [{ effect: 'enraged', chance: 1, on: 'self', duration: 3 }] },
 
   // ——— Harpy ———
   { id: 'rake', name: 'Rake', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 5, cooldown: 0, verb: 'rakes at', description: 'Swift slashing pass.', effects: [{ effect: 'bleeding', chance: 0.2, on: 'target' }] },
@@ -50,7 +50,7 @@ const list: AbilityDef[] = [
   { id: 'chill-touch', name: 'Chill Touch', kind: 'melee', element: 'shadow', target: 'enemy', power: 12, staminaCost: 5, cooldown: 0, effects: [{ effect: 'weakened', chance: 0.3, on: 'target' }], verb: 'lays a chilling hand on', description: 'Cold that seeps into the soul and may sap its strength.' },
   { id: 'shadow-bolt', name: 'Shadow Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'hurls a shadow bolt at', description: 'Darkness given force.' },
   { id: 'life-drain', name: 'Life Drain', kind: 'spell', element: 'shadow', target: 'enemy', power: 18, staminaCost: 9, cooldown: 2, lifesteal: 0.6, verb: 'drains the life from', description: 'Steals vitality from the target.' },
-  { id: 'dread', name: 'Dread', kind: 'debuff', element: 'shadow', target: 'enemy', power: 0, staminaCost: 6, cooldown: 2, fear: 18, verb: 'fills the mind of', description: 'Whispers of doom that crush morale.', effects: [{ effect: 'terrified', chance: 1, on: 'target' }] },
+  { id: 'dread', name: 'Dread', kind: 'debuff', element: 'shadow', target: 'enemy', power: 9, staminaCost: 6, cooldown: 2, fear: 18, verb: 'fills the mind of', description: 'Whispers of doom that hurt a little and crush morale.', effects: [{ effect: 'terrified', chance: 1, on: 'target' }] },
 
   // ——— Treant ———
   { id: 'branch-slam', name: 'Branch Slam', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 8, cooldown: 0, verb: 'slams a massive branch into', description: 'Like being hit by a forest.' },
@@ -100,7 +100,7 @@ const list: AbilityDef[] = [
 
   // ——— Djinn ———
   { id: 'wind-blade', name: 'Wind Blade', kind: 'spell', element: 'air', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'sends a blade of wind at', description: 'Air sharp as steel.' },
-  { id: 'mirage', name: 'Mirage', kind: 'buff', element: 'air', target: 'self', power: 0, staminaCost: 6, cooldown: 4, aiWeight: 1.6, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'dissolves into a shimmering mirage', description: 'Becomes very hard to hit.' },
+  { id: 'mirage', name: 'Mirage', kind: 'spell', element: 'air', target: 'enemy', power: 12, staminaCost: 7, cooldown: 3, effects: [{ effect: 'evasive', chance: 1, on: 'self', duration: 2 }], verb: 'strikes from a shimmering mirage at', description: 'A blade of air from a mirage, then very hard to hit for 2 rounds.' },
   { id: 'whirlwind', name: 'Whirlwind', kind: 'spell', element: 'air', target: 'allEnemies', power: 10, staminaCost: 14, cooldown: 3, effects: [{ effect: 'slowed', chance: 0.4, on: 'target' }], verb: 'raises a whirlwind against', description: 'Sand and wind batter the whole enemy team.' },
   { id: 'granted-wish', name: 'Granted Wish', kind: 'buff', element: 'fire', target: 'ally', power: 0, staminaCost: 8, cooldown: 5, effects: [{ effect: 'enraged', chance: 1, on: 'target', duration: 4 }], verb: 'grants a burning wish to', description: 'An ally is filled with fury.' },
 
@@ -113,7 +113,7 @@ const list: AbilityDef[] = [
   // ——— Wendigo ———
   { id: 'frost-claws', name: 'Frost Claws', kind: 'melee', element: 'water', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.3, on: 'target' }], verb: 'rakes frozen claws across', description: 'Claws of ice.' },
   { id: 'ravenous-bite', name: 'Ravenous Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 14, staminaCost: 9, cooldown: 2, lifesteal: 0.5, verb: 'takes a ravenous bite out of', description: 'Feeds on its prey.' },
-  { id: 'chilling-howl', name: 'Chilling Howl', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 0, staminaCost: 8, cooldown: 4, fear: 12, effects: [{ effect: 'terrified', chance: 0.55, on: 'target' }], verb: 'lets loose a chilling howl at', description: 'A howl from the frozen woods.' },
+  { id: 'chilling-howl', name: 'Chilling Howl', kind: 'debuff', element: 'shadow', target: 'allEnemies', power: 5, staminaCost: 8, cooldown: 4, fear: 12, effects: [{ effect: 'terrified', chance: 0.55, on: 'target' }], verb: 'lets loose a chilling howl at', description: 'A howl from the frozen woods that bites a little and chills the heart.' },
 
   // ——— Crystal golem ———
   { id: 'crystal-fist', name: 'Crystal Fist', kind: 'melee', element: 'light', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, verb: 'smashes a crystal fist into', description: 'Hard, sharp and glittering.' },
@@ -127,7 +127,7 @@ const list: AbilityDef[] = [
 
   // ——— Giant spider ———
   { id: 'spider-bite', name: 'Venomous Bite', kind: 'melee', element: 'nature', target: 'enemy', power: 12, staminaCost: 6, cooldown: 0, effects: [{ effect: 'poisoned', chance: 0.8, on: 'target' }], verb: 'sinks dripping fangs into', description: 'Each bite adds a dose of venom.' },
-  { id: 'web', name: 'Web', kind: 'debuff', element: 'nature', target: 'enemy', power: 0, staminaCost: 6, cooldown: 2, aiWeight: 0.6, accuracyMod: 0.05, effects: [{ effect: 'slowed', chance: 1, on: 'target' }, { effect: 'stunned', chance: 0.4, on: 'target' }], verb: 'shoots a sticky web over', description: 'Binds a foe in silk.' },
+  { id: 'web', name: 'Web', kind: 'debuff', element: 'nature', target: 'enemy', power: 6, staminaCost: 6, cooldown: 2, aiWeight: 0.6, accuracyMod: 0.05, effects: [{ effect: 'slowed', chance: 1, on: 'target' }, { effect: 'stunned', chance: 0.4, on: 'target' }], verb: 'shoots a sticky web over', description: 'Binds a foe in tightening silk.' },
   { id: 'venom-pounce', name: 'Venom Pounce', kind: 'melee', element: 'nature', target: 'enemy', power: 15, staminaCost: 12, cooldown: 2, reachBack: true, effects: [{ effect: 'poisoned', chance: 0.9, on: 'target', stacks: 2 }], verb: 'drops from above onto', description: 'Leaps on any target, even in the back line, and injects two doses of venom.' },
 
   // ——— Giant scorpion ———
@@ -152,12 +152,12 @@ const list: AbilityDef[] = [
   // ——— Frost wraith ———
   { id: 'frost-bolt', name: 'Frost Bolt', kind: 'spell', element: 'water', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'chilled', chance: 0.5, on: 'target' }], verb: 'hurls a shard of ice at', description: 'Each bolt adds a charge of cold.' },
   { id: 'blizzard', name: 'Blizzard', kind: 'spell', element: 'water', target: 'allEnemies', power: 8, staminaCost: 14, cooldown: 3, effects: [{ effect: 'chilled', chance: 0.45, on: 'target' }], verb: 'summons a blizzard over', description: 'Chills the whole enemy team.' },
-  { id: 'deep-freeze', name: 'Deep Freeze', kind: 'debuff', element: 'water', target: 'enemy', power: 0, staminaCost: 6, cooldown: 3, aiWeight: 0.6, effects: [{ effect: 'chilled', chance: 1, on: 'target', duration: 4, stacks: 2 }], verb: 'breathes a deathly cold over', description: 'Two charges of cold at once.' },
+  { id: 'deep-freeze', name: 'Deep Freeze', kind: 'debuff', element: 'water', target: 'enemy', power: 8, staminaCost: 6, cooldown: 3, aiWeight: 0.6, effects: [{ effect: 'chilled', chance: 1, on: 'target', duration: 4, stacks: 2 }], verb: 'breathes a deathly cold over', description: 'A biting cold: two charges of cold at once.' },
 
   // ——— Hag ———
   { id: 'hex-bolt', name: 'Hex Bolt', kind: 'spell', element: 'shadow', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'hexed', chance: 0.45, on: 'target' }], verb: 'spits a crackling hex at', description: 'May hex the target until the next break.' },
   { id: 'curse-of-frailty', name: 'Curse of Frailty', kind: 'debuff', element: 'shadow', target: 'enemy', power: 7, staminaCost: 7, cooldown: 2, aiWeight: 2, effects: [{ effect: 'frailty', chance: 0.9, on: 'target' }], verb: 'points a crooked finger at', description: 'Armour fails until the next break.' },
-  { id: 'blight', name: 'Blight', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 0, staminaCost: 12, cooldown: 4, aiWeight: 0.6, effects: [{ effect: 'blighted', chance: 0.7, on: 'target' }], verb: 'calls a creeping blight down on', description: 'Halves the healing every foe receives until the next break.' },
+  { id: 'blight', name: 'Blight', kind: 'debuff', element: 'nature', target: 'allEnemies', power: 5, staminaCost: 12, cooldown: 4, aiWeight: 0.6, effects: [{ effect: 'blighted', chance: 0.7, on: 'target' }], verb: 'calls a creeping blight down on', description: 'Gnaws a little at every foe and halves the healing it receives until the next break.' },
   { id: 'evil-eye', name: 'Evil Eye', kind: 'debuff', element: 'shadow', target: 'enemy', power: 12, staminaCost: 6, cooldown: 3, effects: [{ effect: 'jinxed', chance: 0.9, on: 'target' }, { effect: 'hexed', chance: 0.6, on: 'target' }], verb: 'casts the evil eye on', description: 'Bad luck and weak blows until the next break.' },
 
   // ——— Unicorn ———
@@ -172,17 +172,17 @@ const list: AbilityDef[] = [
   // ——— Imp ———
   { id: 'firebolt', name: 'Firebolt', kind: 'spell', element: 'fire', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'burning', chance: 0.5, on: 'target' }], verb: 'flings a firebolt at', description: 'A cheap, nasty little spell.' },
   { id: 'cinder-cloud', name: 'Cinder Cloud', kind: 'spell', element: 'fire', target: 'enemyFront', power: 7, staminaCost: 12, cooldown: 3, effects: [{ effect: 'burning', chance: 0.6, on: 'target' }], verb: 'showers burning cinders on', description: 'Sets the enemy front line alight.' },
-  { id: 'blink', name: 'Blink', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'evasive', chance: 1, on: 'self' }], verb: 'blinks in and out of sight', description: 'Pops in and out of existence, hard to hit.' },
+  { id: 'blink', name: 'Blink', kind: 'spell', element: 'shadow', target: 'enemy', power: 12, staminaCost: 6, cooldown: 3, effects: [{ effect: 'evasive', chance: 1, on: 'self', duration: 2 }], verb: 'blinks out and strikes', description: 'Strikes out of nowhere and vanishes again: hard to hit for 2 rounds.' },
 
   // ——— Werewolf ———
   { id: 'savage-claws', name: 'Savage Claws', kind: 'melee', element: 'physical', target: 'enemy', power: 13, staminaCost: 7, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.33, on: 'target' }], verb: 'tears savage claws through', description: 'Each slash may open a wound.' },
   { id: 'rend-flesh', name: 'Rend Flesh', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 11, cooldown: 2, aiWeight: 1.2, effects: [{ effect: 'bleeding', chance: 0.85, on: 'target', stacks: 2 }], verb: 'rips into the flesh of', description: 'Opens two wounds at once.' },
-  { id: 'moon-howl', name: 'Moon Howl', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 4, cooldown: 6, effects: [{ effect: 'enraged', chance: 1, on: 'self', duration: 5 }], verb: 'howls at an invisible moon', description: 'Gives in to the beast.' },
+  { id: 'moon-howl', name: 'Moon Howl', kind: 'melee', element: 'shadow', target: 'enemy', power: 15, staminaCost: 7, cooldown: 4, effects: [{ effect: 'enraged', chance: 1, on: 'self', duration: 3 }], verb: 'howls at an invisible moon and falls on', description: 'Gives in to the beast: a savage blow, then a rage for 3 rounds.' },
 
   // ——— Bramble horror ———
   { id: 'thorn-lash', name: 'Thorn Lash', kind: 'melee', element: 'nature', target: 'enemy', power: 14, staminaCost: 7, cooldown: 0, effects: [{ effect: 'bleeding', chance: 0.3, on: 'target' }], verb: 'lashes a thorny limb across', description: 'Brambles that tear.' },
   { id: 'bramble-ward', name: 'Bramble Ward', kind: 'buff', element: 'nature', target: 'ally', power: 0, staminaCost: 9, cooldown: 3, aiWeight: 0.6, effects: [{ effect: 'thorned', chance: 1, on: 'target' }], verb: 'wraps brambles around', description: 'An ally grows thorns that hurt melee attackers.' },
-  { id: 'strangling-vines', name: 'Strangling Vines', kind: 'debuff', element: 'nature', target: 'enemy', power: 0, staminaCost: 8, cooldown: 3, effects: [{ effect: 'slowed', chance: 1, on: 'target' }, { effect: 'stunned', chance: 0.5, on: 'target' }], verb: 'sends strangling vines around', description: 'Vines grip a foe.' },
+  { id: 'strangling-vines', name: 'Strangling Vines', kind: 'debuff', element: 'nature', target: 'enemy', power: 8, staminaCost: 8, cooldown: 3, effects: [{ effect: 'slowed', chance: 1, on: 'target' }, { effect: 'stunned', chance: 0.5, on: 'target' }], verb: 'sends strangling vines around', description: 'Vines crush a foe: slowed, maybe stunned.' },
 
   // ——— Vampire ———
   { id: 'vampiric-bite', name: 'Vampiric Bite', kind: 'melee', element: 'shadow', target: 'enemy', power: 16, staminaCost: 8, cooldown: 0, lifesteal: 0.75, verb: 'sinks its fangs into the neck of', description: 'Drinks the life it takes.' },
@@ -237,7 +237,7 @@ const list: AbilityDef[] = [
 
   // ——— Ogre ———
   { id: 'ogre-club', name: 'Ogre Club', kind: 'melee', element: 'physical', target: 'enemy', power: 17, staminaCost: 8, cooldown: 0, verb: 'clubs', description: 'Simple and effective.' },
-  { id: 'blood-frenzy', name: 'Blood Frenzy', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 6, cooldown: 5, effects: [{ effect: 'frenzied', chance: 1, on: 'self' }], verb: 'licks its wounds and goes into a frenzy', description: 'The more wounded, the harder it hits for 3 rounds.' },
+  { id: 'blood-frenzy', name: 'Blood Frenzy', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 8, cooldown: 4, effects: [{ effect: 'frenzied', chance: 1, on: 'self' }], verb: 'tastes blood and tears into', description: 'A savage blow that sends it into a frenzy: the more wounded, the harder it hits for 3 rounds.' },
 
   // ——— Blood demon ———
   { id: 'hellclaw', name: 'Hellclaw', kind: 'melee', element: 'fire', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'rakes burning claws across', description: 'Claws from below.' },
@@ -291,7 +291,7 @@ const list: AbilityDef[] = [
   { id: 'oni-challenge', name: 'Challenge', kind: 'buff', element: 'physical', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'provoking', chance: 1, on: 'self', duration: 3 }], verb: 'roars a challenge at the whole arena', description: 'Provocation for 2 rounds: enemies must aim their single-target attacks at it, and it takes a little less damage.' },
   { id: 'oni-fury', name: 'Demon Fury', kind: 'melee', element: 'fire', target: 'enemy', power: 24, staminaCost: 14, cooldown: 2, effects: [{ effect: 'burning', chance: 0.3, on: 'target' }], verb: 'brings a blazing club down on', description: 'A flaming blow that may set the foe alight.' },
   { id: 'foxfire', name: 'Foxfire', kind: 'spell', element: 'fire', target: 'enemy', power: 16, staminaCost: 7, cooldown: 0, verb: 'throws foxfire at', description: 'Pale flames that dance before they bite.' },
-  { id: 'fox-vanish', name: 'Vanish', kind: 'buff', element: 'shadow', target: 'self', power: 0, staminaCost: 5, cooldown: 4, effects: [{ effect: 'camouflaged', chance: 1, on: 'self', duration: 3 }], verb: 'vanishes in a puff of illusion', description: 'Camouflage for 2 rounds: cannot be picked by single-target abilities; its next attack deals 30 % more and reveals it.' },
+  { id: 'fox-vanish', name: 'Vanish', kind: 'spell', element: 'shadow', target: 'enemy', power: 11, staminaCost: 6, cooldown: 4, effects: [{ effect: 'camouflaged', chance: 1, on: 'self', duration: 3 }], verb: 'strikes and vanishes in a puff of illusion before', description: 'Strikes, then camouflage for 2 rounds: cannot be picked by single-target abilities; its next attack deals 30 % more and reveals it.' },
   { id: 'nine-tails', name: 'Nine Tails', kind: 'melee', element: 'physical', target: 'enemy', power: 8, staminaCost: 9, cooldown: 2, hits: 3, verb: 'lashes all its tails at', description: 'Three lashes of the tails, each rolling to hit.' },
   { id: 'acid-spit', name: 'Acid Spit', kind: 'ranged', element: 'nature', target: 'enemy', power: 13, staminaCost: 6, cooldown: 0, effects: [{ effect: 'corroded', chance: 0.6, on: 'target' }], verb: 'spits acid at', description: 'Eats away armour: a dose of corrosion (up to 4).' },
   { id: 'coils', name: 'Crushing Coils', kind: 'melee', element: 'physical', target: 'enemy', power: 16, staminaCost: 7, cooldown: 0, effects: [{ effect: 'slowed', chance: 0.3, on: 'target' }], verb: 'wraps its coils around', description: 'Squeezes; may slow.' },
