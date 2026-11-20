@@ -47,15 +47,16 @@ function RoundTrack({ round, max, breaks, ended }: { round: number; max: number;
   );
 }
 
-type Speed = 'slow' | 'normal' | 'fast' | 'instant';
+type Speed = 'slow' | 'normal' | 'brisk' | 'fast' | 'instant';
 const DELAY: Record<Speed, number> = {
   slow: 1500,
   normal: 750,
+  brisk: 420,
   fast: 220,
   instant: 0,
 };
 /** Projectile flight time; the target reacts (and its health drops) when it lands. */
-const FLIGHT: Record<Speed, number> = { slow: 560, normal: 420, fast: 180, instant: 0 };
+const FLIGHT: Record<Speed, number> = { slow: 560, normal: 420, brisk: 300, fast: 180, instant: 0 };
 const SPEED_KEY = 'arena.speed';
 /** How long a round title card holds the action (the card fades out over 1.6 s). */
 /** A round title card lasts 1.6 s (`stage-in`): the next blow waits until it has faded. */
@@ -64,7 +65,7 @@ const STAGE_HOLD = 1650;
 function loadSpeed(): Speed {
   try {
     const v = localStorage.getItem(SPEED_KEY);
-    // Fast and instant only last for one match: the next one starts at normal speed again.
+    // Brisk, fast and instant only last for one match: the next one starts at normal speed again.
     if (v === 'slow') return v;
   } catch {
     /* storage unavailable */
@@ -456,7 +457,7 @@ export function LiveMatch({ setup, playerControls, onFinish, replay }: Props) {
             <span data-tip="live-speed" style={{ display: 'inline-flex' }}><Seg
               value={speed}
               onChange={setSpeed}
-              options={(['slow', 'normal', 'fast', 'instant'] as const).map((s) => ({ value: s, label: t(`speed.${s}`) }))}
+              options={(['slow', 'normal', 'brisk', 'fast', 'instant'] as const).map((s) => ({ value: s, label: t(`speed.${s}`) }))}
             /></span>
             <button className="btn small" onClick={() => setPaused((p) => !p)} disabled={ended}>
               {paused ? t('live.resume') : t('live.pause')}
