@@ -3,7 +3,7 @@
  * temperament (aggression, substitutions, reading the opponent). Pure functions.
  */
 import { Rng } from '../../core/rng.ts';
-import { MANAGER_NAMES } from '../../data/names.ts';
+import { personName } from '../creature/names.ts';
 import { DEFAULT_CONFIG, type DifficultyId, type GameConfig, type ManagerId, type PlayStyleId } from '../../data/config/index.ts';
 import { MANAGER_IDS, PLAY_STYLE_IDS, STYLE_FOCUS } from '../../data/config/identity.ts';
 import type { TargetPriority } from '../../data/schema.ts';
@@ -16,12 +16,12 @@ import { managerTalk, preMatchSituation } from '../combat/talks.ts';
 export function managerName(team: { id: string; identity?: { gen?: number } }): string {
   const gen = team.identity?.gen ?? 0;
   const rng = new Rng(gen ? `manager|${team.id}|${gen}` : `manager|${team.id}`);
-  return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
+  return personName(rng);
 }
 
 /** A manager's name drawn at random (suggestion at new game). */
 export function randomManagerName(rng: Rng): string {
-  return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
+  return personName(rng);
 }
 
 /** Distinct styles for as many stables as possible (then repeats), each with a manager temperament and a focus. */

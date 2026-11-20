@@ -15,16 +15,18 @@ import { effectText } from '../../../engine/text/localize.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
+import { UpsetStamp } from '../../components/Forecast.tsx';
 
-/** The line-ups before the match: given (arena) or found in the stable's match history (league). */
-function useSetup(result: MatchResult, given?: MatchSetup): MatchSetup | undefined {
+/** The match in the stable's history (league): line-ups before it and the assistant's forecast. */
+function useRecord(result: MatchResult) {
   const history = useGame((s) => s.game?.matchHistory);
-  return useMemo(() => {
-    if (given) return given;
-    return [...(history ?? [])]
-      .reverse()
-      .find((h) => normalizeSeed(h.setup.seed) === result.seed && h.setup.teams[0].id === result.teams[0].id && h.setup.teams[1].id === result.teams[1].id)?.setup;
-  }, [given, history, result]);
+  return useMemo(
+    () =>
+      [...(history ?? [])]
+        .reverse()
+        .find((h) => normalizeSeed(h.setup.seed) === result.seed && h.setup.teams[0].id === result.teams[0].id && h.setup.teams[1].id === result.teams[1].id),
+    [history, result],
+  );
 }
 
 /** Tips about the next opponent — only after the player's latest match of a game. */
@@ -63,7 +65,8 @@ export function useTipVars() {
 export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: MatchSetup }) {
   const { t } = useT();
   const game = useGame((s) => s.game);
-  const before = useSetup(result, setup);
+  const record = useRecord(result);
+  const before = setup ?? record?.setup;
   // A league match (line-ups found in the stable's history): tips about running the stable apply too.
   const v = useMemo(() => explainMatch(result, 0, before, undefined, { stable: !setup && !!game }), [result, before, setup, game]);
   const next = useNextTips(result, game);
@@ -91,6 +94,7 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
   };
   return (
     <section className={`panel verdict ${v.won ? 'won' : 'lost'}`} data-tip="report">
+      {!setup && <UpsetStamp won={v.won} forecast={record?.forecast} />}
       <div className="verdict-cols">
         <div>
           <h3>{v.won ? t('verdict.whyWin') : t('verdict.whyLoss')}</h3>

@@ -93,6 +93,14 @@ export function askingPrice(team: Team, c: Creature, cfg: GameConfig = DEFAULT_C
 export const signingBonus = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) =>
   roundTo(creatureValue(c, cfg) * cfg.economy.transfers.signingBonus, cfg.economy.value.round);
 
+/** A very ambitious free agent finds a stable of this reputation too modest: it asks a bigger bonus to join. */
+export const ambitiousFor = (c: Creature, reputation: number, cfg: GameConfig = DEFAULT_CONFIG) =>
+  c.hidden.ambition >= cfg.economy.transfers.ambitiousFrom && reputation < cfg.economy.transfers.ambitiousReputation;
+
+/** Signing bonus a free agent asks from a stable of this reputation (premium for ambitious ones at small stables). */
+export const freeAgentBonus = (c: Creature, reputation: number, cfg: GameConfig = DEFAULT_CONFIG) =>
+  ambitiousFor(c, reputation, cfg) ? roundTo(signingBonus(c, cfg) * cfg.economy.transfers.ambitiousPremium, cfg.economy.value.round) : signingBonus(c, cfg);
+
 /** Remaining weeks of a contract (current season included). */
 export function remainingWeeks(state: GameState, c: Creature): number {
   if (!c.contract) return 0;

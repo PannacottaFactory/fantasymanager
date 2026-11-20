@@ -418,7 +418,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
               </span>
             )),
           ],
-          [e('sp.life'), e('sp.lifeText', { min: lc.minAge, peak: lc.peakStart, end: lc.peakEnd, decline: Math.round(lc.declineRate * 100), max: lc.maxAge })],
+          [e('sp.life'), e('sp.lifeText', { min: lc.minAge, peak: lc.peakStart, end: lc.peakEnd, decline: Math.round(lc.declineRate * cfg.training.ageing.lossMult * 100), max: lc.maxAge })],
           [e('sp.growth'), e('sp.growthText', { p: mult(sp.growth.physical), c: mult(sp.growth.combat), m: mult(sp.growth.mental) })],
           [e('sp.upkeep'), e('sp.upkeepText', { v: tr.money(sp.upkeep) })],
           [e('sp.rarity'), e(rarityKey(sp.rarity))],
@@ -928,7 +928,7 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
     case 'technique':
       return { crit: p(c.damage.critPerTechnique), mult: mult(c.damage.critMult), p: p(hit * 0.3) };
     case 'courage':
-      return { c: p(c.morale.courageReductionPerPoint), arm: p(c.damage.spellMitigationPerPoint / 2), front: p(c.damage.courageFrontPerPoint) };
+      return { c: p(c.morale.courageReductionPerPoint), arm: p(c.damage.spellMitigationPerPoint / 2), front: p(c.damage.courageFrontPerPoint), g: mult((c.grace.courageFloor + 20) / (c.grace.courageFloor + 10)) };
     case 'composure':
       return { hit: p(c.hit.perComposure), crit: p(c.damage.critPerComposure), h: p(c.morale.composureReductionPerPoint), low: p(c.damage.lowHpThreshold), pen: p(c.damage.lowHpPenalty) };
     case 'aggression':
@@ -1058,6 +1058,9 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     morale: {
       allyKo: c.morale.allyKo, enemyKo: c.morale.enemyKo, heavy: c.morale.heavyHitTaken, crit: c.morale.critDealt, lead: c.morale.minLeadership,
       swing: p(c.morale.performanceSwing), hes: c.morale.hesitateBelow, flee: c.morale.fleeBelow, fleeHp: p(c.morale.fleeHpBelow),
+      gTrail: c.grace.trailBy, gRound: c.grace.minRound, gDmg: p((EFFECTS.graced?.mods?.damageMult ?? 1) - 1), gHit: p(EFFECTS.graced?.mods?.hitBonus ?? 0),
+      gDodge: p(EFFECTS.graced?.mods?.dodgeBonus ?? 0), gHeal: p(c.grace.heal),
+      gLow: mult((c.grace.courageFloor + 1) / (c.grace.courageFloor + 10)), gHigh: mult((c.grace.courageFloor + 20) / (c.grace.courageFloor + 10)),
     },
     injury: {
       ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false),

@@ -68,6 +68,7 @@ export function eventParticipants(e: MatchEvent): { actor?: string; target?: str
     case 'stunned':
     case 'showboat':
     case 'enrage':
+    case 'grace':
     case 'exhausted':
     case 'moraleShift':
     case 'transform':
@@ -331,6 +332,8 @@ export class Commentator {
         return this.line(e, 'disobey', [], { ...this.actorVars(e.actor), chose: this.ref(e.chose), ordered: this.ref(e.ordered) }, 1, this.sideOf(e.actor));
       case 'enrage':
         return this.line(e, 'enrage', [e.reason], { ...this.actorVars(e.actor), friend: this.ref(e.friend) }, 2, this.sideOf(e.actor));
+      case 'grace':
+        return this.line(e, 'grace', [e.reason], this.actorVars(e.actor), 2, this.sideOf(e.actor));
       case 'exhausted':
         return this.line(e, 'exhausted', e.round <= 6 ? ['early'] : [], { ...this.actorVars(e.actor), round: e.round }, 1, this.sideOf(e.actor));
       case 'moraleShift':

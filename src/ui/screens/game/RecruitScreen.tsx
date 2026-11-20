@@ -9,7 +9,7 @@ import { SPECIES } from '../../../data/species.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { recallScout, sendScout } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
-import { locate, signingBonus, transferOffers } from '../../../engine/economy/market.ts';
+import { ambitiousFor, freeAgentBonus, locate, transferOffers } from '../../../engine/economy/market.ts';
 import { estimatedBestRole, estimatedValue, knowledgeOf, overallRange, potentialLevel } from '../../../engine/economy/scouting.ts';
 import { askingWage } from '../../../engine/economy/value.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
@@ -164,7 +164,7 @@ function useColumns(game: GameState, free: boolean): Column<Row>[] {
     },
     { key: 'value', label: t('col.value'), title: t('col.value.title'), num: true, sort: (r) => estimatedValue(r.c, r.k), render: (r) => <Money v={estimatedValue(r.c, r.k)} compact /> },
   );
-  if (free) cols.push({ key: 'bonus', label: t('col.bonus'), title: t('col.bonus.title'), num: true, sort: (r) => signingBonus(r.c), render: (r) => <Money v={signingBonus(r.c)} compact /> });
+  if (free) cols.push({ key: 'bonus', label: t('col.bonus'), title: t('col.bonus.title'), num: true, sort: (r) => freeAgentBonus(r.c, rep), render: (r) => <span title={ambitiousFor(r.c, rep) ? t('sign.ambitiousShort') : undefined}><Money v={freeAgentBonus(r.c, rep)} compact />{ambitiousFor(r.c, rep) ? ' ▲' : ''}</span> });
   cols.push(
     { key: 'wage', label: t('col.wage'), title: t('col.wage.title'), num: true, sort: (r) => askingWage(r.c, rep), render: (r) => <Money v={askingWage(r.c, rep)} /> },
     {
@@ -289,9 +289,9 @@ function RecruitCards({ rows, columns, free, game }: { rows: Row[]; columns: Col
                   <b><Money v={estimatedValue(r.c, r.k)} compact /></b>
                 </span>
                 {free && (
-                  <span title={t('col.bonus.title')}>
-                    <small>{t('col.bonus')}</small>
-                    <b><Money v={signingBonus(r.c)} compact /></b>
+                  <span title={ambitiousFor(r.c, rep) ? t('sign.ambitiousShort') : t('col.bonus.title')}>
+                    <small>{t('col.bonus')}{ambitiousFor(r.c, rep) ? ' ▲' : ''}</small>
+                    <b><Money v={freeAgentBonus(r.c, rep)} compact /></b>
                   </span>
                 )}
                 <span title={t('col.wage.title')}>

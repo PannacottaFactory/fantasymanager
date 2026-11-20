@@ -61,7 +61,7 @@ export interface TeamMatchStats {
 export interface KeyMoment {
   round: number;
   side: Side | null;
-  kind: 'firstBlood' | 'ko' | 'bigHit' | 'flee' | 'enrage' | 'substitution' | 'swing' | 'finalBlow';
+  kind: 'firstBlood' | 'ko' | 'bigHit' | 'flee' | 'enrage' | 'grace' | 'substitution' | 'swing' | 'finalBlow';
   text: string;
   importance: number;
 }
@@ -193,6 +193,9 @@ export function buildReport(result: MatchResult, perspective: Side, cfg: GameCon
       case 'flee':
         st(e.actor).fled = true;
         moments.push({ round: e.round, side: roster[e.actor]!.side, kind: 'flee', importance: 3, text: pickText(KEY_MOMENT_TEXT.flee, { actor: name(e.actor) }) });
+        break;
+      case 'grace':
+        moments.push({ round: e.round, side: roster[e.actor]!.side, kind: 'grace', importance: 1.8, text: pickText(KEY_MOMENT_TEXT.grace, { actor: name(e.actor) }) });
         break;
       case 'enrage':
         moments.push({ round: e.round, side: roster[e.actor]!.side, kind: 'enrage', importance: 1.5, text: pickText(KEY_MOMENT_TEXT.enrage, { actor: name(e.actor) }) });

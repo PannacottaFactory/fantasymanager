@@ -127,6 +127,9 @@ interface GameStore {
   openSheet: (id: string | null) => void;
 }
 
+/** A match is being played or its report is open (the pre-match screen, left open while the manager looks around, is not). */
+export const matchUnderway = (s: { match: MatchFlow | null }) => !!s.match && s.match.phase !== 'pre';
+
 export const useGame = create<GameStore>()((set, get) => {
   /** Replaces the game state and saves it (errors are surfaced, never thrown). */
   const commit = (game: GameState) => {

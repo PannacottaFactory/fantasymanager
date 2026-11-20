@@ -18,7 +18,7 @@ import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
-import { useGame } from '../../store/gameStore.ts';
+import { matchUnderway, useGame } from '../../store/gameStore.ts';
 
 type Report = Extract<InboxMessage, { kind: 'scoutReport' }>;
 
@@ -224,7 +224,7 @@ function Reveal({ m }: { m: Report }) {
 export function ScoutReveal() {
   const game = useGame((s) => s.game);
   const reveals = useGame((s) => s.reveals);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || !!s.sheet);
+  const blocked = useGame((s) => matchUnderway(s) || s.drill || !!s.progress || !!s.recap || !!s.sheet);
   if (!game || blocked || !reveals.length) return null;
   const m = game.inbox.find((x): x is Report => x.id === reveals[0] && x.kind === 'scoutReport');
   if (!m || !locate(game, m.targetId)) {

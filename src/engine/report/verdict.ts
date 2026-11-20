@@ -20,7 +20,7 @@ export type FactorKey =
   | 'typesGood' | 'typesBad' | 'theirTypes' | 'outdamaged' | 'outdamagedThem' | 'kos' | 'theirStar' | 'ourStar' | 'weakLink'
   | 'misses' | 'crits' | 'dotGood' | 'dotBad' | 'cleansed' | 'breakPaid' | 'breakFailed' | 'unusedSubs' | 'controlled'
   | 'thorns' | 'spread' | 'backline' | 'healers' | 'sustain' | 'exhausted' | 'nerves' | 'disobey' | 'guarded' | 'healed'
-  | 'close' | 'quick';
+  | 'close' | 'quick' | 'graceOurs' | 'graceTheirs';
 
 export type TipKey =
   | 'rest' | 'roles' | 'benchBetter' | 'frontLine' | 'healer' | 'morale' | 'counterApproach' | 'elements' | 'stopStar'
@@ -92,6 +92,14 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
   const theirs = report.teams[opp];
   const ours = report.creatures.filter((c) => c.side === side && c.played);
   const them = report.creatures.filter((c) => c.side === opp && c.played);
+
+  // Touched by grace: a creature that rose above itself on the winning side is part of the story.
+  for (const e of result.events) {
+    if (e.type !== 'grace') continue;
+    const touched = result.roster[e.actor]!.side;
+    if (won && touched === side) add('graceOurs', 'good', 7, { name: name(e.actor) });
+    if (!won && touched === opp) add('graceTheirs', 'bad', 7, { name: name(e.actor) });
+  }
 
   // ——— Before the match ———
   if (setup) {

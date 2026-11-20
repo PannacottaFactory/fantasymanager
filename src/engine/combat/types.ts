@@ -187,6 +187,8 @@ export type MatchEvent =
   | { type: 'effectTick'; round: number; target: string; effect: string; amount: number; hp: number }
   | { type: 'effectExpired'; round: number; target: string; effect: string }
   | { type: 'enrage'; round: number; actor: string; reason: 'lowHp' | 'allyKo' | 'friendKo'; friend?: string }
+  /** Touched by grace: a creature of a side in trouble rises above itself (effect `graced`, stamina and morale set). */
+  | { type: 'grace'; round: number; actor: string; reason: 'trailing' | 'outnumbered'; morale: number; stamina: number; hp: number }
   | { type: 'exhausted'; round: number; actor: string }
   | { type: 'moraleShift'; round: number; side: Side; reason: 'leader'; actor: string }
   | { type: 'ko'; round: number; target: string; by?: string }

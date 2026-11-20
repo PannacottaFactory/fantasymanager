@@ -70,6 +70,7 @@ export const KEY_MOMENT_TEXT = {
   bigHit: ['{actor}’s {ability} hits {target} for {n}.', 'Huge blow: {actor} hits {target} for {n} with {ability}.'],
   flee: ['{actor} flees the arena!'],
   enrage: ['{actor} flies into a rage.'],
+  grace: ['{actor} is touched by grace and rises above itself.', 'Out of nowhere, {actor} finds a second life.'],
   substitution: ['{inName} comes on for {outName}.'],
   swing: ['The momentum swings towards {team}.'],
   finalBlow: ['{actor} ends it.'],

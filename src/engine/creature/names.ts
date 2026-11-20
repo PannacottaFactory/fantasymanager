@@ -1,7 +1,17 @@
 import type { Lang } from '../../core/i18n.ts';
 import type { Rng } from '../../core/rng.ts';
 import { FR_SURNAMES, FR_TEAM_NAME_PARTS } from '../../data/i18n/fr.ts';
-import { NAME_CULTURES, TEAM_NAME_PARTS } from '../../data/names.ts';
+import { MANAGER_NAMES, NAME_CULTURES, TEAM_NAME_PARTS } from '../../data/names.ts';
+
+/** A person's name (managers, some coaches): first name + family name, the same in every language. */
+export function personName(rng: Rng): string {
+  return `${rng.pick(MANAGER_NAMES.first)} ${rng.pick(MANAGER_NAMES.last)}`;
+}
+
+/** Joins two syllables, dropping a repeated vowel at the seam ("Lae" + "eth" = "Laeth"). */
+function join(a: string, b: string): string {
+  return a && b && a.at(-1) === b[0] && /[aeiouy]/i.test(b[0]!) ? a + b.slice(1) : a + b;
+}
 
 /** Creature name. The language only changes the surname wording; the RNG draws are identical. */
 export function generateName(rng: Rng, cultureId: string, lang: Lang = 'en'): string {
@@ -12,7 +22,7 @@ export function generateName(rng: Rng, cultureId: string, lang: Lang = 'en'): st
     name = rng.pick(c.starts) + rng.pick(c.ends);
   } else {
     const mid = c.middles && rng.chance(c.middleChance ?? 0) ? rng.pick(c.middles) : '';
-    name = rng.pick(c.starts) + mid + rng.pick(c.ends);
+    name = join(join(rng.pick(c.starts), mid), rng.pick(c.ends));
   }
   if (c.surnames && rng.chance(c.surnameChance ?? 0)) {
     const i = rng.int(0, c.surnames.length - 1);

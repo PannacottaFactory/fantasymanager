@@ -92,6 +92,10 @@ export class Combat {
   phase: CombatPhase = 'running';
   outcome: MatchOutcome | null = null;
   private readonly rng: Rng;
+  /** Own stream for grace, so the draws of a match without it stay the same. */
+  private readonly graceRng: Rng;
+  /** Grace already came to this side in this match. */
+  private readonly graceUsed: [boolean, boolean] = [false, false];
   private readonly byId = new Map<string, Combatant>();
   private readonly roster: Record<string, RosterEntry> = {};
   private breakIndex = 0;
@@ -109,6 +113,7 @@ export class Combat {
     this.arena = setup.arena ? cfg.arena.conditions[setup.arena] : undefined;
     this.seed = normalizeSeed(setup.seed);
     this.rng = new Rng(this.seed);
+    this.graceRng = this.rng.fork('grace');
     const [t0, t1] = setup.teams;
     this.sides = [
       { teamId: t0.id, name: t0.name, orders: { ...t0.tactic.orders }, subsUsed: 0, ai: t0.tactic.ai, baseOrders: { ...t0.tactic.orders } },
@@ -448,6 +453,7 @@ export class Combat {
     this.emit({ type: 'roundStart', round: this.round });
     this.startOfRoundEffects();
     if (this.checkVictory()) return;
+    this.maybeGrace();
 
     const order = this.combatants
       .filter((c) => c.state === 'active')
@@ -490,6 +496,29 @@ export class Combat {
           }
         }
         if (def.moralePerRound) this.changeMorale(c, def.moralePerRound);
+      }
+    }
+  }
+
+  /** Touched by grace: a side in trouble may see one of its creatures rise above itself (once a match). */
+  private maybeGrace() {
+    const g = this.cfg.combat.grace;
+    if (!g.chance || this.round < g.minRound) return;
+    for (const side of [0, 1] as Side[]) {
+      if (this.graceUsed[side]) continue;
+      const mine = this.active(side);
+      const outnumbered = mine.length < this.active(other(side)).length;
+      const trailing = this.judgeScore(other(side)) - this.judgeScore(side) >= g.trailBy;
+      if (!trailing && !outnumbered) continue;
+      for (const c of mine) {
+        if (!this.graceRng.chance((g.chance * (g.courageFloor + c.attrs.courage)) / (g.courageFloor + 10))) continue;
+        this.graceUsed[side] = true;
+        this.addEffect(c, 'graced', g.rounds, undefined, true);
+        c.stamina = Math.min(c.maxStamina, c.stamina + (c.maxStamina - c.stamina) * g.stamina);
+        c.hp = Math.min(c.maxHp, Math.round(c.hp + c.maxHp * g.heal));
+        c.morale = clamp(c.morale + g.morale, 0, 100);
+        this.emit({ type: 'grace', round: this.round, actor: c.id, reason: trailing ? 'trailing' : 'outnumbered', morale: Math.round(c.morale), stamina: Math.round(c.stamina), hp: c.hp });
+        break;
       }
     }
   }

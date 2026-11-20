@@ -1,7 +1,8 @@
 /**
  * Toasts for the big moments of a week (level-ups, new abilities, signings, trophies, deaths…), worded like the
  * inbox, with particles in proportion to the moment. Only messages that arrive while playing are shown: the ones
- * already in a loaded save are not replayed. Display only.
+ * already in a loaded save are not replayed. They stay until clicked (opens the matter) or dismissed (✕, or « close all »).
+ * Display only.
  */
 import { useEffect, useRef, useState } from 'react';
 import type { InboxMessage } from '../../engine/league/types.ts';
@@ -59,8 +60,8 @@ function momentOf(m: InboxMessage): Moment | null {
 }
 
 const ORDER: Record<Moment, number> = { huge: 0, sad: 1, big: 2, small: 3 };
+/** Toasts shown at once; the others wait behind (counted on the « close all » button). */
 const MAX_TOASTS = 4;
-const LIFE_MS = 6000;
 
 interface Toast {
   id: string;
@@ -99,10 +100,9 @@ export function Celebrations() {
         const moment = momentOf(m);
         return moment ? [{ id: m.id, moment, message: m }] : [];
       })
-      .sort((a, b) => ORDER[a.moment] - ORDER[b.moment])
-      .slice(0, MAX_TOASTS);
+      .sort((a, b) => ORDER[a.moment] - ORDER[b.moment]);
     if (!picked.length) return;
-    setToasts((old) => [...picked, ...old].slice(0, MAX_TOASTS));
+    setToasts((old) => [...picked, ...old]);
     const top = picked[0]!;
     play(
       top.moment === 'huge' ? 'fanfare'
@@ -126,7 +126,6 @@ export function Celebrations() {
         if (p.moment === 'small' || p.moment === 'big') fx.sparkle(at.x - 120, at.y, p.moment === 'big');
       }
     }, 120);
-    for (const p of picked) window.setTimeout(() => setToasts((old) => old.filter((x) => x.id !== p.id)), LIFE_MS + (p.moment === 'huge' ? 3000 : 0));
   }, [game]);
 
   if (!game || !toasts.length) return null;
@@ -137,9 +136,10 @@ export function Celebrations() {
     else if (id && locate(game, id)) useGame.getState().openSheet(id);
     else useGame.getState().setScreen('inbox');
   };
+  const dismiss = (id: string) => setToasts((old) => old.filter((t) => t.id !== id));
   return (
     <div className="toasts" aria-live="polite">
-      {toasts.map((x) => {
+      {toasts.slice(0, MAX_TOASTS).map((x) => {
         const w = wording(tr, x.message, game.cup.rounds);
         const cid = creatureOf(x.message);
         const c = cid ? locate(game, cid)?.creature : undefined;
@@ -155,7 +155,7 @@ export function Celebrations() {
             role="status"
             onClick={() => {
               open(x.message);
-              setToasts((old) => old.filter((t) => t.id !== x.id));
+              dismiss(x.id);
             }}
           >
             <span className="toast-icon">
@@ -171,9 +171,25 @@ export function Celebrations() {
                 </span>
               )}
             </span>
+            <button
+              className="toast-close"
+              aria-label={tr.t('toast.dismiss')}
+              title={tr.t('toast.dismiss')}
+              onClick={(e) => {
+                e.stopPropagation();
+                dismiss(x.id);
+              }}
+            >
+              ✕
+            </button>
           </div>
         );
       })}
+      {toasts.length > 1 && (
+        <button className="toast-all" onClick={() => setToasts([])}>
+          {tr.t('toast.closeAll', { n: toasts.length })}
+        </button>
+      )}
     </div>
   );
 }

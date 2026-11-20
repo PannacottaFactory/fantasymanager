@@ -350,6 +350,7 @@ export const FR_EFFECTS: Record<string, { name: string; noun: string; descriptio
   shielded: { name: 'Bouclier', noun: 'le bouclier', description: 'Une barrière absorbe les dégâts reçus.' },
   fortified: { name: 'Fortifié', noun: 'la fortification', description: 'Subit moins de dégâts.' },
   rallied: { name: 'Galvanisé', noun: 'l’élan', description: 'Gonflé à bloc : frappe plus fort et plus juste.' },
+  graced: { name: 'Touché par la grâce', noun: 'la grâce', description: 'Se transcende quand tout semble perdu, jusqu’à la fin du match : frappe bien plus fort et plus juste, esquive mieux.' },
   avenging: { name: 'Vengeur', noun: 'la vengeance', description: 'Un ami est tombé : frappe plus fort pour le venger.' },
   enraged: { name: 'Enragé', noun: 'la rage', description: 'Fureur aveugle : gros dégâts, garde médiocre, ignore les ordres.' },
   evasive: { name: 'Insaisissable', noun: 'l’agilité', description: 'Bondit partout, difficile à atteindre.' },
@@ -485,56 +486,75 @@ export const FR_ABILITY_KINDS: Record<AbilityKind, string> = {
 
 /** French surnames, index-aligned with the English ones in NAME_CULTURES (same RNG draws). */
 export const FR_SURNAMES: Record<string, string[]> = {
-  goblin: ['le Vif', 'Deux-Couteaux', 'Mord-Rat', 'le Fourbe', 'Pied-Boueux', 'Demi-Oreille'],
-  orc: ['Fend-Crâne', 'Mâchoire-de-Fer', 'Défense-Sanglante', 'le Rouge', 'Broie-Os', 'Dent-Noire'],
-  troll: ['Ventre-de-Roc', 'le Puant', 'Peau-de-Mousse', 'Poing-Rocher', 'l’Affamé'],
-  elf: ['Murmure-des-Feuilles', 'de la Clairière', 'Arc-de-Lune', 'Rameau-d’Étoile', 'Feuille-d’Argent'],
-  dragon: ['la Braise', 'Aile-de-Cendre', 'l’Immortel', 'Gueule-de-Cendre', 'le Doré'],
-  minotaur: ['Brise-Cornes', 'le Taureau', 'du Labyrinthe', 'Sabot-Tonnerre'],
-  shade: ['le Murmure', 'des Tombes Creuses', 'le Blême', 'Qui Fut Oublié', 'l’Affamé'],
-  naga: ['des Abysses', 'Écaille-de-Perle', 'Appel-des-Marées', 'l’Enroulée'],
-  lich: ['Qui Ne Meurt Pas', 'Roi-des-Os', 'de la Dernière Crypte', 'le Roi Creux'],
-  deep: ['des Abîmes', 'Brise-Navires', 'le Noyé'],
-  phoenix: ['Né-des-Cendres', 'de l’Aube', 'Qui Renaît'],
-  djinn: ['de la Cité d’Airain', 'Exauceur', 'Sans-Fumée'],
-  centaur: ['Sabot-Vif', 'des Plaines', 'l’Archer'],
-  vermin: ['Huit-Yeux', 'la Tisseuse', 'Dard-des-Dunes', 'Croc-de-Soie'],
-  giant: ['Barbe-de-Glace', 'du Glacier', 'Né-du-Givre', 'la Montagne'],
-  hag: ['Mère Fange', 'la Tordue', 'Baise-Crapaud', 'des Marais'],
-  vampire: ['le Comte', 'du Donjon Noir', 'Sang-de-Nuit', 'l’Assoiffé'],
-  demon: ['Lié-par-le-Sang', 'du Neuvième Abîme', 'Gueule-de-Cendre', 'l’Indompté'],
-  seraph: ['de la Septième Lumière', 'Aile-d’Aube', 'le Miséricordieux', 'Qui Donne'],
+  goblin: ['le Vif', 'Deux-Couteaux', 'Mord-Rat', 'le Fourbe', 'Pied-Boueux', 'Demi-Oreille', 'Doigts-Agiles', 'le Veinard', 'Crochet', 'Mord-Nez', 'Lèche-Crapaud'],
+  orc: ['Fend-Crâne', 'Mâchoire-de-Fer', 'Défense-Sanglante', 'le Rouge', 'Broie-Os', 'Dent-Noire', 'Étripeur', 'le Balafré', 'Chevauche-Loup', 'Mord-Hache', 'Poing-de-Pierre'],
+  troll: ['Ventre-de-Roc', 'le Puant', 'Peau-de-Mousse', 'Poing-Rocher', 'l’Affamé', 'Garde-Pont', 'le Lent', 'Panse-de-Crapaud', 'Vautre-Boue', 'le Crasseux'],
+  elf: ['Murmure-des-Feuilles', 'de la Clairière', 'Arc-de-Lune', 'Rameau-d’Étoile', 'Feuille-d’Argent', 'Chante-Aube', 'du Bois d’Argent', 'Court-le-Vent', 'Flèche-Vive', 'Cœur-de-Ronce'],
+  golem: ['l’Inébranlable', 'l’Ancien', 'de la Forge', 'Brise-Portes', 'le Silencieux'],
+  dragon: ['la Braise', 'Aile-de-Cendre', 'l’Immortel', 'Gueule-de-Cendre', 'le Doré', 'Déchire-Ciel', 'le Noir', 'Brûle-Monde', 'des Vieux Pics', 'Amasse-l’Or'],
+  minotaur: ['Brise-Cornes', 'le Taureau', 'du Labyrinthe', 'Sabot-Tonnerre', 'l’Invaincu', 'Corne-Hache', 'de l’Arène Rouge', 'la Ruée'],
+  beast: ['des Hautes Falaises', 'le Plongeur', 'Perce-Nuages', 'l’Indompté', 'Chevauche-Tempête'],
+  wild: ['Hurle-Lune', 'le Gris', 'Patte-Sanglante', 'des Pins Noirs', 'Ronge-Os', 'le Vorace', 'Longue-Dent', 'Brise-Meute'],
+  saurian: ['Griffe-Vive', 'l’Écailleux', 'Chauffe-Soleil', 'Écaille-de-Braise', 'Court-Sable'],
+  shade: ['le Murmure', 'des Tombes Creuses', 'le Blême', 'Qui Fut Oublié', 'l’Affamé', 'le Perdu', 'Marche-Tombe', 'de l’Heure Vide', 'Qui Pleure'],
+  treant: ['le Patient', 'du Vieux Bois', 'Qui se Souvient', 'le Noueux'],
+  naga: ['des Abysses', 'Écaille-de-Perle', 'Appel-des-Marées', 'l’Enroulée', 'Langue-de-Venin', 'du Temple Englouti', 'Mille-Reflets'],
+  lich: ['Qui Ne Meurt Pas', 'Roi-des-Os', 'de la Dernière Crypte', 'le Roi Creux', 'Lie-Âmes', 'le Flétri', 'du Grimoire Noir', 'Né-des-Tombes'],
+  deep: ['des Abîmes', 'Brise-Navires', 'le Noyé', 'Courroux-des-Marées', 'le Boursouflé', 'de la Fosse Noire', 'Gueule-de-Corail'],
+  phoenix: ['Né-des-Cendres', 'de l’Aube', 'Qui Renaît', 'Aile-de-Flamme', 'le Radieux', 'Chant-de-Braise'],
+  djinn: ['de la Cité d’Airain', 'Exauceur', 'Sans-Fumée', 'Né-de-l’Orage', 'des Sept Vents', 'le Lié', 'Tourbillon-de-Sable'],
+  centaur: ['Sabot-Vif', 'des Plaines', 'l’Archer', 'Arc-Long', 'le Vagabond', 'Crinière-d’Orage'],
+  vermin: ['Huit-Yeux', 'la Tisseuse', 'Dard-des-Dunes', 'Croc-de-Soie', 'Mille-Pattes', 'le Creux', 'Poche-à-Venin', 'Crissement'],
+  giant: ['Barbe-de-Glace', 'du Glacier', 'Né-du-Givre', 'la Montagne', 'Lance-Rocs', 'le Vieux', 'Brise-Nuées', 'du Nord'],
+  hag: ['Mère Fange', 'la Tordue', 'Baise-Crapaud', 'des Marais', 'Mémé Ortie', 'la Sans-Dents', 'la Fossoyeuse', 'de la Maison Tordue'],
+  vampire: ['le Comte', 'du Donjon Noir', 'Sang-de-Nuit', 'l’Assoiffé', 'du Manoir Pourpre', 'Rose-de-Sang', 'Sans-Âge', 'Voile-du-Soir'],
+  demon: ['Lié-par-le-Sang', 'du Neuvième Abîme', 'Gueule-de-Cendre', 'l’Indompté', 'Rejeton-des-Enfers', 'l’Ardent', 'Faucheur-d’Âmes', 'Mille-Cornes'],
+  seraph: ['de la Septième Lumière', 'Aile-d’Aube', 'le Miséricordieux', 'Qui Donne', 'Porte-Lumière', 'du Chœur', 'le Vigilant'],
 };
 
-/** French team-name material. Indices are taken modulo each list, so the lists may differ in size. */
+/** French team-name material, index-aligned with TEAM_NAME_PARTS (indices are taken modulo each list). */
 export const FR_TEAM_NAME_PARTS = {
   /** [noun, gender] — plural nouns. */
   nouns: [
     ['Crocs', 'm'], ['Gardiens', 'm'], ['Gueules', 'f'], ['Serres', 'f'], ['Brutes', 'f'], ['Sentinelles', 'f'], ['Ravageurs', 'm'],
     ['Molosses', 'm'], ['Griffes', 'f'], ['Pillards', 'm'], ['Cornes', 'f'], ['Serpents', 'm'], ['Wyrms', 'm'], ['Traqueurs', 'm'],
+    ['Chacals', 'm'], ['Corbeaux', 'm'], ['Vautours', 'm'], ['Loups', 'm'], ['Lames', 'f'], ['Lances', 'f'], ['Boucliers', 'm'],
+    ['Lions', 'm'], ['Ours', 'm'], ['Scorpions', 'm'],
   ] as [string, 'm' | 'f'][],
   /** [masculine plural, feminine plural] */
   adjectives: [
     ['de Fer', 'de Fer'], ['Cramoisis', 'Cramoisies'], ['Hurlants', 'Hurlantes'], ['Noirs', 'Noires'], ['Cendrés', 'Cendrées'],
     ['Dorés', 'Dorées'], ['Putrides', 'Putrides'], ['Tonnants', 'Tonnantes'], ['Silencieux', 'Silencieuses'], ['Ardents', 'Ardentes'],
     ['Gelés', 'Gelées'], ['Sauvages', 'Sauvages'], ['Sinistres', 'Sinistres'], ['Engloutis', 'Englouties'],
+    ['Blafards', 'Blafardes'], ['Écarlates', 'Écarlates'], ['Creux', 'Creuses'], ['Féroces', 'Féroces'], ['Gémissants', 'Gémissantes'],
+    ['Maudits', 'Maudites'], ['d’Airain', 'd’Airain'], ['Rouillés', 'Rouillées'], ['d’Ombre', 'd’Ombre'], ['d’Os', 'd’Os'],
   ] as [string, string][],
   /** With their preposition ("de", "du", "des"). */
-  places: ['de Sombrelande', 'de Karak Varn', 'de la Fange', 'de Chutebraise', 'de Grisport', 'des Pics Creux', 'de Salmarais', 'de Boisronce', 'du Vieux-Brannoc', 'de Skarn'],
-  orders: ['Ordre', 'Confrérie', 'Cour', 'Cercle', 'Pacte', 'Légion', 'Compagnie', 'Guilde', 'Serment', 'Ost', 'Cabale', 'Sororité'],
+  places: [
+    'de Sombrelande', 'de Karak Varn', 'de la Fange', 'de Chutebraise', 'de Grisport', 'des Pics Creux', 'de Salmarais', 'de Boisronce', 'du Vieux-Brannoc', 'de Skarn',
+    'de Varnholt', 'des Terres de Cendre', 'de Fangemare', 'd’Eaunoire', 'de la Côte de Fer', 'de Gibetmare', 'de Hautcairn', 'de Vel Shaddar', 'des Îles Englouties', 'de Freuxpic',
+  ],
+  orders: ['Ordre', 'Confrérie', 'Cour', 'Cercle', 'Pacte', 'Légion', 'Compagnie', 'Guilde', 'Serment', 'Ost', 'Cabale', 'Sororité', 'Conclave', 'Garde', 'Bande', 'Fraternité'],
   /** With their preposition ("de", "du", "des"). */
   emblems: [
     'de la Défense Brisée', 'de la Dernière Braise', 'des Cendres', 'des Ronces', 'des Abysses', 'de la Lune Pâle', 'de la Main Rouge',
     'des Sept Cicatrices', 'de la Couronne Creuse', 'de la Lanterne Noire', 'du Serment de Fer', 'des Ossements', 'de l’Étoile qui Pleure',
     'du Caniveau', 'de la Neuvième Porte', 'de la Clé Rouillée',
+    'du Croc d’Argent', 'du Roi Noyé', 'des Braises', 'du Bouclier Brisé', 'du Soleil Noir', 'de la Flèche Tordue', 'de la Tête de Loup',
+    'des Neuf Chandelles', 'de la Rose qui Saigne', 'de la Longue Nuit',
   ],
   standalone: [
     'Lune de Sang', 'Neuvième Fosse', 'Ventsépulcre', 'Corne-de-Cendre', 'Dernière Lueur', 'Insoumis', 'Couronne-Creuse',
     'Charognards', 'Verrenuit', 'Serment-de-Fer', 'Mande-Orages', 'Rois du Caniveau', 'Sombre-Garde', 'Guilde des Lanternes',
     'Moelle-Rouille', 'Gibet qui Murmure', 'Treize Dents', 'Lie-de-Vin', 'Veille-Deuil', 'Vieille Fumée', 'Ménagerie de Minuit',
     'Fléau-des-Rois', 'Enchaînés', 'Marée-Braise',
+    'Marche-Cendre', 'Ost Gris', 'Tue-Loup', 'Sang-Salé', 'Bannière Perdue', 'Sillage d’Orage', 'Couronne-Ronce', 'Sans-Visage',
+    'Landecorbeau', 'Coureurs du Crépuscule', 'Neuf-Fois', 'Balafre-Claire', 'Couronne en Lambeaux', 'Fer-Froid', 'Noirmarais', 'Ressac',
   ],
   /** With their preposition. */
-  figures: ['de Mère Gorza', 'du Baron Vex', 'de la Vieille Tamsin', 'de la Veuve Moëlle', 'du Capitaine Skarr', 'd’Oncle Brisk', 'de Dame Morne', 'de Hob le Borgne', 'de l’Ermite', 'du Docteur Plume'],
-  troupes: ['Couvée', 'Bouchers', 'Racaille', 'Ménagerie', 'Bêtes', 'Errants', 'Chenil', 'Cirque', 'Horde', 'Rebuts'],
+  figures: [
+    'de Mère Gorza', 'du Baron Vex', 'de la Vieille Tamsin', 'de la Veuve Moëlle', 'du Capitaine Skarr', 'd’Oncle Brisk', 'de Dame Morne', 'de Hob le Borgne', 'de l’Ermite', 'du Docteur Plume',
+    'de Mémé Verrue', 'de Sire Aldous', 'des Frères Grimsby', 'de Madame Oseille', 'du Vieux Crane', 'de la Duchesse Pâle', 'de Ludo le Fou', 'de Sœur Braise',
+  ],
+  troupes: ['Couvée', 'Bouchers', 'Racaille', 'Ménagerie', 'Bêtes', 'Errants', 'Chenil', 'Cirque', 'Horde', 'Rebuts', 'Meute', 'Équipée', 'Cohue', 'Troupe', 'Chasse', 'Bande'],
 };

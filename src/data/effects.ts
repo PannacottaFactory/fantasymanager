@@ -53,6 +53,12 @@ export const EFFECTS: Record<string, EffectDef> = {
     id: 'avenging', name: 'Avenging', kind: 'mods', beneficial: true, defaultDuration: 4,
     mods: { damageMult: 1.1 }, description: 'A friend has fallen: hits harder to avenge it.',
   },
+  /** Touched by grace (see `combat.grace`): a creature of a side in trouble suddenly rises above itself. */
+  graced: {
+    id: 'graced', name: 'Touched by grace', kind: 'mods', beneficial: true, defaultDuration: 20,
+    mods: { damageMult: 1.7, hitBonus: 0.15, dodgeBonus: 0.15, critBonus: 0.1 },
+    description: 'Rises above itself when all seems lost, until the end of the match: hits much harder and truer, slips past blows.',
+  },
   enraged: {
     id: 'enraged', name: 'Enraged', kind: 'mods', beneficial: true, defaultDuration: 3,
     mods: { damageMult: 1.3, mitigation: -0.1, critBonus: 0.05 },

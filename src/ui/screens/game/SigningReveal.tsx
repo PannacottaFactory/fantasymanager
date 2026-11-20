@@ -14,7 +14,7 @@ import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { attrClass } from '../../format.ts';
 import { effectsOn, useT } from '../../i18n/index.ts';
 import { SpeciesIcon, UiIcon } from '../../icons/Icon.tsx';
-import { useGame } from '../../store/gameStore.ts';
+import { matchUnderway, useGame } from '../../store/gameStore.ts';
 import { colorOf, RangeBar, StarRange } from './ScoutReveal.tsx';
 
 const FLIP_MS = 750;
@@ -201,7 +201,7 @@ function Unveil({ id, before }: { id: string; before: number }) {
 export function SigningReveal() {
   const game = useGame((s) => s.game);
   const next = useGame((s) => s.signings[0]);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap);
+  const blocked = useGame((s) => matchUnderway(s) || s.drill || !!s.progress || !!s.recap);
   if (!game || blocked || !next) return null;
   if (!locate(game, next.id)) {
     queueMicrotask(() => useGame.getState().closeSigning());

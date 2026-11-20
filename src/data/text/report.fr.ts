@@ -63,6 +63,7 @@ export const KEY_MOMENT_TEXT_FR: typeof KEY_MOMENT_TEXT = {
   bigHit: ['{ability} : {actor} frappe {target} pour {n}.', 'Coup énorme : {actor} inflige {n} à {target} avec {ability}.'],
   flee: ['{actor} s’enfuit de l’arène !'],
   enrage: ['{actor} entre dans une rage folle.'],
+  grace: ['La grâce touche {actor}, qui se transcende.', 'Venu de nulle part, un second souffle pour {actor}.'],
   substitution: ['{inName} remplace {outName}.'],
   swing: ['Le vent tourne : {team} prend l’ascendant.'],
   finalBlow: ['{actor} porte le coup de grâce.'],

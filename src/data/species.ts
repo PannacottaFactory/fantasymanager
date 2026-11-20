@@ -342,7 +342,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.1, combat: 1, mental: 0.6 },
     roles: ['striker'],
     basic: ['frost-claws'], skills: ['ravenous-bite', 'rend-flesh', 'chilling-howl', 'deep-freeze', 'blood-frenzy'],
-    nameCulture: 'beast', traitWeights: { bloodthirsty: 3, berserker: 2, hothead: 2, 'team-player': 0.2 },
+    nameCulture: 'wild', traitWeights: { bloodthirsty: 3, berserker: 2, hothead: 2, 'team-player': 0.2 },
     upkeep: 35, rarity: 4, valueMult: 1.16,
   },
   {
@@ -375,7 +375,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.4, combat: 1.3, mental: 1 },
     roles: ['skirmisher', 'striker'],
     basic: ['quick-bite'], skills: ['fire-spit', 'ember-dash', 'scurry', 'cinder-cloud', 'fire-breath'],
-    nameCulture: 'beast', traitWeights: { hothead: 2, showboat: 1.5, coward: 1.2 },
+    nameCulture: 'saurian', traitWeights: { hothead: 2, showboat: 1.5, coward: 1.2 },
     upkeep: 12, rarity: 9, valueMult: 0.6,
   },
   {
@@ -439,7 +439,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.3, combat: 1.1, mental: 0.9 },
     roles: ['skirmisher', 'striker'],
     basic: ['frost-bite'], skills: ['pounce', 'frost-breath', 'pack-howl', 'rend-flesh', 'chilling-howl'],
-    nameCulture: 'beast', traitWeights: { 'team-player': 2, 'pack-leader': 1.5, loner: 0.3 },
+    nameCulture: 'wild', traitWeights: { 'team-player': 2, 'pack-leader': 1.5, loner: 0.3 },
     upkeep: 15, rarity: 8, valueMult: 0.96,
   },
   {
@@ -520,7 +520,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.2, combat: 1.1, mental: 0.8 },
     roles: ['skirmisher', 'striker'],
     basic: ['hellfire-bite'], skills: ['flame-lunge', 'pack-howl', 'dread', 'rend-flesh', 'fire-breath'],
-    nameCulture: 'beast', traitWeights: { bloodthirsty: 2, hothead: 2, loyal: 1.3 },
+    nameCulture: 'wild', traitWeights: { bloodthirsty: 2, hothead: 2, loyal: 1.3 },
     upkeep: 20, rarity: 6, valueMult: 0.94,
   },
   {
@@ -552,7 +552,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.1, combat: 1, mental: 0.7 },
     roles: ['striker', 'skirmisher'],
     basic: ['savage-claws'], skills: ['rend-flesh', 'pounce', 'moon-howl', 'pack-howl', 'flurry'],
-    nameCulture: 'beast', traitWeights: { berserker: 2.5, bloodthirsty: 2, hothead: 1.5, 'cool-headed': 0.3 },
+    nameCulture: 'wild', traitWeights: { berserker: 2.5, bloodthirsty: 2, hothead: 1.5, 'cool-headed': 0.3 },
     upkeep: 35, rarity: 4, valueMult: 1.31,
   },
   {
@@ -699,7 +699,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.3, combat: 1.1, mental: 1 },
     roles: ['skirmisher', 'striker'],
     basic: ['hyena-bite'], skills: ['cackle', 'pounce', 'pack-howl', 'rend-flesh', 'finishing-blow'],
-    nameCulture: 'beast', traitWeights: { coward: 2, 'team-player': 2.5, loner: 0.2 },
+    nameCulture: 'wild', traitWeights: { coward: 2, 'team-player': 2.5, loner: 0.2 },
     upkeep: 10, rarity: 9, valueMult: 0.7,
   },
   {
@@ -715,7 +715,7 @@ const list: SpeciesDef[] = [
     growth: { physical: 1.2, combat: 1.1, mental: 1 },
     roles: ['skirmisher', 'striker'],
     basic: ['raptor-claw'], skills: ['pounce', 'rend-flesh', 'scurry', 'flurry', 'backstab'],
-    nameCulture: 'beast', traitWeights: { 'team-player': 2.5, 'pack-leader': 1.5, cunning: 1.5, loner: 0.2 },
+    nameCulture: 'saurian', traitWeights: { 'team-player': 2.5, 'pack-leader': 1.5, cunning: 1.5, loner: 0.2 },
     upkeep: 15, rarity: 6, valueMult: 1.07,
   },
   {
@@ -1237,7 +1237,7 @@ const list: SpeciesDef[] = [
     roles: ['tank', 'striker'],
     basic: ['bear-swipe'], skills: ['oni-challenge', 'bear-roar', 'crushing-blow', 'rampage', 'earthshaker'],
     passives: ['bear-shift'],
-    nameCulture: 'beast', traitWeights: { guardian: 2, stoic: 1.5, showboat: 0.3 },
+    nameCulture: 'wild', traitWeights: { guardian: 2, stoic: 1.5, showboat: 0.3 },
     upkeep: 28, rarity: 4, valueMult: 1.2,
   },
   {

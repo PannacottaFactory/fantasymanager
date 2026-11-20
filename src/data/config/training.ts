@@ -6,8 +6,9 @@ export const TRAINING_CONFIG = {
   gapRate: 0.03,
   /** Minimum weekly gain while below potential (so the last points still come). */
   minWeekly: 0.15,
-  /** Growth multiplier by life stage. */
-  stage: { young: 1, prime: 0.5, declining: 0 },
+  /** Growth multiplier by life stage. Veterans (declining) still earn XP: since ageing lowers the ability but not the
+   * potential, matches win back part of each birthday's loss (a veteran who plays holds on, one on the bench fades). */
+  stage: { young: 1.25, prime: 1, declining: 0.5 },
   /** Professionalism 1–20 → × (base + prof/20 × range). */
   professionalism: { base: 0.6, range: 0.8 },
   /** Playing in the week's match helps (legacy multiplier, replaced by match XP). */
@@ -79,6 +80,8 @@ export const TRAINING_CONFIG = {
   ageing: {
     /** Past the prime, each birthday costs this share of the species decline rate × potential (physical hit hardest). */
     declineWeights: { physical: 1.5, combat: 1, mental: 0.3 },
+    /** × every species' decline rate (raised when veterans started earning XP again, to keep the league from drifting up). */
+    lossMult: 1.5,
   },
   youth: {
     /** Young creatures offered each off-season. */

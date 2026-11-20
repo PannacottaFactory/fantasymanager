@@ -113,6 +113,14 @@ export function playMark(fx: FxCanvas, m: Mark) {
       fx.add(new Ring(c, GOLD[2]!, 50, 600, 3));
       repeat(16, () => on({ vx: rand(-10, 10), vy: rand(-180, -90), palette: GOLD, life: rand(0.6, 0.9), size: rand(2, 4), shape: 'spark', drag: 0.97 }, 'bottom'));
       break;
+    case 'grace':
+      // A column of golden light falls on the creature, then sparks rise from it.
+      fx.add(new Flash(c, '#ffe9a8', 260, false));
+      fx.add(new Ring(c, GOLD[1]!, 70, 900, 4));
+      fx.add(new Ring(c, '#ffffff', 46, 700, 2, true));
+      stream(900, 40, () => on({ vx: rand(-20, 20), vy: rand(-240, -130), palette: GOLD, life: rand(0.6, 1), size: rand(2, 5), shape: 'spark', drag: 0.97 }, 'bottom'));
+      repeat(14, () => on({ vx: rand(-15, 15), vy: rand(60, 140), palette: ['#ffffff', '#fff3c4', '#ffd76a'], life: rand(0.5, 0.8), size: rand(4, 7), shape: 'glow', grow: 0.4 }, 'top'));
+      break;
     case 'rage':
       fx.add(new Ring(c, RAGE[2]!, 60, 520, 4));
       fx.add(new Flash(c, '#ff5a3c', 120, false));

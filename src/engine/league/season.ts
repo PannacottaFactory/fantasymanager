@@ -28,6 +28,7 @@ import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard, weeklyBoardStanding } from '../club/board.ts';
 import { injuryWeeksFactor, startingFacilities, weeklyFacilities } from '../club/facilities.ts';
 import { seedRelations, weeklyRelations } from '../club/relations.ts';
+import { matchForecast } from '../report/forecast.ts';
 import { earn, seasonPrizes, ticketRevenue, trimLedgers, weeklyFinances } from '../economy/finance.ts';
 import { bury, contractsTurnover, contractWarning, ensureSquads, fillFreeAgents, weeklyMarket, weeklyScouting } from '../economy/market.ts';
 import { initEconomy } from '../economy/setup.ts';
@@ -386,15 +387,18 @@ interface Played {
 /** Plays fixtures (the player's one may have been played live) and applies their effects. */
 function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchResult | null, cfg: GameConfig): Played[] {
   const played: (Played & { swapped: boolean })[] = [];
+  const forecasts = new Map<string, number>();
   for (const f of fixtures) {
     const { setup, swapped } = fixtureSetup(next, f, cfg);
     const mine = involves(f, next.playerTeamId);
     // Snapshot the teams before the match changes them (fatigue, morale…), to replay it later.
     const snapshot = mine ? structuredClone(setup) : null;
+    // The assistant's forecast, from what the player could see before kick-off (the player is side 0).
+    if (mine) forecasts.set(f.id, matchForecast(next, setup.teams[0], setup.teams[1], cfg).win);
     const result = mine && playerMatch ? playerMatch : simulateMatch(setup, { cfg });
     if (snapshot) {
       const history = (next.matchHistory ??= []);
-      history.push({ fixtureId: f.id, season: next.season, matchday: f.matchday, setup: snapshot, decisions: result.decisions });
+      history.push({ fixtureId: f.id, season: next.season, matchday: f.matchday, setup: snapshot, decisions: result.decisions, forecast: forecasts.get(f.id) });
       if (history.length > cfg.league.replayHistory) history.splice(0, history.length - cfg.league.replayHistory);
     }
     played.push({ fixture: f, result, swapped });
@@ -433,6 +437,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
         rounds: o.rounds,
         fixtureId: fixture.id,
         comp: matchComp(next, fixture),
+        forecast: forecasts.get(fixture.id),
       });
       for (const x of dead) {
         pushMessage(next, { kind: 'death', creatureId: x.id, name: x.name, speciesId: x.speciesId, injuryId: x.injuryId, opponent: opp.name, friends: x.friends });

@@ -298,6 +298,15 @@ export const COMMENTARY: Record<string, readonly Template[]> = {
     ['friendKo', '{friend} falls, and {a}, an old friend, swears revenge!'],
     ['friendKo', '{a} sees {friend} go down and fights on for two!'],
   ],
+  grace: [
+    ['', 'Something has come over {a}! It rises above itself!'],
+    ['', 'Look at {a}: touched by grace, it is a different creature!'],
+    ['', '{a} has found something deep inside. The crowd is on its feet!'],
+    ['trailing', 'All seemed lost, but {a} refuses to give in and lights up the arena!'],
+    ['trailing', 'With its side far behind on the cards, {a} suddenly takes flight!'],
+    ['outnumbered', 'Outnumbered, {a} stands tall and fights like ten!'],
+    ['outnumbered', 'Its comrades fallen, {a} rises above itself!'],
+  ],
   exhausted: [
     ['', '{a} is exhausted.'],
     ['', '{a} is running on fumes now.'],

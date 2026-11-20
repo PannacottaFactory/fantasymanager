@@ -14,7 +14,7 @@ import { Gold, Modal } from '../../components/common.tsx';
 import { divName } from '../../competitions.ts';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { BadgeIcon } from '../../icons/Icon.tsx';
-import { BOARD_NOTE_KINDS, useGame } from '../../store/gameStore.ts';
+import { BOARD_NOTE_KINDS, matchUnderway, useGame } from '../../store/gameStore.ts';
 import { objectiveText } from './InboxScreen.tsx';
 
 const B = DEFAULT_CONFIG.club.board;
@@ -264,7 +264,7 @@ export function BoardMeeting() {
   const game = useGame((s) => s.game);
   const notes = useGame((s) => s.boardNotes);
   const rules = useGame((s) => s.boardRules);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || !!s.sheet || s.intro || s.reveals.length > 0);
+  const blocked = useGame((s) => matchUnderway(s) || s.drill || !!s.progress || !!s.recap || !!s.sheet || s.intro || s.reveals.length > 0);
   if (!game) return null;
   const st = useGame.getState();
   if (rules)

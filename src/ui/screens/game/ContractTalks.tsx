@@ -12,7 +12,7 @@ import { speciesName } from '../../../engine/text/localize.ts';
 import { Crest, Gold, Modal, Money } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
-import { useGame } from '../../store/gameStore.ts';
+import { matchUnderway, useGame } from '../../store/gameStore.ts';
 import { errorText } from './CreatureSheet.tsx';
 
 const YEARS = [1, 2, 3];
@@ -145,7 +145,7 @@ function Talks() {
 export function ContractTalks() {
   const open = useGame((s) => s.contractTalks);
   const game = useGame((s) => s.game);
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || !!s.sheet || s.reveals.length > 0 || s.signings.length > 0 || s.boardNotes.length > 0);
+  const blocked = useGame((s) => matchUnderway(s) || s.drill || !!s.progress || !!s.recap || !!s.sheet || s.reveals.length > 0 || s.signings.length > 0 || s.boardNotes.length > 0);
   if (!game || !open || blocked) return null;
   return <Talks />;
 }

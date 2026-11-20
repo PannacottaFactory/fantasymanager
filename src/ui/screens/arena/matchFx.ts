@@ -54,7 +54,7 @@ export interface Shot {
 /** A status drawn on a card by the particle engine: applied, ticking, wearing off, or a one-off reaction. */
 export type MarkKind =
   | 'burn' | 'poison' | 'bleed' | 'chill' | 'freeze' | 'thaw' | 'stun' | 'slow' | 'weaken' | 'fear' | 'expose'
-  | 'shield' | 'shieldBreak' | 'stone' | 'rally' | 'rage' | 'evasive' | 'curse' | 'regen' | 'sapped' | 'thornsUp'
+  | 'shield' | 'shieldBreak' | 'stone' | 'rally' | 'rage' | 'grace' | 'evasive' | 'curse' | 'regen' | 'sapped' | 'thornsUp'
   | 'silence' | 'taunt' | 'camo' | 'corrode' | 'mirror'
   | 'drain' | 'siphon' | 'thorns' | 'reflect' | 'cleanse' | 'guard' | 'rest' | 'transform' | 'sacrifice' | 'flee'
   | 'hesitate' | 'swapIn' | 'exhausted' | 'execute' | 'ambush' | 'pack';
@@ -154,6 +154,7 @@ export function lineTone(e: MatchEvent): LineTone | undefined {
     case 'injury':
       return 'ko';
     case 'enrage':
+    case 'grace':
     case 'transform':
       return 'crit';
     case 'teamTalk':
@@ -275,6 +276,12 @@ export function addEventFx(
       batch.actor = { id: e.actor, nonce: ++counter };
       batch.lunge = 'none';
       mark({ id: e.actor, kind: 'rage' });
+      break;
+    case 'grace':
+      batch.actor = { id: e.actor, nonce: ++counter };
+      batch.lunge = 'none';
+      put(e.actor, 'buff', '');
+      mark({ id: e.actor, kind: 'grace' });
       break;
     case 'transform':
       batch.actor = { id: e.actor, nonce: ++counter };

@@ -11,7 +11,7 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { bid, release, releaseCost, renew, sendScout, signFreeAgent, toggleForSale, type MarketError } from '../../../engine/economy/actions.ts';
 import { clubOf } from '../../../engine/economy/finance.ts';
 import { recruitmentBudget } from '../../../engine/club/board.ts';
-import { isPlayerTeam, locate, renewalDemand, signingBonus } from '../../../engine/economy/market.ts';
+import { ambitiousFor, freeAgentBonus, isPlayerTeam, locate, renewalDemand } from '../../../engine/economy/market.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
 import type { GameState } from '../../../engine/league/types.ts';
@@ -123,7 +123,8 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
   const [years, setYears] = useState(1);
   const [answer, setAnswer] = useState<{ text: string; tone: 'good' | 'bad' } | null>(null);
   const rep = clubOf(game, game.playerTeamId).reputation;
-  const fee = signingBonus(creature);
+  const fee = freeAgentBonus(creature, rep);
+  const ambitious = ambitiousFor(creature, rep);
   const wage = askingWage(creature, rep, years);
   // Said before the click (it used to answer « not enough gold » only once pressed).
   const short = fee - clubOf(game, game.playerTeamId).balance;
@@ -142,12 +143,18 @@ function SignPanel({ game, creature }: { game: GameState; creature: Creature }) 
             const o = useGame.getState().act((g) => signFreeAgent(g, creature.id, years));
             if (!o) return;
             if (o.kind === 'signed') setAnswer({ text: t('sign.done', { name: creature.name }), tone: 'good' });
-            else setAnswer({ text: o.error === 'refused' ? t('sign.refused', { name: creature.name }) : errorText(tr, o.error), tone: 'bad' });
+            else setAnswer({ text: errorText(tr, o.error), tone: 'bad' });
           }}
         >
           <Gold>{t('sign.confirm', { fee: money(fee) })}</Gold>
         </button>
       </div>
+      {ambitious && (
+        <div className="remark warn" style={{ marginTop: 8 }}>
+          <span className="ico">!</span>
+          <span>{t('sign.ambitious', { name: creature.name, x: tr.dec(DEFAULT_CONFIG.economy.transfers.ambitiousPremium, 1), rep: DEFAULT_CONFIG.economy.transfers.ambitiousReputation, mine: Math.round(rep) })}</span>
+        </div>
+      )}
       {answer ? <div className={`answer ${answer.tone}`}><Gold>{answer.text}</Gold></div> : blocked && <div className="answer bad"><Gold>{blocked}</Gold></div>}
     </div>
   );

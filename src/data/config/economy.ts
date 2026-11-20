@@ -70,6 +70,10 @@ export const ECONOMY_CONFIG = {
     maxBidsPerWeek: 3,
     /** Free agents: one-off signing bonus = value × this. */
     signingBonus: 0.55,
+    /** Very ambitious free agents (ambition ≥ ambitiousFrom) join a stable below ambitiousReputation only for a bigger bonus. */
+    ambitiousFrom: 16,
+    ambitiousReputation: 35,
+    ambitiousPremium: 1.25,
     /** Chance per week that an AI stable bids for one of the player's creatures (and extra per listed creature). */
     aiOfferChance: 0.2,
     aiOfferChanceListed: 0.35,

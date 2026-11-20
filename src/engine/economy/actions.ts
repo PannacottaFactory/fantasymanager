@@ -8,7 +8,7 @@ import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import { pushMessage } from '../league/messages.ts';
 import type { GameState } from '../league/types.ts';
 import { clubOf, spend } from './finance.ts';
-import { askingPrice, canAdd, canLose, isPlayerTeam, locate, remainingWeeks, renewalDemand, signingBonus, transfer } from './market.ts';
+import { askingPrice, canAdd, canLose, isPlayerTeam, locate, remainingWeeks, renewalDemand, freeAgentBonus, transfer } from './market.ts';
 import { isOwn, knowledgeOf } from './scouting.ts';
 import { recruitmentBudget } from '../club/board.ts';
 import { askingWage, roundTo } from './value.ts';
@@ -71,7 +71,7 @@ export function bid(state: GameState, creatureId: string, fee: number, years: nu
 
 export type SignOutcome = { kind: 'signed'; fee: number; wage: number } | { kind: 'error'; error: MarketError };
 
-/** Signs a free agent: one-off bonus + asked wage. Very ambitious creatures snub small clubs. */
+/** Signs a free agent: one-off bonus + asked wage. Very ambitious creatures ask a bigger bonus from small clubs. */
 export function signFreeAgent(state: GameState, creatureId: string, years: number, cfg: GameConfig = DEFAULT_CONFIG): Result<SignOutcome> {
   const loc = locate(state, creatureId);
   if (!loc) return err(state, 'notFound');
@@ -79,10 +79,9 @@ export function signFreeAgent(state: GameState, creatureId: string, years: numbe
   const c = loc.creature;
   const club = clubOf(state, state.playerTeamId);
   if (!canAdd(playerTeamOf(state), cfg)) return err(state, 'squadFull');
-  const fee = signingBonus(c, cfg);
+  const fee = freeAgentBonus(c, club.reputation, cfg);
   if (club.balance < fee) return err(state, 'noMoney');
   if (fee > recruitmentBudget(state, cfg)) return err(state, 'board');
-  if (c.hidden.ambition >= 16 && club.reputation < 35) return err(state, 'refused');
   const next = structuredClone(state);
   const wage = askingWage(c, club.reputation, years, cfg);
   spend(next, next.playerTeamId, 'purchases', fee);

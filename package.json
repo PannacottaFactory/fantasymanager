@@ -1,9 +1,9 @@
-{
+﻿{
   "name": "arenes-de-l-ombre",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Shadow Arenas — a deep fantasy arena league management game (browser, front-end only).",
+  "description": "Shadow Arenas â€” a deep fantasy arena league management game (browser, front-end only).",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -30,6 +30,7 @@
     "sim:injuries": "tsx src/sim/injuries.ts",
     "sim:fatigue": "tsx src/sim/fatigue.ts",
     "sim:judges": "tsx src/sim/judges.ts",
+    "sim:upsets": "tsx src/sim/upsets.ts",
     "ui:check": "node scripts/ui-check.mjs"
   },
   "dependencies": {

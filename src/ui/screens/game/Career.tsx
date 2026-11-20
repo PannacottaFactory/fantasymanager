@@ -13,7 +13,7 @@ import { Modal, Money } from '../../components/common.tsx';
 import { BadgeIcon } from '../../icons/Icon.tsx';
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { useT } from '../../i18n/index.ts';
-import { BOARD_NOTE_KINDS, useGame } from '../../store/gameStore.ts';
+import { BOARD_NOTE_KINDS, matchUnderway, useGame } from '../../store/gameStore.ts';
 
 /** Takes the job: the manager moves, the new board's objective is announced, a new week starts there. */
 function take(game: GameState, offerId: string) {
@@ -84,7 +84,7 @@ export function JobCentre() {
   const { t } = useT();
   const game = useGame((s) => s.game);
   // The board tells the sacking first (meeting), then the offers.
-  const blocked = useGame((s) => !!s.match || s.drill || !!s.progress || !!s.recap || s.boardNotes.length > 0);
+  const blocked = useGame((s) => matchUnderway(s) || s.drill || !!s.progress || !!s.recap || s.boardNotes.length > 0);
   const [, refresh] = useState(0);
   const m = game?.manager;
   if (!game || !m?.unemployed || blocked) return null;

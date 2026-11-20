@@ -301,6 +301,15 @@ export const COMMENTARY_FR: Record<string, readonly Template[]> = {
     ['friendKo', '{friend} s’écroule, {a}, compagnon de toujours, jure vengeance !'],
     ['friendKo', '{a} voit {friend} tomber et se bat désormais pour deux !'],
   ],
+  grace: [
+    ['', 'Un feu nouveau habite {a}, qui se transcende !'],
+    ['', 'Regardez {a} : touché{aE} par la grâce, méconnaissable !'],
+    ['', '{a} va chercher quelque chose au fond de soi. Le public se lève !'],
+    ['trailing', 'Tout semblait perdu, mais {a} refuse de plier et illumine l’arène !'],
+    ['trailing', 'Son camp largement mené aux points, {a} s’envole soudain !'],
+    ['outnumbered', 'En infériorité, {a} se dresse et se bat comme dix !'],
+    ['outnumbered', 'Ses compagnons tombés, {a} se transcende !'],
+  ],
   exhausted: [
     ['', '{a} est épuisé{aE}.'],
     ['', '{a} n’a plus de jus.'],

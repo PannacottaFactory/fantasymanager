@@ -22,6 +22,8 @@ import { play } from '../../sound/sfx.ts';
 import { FormDots } from './LeagueScreen.tsx';
 import type { ArenaConditionId } from '../../../data/config/arena.ts';
 import { ArenaConditionCard } from '../../components/ArenaCondition.tsx';
+import { ForecastGauge } from '../../components/Forecast.tsx';
+import { matchForecast } from '../../../engine/report/forecast.ts';
 
 /** The opponent's star from what anyone can see: its record (best of the match, KOs, matches). */
 function publicStar(team: Team): Creature | undefined {
@@ -116,6 +118,7 @@ export function Versus({ game, mine, opp, home, title, arena, showArena }: {
   const myStar = mine.creatures.filter((c) => myIds.has(c.id)).sort((a, b) => overallRating(b) - overallRating(a))[0];
   const theirStar = publicStar(opp);
   const last = lastMeeting(game, opp.id);
+  const forecast = matchForecast(game, mine, opp);
   const lastText = (() => {
     if (!last?.result) return null;
     const side = last.home === game.playerTeamId ? 0 : 1;
@@ -145,6 +148,7 @@ export function Versus({ game, mine, opp, home, title, arena, showArena }: {
         </div>
         <Side game={game} team={opp} side={1} home={!home} star={<StarCard c={theirStar} side={1} own={false} />} />
       </div>
+      <ForecastGauge f={forecast} />
     </section>
   );
 }

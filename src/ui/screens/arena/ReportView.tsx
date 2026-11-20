@@ -65,7 +65,7 @@ function TeamCompare({ teams, names }: { teams: [TeamMatchStats, TeamMatchStats]
     ['cmp.subs', (x) => x.substitutions],
   ];
   return (
-    <table className="data compare">
+    <table className="data compare team-compare">
       <thead>
         <tr>
           <th></th>

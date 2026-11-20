@@ -18,6 +18,8 @@ import { CompIcon, DivIcon, UiIcon } from '../../icons/Icon.tsx';
 import { StableCrest } from '../../components/TeamCrest.tsx';
 import { medalDesc, medalName } from '../../components/CreatureRecord.tsx';
 import { levelOfAbility, totalXpOfAbility } from '../../../engine/progression/levels.ts';
+import { UpsetStamp } from '../../components/Forecast.tsx';
+import { upsetOf } from '../../../engine/report/forecast.ts';
 
 /** Message families: each has a colour and a symbol in the inbox. */
 export type MessageCategory = 'match' | 'medical' | 'market' | 'club' | 'squad' | 'competition' | 'scouting';
@@ -582,6 +584,7 @@ function ResultBoard({ game, m }: { game: GameState; m: Extract<InboxMessage, { 
         <StableCrest team={opp} size={52} />
         <b>{opp.name}</b>
       </span>
+      <UpsetStamp won={m.won} forecast={m.forecast} />
     </div>
   );
 }
@@ -746,6 +749,9 @@ export function InboxScreen() {
                       preview && <small>{preview}</small>
                     )}
                   </span>
+                  {m.kind === 'matchResult' && upsetOf(m.won, m.forecast) && (
+                    <span className={`jr-upset up-${upsetOf(m.won, m.forecast)}`} title={t(`up.${upsetOf(m.won, m.forecast)!}`)}>!</span>
+                  )}
                   {m.kind === 'matchResult' && (
                     <span className={`jr-pill ${m.won ? 'won' : 'lost'}`}>
                       {m.score[0]}–{m.score[1]}

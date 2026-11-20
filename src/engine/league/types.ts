@@ -71,7 +71,7 @@ export interface StandingRow {
 export type InboxMessage = { id: string; matchday: number; season: number; read: boolean } & (
   | { kind: 'welcome'; teamName: string; teams: number; matchdays: number }
   | {
-      kind: 'matchResult'; opponent: string; won: boolean; method: MatchMethod; score: [number, number]; rounds: number; fixtureId: string;
+      kind: 'matchResult'; opponent: string; won: boolean; method: MatchMethod; score: [number, number]; rounds: number; fixtureId: string; forecast?: number;
       /** Where it was played (absent in old saves): league division, or the cup / a tournament and its round. */
       comp?: MatchComp;
     }
@@ -244,6 +244,8 @@ export interface MatchRecord {
   matchday: number;
   setup: MatchSetup;
   decisions: MatchResult['decisions'];
+  /** The assistant's forecast before kick-off: the player's chance of winning (0–1). Absent in older saves. */
+  forecast?: number;
 }
 
 export interface TrainingPlan {

@@ -11,7 +11,7 @@ import { ROLES } from '../../data/roles.ts';
 import { SPECIES, SPECIES_IDS } from '../../data/species.ts';
 import { makeId } from '../../core/ids.ts';
 import { ageAbilityFactor, generateCreature } from '../creature/generate.ts';
-import { generateName } from '../creature/names.ts';
+import { generateName, personName } from '../creature/names.ts';
 import { bestRole, getSpecies, skillLevel } from '../creature/derived.ts';
 import { clubOf, spend } from '../economy/finance.ts';
 import { trainingFactor } from '../club/facilities.ts';
@@ -75,7 +75,7 @@ export function hireFee(coach: Coach, cfg: GameConfig = DEFAULT_CONFIG): number 
 export function newCoach(state: GameState, rng: Rng, domain: AttributeCategory, quality: number, cfg: GameConfig = DEFAULT_CONFIG): Coach {
   const species = SPECIES[rng.pick(SPECIES_IDS)]!;
   const q = clamp(Math.round(quality), 1, 20);
-  return { id: makeId(rng, 'co'), name: generateName(rng, species.nameCulture, state.lang), domain, quality: q, wage: coachWage(q, cfg) };
+  return { id: makeId(rng, 'co'), name: rng.chance(0.4) ? personName(rng) : generateName(rng, species.nameCulture, state.lang), domain, quality: q, wage: coachWage(q, cfg) };
 }
 
 /** Growth multiplier given by a stable's coach in a domain. */
@@ -136,7 +136,7 @@ function programWeights(c: Creature, team: Team | undefined, program: ProgramId,
 }
 
 /** Upper bound of an attribute for this creature (its species range at full potential + headroom). */
-function attributeCap(c: Creature, key: AttributeKey, cfg: GameConfig): number {
+export function attributeCap(c: Creature, key: AttributeKey, cfg: GameConfig = DEFAULT_CONFIG): number {
   const [lo, hi] = getSpecies(c).attributes[key];
   return clamp(Math.round(lo + (hi - lo) * (c.potential / 200)) + cfg.training.attributeHeadroom, 1, 20);
 }
@@ -400,7 +400,7 @@ export function ageing(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
         continue;
       }
       if (c.age > lc.peakEnd) {
-        const loss = c.potential * lc.declineRate;
+        const loss = c.potential * lc.declineRate * cfg.training.ageing.lossMult;
         const weights = {} as Record<AttributeKey, number>;
         for (const k of ATTRIBUTE_KEYS) weights[k] = decline[CATEGORY_OF[k]];
         const log = team?.id === state.playerTeamId ? progressLogger(c, state.season, 0, cfg) : undefined;

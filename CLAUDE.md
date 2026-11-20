@@ -42,6 +42,7 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:attributes -- --matches 3000 --points 3` | what attribute points are worth: a level on one / every starter, +n in each attribute (ranking), health per strength; `--only a,b` · `--set combat.x.y=v,…` to try a config variant |
 | `npm run sim:fatigue -- --worlds 6` | fatigue spiral: the player's season with no rotation / the assistant's rotation / rotation + pace yourself (starters' fatigue, ≥ 50 / ≥ 70, points, place) |
 | `npm run sim:judges -- --matches 4000` | fairness of the judges: points won by the side with more health / that healed more / made more substitutions, last-break dilution trick |
+| `npm run sim:upsets -- --matches 3000` · `--league --worlds 4 --seasons 2` | surprises: weaker side's win rate per strength gap (starters' rating × fatigue, +5 = a point everywhere), lead changes per match, leader at each break who loses, favourite / underdog behind who wins; `--set` |
 | `npm run sim:injuries -- --worlds 6 --seasons 2` | injuries on autopilot: injured per stable and week, weeks with 2+ / 3+ / 4+ / 5+ out, new injuries per match, weeks out, squad size |
 | `node scripts/play-check.mjs <outDir> [url] [loops]` (dev server running; `LIVE_EVERY=n`) | plays like a player: default layout, tutorial on, career mode, every window answered, some matches live with breaks, scout / signing / facility, a season and more; logs windows seen, stuck states, console errors |
 | `npx vite --port 5179` then `npm run ui:check -- <outDir> <url> <weeks>` | headless browser (Playwright): new game, plays weeks, opens every sheet & main screens, screenshots + console errors |
@@ -144,6 +145,22 @@ tests/       Vitest
   Species 35–70 % in `sim:species`; shade, vampire, lich, giant bat, sphinx, seraph, banshee, myconid repriced up,
   kraken down. Ability cards and the Encyclopedia show each effect's duration (`effectDuration`, ⧗).
 - **Ability tuning pass 2** (Nov 2026): every ability with a cooldown ≥ 3 except heals and buffs lost one round; `AbilityDef.aiWeight` (score × it in `chooseAction`, default 1) tunes per ability how eagerly the AI uses it, `sim:abilities --weight w | --wmult m | --override file.json` tries a weight or a data variant without editing the data. Method: measure every cooldown ability (`sim:abilities`, 1500 matches: at 500 the noise is ±3 points, at 1500 still ±2), then for each one that cost matches or was hardly used, try AI weight ×0.6 / ×1.6, a data buff (damage +12 % and cost −10 %; no-damage ones cost −20 % and chances +0.15 or a round more) and buff + ×0.6, keep the smallest change that makes it worth it (≥ +0.5) and used (≥ 0.8 a match), three rounds. Abilities costing ≥ 1.5 points: 15 → 6 (left within the noise); a weight chosen from one noisy run can mislead: three charges pushed to 85–94 % use cost their species 5–7 points in `sim:species` and were put back to 1 — check species after any weight change. Still rarely used (< 0.8 a match): ~25 self-buffs, cries and curses whose effect is too small to beat a blow (they need a real rework, not steps). Strongest kept a little in check: toxic spores, sonic shriek, qilin blessing. `sim:variety` (top-action share 57 → 55 %), league KO ≈ 52 %, `valueMult` recalibrated for the species that moved ≥ 3 points (species 33–73 %).
+- **Forecast & upsets** (`engine/report/forecast.ts`, `cfg.report.forecast`, UI `components/Forecast.tsx`): before a match the
+  assistant's chance of winning = logistic(slope × gap) of the starters' average rating × (1 − fatigue × 0.35), the
+  opponent's from the player's estimates (`overallRange` middle; « ~ 37 % » when they are little known); band (grand favori …
+  gros outsider) + split gauge under the pre-match face-off. Stored at kick-off in `MatchRecord.forecast` and the
+  `matchResult` message; a win at ≤ 40 % = « Exploit ! » (≤ 27 % « Exploit retentissant ! »), a loss at ≥ 60 % = « Faux pas »:
+  stamp in the report (verdict) and the Journal reader, « ! » in the Journal list. Calibrated with `sim:upsets --league`
+  (prints predicted → actual; ±2 points per decile). Measured: in the league the weaker side wins ≈ 31 % (21 % even 10
+  rating points below), but matches settle early (≈ 1.2 lead changes a match; the leader after the 3rd break wins 88 %).
+- **Touched by grace** (`cfg.combat.grace`, effect `graced`, event `grace`, `Combat.maybeGrace` at each round start, own
+  stream `rng.fork('grace')` so matches without it are unchanged): from round 3, while a side trails by ≥ 15 judges'
+  points or has fewer creatures standing, each of its creatures may rise above itself (chance 0.5 % a round × (5 +
+  courage) / 15: courage 1 ×0.4, 20 ×1.7, no link with talks), once per side and match: until the end, damage ×1.7, hit /
+  dodge +15 %, crit +10 %; full stamina, +50 % health, morale +30. Commentary `grace.<reason>`, key moment, golden mark +
+  aura `aura-grace`, verdict factors `graceOurs` / `graceTheirs`, Encyclopedia (morale rule, courage). `sim:upsets`
+  measures it paired (same match replayed without it): in ≈ 20 % of league matches, the side touched wins ≈ 35 % instead
+  of ≈ 16 %, 63 % of the time the weaker side; upsets +1.3 points, late comebacks hardly moved.
 - **Elements made visible**: a blow on a weakness / resistance (`elementEdge`: `elementMult` ≥ 1.2 / ≤ 0.85, same thresholds as the commentary) puts a chevron mark beside the damage number on the target card (`.float .elem-mark`: double chevron up, green with a glow in the attacking element's colour = effective; chevron down, grey = resisted) and an « Efficace ! » / « Résiste » `.edge-chip` on its chronicle line; Analysis › « Éléments » (`SideAnalysis.elements`, `elementCreatures`: effective / resisted blows, damage added / lost per side and per creature, taken extra / spared) + insights `elementsFor` / `elementsAgainst` (net gap ≥ 40).
 - **Live match visuals**: `ui/screens/arena/matchFx.ts` turns events into card reactions (attacker glow/lunge,
   target shake + floating number, ghost HP bar; a floating number lives `FLOAT_MS` 1.9 s and stays on its card while later blows land elsewhere: `keepRecent` in `LiveMatch`); hovering a commentary line highlights actor & target
@@ -176,7 +193,8 @@ tests/       Vitest
 - **Visual effects** (display only): setting `effects` (full / reduced, ✨ button, default = system reduced-motion,
   `effectsOn()`, `:root[data-effects]` turns CSS animations off). `ui/fx/FxLayer.tsx` = app-wide particle canvas
   (`fxLayer()?.confetti() / fireworks() / sparkle() / coins()`), `ui/fx/Celebrations.tsx` = toasts for new inbox
-  messages that matter (level-up, ability, signing, trophies, death), worded by `wording()` from the inbox. Live match:
+  messages that matter (level-up, ability, signing, trophies, death), worded by `wording()` from the inbox. Toasts stay until
+  clicked (opens the matter) or dismissed (✕); 4 shown at once, « Tout fermer (n) » above them when 2+ wait. Live match:
   status auras on cards (`AURA` in Scoreboard), KO dust + grey fall, revive light, crit label, victory confetti,
   score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
 - **Live match dressing** (stays textual, columns kept): each fighter column = « Première ligne » block (cards with a shield
@@ -211,7 +229,7 @@ tests/       Vitest
   reputation baselines 64/46/30/18. 2 up / 2 down between each pair.
 - **Competitions**: the Shadow Cup (`state.cup`, 40 stables: 24 byes, 6 rounds after matchdays 2/5/8/11/14/17) and
   `state.tournaments` (`engine/league/tournaments.ts`, generic knockouts with a preliminary round when needed):
-  pre-season (player + 3 of its division, before matchday 1), a cup per division, the Champions Cup (best four of the
+  pre-season (player + 3 of its division, before matchday 1), a cup per division (own names, never the league's: Coupe de la Poussière D4, des Bannières D3, du Griffon D2, de l'Empyrée D1), the Champions Cup (best four of the
   Grand Arena last season), three invitationals (marches « Joute des Lanternes » rep 0, argent rep 35, or rep 55; entry fee,
   `registerTournament` replaces the least famous entrant before round 0, expense `fees`). Each round has a key in
   `cfg.league.tournaments` (after that matchday; decimals = a later midweek); the player's competitions never share a key.
@@ -247,7 +265,10 @@ tests/       Vitest
   (`generation.startingSquad`: potential = ability + gap × 0.35, at most 101 = 6★); stars come later (market, prospects).
 - **Stable names** (`generateTeamName`): six kinds (adjective + noun, noun of place, order of emblem, order of place,
   standalone, figure's troupe), same draws in every language (indices modulo each list); French names carry no leading
-  article (« face à Les … »).
+  article (« face à Les … »). EN / FR team-name lists are index-aligned (same draw = same name translated).
+- **Name cultures** (`data/names.ts`, 24): winged beasts `beast`, wolves / hounds / werebeasts `wild`, raptor / salamander
+  `saurian`; surnames index-aligned with `FR_SURNAMES` (tested). Syllables are joined without a doubled vowel at the
+  seam. Coaches: 40 % a person's name (`personName`, the managers' pool), else a creature name of a random species.
 - **Coaches** cost wage = 40 + quality² × 2.2 per week and a hiring fee of 12 weeks of wages (a top coach ≈ 10k).
 - **League week order** (`playMatchday`): all matches → existing injuries tick down → match effects (fatigue,
   new injuries, morale, form) → a week of rest → finances (tickets, sponsor, prizes, wages, upkeep, medical,
@@ -297,7 +318,8 @@ tests/       Vitest
 - **Training intensity** (`cfg.training.intensity`): light ×0.6 growth, −8 fatigue, +1 morale; intense ×1.4 growth,
   +16 fatigue a week (after recovery, so carried into the match), −2 morale, 3 % injury a week (× proneness/10).
   The select's tooltip shows these numbers (`intensityDesc`). Match injuries: KO 8 %, heavy hit 1 % (≈ 0.8 per match, `sim:injuries`: ≈ 1.4 injured per stable, 4+ out ≈ 7 % of weeks); squads up to 20 (`economy.club.maxSquad`, AI stables keep ≈ 12–13);
-  death chances lowered (1.6 / 16 / 40 %) to keep deaths flat. Free agents' signing bonus = 55 % of value (no fee).
+  death chances lowered (1.6 / 16 / 40 %) to keep deaths flat. Free agents' signing bonus = 55 % of value (no fee). Very ambitious free agents (ambition ≥ 16) never refuse a small stable (reputation < 35):
+  they ask the bonus ×1.25 (`freeAgentBonus`, `ambitiousFor`), said up front in the sheet and « ▲ » on the recruitment bonus.
 - **Encyclopedia › Attributes**: each attribute lists what it does in the arena with the config numbers
   (`attributeVars`, `at.*` texts), the roles weighing it and the best species.
 - **Economy** (phase 3, money in gold pieces: "po" in French, "gp" in English): all numbers in `data/config/economy.ts`. Player actions in
@@ -521,7 +543,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   `cloneTeam()` gives fresh ids and `Combat` now refuses duplicate ids. Measured against varied opponents
   (`sim:levers`, paired with/without): counter approach +14, aggressive vs balanced +16, wrong roles −17, all back
   line −16, best starters benched −13, tired squad (60) −22, no break management −36. Fatigue softened (pre-match
-  loss 50 %, penalties below 50 % stamina, max −35 %), base HP 60 (league KO ≈ 49 %). AI managers now matter
+  loss 50 %, penalties below 50 % stamina, max −35 %), base HP 60 (65 since the veteran XP rework) (league KO ≈ 49 %). AI managers now matter
   (tactician vs plain 64 %); autopilot finishes ~4th / 7th / 8–9th (easy / normal / hard). 110 tests.
 - [x] **Style balance pass** (on correct measurements): fury 30 % / frenzy 40 %, thorns 20 % / thorn hide 15 %,
   burn 5.6 %/round, poison 3.2 %/dose, frost giant / ogre / bramble horror toned down, vampire / bat / hyena / banshee
@@ -665,7 +687,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - [x] **Levels & XP rework** (10 levels, match + training XP, max level from potential, a free point per level,
   unlocks by level, encyclopedia "Levels and experience" rule, Level column / badge / chart in levels). 115 tests.
   Next (later): phase 6 (save slots, import/export, worker sims).
-- **Training sessions** (`engine/progression/sessions.ts`, `ui/screens/game/TrainingSession.tsx`, top of Training + dashboard card + gold badge on the Training tab): every match a stable plays earns 1 session + a second one with a chance of `cfg.training.sessions.extraChance[training ground level]` (0 / 10 / 20 / 30 %, own stream `extraSession`; `afterMatchSessions` in `playFixtures`; was 1/1/2/2 — level 2 doubled squad growth, level 3 added nothing: `sim:facility` now ≈ 23 / 26 / 28 / 30 sessions a season), the player keeps up to `maxStored` (3) in `GameState.sessions` (`available`, `total` = seed of the draws, `recent`); AI stables spend theirs at once. « Entraîner une créature »: `runSession` draws a healthy creature (not the last one trained), then an attribute of its **program** category below its ceiling: +1, or +2 with `jackpot.base + coach quality × perQuality` (coach of that category). UI: two chained roulettes (the squad stays shown, the drawn one lit gold, the others dimmed; then the program's attributes; ~4–6 s; instant when effects are off). **Programs are physical / combat / mental only** (default `defaultProgram` = `cfg.training.roleProgram[role]`: tank / skirmisher physical, striker / caster combat, support mental; old role / balanced / rest plans map to it; « Selon le rôle » in apply-all resets). **XP comes from matches only** (`matchXp`, ×1.6 to fold in the old training share) × life stage × the coach of the creature’s program (`coachFactor`) × the training ground (+10 % per level); **training touches neither fatigue nor morale and causes no injury; no intensity.** Staff screen: per coach « XP en match ×f · +2 en séance p % · n créatures au programme », candidates compared with the current coach. Training table: no age / next-ability columns. Each level gives `levels.freePoints` (2) points to place in any attribute, whatever the role or program (« + » on every attribute below its ceiling). Life stage = `<StageMark>` (▲ developing, ◆ prime, ▼ declining; XP ×1 / ×0.5 / ×0 on hover) in Training, Squad table and cards.
+- **Training sessions** (`engine/progression/sessions.ts`, `ui/screens/game/TrainingSession.tsx`, top of Training + dashboard card + gold badge on the Training tab): every match a stable plays earns 1 session + a second one with a chance of `cfg.training.sessions.extraChance[training ground level]` (0 / 10 / 20 / 30 %, own stream `extraSession`; `afterMatchSessions` in `playFixtures`; was 1/1/2/2 — level 2 doubled squad growth, level 3 added nothing: `sim:facility` now ≈ 23 / 26 / 28 / 30 sessions a season), the player keeps up to `maxStored` (3) in `GameState.sessions` (`available`, `total` = seed of the draws, `recent`); AI stables spend theirs at once. « Entraîner une créature »: `runSession` draws a healthy creature (not the last one trained), then an attribute of its **program** category below its ceiling: +1, or +2 with `jackpot.base + coach quality × perQuality` (coach of that category). UI: two chained roulettes (the squad stays shown, the drawn one lit gold, the others dimmed; then the program's attributes; ~4–6 s; instant when effects are off). **Programs are physical / combat / mental only** (default `defaultProgram` = `cfg.training.roleProgram[role]`: tank / skirmisher physical, striker / caster combat, support mental; old role / balanced / rest plans map to it; « Selon le rôle » in apply-all resets). **XP comes from matches only** (`matchXp`, ×1.6 to fold in the old training share) × life stage × the coach of the creature’s program (`coachFactor`) × the training ground (+10 % per level); **training touches neither fatigue nor morale and causes no injury; no intensity.** Staff screen: per coach « XP en match ×f · +2 en séance p % · n créatures au programme », candidates compared with the current coach. Training table: no age / next-ability columns. Each level gives `levels.freePoints` (2) points to place in any attribute, whatever the role or program (« + » on every attribute below its ceiling). Life stage = `<StageMark>` (▲ developing, ◆ prime, ▼ veteran — « Vétéran », was « En déclin »; XP ×1.25 / ×1 / ×0.5 on hover) in Training, Squad table and cards. Veterans still earn XP and the prime learns at full speed (was ×0, and prime ×0.5: a veteran's XP bar froze while it lost ground, frustrating): ageing lowers the ability, not the potential, so matches win part of each birthday's loss back. Measured (`sim:balance`, 10 seasons): league ability ~95 → ~103, potential 105 → 109, average age 39 → 46; prime and veteran changes each add about half of it. Compensated by `ageing.lossMult` 1.5 (× every species' `declineRate`, shown in the Encyclopedia): over three worlds (seasons 4–10) KO ≈ 48 % (old rules) → ≈ 54 % (new XP, loss ×1.3) → ≈ 51 % (×2); the loss is a weak lever (veterans are a minority), prime XP drives most of the drift. With prime ×1, KO went to ≈ 56 %: base HP 60 → 65 (`combat.hp.base`) brings it back to ≈ 50 % (three worlds, seasons 4–10; 70 HP ≈ 41 %). Then young ×1 → ×1.25 so developing and prime differ: KO ≈ 47 % (noise).
 - **After-match progress**: `simulate` / `finishLive` keep `afterMatch` (states before / after the match); closing the report sets
   `progress` when `weekGrowth` (`ui/growth.ts`) finds any, and `MatchProgress` (`GrowthReel.tsx`, `.progress-dialog`) shows the XP
   bars filling, before the training window (the training, week recap, board, career and scout windows wait for it). Midweek

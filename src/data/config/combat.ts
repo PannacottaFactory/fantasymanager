@@ -3,7 +3,7 @@ import type { RoleId, SizeClass } from '../schema.ts';
 /** All combat balancing numbers. Attributes are on a 1–20 scale. */
 export const COMBAT_CONFIG = {
   hp: {
-    base: 60,
+    base: 65,
     perToughness: 3,
     perStrength: 1,
     sizeMult: { small: 0.8, medium: 1, large: 1.35, huge: 1.75 } as Record<SizeClass, number>,
@@ -244,6 +244,15 @@ export const COMBAT_CONFIG = {
    * adds `friendCombo` to the chance to hit; a rival's hit never counts as teamwork.
    */
   bonds: { avengeRounds: 4, friendCombo: 0.04 },
+  /**
+   * Touched by grace: from `minRound`, while a side trails on the judges' cards by ≥ `trailBy` or has fewer creatures
+   * standing, each of its creatures may rise above itself at the start of a round with `chance` × (floor + courage) /
+   * (floor + 10) (courage 1 ≈ ×0.4, 20 ≈ ×1.7: the brave more often, never only them). Once per side and match:
+   * effect `graced` for `rounds`, `stamina` of the missing stamina and `heal` of its health back, morale + `morale`.
+   * Own RNG stream. Measured (`sim:upsets --league`): in ≈ 20 % of the matches, the side touched wins ≈ 35 % instead of
+   * ≈ 16 % (same matches without it), 63 % of the time it comes to the weaker side; upsets +1.3 points.
+   */
+  grace: { chance: 0.005, minRound: 3, trailBy: 15, courageFloor: 5, rounds: 20, stamina: 1, heal: 0.5, morale: 30 },
   injury: {
     /** Chance of injury when knocked out (before modifiers). */
     onKo: 0.08,

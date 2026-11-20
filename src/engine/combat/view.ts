@@ -145,6 +145,14 @@ export function applyEvent(prev: MatchView, e: MatchEvent): MatchView {
       if (t) t.hp = e.hp;
       break;
     }
+    case 'grace': {
+      const c = touch(e.actor);
+      if (c) {
+        if (!c.effects.includes('graced')) c.effects.push('graced');
+        Object.assign(c, { morale: e.morale, stamina: e.stamina, hp: e.hp });
+      }
+      break;
+    }
     case 'effectApplied': {
       const t = touch(e.target);
       if (t && !t.effects.includes(e.effect)) t.effects.push(e.effect);

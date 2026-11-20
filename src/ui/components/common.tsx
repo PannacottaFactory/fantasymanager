@@ -300,14 +300,14 @@ export function XpTrack({ c }: { c: Creature }) {
 const STAGE_KEY = { young: 'cr.developing', prime: 'cr.prime', declining: 'cr.declining' } as const;
 const STAGE_SYMBOL = { young: '▲', prime: '◆', declining: '▼' } as const;
 
-/** Life stage as one symbol (▲ developing, ◆ prime, ▼ declining); the stage and its XP multiplier on hover. */
+/** Life stage as one symbol (▲ developing, ◆ prime, ▼ veteran); the stage and its XP multiplier on hover. */
 export function StageMark({ c }: { c: Creature }) {
   const { t, lang } = useT();
   const st = lifeStage(c);
   const m = DEFAULT_CONFIG.training.stage[st];
   const mult = lang === 'fr' ? String(m).replace('.', ',') : String(m);
   return (
-    <span className={`stage-mark ${st}`} title={`${t(STAGE_KEY[st])} — ${m > 0 ? t('stage.xp', { m: mult }) : t('stage.none')}`}>
+    <span className={`stage-mark ${st}`} title={`${t(STAGE_KEY[st])} — ${st === 'declining' ? t('stage.decline', { m: mult }) : m > 0 ? t('stage.xp', { m: mult }) : t('stage.none')}`}>
       {STAGE_SYMBOL[st]}
     </span>
   );
