@@ -160,10 +160,11 @@ export function initiative(c: Combatant, noise: number, cfg: GameConfig): number
   return base * effectMod(c, 'initiativeMult') * (1 - fatiguePenalty(c, cfg));
 }
 
-export function attackSkill(c: Combatant, kind: AttackKind): number {
+export function attackSkill(c: Combatant, kind: AttackKind, cfg: GameConfig): number {
   const a = c.attrs;
-  if (kind === 'melee') return a.attack * 0.7 + a.technique * 0.3;
-  if (kind === 'ranged') return a.accuracy * 0.7 + a.technique * 0.3;
+  const m = cfg.combat.mix;
+  if (kind === 'melee') return a.attack * m.meleeHit.attack + a.accuracy * m.meleeHit.accuracy + a.technique * m.meleeHit.technique;
+  if (kind === 'ranged') return a.accuracy * m.rangedHit.accuracy + a.technique * m.rangedHit.technique;
   return a.focus * 0.7 + a.magic * 0.3;
 }
 
@@ -193,7 +194,7 @@ export function hitChance(
 ): number {
   const h = cfg.combat.hit;
   const kind = attackKind(ability);
-  let p = h.base + (attackSkill(attacker, kind) - defenseSkill(defender, kind)) * h.perPoint;
+  let p = h.base + (attackSkill(attacker, kind, cfg) - defenseSkill(defender, kind)) * h.perPoint;
   p += h.sizeMod[defender.size];
   p += ability.accuracyMod ?? 0;
   if (kind === 'spell') p += h.spellBonus;
@@ -221,9 +222,10 @@ export function critChance(attacker: Combatant, ability: AbilityDef, cfg: GameCo
 }
 
 /** Stat driving damage for an ability. */
-export function powerStat(c: Combatant, kind: AttackKind): number {
+export function powerStat(c: Combatant, kind: AttackKind, cfg: GameConfig): number {
   const a = c.attrs;
-  if (kind === 'melee') return a.strength;
+  const m = cfg.combat.mix.meleePower;
+  if (kind === 'melee') return a.strength * m.strength + a.technique * m.technique;
   if (kind === 'ranged') return (a.accuracy + a.technique) / 2;
   return a.magic;
 }
@@ -278,7 +280,7 @@ export function roleMitigation(c: Combatant, cfg: GameConfig): number {
 export function rawDamage(attacker: Combatant, ability: AbilityDef, ctx: DamageContext, cfg: GameConfig): number {
   const d = cfg.combat.damage;
   const kind = attackKind(ability);
-  let dmg = ability.power * (d.statBase + powerStat(attacker, kind) * d.statPerPoint);
+  let dmg = ability.power * (d.statBase + powerStat(attacker, kind, cfg) * d.statPerPoint);
   if (kind !== 'spell') dmg *= 1 + d.aggressionBase + (attacker.attrs.aggression - 10) * d.aggressionPerPoint;
   dmg *= effectMod(attacker, 'damageMult');
   // Fury: the more wounded, the harder it hits.

@@ -152,7 +152,7 @@ describe('reaching the back line in melee', () => {
     const brute = { role: 'striker' } as unknown as Parameters<typeof reachableTargets>[0];
     const reach = reachableTargets(brute, ability, enemies);
     expect(reach.map((r) => [r.target.line, r.flank])).toEqual([['front', false], ['back', true]]);
-    const attrs = Object.fromEntries(['attack', 'technique', 'defense', 'agility', 'teamwork', 'composure', 'speed'].map((k) => [k, 10]));
+    const attrs = Object.fromEntries(['attack', 'accuracy', 'technique', 'defense', 'agility', 'teamwork', 'composure', 'speed'].map((k) => [k, 10]));
     const mk = (role: string) => ({ role, roleFactor: 1, attrs, effects: [], traits: [], stamina: 100, maxStamina: 100, morale: 50, size: 'medium' }) as unknown as Parameters<typeof hitChance>[0];
     const target = mk('caster');
     const orders = { aggression: 'balanced', target: 'nearest', risk: 'normal' } as const;

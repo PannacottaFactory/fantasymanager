@@ -3,7 +3,7 @@ import type { RoleId, SizeClass } from '../schema.ts';
 /** All combat balancing numbers. Attributes are on a 1–20 scale. */
 export const COMBAT_CONFIG = {
   hp: {
-    base: 68,
+    base: 65,
     perToughness: 3,
     perStrength: 1,
     sizeMult: { small: 0.8, medium: 1, large: 1.35, huge: 1.75 } as Record<SizeClass, number>,
@@ -65,6 +65,12 @@ export const COMBAT_CONFIG = {
     /** When an ally already hit the target this round: comboBase + (teamwork − 10) × comboPerTeamwork to hit. */
     comboBase: 0.04,
     comboPerTeamwork: 0.015,
+  },
+  /** How attributes combine into the skill to hit and the power of melee blows (shares add up to 1). */
+  mix: {
+    meleeHit: { attack: 0.6, accuracy: 0.2, technique: 0.2 },
+    rangedHit: { accuracy: 0.7, technique: 0.3 },
+    meleePower: { strength: 0.8, technique: 0.2 },
   },
   damage: {
     statBase: 0.55,

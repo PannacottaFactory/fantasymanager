@@ -309,6 +309,10 @@ tests/       Vitest
   Individual instruction (`cfg.combat.stances`): all out = +8 % damage, −4 % armour, +15 % stamina costs; pace yourself
   = −8 % damage, −15 % stamina costs (AI uses fewer big abilities); normal = neither. Neutral on average in `sim:levers`
   (±1.5), a tired squad pacing itself +4.
+- **Melee mix** (`cfg.combat.mix`): melee skill to hit = 60 % attack + 20 % accuracy + 20 % technique (was 70 / 0 / 30), melee
+  power = 80 % strength + 20 % technique (was strength only); ranged unchanged. +3 everywhere (`sim:attributes`, 1500 paired):
+  strength +11.9 → +7.5, attack +6.2 → +4.2, technique +4.8 → +5.6, accuracy +1.7 → +3.2. Brutes hit softer: base HP 68 → 65
+  keeps the KO rate (regional batch 42.6 %).
 - **Attributes all count** (`sim:attributes`, +3 on every starter ≈ +2 to +5 points of win rate, strength / toughness ≈ +9–10,
   accuracy only for ranged creatures): the weak ones got an effect centred on 10 (an average creature is unchanged, below 10
   is a malus) — speed = dodge (`hit.dodgePerSpeed`) + initiative, composure = to hit (`hit.perComposure`), leadership = the
@@ -319,7 +323,7 @@ tests/       Vitest
   ≈ +1.5, on the five starters ≈ +5; five levels on all ≈ +22.
 - **Fatigue**: pre-match fatigue removes up to 70 % of the stamina pool, penalties start below 60 % stamina (up to
   −40 % hit/damage/initiative/interception) — on the chance to hit only `fatigue.hitShare` (0.57) of it, ≤ −20 % (late-match misses felt unfair:
-  rounds 16–20 hit 57 % → 62.5 %, whole match 67 → 70 %; tired squad lever −22 → −18; base HP 65 → 68 keeps the KO rate, regional batch 42.5 → 41 %) and injuries are ×(1 + fatigue/100).
+  rounds 16–20 hit 57 % → 62.5 %, whole match 67 → 70 %; tired squad lever −22 → −18; base HP 65 → 68 kept the KO rate, back to 65 with the melee mix below) and injuries are ×(1 + fatigue/100).
 - **Training intensity** (`cfg.training.intensity`): light ×0.6 growth, −8 fatigue, +1 morale; intense ×1.4 growth,
   +16 fatigue a week (after recovery, so carried into the match), −2 morale, 3 % injury a week (× proneness/10).
   The select's tooltip shows these numbers (`intensityDesc`). Match injuries: KO 8 %, heavy hit 1 % (≈ 0.8 per match, `sim:injuries`: ≈ 1.4 injured per stable, 4+ out ≈ 7 % of weeks); squads up to 20 (`economy.club.maxSquad`, AI stables keep ≈ 12–13);

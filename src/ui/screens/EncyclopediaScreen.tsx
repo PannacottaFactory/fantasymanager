@@ -921,7 +921,7 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
   const disobey = (d: number) => p(o.disobeyBase * Math.pow(1 - d / 20, o.disobeyExponent));
   switch (id) {
     case 'strength':
-      return { base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), v10: mult(Math.round((c.damage.statBase + 10 * c.damage.statPerPoint) * 100) / 100), v20: mult(Math.round((c.damage.statBase + 20 * c.damage.statPerPoint) * 100) / 100), hp: num(c.hp.perStrength) };
+      return { s: Math.round(c.mix.meleePower.strength * 100), t: Math.round(c.mix.meleePower.technique * 100), base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), v10: mult(Math.round((c.damage.statBase + 10 * c.damage.statPerPoint) * 100) / 100), v20: mult(Math.round((c.damage.statBase + 20 * c.damage.statPerPoint) * 100) / 100), hp: num(c.hp.perStrength) };
     case 'stamina':
       return { base: c.stamina.base, per: c.stamina.perStamina, p10: c.stamina.base + 10 * c.stamina.perStamina, p20: c.stamina.base + 20 * c.stamina.perStamina, regen: num(c.stamina.regenPerStamina) };
     case 'speed':
@@ -933,9 +933,9 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
     case 'recovery':
       return { regen: num(c.stamina.regenPerRecovery), r10: num(Math.round((c.stamina.regenBase + 10 * c.stamina.regenPerRecovery + 10 * c.stamina.regenPerStamina) * 10) / 10), rest: c.stamina.restMult, base: cfg.league.week.fatigueRecovery, week: num(cfg.league.week.fatigueRecoveryPerAttr) };
     case 'attack':
-      return { p: p(hit * 0.7) };
+      return { p: p(hit * c.mix.meleeHit.attack), a: Math.round(c.mix.meleeHit.attack * 100), c: Math.round(c.mix.meleeHit.accuracy * 100), t: Math.round(c.mix.meleeHit.technique * 100) };
     case 'accuracy':
-      return { p: p(hit * 0.7), base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint) };
+      return { p: p(hit * c.mix.rangedHit.accuracy), pm: p(hit * c.mix.meleeHit.accuracy), r: Math.round(c.mix.rangedHit.accuracy * 100), rt: Math.round(c.mix.rangedHit.technique * 100), c: Math.round(c.mix.meleeHit.accuracy * 100), base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint) };
     case 'defense':
       return { p: p(hit * 0.6) };
     case 'magic':
@@ -943,7 +943,7 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
     case 'focus':
       return { p: p(hit * 0.7), dodge: p(hit * 0.5), arm: p(c.damage.spellMitigationPerPoint / 2) };
     case 'technique':
-      return { crit: p(c.damage.critPerTechnique), mult: mult(c.damage.critMult), p: p(hit * 0.3) };
+      return { crit: p(c.damage.critPerTechnique), mult: mult(c.damage.critMult), p: p(hit * c.mix.rangedHit.technique), pm: p(hit * c.mix.meleeHit.technique), tp: Math.round(c.mix.meleePower.technique * 100) };
     case 'courage':
       return { c: p(c.morale.courageReductionPerPoint), arm: p(c.damage.spellMitigationPerPoint / 2), front: p(c.damage.courageFrontPerPoint), g: mult((c.grace.courageFloor + 20) / (c.grace.courageFloor + 10)) };
     case 'composure':
