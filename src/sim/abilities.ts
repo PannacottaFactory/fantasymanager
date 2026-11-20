@@ -3,9 +3,12 @@
  * professional team; the same matches are played with and without that ability. Prints, per ability, how often the
  * combat AI uses it and the win rate it adds (paired: same seeds, same teams). Nothing should be useless: an ability
  * the AI never picks, or one that loses matches, needs a rework.
- *   npm run sim:abilities -- --matches 500 [--only a,b] [--part 1/4] [--json] [--set combat.ai.debuffWeight=0.8,…]
+ *   npm run sim:abilities -- --matches 500 [--only a,b] [--part 1/4] [--json] [--set combat.ai.debuffWeight=0.8,…] [--weight 2]
+ * `--weight w`: the tested ability's `aiWeight` is set to w (how eagerly the AI uses it) for the run; `--wmult m` multiplies its current one.
  */
+import { readFileSync } from 'node:fs';
 import { Rng, deriveSeed } from '../core/rng.ts';
+import type { AbilityDef } from '../data/schema.ts';
 import { ABILITIES } from '../data/abilities.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../data/config/index.ts';
 import { SPECIES, SPECIES_IDS } from '../data/species.ts';
@@ -20,6 +23,8 @@ const args = parseArgs(process.argv.slice(2));
 const N = Math.max(20, Number(args.matches ?? 500));
 const only = args.only?.split(',');
 const [part, parts] = (args.part ?? '1/1').split('/').map(Number) as [number, number];
+const weight = args.weight !== undefined ? Number(args.weight) : undefined;
+const wmult = args.wmult !== undefined ? Number(args.wmult) : undefined;
 
 /** `--set a.b.c=v,…`: config variant used by every match (e.g. combat.ai.debuffWeight=0.8). */
 const CFG: GameConfig = structuredClone(DEFAULT_CONFIG);
@@ -30,6 +35,21 @@ for (const kv of args.set ? args.set.split(',') : []) {
   for (const k of keys.slice(0, -1)) o = o[k] as Record<string, unknown>;
   if (!o || !(keys.at(-1)! in o)) throw new Error(`unknown config key ${path}`);
   o[keys.at(-1)!] = Number(value);
+}
+
+/**
+ * `--override file.json`: ability variants to try without editing the data, `{ id: { power?, staminaCost?, cooldown?,
+ * aiWeight?, chances?: number[], durations?: number[] } }` (chances / durations per effect, in order).
+ */
+if (args.override) {
+  const patch = JSON.parse(readFileSync(args.override, 'utf8')) as Record<string, Partial<AbilityDef> & { chances?: number[]; durations?: (number | undefined)[] }>;
+  for (const [id, p] of Object.entries(patch)) {
+    const a = ABILITIES[id];
+    if (!a) throw new Error(`unknown ability ${id}`);
+    const { chances, durations, ...rest } = p;
+    Object.assign(a, rest);
+    if (chances || durations) a.effects = a.effects?.map((e, i) => ({ ...e, chance: chances?.[i] ?? e.chance, duration: durations?.[i] ?? e.duration }));
+  }
 }
 
 const owners = new Map<string, string[]>();
@@ -75,7 +95,12 @@ function run(abilityId: string, keep: boolean): { win: number; uses: number } {
 
 const t0 = performance.now();
 for (const id of ids) {
+  const def = ABILITIES[id]!;
+  const savedWeight = def.aiWeight;
+  if (weight !== undefined) def.aiWeight = weight;
+  if (wmult !== undefined) def.aiWeight = (savedWeight ?? 1) * wmult;
   const w = run(id, true);
+  def.aiWeight = savedWeight;
   const wo = run(id, false);
   const row: Row = { id, kind: ABILITIES[id]!.kind, species: owners.get(id)!.join(','), uses: w.uses, withWin: w.win, withoutWin: wo.win, delta: w.win - wo.win };
   rows.push(row);

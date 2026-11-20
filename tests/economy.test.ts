@@ -13,7 +13,8 @@ const game = (seed = 'eco') => newGame({ seed, teamName: 'Test', lang: 'en' });
 const balance = (g: GameState, id = g.playerTeamId) => g.clubs[id]!.balance;
 const aiCreature = (g: GameState) => {
   const team = g.teams.find((t) => t.id !== g.playerTeamId)!;
-  return { team, c: [...team.creatures].sort((a, b) => a.ability - b.ability)[0]! };
+  // The cheapest one (prices follow each species' worth, which balancing moves): always within the player's reach.
+  return { team, c: [...team.creatures].sort((a, b) => askingPrice(team, a) - askingPrice(team, b))[0]! };
 };
 
 describe('economy setup', () => {
@@ -109,6 +110,8 @@ describe('transfers', () => {
     g.board.confidence = 90;
     const { team, c } = aiCreature(g);
     const price = askingPrice(team, c);
+    // Enough money whatever the species' price (balancing moves them).
+    g.clubs[g.playerTeamId]!.balance = price * 3;
     const before = balance(g);
     const r = bid(g, c.id, Math.round(price * 1.2), 2);
     expect(r.outcome.kind).toBe('accepted');
@@ -124,6 +127,7 @@ describe('transfers', () => {
     g.board.confidence = 90;
     const { team, c } = aiCreature(g);
     const price = askingPrice(team, c);
+    g.clubs[g.playerTeamId]!.balance = price * 3;
     expect(bid(g, c.id, Math.round(price * 0.3), 1).outcome.kind).toBe('rejected');
     const r = bid(g, c.id, Math.round(price * 0.85), 1);
     expect(r.outcome.kind).toBe('counter');

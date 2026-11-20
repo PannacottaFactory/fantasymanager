@@ -85,6 +85,11 @@ export interface AbilityDef {
   cooldown: number;
   /** Melee attack able to reach the back line (dives, charges). */
   reachBack?: boolean;
+  /**
+   * How eagerly the combat AI uses this ability (its score × this, default 1). Tuned per ability with
+   * `sim:abilities --weight`: the weight at which the ability adds the most wins as the AI uses it.
+   */
+  aiWeight?: number;
   accuracyMod?: number;
   critMod?: number;
   lifesteal?: number;

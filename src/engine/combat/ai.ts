@@ -233,7 +233,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
     if (cost > actor.stamina) continue;
     // Silenced: no spells, no heals.
     if (silenced && isSilenceable(ability)) continue;
-    let bigMult = 1;
+    let bigMult = ability.aiWeight ?? 1;
     if (ability.hpCost) {
       // Sacrifice: never at death's door, and less eagerly the more it costs.
       const hp = hpFraction(actor);
