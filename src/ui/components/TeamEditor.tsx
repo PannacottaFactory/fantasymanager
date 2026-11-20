@@ -4,12 +4,13 @@ import { ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES_IDS } from '../../data/species.ts';
 import type { Line, RoleId, TargetPriority } from '../../data/schema.ts';
 import { isInjured, maxHp, overallRating } from '../../engine/creature/derived.ts';
-import { dropOnto, insertInGroup, isStarter, selectionOf, setOrders, setSelection, toggleFavorite, updateSlot } from '../../engine/team/edit.ts';
+import { dropOnto, insertInGroup, isStarter, selectionOf, setOrders, setSelection, setSkill, updateSlot } from '../../engine/team/edit.ts';
 import { validateTactic, type TacticIssue } from '../../engine/team/team.ts';
 import { abilityText, roleText, speciesName } from '../../engine/text/localize.ts';
-import { getSpecies } from '../../engine/creature/derived.ts';
-import { AbilityCard, KindIcon, abilityColor } from './AbilityCard.tsx';
-import { isUnlocked, levelOf, maxLevelOf, unlockLevel } from '../../engine/progression/levels.ts';
+import { equippedSkills, getSpecies } from '../../engine/creature/derived.ts';
+import { KindIcon, abilityColor } from './AbilityCard.tsx';
+import { SkillPanel } from './SkillPanel.tsx';
+import { levelOf, maxLevelOf } from '../../engine/progression/levels.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Stance, Team } from '../../engine/model.ts';
 import { useT, type Translator } from '../i18n/index.ts';
@@ -34,6 +35,8 @@ export function issueText(tr: Translator, team: Team, issue: TacticIssue): strin
       return tr.t('issue.duplicate');
     case 'injured':
       return tr.t('issue.injured', { name: team.creatures.find((c) => c.id === issue.id)?.name ?? '?' });
+    case 'noSkill':
+      return tr.t('issue.noSkill', { name: team.creatures.find((c) => c.id === issue.id)?.name ?? '?' });
   }
 }
 
@@ -88,7 +91,8 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
   const open = openId ? (team.creatures.find((c) => c.id === openId) ?? null) : null;
   const [favFor, setFavFor] = useState<string | null>(null);
   const favCreature = favFor ? (team.creatures.find((c) => c.id === favFor) ?? null) : null;
-  const favs = (id: string) => team.tactic.favorites?.[id] ?? [];
+  const chosen = (id: string) => team.tactic.skills?.[id];
+  const favs = (c: Creature) => equippedSkills(c, chosen(c.id));
   const issues = validateTactic(team, DEFAULT_CONFIG, !!league);
   const slot = (id: string) => team.tactic.lineup.find((s) => s.creatureId === id);
   const status = (c: Creature) => (isStarter(team, c.id) ? 0 : team.tactic.bench.includes(c.id) ? 1 : 2);
@@ -260,9 +264,9 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
       key: 'build',
       label: t('col.build'),
       title: t('col.build.title'),
-      sort: (c) => favs(c.id).length,
+      sort: (c) => favs(c).length,
       render: (c) => {
-        const f = favs(c.id);
+        const f = favs(c);
         const els = getSpecies(c).elements;
         return (
           <button className="build-cell" onClick={() => setFavFor(c.id)} title={t('col.build.title')}>
@@ -273,9 +277,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
                 </span>
               ))
             ) : (
-              <span className="faint" title={t('col.build.title')}>
-                {t('build.free')}
-              </span>
+              <span className="chip neg">{t('sk.noneShort')}</span>
             )}
           </button>
         );
@@ -285,7 +287,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
     ...axisColumns,
     { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
   );
-  // Column order after the species: rating, potential, fatigue, role, line, instruction, favourite move, level / XP;
+  // Column order after the species: rating, potential, fatigue, role, line, instruction, skills, level / XP;
   // then health, attributes and traits. Columns absent from the test arena are simply skipped.
   const ORDER = ['grip', 'name', 'species', 'ovr', 'pot', 'cond', 'role', 'line', 'stance', 'build', 'level'];
   const rank = (k: string) => (ORDER.includes(k) ? ORDER.indexOf(k) : ORDER.length);
@@ -331,36 +333,20 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
         <Modal
           title={
             <span className="row">
-              <Crest speciesId={favCreature.speciesId} name={favCreature.name} size={28} level={levelOf(favCreature)} /> {t('fav.pickTitle', { name: favCreature.name })}
+              <Crest speciesId={favCreature.speciesId} name={favCreature.name} size={28} level={levelOf(favCreature)} /> {t('sk.pickTitle', { name: favCreature.name })}
             </span>
           }
           onClose={() => setFavFor(null)}
           actions={
             <button className="btn primary small" onClick={() => setFavFor(null)}>
-              {t('fav.done')}
+              {t('sk.done')}
             </button>
           }
         >
           <p className="muted" style={{ marginTop: 0 }}>
-            {t('fav.pickHint', { n: DEFAULT_CONFIG.combat.favorites.max })}
+            {t('sk.hint', { n: DEFAULT_CONFIG.combat.skills.equipped })}
           </p>
-          <div className="ability-grid">
-            {getSpecies(favCreature).abilities.map((a) => (
-              <AbilityCard
-                key={a.id}
-                id={a.id}
-                elements={getSpecies(favCreature).elements}
-                locked={!isUnlocked(favCreature, a.minAbility)}
-                unlockAt={unlockLevel(a.minAbility)}
-                current={levelOf(favCreature)}
-                favorite={favs(favCreature.id).includes(a.id)}
-                onToggleFavorite={() => {
-                  onChange(toggleFavorite(team, favCreature.id, a.id));
-                  if (!favs(favCreature.id).includes(a.id)) setFavFor(null);
-                }}
-              />
-            ))}
-          </div>
+          <SkillPanel creature={favCreature} chosen={chosen(favCreature.id)} onEquip={(a) => onChange(setSkill(team, favCreature.id, a))} />
         </Modal>
       )}
       {open && (
@@ -368,8 +354,9 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
           creature={open}
           onClose={() => setOpenId(null)}
           showHidden={!league}
-          favorites={favs(open.id)}
-          onToggleFavorite={(a) => onChange(toggleFavorite(team, open.id, a))}
+          skills={chosen(open.id)}
+          showSkills
+          onEquip={(a) => onChange(setSkill(team, open.id, a))}
         />
       )}
     </section>

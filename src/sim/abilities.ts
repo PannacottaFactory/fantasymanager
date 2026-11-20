@@ -1,10 +1,11 @@
 /**
- * What each ability is worth: a creature of a species that has it (ability unlocked) replaces one starter of a
- * professional team; the same matches are played with and without that ability. Prints, per ability, how often the
- * combat AI uses it and the win rate it adds (paired: same seeds, same teams). Nothing should be useless: an ability
- * the AI never picks, or one that loses matches, needs a rework.
- *   npm run sim:abilities -- --matches 500 [--only a,b] [--part 1/4] [--json] [--set combat.ai.debuffWeight=0.8,…] [--weight 2]
- * `--weight w`: the tested ability's `aiWeight` is set to w (how eagerly the AI uses it) for the run; `--wmult m` multiplies its current one.
+ * What each skill (the basic attack included) is worth, per species: a creature of that species (every skill unlocked) replaces one starter of a
+ * professional team. Paired arms on the same seeds and teams: equipped with the skill and a partner (another one of
+ * its kit, in turn), against the partner alone. Prints how often the combat AI uses it and the win rate it adds
+ * as the second skill, and its place among the species' six (win rate with it equipped). Nothing should be useless:
+ * a skill the AI never picks, or one that loses matches, needs a rework.
+ *   npm run sim:abilities -- --matches 300 [--only a,b] [--part 1/4] [--json] [--set combat.ai.debuffWeight=0.8,…] [--weight 2]
+ * `--only` takes species or ability ids. `--weight w`: the tested skill's `aiWeight` is set to w for the run; `--wmult m` multiplies its current one.
  */
 import { readFileSync } from 'node:fs';
 import { Rng, deriveSeed } from '../core/rng.ts';
@@ -52,65 +53,66 @@ if (args.override) {
   }
 }
 
-const owners = new Map<string, string[]>();
-for (const sid of SPECIES_IDS) for (const a of SPECIES[sid]!.abilities) owners.set(a.id, [...(owners.get(a.id) ?? []), sid]);
-const ids = [...owners.keys()].filter((id) => !only || only.includes(id)).sort().filter((_, i) => i % parts === part - 1);
+interface Job { sid: string; id: string }
+const kitOf = (sid: string) => [...SPECIES[sid]!.basic, ...SPECIES[sid]!.skills];
+const jobs: Job[] = SPECIES_IDS.flatMap((sid) => kitOf(sid).map((id) => ({ sid, id })))
+  .filter((j) => !only || only.includes(j.id) || only.includes(j.sid))
+  .filter((_, i) => i % parts === part - 1);
 
 interface Row { id: string; kind: string; species: string; uses: number; withWin: number; withoutWin: number; delta: number }
 const rows: Row[] = [];
+const TOP_LEVEL = Math.max(...CFG.combat.skills.unlockLevels);
 
-/** Win rate of side 0 and the uses of the ability by the tested creature, over N matches. */
-function run(abilityId: string, keep: boolean): { win: number; uses: number } {
+/** Win rate of side 0 and the uses of the skill by the tested creature, over N matches. */
+function run({ sid, id: abilityId }: Job, keep: boolean): { win: number; uses: number } {
   let wins = 0;
   let uses = 0;
-  const list = owners.get(abilityId)!;
+  const sp = SPECIES[sid]!;
+  const partners = kitOf(sid).filter((x) => x !== abilityId);
   for (let i = 0; i < N; i++) {
-    const sid = list[i % list.length]!;
-    const sp = SPECIES[sid]!;
-    const ref = sp.abilities.find((a) => a.id === abilityId)!;
-    const saved = sp.abilities;
-    try {
-      // Same creature, role and line in both arms (chosen with the full kit); only the fight goes without the ability.
-      const rng = new Rng(deriveSeed('abilities', i));
-      const a = generateTeam(rng, { quality: 'professional' });
-      const b = generateTeam(rng, { quality: 'professional' });
-      const slot = a.tactic.lineup[i % a.tactic.lineup.length]!;
-      const old = a.creatures.find((c) => c.id === slot.creatureId)!;
-      const potential = Math.max(old.potential, (ref.minAbility ?? 0) + 5);
-      const fresh = generateCreature(new Rng(deriveSeed('abilities-c', sid, i)), { speciesId: sid, potential, age: sp.lifeCurve.peakStart });
-      fresh.ability = fresh.potential;
-      a.creatures = a.creatures.map((c) => (c.id === old.id ? fresh : c));
-      const role = bestRole(fresh);
-      a.tactic = { ...a.tactic, lineup: a.tactic.lineup.map((s) => (s.creatureId === old.id ? { ...s, creatureId: fresh.id, role, line: ROLES[role].defaultLine } : s)) };
-      if (!keep) sp.abilities = saved.filter((x) => x.id !== abilityId);
-      const r = simulateMatch({ seed: deriveSeed('abilities-m', i), teams: [a, b] }, { cfg: CFG });
-      if (r.outcome.winner === 0) wins++;
-      for (const e of r.events) if (e.type === 'spend' && e.actor === fresh.id && e.ability === abilityId) uses++;
-    } finally {
-      sp.abilities = saved;
-    }
+    // Same creature, role, line and partner skill in both arms; only the tested skill is left out.
+    const rng = new Rng(deriveSeed('abilities', i));
+    const a = generateTeam(rng, { quality: 'professional' });
+    const b = generateTeam(rng, { quality: 'professional' });
+    const slot = a.tactic.lineup[i % a.tactic.lineup.length]!;
+    const old = a.creatures.find((c) => c.id === slot.creatureId)!;
+    const potential = Math.max(old.potential, (CFG.training.levels.steps[TOP_LEVEL - 1] ?? 120) + 5);
+    const fresh = generateCreature(new Rng(deriveSeed('abilities-c', sid, i)), { speciesId: sid, potential, age: sp.lifeCurve.peakStart });
+    fresh.ability = fresh.potential;
+    const partner = partners[i % partners.length]!;
+    a.creatures = a.creatures.map((c) => (c.id === old.id ? fresh : c));
+    const role = bestRole(fresh);
+    a.tactic = { ...a.tactic, lineup: a.tactic.lineup.map((s) => (s.creatureId === old.id ? { ...s, creatureId: fresh.id, role, line: ROLES[role].defaultLine } : s)), skills: { ...(a.tactic.skills ?? {}), [fresh.id]: keep ? [abilityId, partner] : [partner] } };
+    const r = simulateMatch({ seed: deriveSeed('abilities-m', i), teams: [a, b] }, { cfg: CFG });
+    if (r.outcome.winner === 0) wins++;
+    for (const e of r.events) if (e.type === 'spend' && e.actor === fresh.id && e.ability === abilityId) uses++;
   }
   return { win: wins / N, uses: uses / N };
 }
 
 const t0 = performance.now();
-for (const id of ids) {
+for (const job of jobs) {
+  const { id } = job;
   const def = ABILITIES[id]!;
   const savedWeight = def.aiWeight;
   if (weight !== undefined) def.aiWeight = weight;
   if (wmult !== undefined) def.aiWeight = (savedWeight ?? 1) * wmult;
-  const w = run(id, true);
+  const w = run(job, true);
   def.aiWeight = savedWeight;
-  const wo = run(id, false);
-  const row: Row = { id, kind: ABILITIES[id]!.kind, species: owners.get(id)!.join(','), uses: w.uses, withWin: w.win, withoutWin: wo.win, delta: w.win - wo.win };
+  const wo = run(job, false);
+  const row: Row = { id, kind: ABILITIES[id]!.kind, species: job.sid, uses: w.uses, withWin: w.win, withoutWin: wo.win, delta: w.win - wo.win };
   rows.push(row);
   if (args.json) console.log(JSON.stringify(row));
 }
 if (!args.json) {
-  console.log(`${ids.length} abilities × ${N} paired matches in ${((performance.now() - t0) / 1000).toFixed(0)} s\n`);
-  console.log('ability                kind     uses/match   win with  without   added   species');
-  for (const r of rows.sort((x, y) => x.delta - y.delta)) {
+  console.log(`${jobs.length} skills × ${N} paired matches in ${((performance.now() - t0) / 1000).toFixed(0)} s\n`);
+  // Place among the species' skills tested here (1 = the best one to equip).
+  const rank = (r: Row) => rows.filter((x) => x.species === r.species && x.withWin > r.withWin).length + 1;
+  console.log('skill                  kind     uses/match   win with  without   added   rank  species');
+  for (const r of [...rows].sort((x, y) => x.delta - y.delta)) {
     const flag = r.uses < 0.15 ? '  ← rarely used' : r.delta <= -0.01 ? '  ← costs matches' : '';
-    console.log(`${r.id.padEnd(22)} ${r.kind.padEnd(8)} ${r.uses.toFixed(2).padStart(6)}      ${(100 * r.withWin).toFixed(1).padStart(5)} %  ${(100 * r.withoutWin).toFixed(1).padStart(5)} %  ${(100 * r.delta >= 0 ? '+' : '') + (100 * r.delta).toFixed(1).padStart(4)}   ${r.species}${flag}`);
+    console.log(`${r.id.padEnd(22)} ${r.kind.padEnd(8)} ${r.uses.toFixed(2).padStart(6)}      ${(100 * r.withWin).toFixed(1).padStart(5)} %  ${(100 * r.withoutWin).toFixed(1).padStart(5)} %  ${(100 * r.delta >= 0 ? '+' : '') + (100 * r.delta).toFixed(1).padStart(4)}   ${String(rank(r)).padStart(3)}   ${r.species}${flag}`);
   }
+  const avg = rows.reduce((t, r) => t + r.delta, 0) / Math.max(1, rows.length);
+  console.log(`\naverage added ${(100 * avg).toFixed(2)} points · rarely used ${rows.filter((r) => r.uses < 0.15).length} · costing matches ${rows.filter((r) => r.delta <= -0.01).length} / ${rows.length}`);
 }

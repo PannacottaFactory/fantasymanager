@@ -240,10 +240,6 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
       if (hp < ability.hpCost + 0.2) continue;
       bigMult *= 1 - ability.hpCost * (1.5 - hp);
     }
-    if (actor.favorites.includes(id)) {
-      const f = cfg.combat.favorites;
-      bigMult *= 1 + f.bonus * (0.4 + (0.6 * actor.attrs.discipline) / 20);
-    }
     if (ability.staminaCost >= 12) {
       if (actor.stance === 'conserve') bigMult *= 0.7;
       if (actor.stance === 'allOut') bigMult *= 1.2;

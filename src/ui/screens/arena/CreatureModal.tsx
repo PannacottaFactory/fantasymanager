@@ -18,14 +18,14 @@ import {
   traitText,
 } from '../../../engine/text/localize.ts';
 import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
-import { AbilityCard } from '../../components/AbilityCard.tsx';
 import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, PotentialStars, TraitChip, LevelBadge, XpTrack } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { fatigueColor, moraleColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
-import { isUnlocked, levelOf, unlockLevel } from '../../../engine/progression/levels.ts';
+import { levelOf } from '../../../engine/progression/levels.ts';
+import { SkillPanel } from '../../components/SkillPanel.tsx';
 import { attributeCeiling } from '../../../engine/progression/training.ts';
 import { MAX_NAME_LENGTH } from '../../../engine/team/rename.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
@@ -34,9 +34,11 @@ interface Props {
   creature: Creature;
   onClose: () => void;
   showHidden?: boolean;
-  /** Favourite abilities (light build); editable when `onToggleFavorite` is given. */
-  favorites?: readonly string[];
-  onToggleFavorite?: (abilityId: string) => void;
+  /** Skills chosen by the manager (undefined = default choice); clicking one equips / takes it off when `onEquip` is given. */
+  skills?: readonly string[];
+  /** Show which skills are equipped (own creatures, live match). */
+  showSkills?: boolean;
+  onEquip?: (abilityId: string) => void;
   /** Extra content right under the header (e.g. live match state, market estimate). */
   extra?: ReactNode;
   /** Content at the bottom of the sheet (management: training, contract…). */
@@ -67,7 +69,7 @@ function StatTile({ label, value, title, big }: { label: string; value: ReactNod
   );
 }
 
-export function CreatureModal({ creature, onClose, showHidden = true, favorites = [], onToggleFavorite, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, pointKeys, onRename, reference }: Props) {
+export function CreatureModal({ creature, onClose, showHidden = true, skills, showSkills, onEquip, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, pointKeys, onRename, reference }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
   const tr = useT();
   const { t, lang } = tr;
@@ -240,26 +242,9 @@ export function CreatureModal({ creature, onClose, showHidden = true, favorites 
         <div className="sheet-col">
           <div className="sheet-box-head sec-abilities">
             <h4 className="sheet-box-title">{t('cr.abilities')}</h4>
-            {onToggleFavorite && (
-              <span className="muted fav-hint">
-                {t('fav.hint', { n: DEFAULT_CONFIG.combat.favorites.max })}
-              </span>
-            )}
+            {onEquip && <span className="muted fav-hint">{t('sk.hint', { n: DEFAULT_CONFIG.combat.skills.equipped })}</span>}
           </div>
-          <div className="ability-grid" data-tip="sheet-abilities">
-            {sp.abilities.map((a) => (
-              <AbilityCard
-                key={a.id}
-                id={a.id}
-                elements={sp.elements}
-                locked={!isUnlocked(creature, a.minAbility)}
-                unlockAt={unlockLevel(a.minAbility)}
-                current={knowledge >= 100 ? levelOf(creature) : undefined}
-                favorite={favorites.includes(a.id)}
-                onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(a.id) : undefined}
-              />
-            ))}
-          </div>
+          <SkillPanel creature={creature} chosen={skills} showEquipped={showSkills ?? skills !== undefined} onEquip={onEquip} knowsLevel={knowledge >= 100} />
           {sp.passives?.map((p) => (
             <div key={p} style={{ marginTop: 6 }}>
               <b>{effectText(p, lang).name}</b>{' '}

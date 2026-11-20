@@ -19,7 +19,6 @@ export interface CombatantView {
   /** Stacks of stacking effects (poison doses, chill charges), when above 1. */
   stacks: Record<string, number>;
   abilities: string[];
-  favorites: string[];
   /** Rounds left before each ability is available again. */
   cooldowns: Record<string, number>;
   /** Total cooldown of the ability when it was last used (to draw the refill). */
@@ -47,7 +46,7 @@ export function initialView(roster: Record<string, RosterEntry>): MatchView {
     creatures[r.id] = {
       id: r.id, side: r.side, hp: r.maxHp, maxHp: r.maxHp, stamina: r.maxStamina, maxStamina: r.maxStamina,
       morale: 50, state: r.starter ? 'active' : 'bench', line: r.line, effects: [], stacks: {},
-      abilities: r.abilities ?? [], favorites: r.favorites ?? [], cooldowns: {}, cooldownMax: {},
+      abilities: r.abilities ?? [], cooldowns: {}, cooldownMax: {},
     };
   }
   return { round: 0, creatures, subsUsed: [0, 0], ended: false };

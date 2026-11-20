@@ -4,7 +4,7 @@ import type { Rng } from '../../core/rng.ts';
 import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/config/index.ts';
 import { ROLES } from '../../data/roles.ts';
 import { generateCreature } from '../creature/generate.ts';
-import { bestRole, isInjured, overallRating, roleFit } from '../creature/derived.ts';
+import { bestRole, equippedSkills, isInjured, overallRating, roleFit } from '../creature/derived.ts';
 import { generateTeamName } from '../creature/names.ts';
 import type { Creature, LineupSlot, Tactic, Team, TeamOrders } from '../model.ts';
 
@@ -72,7 +72,7 @@ export function cloneTeam(team: Team, suffix: string): Team {
   copy.id = `${copy.id}~${suffix}`;
   copy.tactic.lineup = copy.tactic.lineup.map((s) => ({ ...s, creatureId: re(s.creatureId) }));
   copy.tactic.bench = copy.tactic.bench.map(re);
-  if (copy.tactic.favorites) copy.tactic.favorites = Object.fromEntries(Object.entries(copy.tactic.favorites).map(([k, v]) => [re(k), v]));
+  if (copy.tactic.skills) copy.tactic.skills = Object.fromEntries(Object.entries(copy.tactic.skills).map(([k, v]) => [re(k), v]));
   return copy;
 }
 
@@ -97,7 +97,8 @@ export type TacticIssue =
   | { code: 'benchSize'; n: number }
   | { code: 'unknown'; id: string }
   | { code: 'duplicate'; id: string }
-  | { code: 'injured'; id: string };
+  | { code: 'injured'; id: string }
+  | { code: 'noSkill'; id: string };
 
 /**
  * Validation of a tactic against a team and the arena rules (codes, worded by the UI).
@@ -114,6 +115,8 @@ export function validateTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG, che
     const c = byId.get(id);
     if (!c) issues.push({ code: 'unknown', id });
     else if (checkInjuries && isInjured(c)) issues.push({ code: 'injured', id });
+    // Every creature that may fight needs at least one skill equipped (the basic attack counts).
+    if (c && !equippedSkills(c, t.skills?.[id], cfg).length) issues.push({ code: 'noSkill', id });
     if (used.has(id)) issues.push({ code: 'duplicate', id });
     used.add(id);
   }
@@ -122,7 +125,7 @@ export function validateTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG, che
 
 /**
  * Assistant fix for a league match: injured creatures leave the lineup/bench and are replaced
- * by the best available ones; everything else the manager chose is kept.
+ * by the best available ones, creatures without a skill get the default ones; everything else the manager chose is kept.
  */
 export function repairTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team {
   const byId = new Map(team.creatures.map((c) => [c.id, c]));
@@ -151,5 +154,10 @@ export function repairTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team
     t.bench.push(next.id);
   }
   if (t.lineup.length && !t.lineup.some((s) => s.line === 'front')) t.lineup[0]!.line = 'front';
+  // A creature left without any skill goes back to the default choice.
+  for (const id of [...t.lineup.map((s) => s.creatureId), ...t.bench]) {
+    const c = byId.get(id);
+    if (c && t.skills?.[id] && !equippedSkills(c, t.skills[id], cfg).length) delete t.skills[id];
+  }
   return { ...team, tactic: t };
 }

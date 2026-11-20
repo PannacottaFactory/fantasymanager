@@ -12,13 +12,13 @@ import { SPECIES, SPECIES_IDS } from '../../data/species.ts';
 import { makeId } from '../../core/ids.ts';
 import { ageAbilityFactor, generateCreature } from '../creature/generate.ts';
 import { generateName } from '../creature/names.ts';
-import { bestRole, getSpecies } from '../creature/derived.ts';
+import { bestRole, getSpecies, skillLevel } from '../creature/derived.ts';
 import { clubOf, spend } from '../economy/finance.ts';
 import { trainingFactor } from '../club/facilities.ts';
 import { transfer } from '../economy/market.ts';
 import { askingWage, roundTo } from '../economy/value.ts';
 import { pushMessage } from '../league/messages.ts';
-import { levelOf, maxLevelOf, unlockLevel, xpPerAbility } from './levels.ts';
+import { levelOf, maxLevelOf, xpPerAbility } from './levels.ts';
 import type { Coach, GameState, TrainingPlan } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
 
@@ -294,10 +294,10 @@ function levelUp(state: GameState, c: Creature, before: number, after: number, i
     g.freePoints = (g.freePoints ?? 0) + points;
     const list = (Object.entries(gains) as [AttributeKey, number][]).filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1]).map(([k, d]) => ({ k, d }));
     pushMessage(state, { kind: 'levelUp', creatureId: c.id, name: c.name, level: after, points: g.freePoints, gains: list });
-    for (const a of getSpecies(c).abilities) {
-      const at = unlockLevel(a.minAbility, cfg);
-      if (at > before && at <= after) pushMessage(state, { kind: 'abilityUnlocked', creatureId: c.id, name: c.name, abilityId: a.id, ability: at });
-    }
+    getSpecies(c).skills.forEach((id, i) => {
+      const at = skillLevel(i, cfg);
+      if (at > before && at <= after) pushMessage(state, { kind: 'abilityUnlocked', creatureId: c.id, name: c.name, abilityId: id, ability: at });
+    });
     return;
   }
   for (let i = 0; i < points; i++) {

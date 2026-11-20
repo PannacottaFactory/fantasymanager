@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { Rng, deriveSeed } from '../src/core/rng.ts';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
+import { SPECIES } from '../src/data/species.ts';
+import { equippedSkills, getAbilities, toggleSkill, unlockedSkills } from '../src/engine/creature/derived.ts';
+import { generateCreature } from '../src/engine/creature/generate.ts';
 import { Combat } from '../src/engine/combat/combat.ts';
 import { aiBreakDecision } from '../src/engine/combat/decisions.ts';
 import { elementMultiplier } from '../src/engine/combat/formulas.ts';
 import { simulateMatch } from '../src/engine/combat/simulate.ts';
-import { generateTeam } from '../src/engine/team/team.ts';
+import { generateTeam, repairTactic, validateTactic } from '../src/engine/team/team.ts';
 import type { MatchSetup } from '../src/engine/combat/types.ts';
 
 function setup(seed: string | number, qa: 'novice' | 'professional' | 'elite' = 'professional', qb = qa): MatchSetup {
@@ -200,49 +203,68 @@ describe('combat rules', () => {
   });
 });
 
-describe('favourite abilities (builds)', () => {
-  /** How often each side-0 creature uses a given ability over many matches. */
-  function usage(withFavorites: boolean): { fav: number; total: number } {
-    let fav = 0;
-    let total = 0;
-    for (let i = 0; i < 30; i++) {
-      const s = setup(`fav-${i}`);
-      const team = s.teams[0];
-      const favorites: Record<string, string[]> = {};
-      // Favour the creature's least natural ability: the last one it knows.
-      const chosen = new Map<string, string>();
-      for (const c of team.creatures) {
-        const combat = new Combat({ seed: 0, teams: [team, s.teams[1]] });
-        const ab = combat.getRoster()[c.id]?.abilities ?? [];
-        if (ab.length > 1) chosen.set(c.id, ab[ab.length - 1]!);
-      }
-      if (withFavorites) for (const [id, a] of chosen) favorites[id] = [a];
-      const r = simulateMatch({ ...s, teams: [{ ...team, tactic: { ...team.tactic, favorites } }, s.teams[1]] });
-      for (const e of r.events) {
-        if (e.type !== 'spend' || !e.ability || !chosen.has(e.actor)) continue;
-        total++;
-        if (chosen.get(e.actor) === e.ability) fav++;
-      }
-    }
-    return { fav, total };
-  }
-
-  it('creatures use their favourite abilities noticeably more', () => {
-    const base = usage(false);
-    const built = usage(true);
-    expect(built.fav / built.total).toBeGreaterThan((base.fav / base.total) * 1.2);
+describe('equipped skills', () => {
+  it('a creature fights with exactly its equipped skills (the basic attack only when chosen)', () => {
+    const s = setup('skills');
+    const team = s.teams[0];
+    const c = team.creatures.find((x) => unlockedSkills(x).length >= 3)!;
+    expect(c).toBeDefined();
+    const open = unlockedSkills(c);
+    const basic = SPECIES[c.speciesId]!.basic;
+    const pick = [open[0]!, open[1]!];
+    const kit = (skills: string[] | undefined) =>
+      new Combat({ ...s, teams: [{ ...team, tactic: { ...team.tactic, skills: skills ? { [c.id]: skills } : {} } }, s.teams[1]] }).getRoster()[c.id]!.abilities;
+    expect(kit([...pick, 'not-an-ability'])).toEqual(pick);
+    expect(kit([basic[0]!, open[2]!])).toEqual([basic[0], open[2]]);
+    // Not set up yet: its basic attack and its latest unlocked skill.
+    expect(kit(undefined)).toEqual([basic[0], open[open.length - 1]]);
   });
 
-  it('favourites are exposed in the roster and capped', () => {
-    const s = setup('fav-cap');
+  it('a skill that is not equipped is never used', () => {
+    for (let i = 0; i < 10; i++) {
+      const s = setup(`skills-${i}`);
+      const r = simulateMatch(s);
+      const roster = new Combat(s).getRoster();
+      for (const e of r.events) if (e.type === 'spend' && e.ability) expect(roster[e.actor]!.abilities).toContain(e.ability);
+    }
+  });
+
+  it('a creature without its basic attack still fights (it rests when nothing is ready)', () => {
+    const s = setup('no-basic');
     const team = s.teams[0];
-    const c = team.creatures[0]!;
-    const all = new Combat(s).getRoster()[c.id]!.abilities;
-    const favorites = { [c.id]: [...all, 'not-an-ability'] };
-    const combat = new Combat({ ...s, teams: [{ ...team, tactic: { ...team.tactic, favorites } }, s.teams[1]] });
-    const fav = combat.getRoster()[c.id]!.favorites;
-    expect(fav.length).toBeLessThanOrEqual(DEFAULT_CONFIG.combat.favorites.max);
-    expect(fav.every((a) => all.includes(a))).toBe(true);
+    const skills = Object.fromEntries(team.creatures.map((c) => [c.id, unlockedSkills(c).slice(-2)]));
+    const r = simulateMatch({ ...s, teams: [{ ...team, tactic: { ...team.tactic, skills } }, s.teams[1]] });
+    expect(r.outcome.rounds).toBeGreaterThan(0);
+  });
+
+  it('clicking toggles a skill: on, off, replaces the oldest when full; locked ones do nothing', () => {
+    const c = generateCreature(new Rng(9), { speciesId: 'orc', potential: 180 });
+    c.ability = 180;
+    const [a, b, d] = SPECIES.orc!.skills;
+    const basic = SPECIES.orc!.basic[0]!;
+    expect(toggleSkill(c, [a!, b!], d!)).toEqual([b, d]);
+    expect(toggleSkill(c, [a!, b!], a!)).toEqual([b]);
+    expect(toggleSkill(c, [b!], b!)).toEqual([]);
+    expect(toggleSkill(c, [], basic)).toEqual([basic]);
+    // An empty choice stays empty (the match is refused) …
+    expect(equippedSkills(c, [])).toEqual([]);
+    const young = generateCreature(new Rng(9), { speciesId: 'orc', potential: 45 });
+    young.ability = 30; // level 1: one skill
+    expect(unlockedSkills(young)).toEqual([a]);
+    expect(toggleSkill(young, [basic], SPECIES.orc!.skills[4]!)).toEqual([basic]);
+    expect(getAbilities(young).map((x) => x.id)).toEqual([basic, a]);
+    // … but a choice whose skills all got locked falls back on the default.
+    expect(equippedSkills(young, [d!])).toEqual([basic, a]);
+  });
+
+  it('a creature that may fight without any skill blocks the match; the assistant gives it the default', () => {
+    const s = setup('no-skill');
+    const team = s.teams[0];
+    const id = team.tactic.lineup[0]!.creatureId;
+    const bad = { ...team, tactic: { ...team.tactic, skills: { [id]: [] } } };
+    expect(validateTactic(bad)).toContainEqual({ code: 'noSkill', id });
+    const fixed = repairTactic(bad);
+    expect(validateTactic(fixed).some((i) => i.code === 'noSkill')).toBe(false);
   });
 
   it('spend events keep the stamina gauge consistent', () => {

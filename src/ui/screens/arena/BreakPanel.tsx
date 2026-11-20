@@ -341,7 +341,6 @@ function BenchCard({
         {c.abilities.slice(0, 5).map((a) => (
           <span key={a} title={abilityText(a, lang).description}>
             {ABILITIES[a] && <KindIcon kind={ABILITIES[a]!.kind} />} {abilityText(a, lang).name}
-            {c.favorites.includes(a) ? ' ★' : ''}
           </span>
         ))}
       </div>

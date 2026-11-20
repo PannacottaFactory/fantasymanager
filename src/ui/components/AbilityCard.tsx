@@ -48,21 +48,40 @@ interface Props {
   /** Aptitude at which a locked ability unlocks, and the creature's current aptitude (own creatures only). */
   unlockAt?: number;
   current?: number;
-  favorite?: boolean;
-  /** When set, a star button toggles the favourite. */
-  onToggleFavorite?: () => void;
+  /** Small label before the name (« Niv. 4 », « Attaque de base »). */
+  badge?: string;
+  badgeTitle?: string;
+  /** Equipped skill (highlighted). */
+  equipped?: boolean;
+  /** When set, the whole card is a button that equips the skill. */
+  onEquip?: () => void;
+  equipTitle?: string;
 }
 
 /** Full description of an ability (creature sheet). */
-export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, unlockAt, current }: Props) {
+export function AbilityCard({ id, elements, locked, unlockAt, current, badge, badgeTitle, equipped, onEquip, equipTitle }: Props) {
   const { t, lang } = useT();
   const def = ABILITIES[id]!;
   const txt = abilityText(id, lang);
   const el = def.element === 'innate' ? elements[0] : def.element;
   const color = abilityColor(id, elements);
   return (
-    <div className={`ability-card ${locked ? 'locked' : ''} ${favorite ? 'fav' : ''}`} style={{ ['--c' as string]: color }}>
+    <div
+      className={`ability-card ${locked ? 'locked' : ''} ${equipped ? 'equipped' : ''} ${onEquip ? 'pickable' : ''}`}
+      style={{ ['--c' as string]: color }}
+      role={onEquip ? 'button' : undefined}
+      tabIndex={onEquip ? 0 : undefined}
+      title={onEquip ? equipTitle : undefined}
+      onClick={onEquip}
+      onKeyDown={onEquip ? (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onEquip()) : undefined}
+      aria-pressed={onEquip || equipped ? Boolean(equipped) : undefined}
+    >
       <div className="ability-head">
+        {badge && (
+          <span className="ab-badge" title={badgeTitle}>
+            {badge}
+          </span>
+        )}
         <span className="glyph" title={abilityKindName(def.kind, lang)}>
           <KindIcon kind={def.kind} />
         </span>
@@ -72,18 +91,8 @@ export function AbilityCard({ id, elements, locked, favorite, onToggleFavorite, 
             {unlockAt ? (current !== undefined ? t('cr.lockedAtNow', { n: unlockAt, c: current }) : t('cr.lockedAt', { n: unlockAt })) : t('cr.locked')}
           </span>
         ) : (
-          onToggleFavorite && (
-            <button
-              className={`star ${favorite ? 'on' : ''}`}
-              onClick={onToggleFavorite}
-              title={favorite ? t('fav.remove') : t('fav.add')}
-              aria-pressed={favorite}
-            >
-              {favorite ? '★' : '☆'}
-            </button>
-          )
+          equipped && <span className="ab-equipped">{t('sk.equipped')}</span>
         )}
-        {!onToggleFavorite && favorite && <span className="star on">★</span>}
       </div>
       <div className="ability-stats">
         <b>{abilityKindName(def.kind, lang)}</b>

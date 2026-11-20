@@ -30,8 +30,8 @@ Saves use IndexedDB (`idb`, 3 slots, `src/ui/store/saves.ts`); heavy sims will m
 | `npm run sim:match -- --seed 42 --a professional --b regional` | one match in the terminal with commentary + report |
 | `npm run sim:batch -- --matches 1000 --a elite --b novice` | balancing stats over many headless matches |
 | `npm run sim:season -- --seed 42 --seasons 3` | league seasons headless: table, wages, treasuries, transfers |
-| `npm run sim:abilities -- --matches 1000 [--only a,b] [--part 1/4]` | what each ability is worth: uses by the AI and win rate added (same matches with / without it); flags rarely used / costly ones |
-| `npm run sim:variety -- --matches 150 [--abilities] [--only troll,orc]` | variety of play: per species (every ability unlocked), share of its actions taken by its most used one, uses per match and pick rate when ready of each ability; `--abilities` lists the cooldown abilities least picked when ready |
+| `npm run sim:abilities -- --matches 1000 [--only a,b] [--part 1/4]` | what each skill (basic attack included) is worth per species: uses by the AI and win rate added as the second equipped one (same matches, partner alone in the other arm), rank among the species' six; flags rarely used / costly ones (`--only` = species or skill ids) |
+| `npm run sim:variety -- --matches 150 [--abilities] [--only troll,orc]` | variety of play: per species (every skill unlocked, each pair equipped in turn), share of its actions taken by its most used one, uses per match and pick rate when ready of each ability; `--abilities` lists the cooldown abilities least picked when ready |
 | `npm run sim:archetypes -- --matches 200 --detail` | play styles head to head (poison, frost, curses…) + what each style did |
 | `npm run sim:ai -- --matches 300 --seasons 6` | AI management vs plain, temperaments, a season per difficulty (`--season-only`) |
 | `npm run sim:board -- --worlds 10 --seasons 2` | board, supporters & star requests over seasons on autopilot: weeks per mood / tier, ultimatums, tickets, requests per kind, per difficulty |
@@ -148,8 +148,23 @@ tests/       Vitest
 - **Live match visuals**: `ui/screens/arena/matchFx.ts` turns events into card reactions (attacker glow/lunge,
   target shake + floating number, ghost HP bar; a floating number lives `FLOAT_MS` 1.9 s and stays on its card while later blows land elsewhere: `keepRecent` in `LiveMatch`); hovering a commentary line highlights actor & target
   (`CommentaryLine.actor/target`).
-- **Builds**: `Tactic.favorites[creatureId]` = one favourite ability (`cfg.combat.favorites.max` = 1); the combat AI multiplies their score
-  (`cfg.combat.favorites`, scaled by discipline). Chosen with ★ in the creature sheet (Tactics « Build » column).
+- **Skills** (Nov 2026, replaced the ★ favourite moves): every species = `basic` (1 attack, cooldown 0, known from the
+  start) + `skills` (exactly 5, in unlock order, levels `cfg.combat.skills.unlockLevels` = 1 / 2 / 4 / 6 / 8). The pool
+  (`skillPool`) = basic + unlocked skills; the manager equips up to `cfg.combat.skills.equipped` (2) of it, **the basic
+  attack counts as one**: `Tactic.skills[creatureId]`. Undefined = not set up = `defaultSkills` (basic + latest unlocked
+  skill); an explicit choice is kept as is (`equippedSkills`, invalid / locked ids dropped; all locked by ageing → the
+  default); an empty one stays empty and blocks the match (`validateTactic` issue `noSkill` for lineup and bench,
+  `repairTactic` gives the default back). `toggleSkill` = a click (equipped → off, otherwise on, replacing the one
+  equipped longest ago when full), `setSkill(team, id, ability)` in `engine/team/edit.ts`. `getAbilities(c, chosen)` =
+  the equipped ones only = the combatant's whole kit; the combat AI picks among them (rests when nothing is ready; no
+  favourite bonus any more). AI stables with an identity equip their style's skills first (`styleSkills`, difficulty
+  flag `styleSkills`), the others the default. UI `components/SkillPanel.tsx` (count / « Aucune compétence » warning,
+  basic attack then the five with « Niv. n », locked / « Équipée », click to toggle) in the creature sheet and the
+  Tactics « Compétences » column picker (« Aucune compétence » chip). 14 shared skills were added for the kits (brace,
+  mob rush, finishing blow, backstab, hunter's mark, arrow volley, flurry, pack howl, web spray, dissolve, thorn volley,
+  cauterize, tempest, snare); `oni-challenge` (« Défi », taunt) is shared by most tanks; sling and tide kick were
+  dropped. `sim:abilities` measures each (species, kit entry, basic included): equipped with a partner vs the partner
+  alone, and its rank among the species' six.
 - **Stamina gauges**: abilities cost stamina (no mana). A `spend` event (cost, stamina left, cooldown) precedes each
   ability/guard so the live view drains gauges and refills cooldown chips; the commentator ignores it.
 - **Visual effects** (display only): setting `effects` (full / reduced, ✨ button, default = system reduced-motion,
@@ -240,8 +255,8 @@ tests/       Vitest
 - **Levels & XP** (`engine/progression/levels.ts`, `cfg.training.levels / xp`): the player sees a level 1–10 and
   0–100 XP; underneath, levels are steps of the hidden aptitude (`ability`, 1–200; `levels.steps` = [28, 40, 50, 60,
   72, 86, 102, 120, 142, 168]: short at the bottom so modest creatures still climb, long at the top), which still drives the
-  attributes, AI and prices. Max level = level of the potential. Abilities unlock by level (`unlockLevel(minAbility)`,
-  `isUnlocked`, used by `getAbilities`). XP per week = training share of the former gain (none while resting /
+  attributes, AI and prices. Max level = level of the potential. Skills unlock by level (`skillLevel(i)`,
+  `unlockedSkills`, see « Skills »). XP per week = training share of the former gain (none while resting /
   injured) + match XP (`matchXp`: played, starter, rating above 5, win — no KO bonus so healers and tanks are not penalised; stored in `growth.matchXp` by the match
   effects), × life stage, capped by the potential. XP feeds the attribute pool by program, **held until the level-up** (RPG-like: all the points land at once, listed in the `levelUp` message `gains`; the potential IS the max level: reaching it jumps the aptitude to the potential, the last level-up gives everything left; new creatures are settled by `alignPotential` (trained up to the potential, or a full level still to gain — never at the max level below it); ageing losses at once — `shiftAbility`); the sheet shows `XpTrack` (level → next, thin blue XP bar `--xp-color`, how it works in the tooltip); each level gained gives
   the player a free point (`growth.freePoints`, `spendFreePoint`, + buttons in the sheet; AI places it by program)

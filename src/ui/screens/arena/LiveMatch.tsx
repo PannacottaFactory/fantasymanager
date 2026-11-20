@@ -542,7 +542,7 @@ function LiveSheet({
       creature={creature}
       onClose={onClose}
       showHidden={false}
-      favorites={roster[id]?.favorites ?? []}
+      skills={roster[id]?.abilities ?? []}
       extra={
         <div className="live-sheet">
           <Bar value={c.hp} max={c.maxHp} color={hpColor(c.hp / c.maxHp)} title={t('bar.health', { v: c.hp, max: c.maxHp })} />

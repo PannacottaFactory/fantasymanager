@@ -152,8 +152,8 @@ export interface Tactic {
   lineup: LineupSlot[];
   bench: string[];
   orders: TeamOrders;
-  /** Favourite abilities per creature (light "builds"): the AI leans towards them in combat. */
-  favorites?: Record<string, string[]>;
+  /** Skills equipped per creature (ids among its unlocked skills; missing / short = filled with the latest unlocked). */
+  skills?: Record<string, string[]>;
   /** AI stables: their manager's break behaviour (the player decides alone). */
   ai?: AiManagerStyle;
 }

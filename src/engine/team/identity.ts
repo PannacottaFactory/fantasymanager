@@ -4,11 +4,10 @@
  */
 import { Rng } from '../../core/rng.ts';
 import { MANAGER_NAMES } from '../../data/names.ts';
-import { ABILITIES } from '../../data/abilities.ts';
 import { DEFAULT_CONFIG, type DifficultyId, type GameConfig, type ManagerId, type PlayStyleId } from '../../data/config/index.ts';
 import { MANAGER_IDS, PLAY_STYLE_IDS, STYLE_FOCUS } from '../../data/config/identity.ts';
 import type { TargetPriority } from '../../data/schema.ts';
-import { getAbilities } from '../creature/derived.ts';
+import { defaultSkills, skillPool } from '../creature/derived.ts';
 import { counterApproach } from '../combat/formulas.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
 import { managerTalk, preMatchSituation } from '../combat/talks.ts';
@@ -84,16 +83,15 @@ export function counterTarget(opponents: readonly { role: string; ability: numbe
   return 'weakest';
 }
 
-/** Up to `max` favourite abilities among the style's ones that the creature knows. */
-export function styleFavorites(c: Creature, style: PlayStyleId, max: number, cfg: GameConfig = DEFAULT_CONFIG): string[] {
+/** Skills equipped by a stable built around a style: the style's skills it has unlocked first (latest first), then the default ones. */
+export function styleSkills(c: Creature, style: PlayStyleId, cfg: GameConfig = DEFAULT_CONFIG): string[] {
   const wanted = cfg.identity.styles[style].abilities;
-  return getAbilities(c)
-    .map((a) => a.id)
-    .filter((id) => wanted.includes(id) && ABILITIES[id])
-    .slice(0, max);
+  const own = skillPool(c, cfg).filter((id) => wanted.includes(id)).reverse();
+  const fill = defaultSkills(c, cfg).filter((id) => !own.includes(id));
+  return [...own, ...fill].slice(0, cfg.combat.skills.equipped);
 }
 
-/** Applies the identity to a freshly built AI tactic: orders, favourites, break behaviour, reading the opponent. */
+/** Applies the identity to a freshly built AI tactic: orders, equipped skills, break behaviour, reading the opponent. */
 export function applyIdentity(team: Team, tactic: Tactic, difficulty: DifficultyId, opponent?: Team, cfg: GameConfig = DEFAULT_CONFIG): Tactic {
   const d = cfg.identity.difficulties[difficulty];
   const orders = identityOrders(team, difficulty, cfg);
@@ -104,16 +102,12 @@ export function applyIdentity(team: Team, tactic: Tactic, difficulty: Difficulty
     // Pick the approach that has the upper hand on the opponent's.
     orders.aggression = counterApproach(opponent.tactic.orders.aggression, cfg);
   }
-  const favorites: Record<string, string[]> = {};
-  // Eclectic stables don't bother with builds.
-  if (d.favorites && team.identity && (team.identity.focus ?? 0.5) >= 0.3) {
-    for (const s of tactic.lineup) {
-      const c = team.creatures.find((x) => x.id === s.creatureId);
-      const fav = c ? styleFavorites(c, team.identity.style, cfg.combat.favorites.max, cfg) : [];
-      if (fav.length) favorites[s.creatureId] = fav;
-    }
+  const skills: Record<string, string[]> = {};
+  // Eclectic stables don't bother with builds (they take the latest skills).
+  if (d.styleSkills && team.identity && (team.identity.focus ?? 0.5) >= 0.3) {
+    for (const c of team.creatures) skills[c.id] = styleSkills(c, team.identity.style, cfg);
   }
   const ai = managerStyle(team, difficulty, orders, cfg);
   orders.talk = managerTalk(ai, preMatchSituation({ ...team, tactic }, opponent));
-  return { ...tactic, orders, favorites, ai: { ...ai, base: orders } };
+  return { ...tactic, orders, skills, ai: { ...ai, base: orders } };
 }

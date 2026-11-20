@@ -25,8 +25,8 @@ export type FactorKey =
 export type TipKey =
   | 'rest' | 'roles' | 'benchBetter' | 'frontLine' | 'healer' | 'morale' | 'counterApproach' | 'elements' | 'stopStar'
   | 'replaceWeak' | 'accuracy' | 'cleanseDot' | 'watchLive' | 'useSubs' | 'antiControl' | 'thornsRanged' | 'focus' | 'tank'
-  | 'targetHealers' | 'cautious' | 'calm' | 'discipline' | 'improve' | 'keepGoing' | 'favourites' | 'finishKo'
-  | 'starFavourite' | 'reachBack' | 'subsEarly' | 'closeLoss'
+  | 'targetHealers' | 'cautious' | 'calm' | 'discipline' | 'improve' | 'keepGoing' | 'finishKo'
+  | 'reachBack' | 'subsEarly' | 'closeLoss'
   // running the stable
   | 'deepenSquad' | 'fillBench' | 'injuryCover' | 'spendPoints'
   // next match (see advice.ts)
@@ -159,7 +159,6 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
       add('approachLost', 'bad', 2, { ours: a, theirs: b, pct: bonus });
       tip('counterApproach', 4, 'tactics', { theirs: b, counter: counterTo(b, cfg) });
     }
-    if (!Object.keys(team.tactic.favorites ?? {}).length && won === false) tip('favourites', 1, 'tactics');
 
     // Running the stable (after a defeat): squad depth, bench, injuries, points left unplaced.
     if (!won && opts.stable) {
@@ -202,7 +201,6 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
   const best = ours.slice().sort((x, y) => y.rating - x.rating)[0];
   if (best && best.rating >= 7.5) {
     add('ourStar', 'good', 3 + (best.rating - 7) * 2, { name: name(best.id), rating: best.rating.toFixed(1), dmg: best.damageDealt, heal: best.healing });
-    if (setup && !setup.teams[side].tactic.favorites?.[best.id]) tip('starFavourite', 1.5, 'tactics', { name: name(best.id) });
   }
   const weak = ours.filter((c) => c.roundsPlayed >= 5 && c.rating <= 5).sort((x, y) => x.rating - y.rating)[0];
   if (weak) {

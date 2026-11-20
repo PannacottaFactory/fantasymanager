@@ -203,11 +203,11 @@ export const COMBAT_CONFIG = {
    * one creature ≈ −11 %, a lone tank ≈ −15 %, two ≈ −18 %, three ≈ −24 %, four ≈ −27 % — never total.
    */
   cover: { perPoint: 0.3, tankWeight: 1.5, max: 0.36 },
-  /** Favourite abilities chosen by the manager (per creature). */
-  favorites: {
-    max: 1,
-    /** Score multiplier = 1 + bonus × (0.4 + 0.6 × discipline/20): disciplined creatures follow the build more. */
-    bonus: 0.9,
+  /** Skills: five per species, unlocked by level; the manager equips a few of them (the AI then picks in the match). */
+  skills: {
+    equipped: 2,
+    /** Level at which each of the five skills unlocks (in the species' order). */
+    unlockLevels: [1, 2, 4, 6, 8] as number[],
   },
   ai: {
     /** Decision noise = (1 − tactics/20) × this. Low tactics → erratic choices. */

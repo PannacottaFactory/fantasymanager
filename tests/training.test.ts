@@ -199,8 +199,8 @@ describe('visual progression', () => {
 
 describe('levels and experience', () => {
   it('maps aptitude to levels 1–10 with 100 XP per level, and abilities unlock by level', async () => {
-    const { levelOfAbility, xpInLevel, unlockLevel, isUnlocked, matchXp } = await import('../src/engine/progression/levels.ts');
-    const { getAbilities } = await import('../src/engine/creature/derived.ts');
+    const { levelOfAbility, levelOf, xpInLevel, matchXp } = await import('../src/engine/progression/levels.ts');
+    const { getAbilities, skillLevel, unlockedSkills } = await import('../src/engine/creature/derived.ts');
     const { generateCreature } = await import('../src/engine/creature/generate.ts');
     const { Rng } = await import('../src/core/rng.ts');
     expect(levelOfAbility(1)).toBe(1);
@@ -214,8 +214,10 @@ describe('levels and experience', () => {
     const xp = xpInLevel(c);
     expect(xp).toBeGreaterThanOrEqual(0);
     expect(xp).toBeLessThan(100);
-    expect(unlockLevel(90)).toBe(6);
-    expect(getAbilities(c).length).toBe(c.speciesId ? (await import('../src/data/species.ts')).SPECIES[c.speciesId]!.abilities.filter((a) => isUnlocked(c, a.minAbility)).length : 0);
+    expect([0, 1, 2, 3, 4].map((i) => skillLevel(i))).toEqual([1, 2, 4, 6, 8]);
+    const sp = (await import('../src/data/species.ts')).SPECIES[c.speciesId]!;
+    expect(unlockedSkills(c)).toEqual(sp.skills.filter((_, i) => skillLevel(i) <= levelOf(c)));
+    expect(getAbilities(c).map((a) => a.id)).toEqual([sp.basic[0], unlockedSkills(c).at(-1)]);
     expect(matchXp({ played: true, starter: true, rating: 8, kos: 0, won: true })).toBeGreaterThan(matchXp({ played: true, starter: false, rating: 5, kos: 0, won: false }));
     expect(matchXp({ played: false, starter: false, rating: 9, kos: 3, won: true })).toBe(0);
   });

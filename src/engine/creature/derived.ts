@@ -4,9 +4,9 @@ import { ABILITIES } from '../../data/abilities.ts';
 import { ROLES, ROLE_IDS } from '../../data/roles.ts';
 import { SPECIES } from '../../data/species.ts';
 import type { AbilityDef, RoleId, SpeciesDef } from '../../data/schema.ts';
-import type { GameConfig } from '../../data/config/index.ts';
+import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import type { Creature } from '../model.ts';
-import { isUnlocked } from '../progression/levels.ts';
+import { levelOf } from '../progression/levels.ts';
 
 export function getSpecies(creature: Creature): SpeciesDef {
   const s = SPECIES[creature.speciesId];
@@ -14,14 +14,67 @@ export function getSpecies(creature: Creature): SpeciesDef {
   return s;
 }
 
-export function getAbilities(creature: Creature): AbilityDef[] {
-  return getSpecies(creature)
-    .abilities.filter((a) => isUnlocked(creature, a.minAbility))
-    .map((a) => {
-      const def = ABILITIES[a.id];
-      if (!def) throw new Error(`Unknown ability ${a.id}`);
-      return def;
-    });
+function abilityDef(id: string): AbilityDef {
+  const def = ABILITIES[id];
+  if (!def) throw new Error(`Unknown ability ${id}`);
+  return def;
+}
+
+/** Level at which the species' i-th skill unlocks. */
+export const skillLevel = (index: number, cfg: GameConfig = DEFAULT_CONFIG) => {
+  const lv = cfg.combat.skills.unlockLevels;
+  return lv[Math.min(index, lv.length - 1)] ?? 1;
+};
+
+/** Level at which a skill of this species unlocks (undefined when the species doesn't have it). */
+export function skillUnlockLevel(speciesId: string, abilityId: string, cfg: GameConfig = DEFAULT_CONFIG): number | undefined {
+  const i = SPECIES[speciesId]?.skills.indexOf(abilityId) ?? -1;
+  return i < 0 ? undefined : skillLevel(i, cfg);
+}
+
+/** Skills the creature has unlocked, in unlock order. */
+export function unlockedSkills(creature: Creature, cfg: GameConfig = DEFAULT_CONFIG): string[] {
+  const lv = levelOf(creature, cfg);
+  return getSpecies(creature).skills.filter((_, i) => skillLevel(i, cfg) <= lv);
+}
+
+/** What the manager may equip: the basic attack(s), then the unlocked skills in unlock order. */
+export function skillPool(creature: Creature, cfg: GameConfig = DEFAULT_CONFIG): string[] {
+  return [...getSpecies(creature).basic, ...unlockedSkills(creature, cfg)];
+}
+
+/** Choice of a creature nobody has set up yet: its basic attack and its latest unlocked skill. */
+export function defaultSkills(creature: Creature, cfg: GameConfig = DEFAULT_CONFIG): string[] {
+  const open = unlockedSkills(creature, cfg);
+  return [...getSpecies(creature).basic.slice(0, 1), ...open.slice(-1)].slice(0, cfg.combat.skills.equipped);
+}
+
+/**
+ * What it takes into a match: the manager's choice among its pool (at most `equipped`, in the order chosen); no choice
+ * yet = `defaultSkills`. An empty choice stays empty (the match is then refused, `validateTactic`), but a choice whose
+ * skills all became locked (ageing) falls back on the default.
+ */
+export function equippedSkills(creature: Creature, chosen?: readonly string[], cfg: GameConfig = DEFAULT_CONFIG): string[] {
+  if (!chosen) return defaultSkills(creature, cfg);
+  const pool = skillPool(creature, cfg);
+  const out = [...new Set(chosen)].filter((id) => pool.includes(id)).slice(0, cfg.combat.skills.equipped);
+  return out.length || !chosen.length ? out : defaultSkills(creature, cfg);
+}
+
+/**
+ * Choice after clicking a skill: an equipped one is taken off; another one is added, in place of the one equipped
+ * longest ago when the slots are full. Locked skills change nothing.
+ */
+export function toggleSkill(creature: Creature, chosen: readonly string[] | undefined, abilityId: string, cfg: GameConfig = DEFAULT_CONFIG): string[] {
+  const current = equippedSkills(creature, chosen, cfg);
+  if (current.includes(abilityId)) return current.filter((id) => id !== abilityId);
+  if (!skillPool(creature, cfg).includes(abilityId)) return current;
+  return [...current, abilityId].slice(-cfg.combat.skills.equipped);
+}
+
+/** What it can use in a match: its equipped skills (the basic attack counts as one when chosen). */
+export function getAbilities(creature: Creature, chosen?: readonly string[], cfg: GameConfig = DEFAULT_CONFIG): AbilityDef[] {
+  return equippedSkills(creature, chosen, cfg).map(abilityDef);
 }
 
 export function maxHp(creature: Creature, cfg: GameConfig): number {

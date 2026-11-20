@@ -14,7 +14,7 @@ import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 describe('static data integrity', () => {
   it('every species references existing abilities, passives, cultures and traits', () => {
     for (const s of Object.values(SPECIES)) {
-      for (const a of s.abilities) expect(ABILITIES[a.id], `${s.id}:${a.id}`).toBeDefined();
+      for (const a of [...s.basic, ...s.skills]) expect(ABILITIES[a], `${s.id}:${a}`).toBeDefined();
       for (const p of s.passives ?? []) expect(EFFECTS[p], p).toBeDefined();
       expect(NAME_CULTURES[s.nameCulture], s.nameCulture).toBeDefined();
       for (const t of Object.keys(s.traitWeights ?? {})) expect(TRAITS[t], t).toBeDefined();
@@ -24,7 +24,10 @@ describe('static data integrity', () => {
         expect(lo).toBeGreaterThanOrEqual(1);
         expect(hi).toBeLessThanOrEqual(20);
       }
-      expect(s.abilities.some((a) => !a.minAbility), `${s.id} needs a basic ability`).toBe(true);
+      expect(s.basic.length, `${s.id} needs a basic attack`).toBeGreaterThan(0);
+      for (const b of s.basic) expect(ABILITIES[b]!.cooldown, `${s.id}: basic ${b}`).toBe(0);
+      expect(s.skills.length, `${s.id} has five skills`).toBe(5);
+      expect(new Set([...s.basic, ...s.skills]).size, `${s.id}: no ability twice`).toBe(s.basic.length + 5);
     }
   });
 

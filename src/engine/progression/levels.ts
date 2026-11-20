@@ -56,10 +56,6 @@ export const totalXpOfAbility = (ability: number, cfg: GameConfig = DEFAULT_CONF
 /** Match XP per aptitude point (conversion used by the weekly training). */
 export const xpPerAbility = (cfg: GameConfig = DEFAULT_CONFIG) => cfg.training.levels.xpPerAbility;
 
-/** Level at which an ability (declared with an aptitude threshold) unlocks. */
-export const unlockLevel = (minAbility: number | undefined, cfg: GameConfig = DEFAULT_CONFIG) => (minAbility ? levelOfAbility(minAbility, cfg) : 1);
-
-export const isUnlocked = (c: Creature, minAbility: number | undefined, cfg: GameConfig = DEFAULT_CONFIG) => levelOf(c, cfg) >= unlockLevel(minAbility, cfg);
 
 /** XP a creature earns from one match (before life stage and the potential ceiling). */
 export function matchXp(p: { played: boolean; starter: boolean; rating: number; kos: number; won: boolean }, cfg: GameConfig = DEFAULT_CONFIG): number {

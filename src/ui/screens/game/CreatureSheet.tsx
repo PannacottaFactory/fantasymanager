@@ -16,7 +16,7 @@ import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts
 import { askingWage, creatureValue } from '../../../engine/economy/value.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature, Team } from '../../../engine/model.ts';
-import { toggleFavorite } from '../../../engine/team/edit.ts';
+import { setSkill } from '../../../engine/team/edit.ts';
 import { Knowledge, Gold, Money } from '../../components/common.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -272,7 +272,7 @@ function Sheet({ id }: { id: string }) {
   const { creature, team } = loc;
   const own = isPlayerTeam(game, team);
   const k = knowledgeOf(game, id);
-  const favorites = own ? (team!.tactic.favorites?.[id] ?? []) : [];
+  const skills = own ? team!.tactic.skills?.[id] : undefined;
 
   const extra = (
     <div className="stack" style={{ gap: 8 }}>
@@ -312,8 +312,9 @@ function Sheet({ id }: { id: string }) {
       knowledge={k}
       deltas={own ? seasonDeltas(creature) : undefined}
       onSpendPoint={own ? (k) => update((g) => spendFreePoint(g, id, k)) : undefined}
-      favorites={favorites}
-      onToggleFavorite={own ? (a) => setPlayerTeam(toggleFavorite(team!, id, a)) : undefined}
+      skills={skills}
+      showSkills={own}
+      onEquip={own ? (a) => setPlayerTeam(setSkill(team!, id, a)) : undefined}
       onRename={own ? (name) => update((g) => renameCreature(g, id, name)) : undefined}
       extra={own ? undefined : extra}
       footer={footer}

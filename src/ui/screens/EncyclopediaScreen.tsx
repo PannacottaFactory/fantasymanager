@@ -25,7 +25,7 @@ import { RoleIcon, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
 import { durationLabel, effectDuration, KindIcon } from '../components/AbilityCard.tsx';
-import { unlockLevel } from '../../engine/progression/levels.ts';
+import { skillLevel, skillUnlockLevel } from '../../engine/creature/derived.ts';
 import { coverReduction } from '../../engine/combat/formulas.ts';
 import { useGame } from '../store/gameStore.ts';
 import { BestiaryView } from './BestiaryView.tsx';
@@ -441,7 +441,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
       ) : null}
       <h4>{e('sp.abilities')}</h4>
       <ul className="enc-lines">
-        {sp.abilities.map((a) => {
+        {[...sp.basic.map((id) => ({ id, lv: 0 })), ...sp.skills.map((id, i) => ({ id, lv: skillLevel(i, cfg) }))].map((a) => {
           const def = ABILITIES[a.id]!;
           return (
             <li key={a.id}>
@@ -449,7 +449,7 @@ export function SpeciesEntry({ id, go }: { id: string; go: (l: Link) => void }) 
               <A to={{ tab: 'abilities', id: a.id }} go={go}>
                 {abilityText(a.id, lang).name}
               </A>{' '}
-              <span className="faint">— {a.minAbility && unlockLevel(a.minAbility) > 1 ? e('sp.unlock', { n: unlockLevel(a.minAbility) }) : e('sp.always')}</span>
+              <span className="faint">— {a.lv === 0 ? e('sp.basic') : a.lv > 1 ? e('sp.unlock', { n: a.lv }) : e('sp.always')}</span>
             </li>
           );
         })}
@@ -537,8 +537,10 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
   if (a.critMod) special.push(e('spec.crit', { v: pct(a.critMod, false) }));
   if (a.effects?.some((x) => !EFFECTS[x.effect]?.beneficial && x.on === 'target')) special.push(e('spec.resist'));
   const learners = SPECIES_IDS.flatMap((sid) => {
-    const ref = SPECIES[sid]!.abilities.find((x) => x.id === id);
-    return ref ? [{ sid, min: ref.minAbility }] : [];
+    const sp = SPECIES[sid]!;
+    if (sp.basic.includes(id)) return [{ sid, lv: 0 }];
+    const lv = skillUnlockLevel(sid, id, cfg);
+    return lv !== undefined ? [{ sid, lv }] : [];
   });
   return (
     <div>
@@ -593,7 +595,7 @@ export function AbilityEntry({ id, go }: { id: string; go: (l: Link) => void }) 
             <A to={{ tab: 'species', id: l.sid }} go={go}>
               {speciesText(l.sid, lang).name}
             </A>{' '}
-            <span className="faint">— {l.min && unlockLevel(l.min) > 1 ? e('sp.unlock', { n: unlockLevel(l.min) }) : e('sp.always')}</span>
+            <span className="faint">— {l.lv === 0 ? e('sp.basic') : l.lv > 1 ? e('sp.unlock', { n: l.lv }) : e('sp.always')}</span>
           </>
         ))}
       />
@@ -934,7 +936,7 @@ function attributeVars(id: AttributeKey, pct: (v: number, signed?: boolean) => s
     case 'tactics':
       return { noise: p(c.ai.noiseMax), inst: 14 };
     case 'discipline':
-      return { d5: disobey(5), d10: disobey(10), d15: disobey(15), fav: mult(1 + c.favorites.bonus), cost: p(c.stamina.disciplinePerPoint) };
+      return { d5: disobey(5), d10: disobey(10), d15: disobey(15), cost: p(c.stamina.disciplinePerPoint) };
     case 'anticipation':
       return { init: num(c.initiative.perAnticipation), p: p(hit * 0.4), g: p(c.guard.perAnticipation) };
     case 'determination':
@@ -1063,7 +1065,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     },
     arena: { start: cfg.arena.startWeek, clear: p(cfg.arena.clearChance) },
     levels: {
-      max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, played: num(cfg.training.xp.played), starter: num(cfg.training.xp.starter),
+      max: cfg.training.levels.max, xp: cfg.training.levels.xpPerLevel, sk: cfg.combat.skills.unlockLevels.join(', '), eq: cfg.combat.skills.equipped, played: num(cfg.training.xp.played), starter: num(cfg.training.xp.starter),
       rating: num(cfg.training.xp.perRatingPoint), win: num(cfg.training.xp.win),
       young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining),
     },

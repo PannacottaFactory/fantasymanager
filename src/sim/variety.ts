@@ -1,6 +1,6 @@
 /**
  * Variety of play: does a creature use its whole kit, or the same blow all match long? For each species, a creature
- * with every ability unlocked replaces one starter of a professional team (as in `sim:abilities`). Prints, per species,
+ * with every skill unlocked (each pair of its kit, basic attack included, equipped in turn) replaces one starter of a professional team. Prints, per species,
  * the share of its actions taken by its most used one, and per ability the uses per match and the « pick rate when
  * ready » (uses / actions taken while it was off cooldown): a strong ability is picked most times it is ready; one
  * picked < 25 % of the time it is ready is not worth its turn (the creature would rather hit).
@@ -40,27 +40,30 @@ const t0 = performance.now();
 for (const sid of species) {
   const sp = SPECIES[sid]!;
   const st: SpStat = (stats[sid] = { actions: 0, rests: 0, guards: 0, abs: {} });
-  const maxUnlock = Math.max(0, ...sp.abilities.map((a) => a.minAbility ?? 0));
+  // Every pair of skills in turn (all unlocked), so each skill is seen equipped as often.
+  const kit = [...sp.basic, ...sp.skills];
+  const pairs = kit.flatMap((x, i) => kit.slice(i + 1).map((y) => [x, y]));
   for (let i = 0; i < N; i++) {
     const rng = new Rng(deriveSeed('variety', i));
     const a = generateTeam(rng, { quality: 'professional' });
     const b = generateTeam(rng, { quality: 'professional' });
     const slot = a.tactic.lineup[i % a.tactic.lineup.length]!;
-    const fresh = generateCreature(new Rng(deriveSeed('variety-c', sid, i)), { speciesId: sid, potential: Math.max(110, maxUnlock + 5), age: sp.lifeCurve.peakStart });
+    const fresh = generateCreature(new Rng(deriveSeed('variety-c', sid, i)), { speciesId: sid, potential: 130, age: sp.lifeCurve.peakStart });
     fresh.ability = fresh.potential;
     a.creatures = a.creatures.map((c) => (c.id === slot.creatureId ? fresh : c));
     const role = bestRole(fresh);
-    a.tactic = { ...a.tactic, lineup: a.tactic.lineup.map((s) => (s.creatureId === slot.creatureId ? { ...s, creatureId: fresh.id, role, line: ROLES[role].defaultLine } : s)) };
+    const pair = pairs[i % pairs.length]!;
+    a.tactic = { ...a.tactic, lineup: a.tactic.lineup.map((s) => (s.creatureId === slot.creatureId ? { ...s, creatureId: fresh.id, role, line: ROLES[role].defaultLine } : s)), skills: { ...(a.tactic.skills ?? {}), [fresh.id]: pair } };
     const r = simulateMatch({ seed: deriveSeed('variety-m', i), teams: [a, b] }, { cfg: CFG });
     // Round from which each ability is ready again.
     const readyAt: Record<string, number> = {};
     const act = (round: number, used: string | null) => {
       st.actions++;
-      for (const ref of sp.abilities) {
-        if ((readyAt[ref.id] ?? 0) > round) continue;
-        const s = (st.abs[ref.id] ??= { uses: 0, ready: 0 });
+      for (const id of pair) {
+        if ((readyAt[id] ?? 0) > round) continue;
+        const s = (st.abs[id] ??= { uses: 0, ready: 0 });
         s.ready++;
-        if (used === ref.id) s.uses++;
+        if (used === id) s.uses++;
       }
     };
     for (const e of r.events) {
@@ -91,7 +94,7 @@ const rows = species.map((sid) => {
 console.log('species            top    actions/match  rest  guard   abilities: uses/match (pick rate when ready)');
 for (const { sid, st, uses, top } of rows) {
   const per = (n: number) => (n / N).toFixed(1);
-  const list = SPECIES[sid]!.abilities.map(({ id }) => {
+  const list = [...SPECIES[sid]!.basic, ...SPECIES[sid]!.skills].map((id) => {
     const s = st.abs[id] ?? { uses: 0, ready: 0 };
     const rate = s.ready ? s.uses / s.ready : 0;
     const cd = ABILITIES[id]!.cooldown;

@@ -120,13 +120,13 @@ export class Combat {
       for (const slot of team.tactic.lineup) {
         const cr = byCreature.get(slot.creatureId);
         if (!cr) throw new Error(`Lineup creature ${slot.creatureId} not in team ${team.name}`);
-        this.addCombatant(cr, side, slot.role, slot.line, slot.stance, true, team.tactic.favorites?.[cr.id]);
+        this.addCombatant(cr, side, slot.role, slot.line, slot.stance, true, team.tactic.skills?.[cr.id]);
       }
       for (const id of team.tactic.bench) {
         const cr = byCreature.get(id);
         if (!cr) throw new Error(`Bench creature ${id} not in team ${team.name}`);
         const role = bestRole(cr);
-        this.addCombatant(cr, side, role, ROLES[role].defaultLine, 'normal', false, team.tactic.favorites?.[cr.id]);
+        this.addCombatant(cr, side, role, ROLES[role].defaultLine, 'normal', false, team.tactic.skills?.[cr.id]);
       }
       // Friends lift each other before the first blow; rivals sap the mood.
       const starters = team.tactic.lineup.map((sl) => byCreature.get(sl.creatureId)!);
@@ -374,7 +374,7 @@ export class Combat {
     line: Combatant['line'],
     stance: Combatant['stance'],
     starter: boolean,
-    favorites: readonly string[] = [],
+    skills?: readonly string[],
   ) {
     const species = SPECIES[cr.speciesId];
     if (!species) throw new Error(`Unknown species ${cr.speciesId}`);
@@ -396,8 +396,7 @@ export class Combat {
       stance,
       attrs,
       traits: cr.traits,
-      abilities: getAbilities(cr).map((a) => a.id),
-      favorites: [],
+      abilities: getAbilities(cr, skills, this.cfg).map((a) => a.id),
       roleFactor: clamp(1 + (roleFit({ ...cr, attributes: attrs }, role) - 10) * rf.perPoint, rf.min, rf.max),
       naturalRole: species.roles.includes(role),
       bonds: bondsOf(cr.relations ?? {}, this.cfg),
@@ -422,14 +421,13 @@ export class Combat {
       damageDealt: 0,
       lastDamageElement: 'physical',
     };
-    c.favorites = favorites.filter((id) => c.abilities.includes(id)).slice(0, this.cfg.combat.favorites.max);
     // Ids index the whole fight (targets, effect sources, the report): two creatures can never share one.
     if (this.byId.has(c.id)) throw new Error(`Duplicate creature id ${c.id} in a match`);
     this.combatants.push(c);
     this.byId.set(c.id, c);
     this.roster[c.id] = {
       id: c.id, side, name: c.name, speciesId: c.speciesId, role, line, maxHp: mHp, maxStamina: mSt, starter, traits: cr.traits,
-      abilities: [...c.abilities], favorites: [...c.favorites],
+      abilities: [...c.abilities],
     };
   }
 

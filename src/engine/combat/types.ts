@@ -31,9 +31,8 @@ export interface Combatant {
   /** Effective attributes (traits applied). */
   attrs: Attributes;
   traits: string[];
+  /** Basic attacks + equipped skills: everything it may use in this match. */
   abilities: string[];
-  /** Abilities the manager asked this creature to favour. */
-  favorites: string[];
   /** Multiplier on what the creature's role does, from its role fit (≈0.85–1.15). */
   roleFactor: number;
   /** The role is one of the species' natural roles. */
@@ -81,7 +80,6 @@ export interface RosterEntry {
   starter: boolean;
   traits: string[];
   abilities: string[];
-  favorites: string[];
 }
 
 export interface MatchSetup {

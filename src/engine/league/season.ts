@@ -222,7 +222,7 @@ export function standings(state: GameState, division = playerDivision(state), cf
 
 /**
  * AI manager: rests tired creatures when it can, picks the best available lineup, then applies the stable's
- * identity (orders, favourite abilities, break behaviour) and, if its manager does, reads the opponent.
+ * identity (orders, equipped skills, break behaviour) and, if its manager does, reads the opponent.
  */
 export function aiPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG, difficulty: DifficultyId = 'normal', opponent?: Team): Team {
   const needed = cfg.match.starters + cfg.match.benchSize;

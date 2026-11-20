@@ -14,7 +14,7 @@ export type PlayStyleId =
 export interface PlayStyleDef {
   /** Species this style recruits by preference. */
   species: string[];
-  /** Abilities its creatures are told to favour (when they have them). */
+  /** Skills its creatures equip first (when they have unlocked them). */
   abilities: string[];
   /** Preferred target order. */
   target: TargetPriority;
@@ -79,8 +79,8 @@ export interface DifficultyDef {
   identities: boolean;
   /** Who reads the opponent: nobody, tacticians only, or every manager. */
   reading: 'none' | 'tacticians' | 'all';
-  /** AI creatures favour their style's abilities. */
-  favorites: boolean;
+  /** AI stables equip their style's skills (otherwise the latest unlocked). */
+  styleSkills: boolean;
   /** AI managers rest creatures above this fatigue. */
   restFatigue: number;
   /** Player's starting treasury multiplier. */
@@ -103,7 +103,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
       ['novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
-    playerQuality: 'regional', playerClub: 'regional', styleShare: 0.35, identities: false, reading: 'none', favorites: false, restFatigue: 60, startMoney: 1.3, boardLoss: 0.5, styleBias: 6,
+    playerQuality: 'regional', playerClub: 'regional', styleShare: 0.35, identities: false, reading: 'none', styleSkills: false, restFatigue: 60, startMoney: 1.3, boardLoss: 0.5, styleBias: 6,
   },
   normal: {
     divisions: [
@@ -112,7 +112,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice'],
       ['regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice', 'novice'],
     ],
-    playerQuality: 'regional', styleShare: 0.5, identities: true, reading: 'tacticians', favorites: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
+    playerQuality: 'regional', styleShare: 0.5, identities: true, reading: 'tacticians', styleSkills: true, restFatigue: 55, startMoney: 1, boardLoss: 1, styleBias: 10,
   },
   hard: {
     divisions: [
@@ -121,7 +121,7 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultyDef> = {
       ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
       ['regional', 'regional', 'regional', 'regional', 'regional', 'regional', 'novice', 'novice', 'novice', 'novice'],
     ],
-    playerQuality: 'regional', styleShare: 0.55, identities: true, reading: 'all', favorites: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
+    playerQuality: 'regional', styleShare: 0.55, identities: true, reading: 'all', styleSkills: true, restFatigue: 45, startMoney: 0.8, boardLoss: 1.5, styleBias: 12,
   },
 };
 

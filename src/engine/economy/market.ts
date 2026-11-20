@@ -115,7 +115,7 @@ function detach(state: GameState, team: Team, creatureId: string, cfg: GameConfi
   const t = team.tactic;
   t.lineup = t.lineup.filter((s) => s.creatureId !== creatureId);
   t.bench = t.bench.filter((id) => id !== creatureId);
-  if (t.favorites) delete t.favorites[creatureId];
+  if (t.skills) delete t.skills[creatureId];
   team.tactic = team.id === state.playerTeamId ? repairTactic(team, cfg).tactic : autoTactic(team.creatures, cfg, t.orders);
   state.forSale = state.forSale.filter((id) => id !== creatureId);
   state.offers = state.offers.filter((o) => o.creatureId !== creatureId);

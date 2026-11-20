@@ -46,7 +46,13 @@ export interface SpeciesDef {
   /** How fast each category develops (1 = normal). Used from phase 4. */
   growth: Record<AttributeCategory, number>;
   roles: RoleId[];
-  abilities: { id: string; minAbility?: number }[];
+  /** Basic attacks: always known, never chosen (one, sometimes two). */
+  basic: string[];
+  /**
+   * The five skills, in unlock order (levels `cfg.combat.skills.unlockLevels`): the manager equips
+   * `cfg.combat.skills.equipped` of the unlocked ones; in a match the AI picks among the basic attacks and those.
+   */
+  skills: string[];
   /** Permanent effects (e.g. troll regeneration). */
   passives?: string[];
   nameCulture: string;

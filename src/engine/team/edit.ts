@@ -1,7 +1,7 @@
 /** Pure team/tactic edits used by the UI (each returns a new Team). */
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import { ROLES } from '../../data/roles.ts';
-import { bestRole } from '../creature/derived.ts';
+import { bestRole, toggleSkill } from '../creature/derived.ts';
 import type { Line } from '../../data/schema.ts';
 import type { Creature, LineupSlot, Team, TeamOrders } from '../model.ts';
 
@@ -121,15 +121,12 @@ export function replaceCreature(team: Team, oldId: string, replacement: Creature
   return { ...team, creatures, tactic: { ...team.tactic, lineup, bench } };
 }
 
-/** Toggles a favourite ability of a creature (at most `cfg.combat.favorites.max`; the oldest is dropped). */
-export function toggleFavorite(team: Team, creatureId: string, abilityId: string, cfg: GameConfig = DEFAULT_CONFIG): Team {
-  const current = team.tactic.favorites?.[creatureId] ?? [];
-  let next = current.includes(abilityId) ? current.filter((a) => a !== abilityId) : [...current, abilityId];
-  if (next.length > cfg.combat.favorites.max) next = next.slice(next.length - cfg.combat.favorites.max);
-  const favorites = { ...(team.tactic.favorites ?? {}) };
-  if (next.length) favorites[creatureId] = next;
-  else delete favorites[creatureId];
-  return { ...team, tactic: { ...team.tactic, favorites } };
+/** Clicks a skill of a creature: takes it off if equipped, otherwise equips it (see `toggleSkill`). */
+export function setSkill(team: Team, creatureId: string, abilityId: string, cfg: GameConfig = DEFAULT_CONFIG): Team {
+  const c = team.creatures.find((x) => x.id === creatureId);
+  if (!c) return team;
+  const skills = { ...(team.tactic.skills ?? {}), [creatureId]: toggleSkill(c, team.tactic.skills?.[creatureId], abilityId, cfg) };
+  return { ...team, tactic: { ...team.tactic, skills } };
 }
 
 // ——— Line-up board (drag and drop) ———

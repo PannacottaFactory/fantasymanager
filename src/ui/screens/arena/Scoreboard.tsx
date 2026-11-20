@@ -40,7 +40,7 @@ interface CardProps {
   onSelect: (id: string) => void;
 }
 
-/** The creature's abilities as small gauges: cooldown refilling, too tired, favourite, just used. */
+/** The creature's abilities as small gauges: cooldown refilling, too tired, just used. */
 function SkillRow({ c, r, cast }: { c: CombatantView; r: RosterEntry; cast: CardProps['cast'] }) {
   const { t, lang } = useT();
   const els = SPECIES[r.speciesId]?.elements ?? [];
@@ -51,7 +51,7 @@ function SkillRow({ c, r, cast }: { c: CombatantView; r: RosterEntry; cast: Card
     <div className="skills" onMouseLeave={() => setTip(null)}>
       {tip && tipDef && (
         <AbilityTip anchor={tip.rect}>
-          <AbilityCard id={tip.id} elements={els} favorite={c.favorites.includes(tip.id)} />
+          <AbilityCard id={tip.id} elements={els} />
           <div className={`tip-status ${tipCd > 0 ? 'cd' : tipDef.staminaCost > c.stamina ? 'tired' : 'ready'}`}>
             {tipCd > 0
               ? t('ab.recharging', { name: abilityText(tip.id, lang).name, n: tipCd })
@@ -73,7 +73,7 @@ function SkillRow({ c, r, cast }: { c: CombatantView; r: RosterEntry; cast: Card
         return (
           <span
             key={used ? `${id}-${cast.nonce}` : id}
-            className={`skill ${cd > 0 ? 'cd' : ''} ${tired && cd === 0 ? 'tired' : ''} ${c.favorites.includes(id) ? 'fav' : ''} ${used ? 'used' : ''}`}
+            className={`skill ${cd > 0 ? 'cd' : ''} ${tired && cd === 0 ? 'tired' : ''} ${used ? 'used' : ''}`}
             style={{ ['--c' as string]: abilityColor(id, els), ['--cd' as string]: def.cooldown ? cd / def.cooldown : 0 }}
             aria-label={title}
             onMouseEnter={(e) => setTip({ id, rect: e.currentTarget.getBoundingClientRect() })}
