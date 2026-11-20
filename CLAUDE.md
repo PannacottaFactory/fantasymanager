@@ -674,7 +674,10 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   « Nouvelle partie » button; the new-game form then takes their place (« Retour aux sauvegardes », bottom links hidden),
   with « Enregistrer dans : » as three explicit options « Emplacement n — team / libre » (default: the free slot clicked,
   else the first free one; a taken one turns red with « La partie … sera effacée », replacing still asks first). No
-  save: the form directly. `scripts/career-check.mjs` measures every view at 1366×768, 1440×900, 1920×1080.
+  save: the form directly. **Time played** (`ui/store/playClock.ts`): counted while a game is open, the start
+  screen closed and the tab visible; `saveGame` writes it into `GameState.playTime` (UI-owned, the engine never reads it) and
+  `SlotMeta.playTime`; `savePlayTime` updates only that field of the saved copy (tab hidden, back to the start screen, another
+  slot loaded — never rewrites the rest, so an Ironman's week stays played); slot cards show « 3 h 12 de jeu ». `scripts/career-check.mjs` measures every view at 1366×768, 1440×900, 1920×1080.
 - **Start & dashboard**: opening the app with a save shows the start screen (store `launch`) with two cards, « continue »
   and « new game » (difficulty as cards, seed under « more options »). In a game the landing screen is the dashboard
   (`DashboardScreen`, nav « Accueil »): hero (rank), next match, board, squad status tiles, mini table, treasury,

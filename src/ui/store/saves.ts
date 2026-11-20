@@ -11,6 +11,7 @@ import { migrateGame } from '../../engine/league/migrate.ts';
 import { lastMatchday, playerTeam, standings } from '../../engine/league/season.ts';
 import type { GameState } from '../../engine/league/types.ts';
 import { currentWeek } from '../season.ts';
+import { playTime } from './playClock.ts';
 
 const DB_NAME = 'shadow-arenas';
 const STORE = 'saves';
@@ -40,6 +41,8 @@ export interface SlotMeta {
   ironman?: boolean;
   /** When it was last saved (ms since 1970). */
   savedAt: number;
+  /** Time spent playing (ms; absent in older summaries). */
+  playTime?: number;
 }
 
 let dbPromise: Promise<IDBPDatabase> | null = null;
@@ -76,6 +79,7 @@ function metaOf(state: GameState, slot: SlotId, savedAt: number): SlotMeta {
     career: !!state.manager?.career,
     ironman: !!state.manager?.ironman,
     savedAt,
+    playTime: state.playTime ?? 0,
   };
 }
 
@@ -100,11 +104,31 @@ export function setCurrentSlot(slot: SlotId) {
 
 export async function saveGame(state: GameState, slot: SlotId = currentSlot()): Promise<void> {
   const d = await db();
+  // The game in hand carries the time played so far (the store's state is left as it is).
+  state = { ...state, playTime: playTime() };
   await d.put(STORE, state, slot);
   try {
     await d.put(STORE, metaOf(state, slot, Date.now()), metaKey(slot));
   } catch {
     /* the summary is a convenience: never lose the save for it */
+  }
+}
+
+/**
+ * Writes only the time played into the saved copy of `worldSeed`'s game and its summary (leaving the tab, the start
+ * screen, another slot). The rest of the save is left as it was: an Ironman's week already played stays played.
+ */
+export async function savePlayTime(slot: SlotId, worldSeed: string): Promise<void> {
+  try {
+    const d = await db();
+    const saved = (await d.get(STORE, slot)) as GameState | undefined;
+    if (!saved || saved.worldSeed !== worldSeed) return;
+    const ms = playTime();
+    await d.put(STORE, { ...saved, playTime: ms }, slot);
+    const meta = (await d.get(STORE, metaKey(slot))) as SlotMeta | undefined;
+    if (meta) await d.put(STORE, { ...meta, playTime: ms }, metaKey(slot));
+  } catch {
+    /* a convenience: never fail for it */
   }
 }
 

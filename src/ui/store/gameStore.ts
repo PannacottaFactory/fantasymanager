@@ -13,7 +13,7 @@ import type { Team } from '../../engine/model.ts';
 import { repairTactic } from '../../engine/team/team.ts';
 import { randomSeed } from '../format.ts';
 import { useSettings } from '../i18n/index.ts';
-import { currentSlot, deleteGame, listSlots, loadGame, saveGame, setCurrentSlot, type SlotId, type SlotMeta } from './saves.ts';
+import { currentSlot, deleteGame, listSlots, loadGame, saveGame, savePlayTime, setCurrentSlot, type SlotId, type SlotMeta } from './saves.ts';
 import { completedWeek } from '../season.ts';
 import { weekGrowth } from '../growth.ts';
 import type { InboxMessage } from '../../engine/league/types.ts';
@@ -22,6 +22,7 @@ import type { InboxMessage } from '../../engine/league/types.ts';
 export const BOARD_NOTE_KINDS = new Set<InboxMessage['kind']>(['boardObjective', 'ultimatum', 'ultimatumOver', 'boardVerdict']);
 import { sessionPool, sessionState } from '../../engine/progression/sessions.ts';
 import { knowledgeOf } from '../../engine/economy/scouting.ts';
+import { resetPlayClock, setPlayClockActive } from './playClock.ts';
 
 export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'career' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
@@ -199,11 +200,13 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = await loadGame(slot);
       // Dev size test (the game shown in a frame): straight back into the game, no start screen.
       const framed = import.meta.env.DEV && window.self !== window.top;
+      resetPlayClock(game?.playTime ?? 0);
       set({ game, slot, ready: true, screen: game ? 'dashboard' : get().screen, launch: !!game && !framed, weekStart: game });
       void get().refreshSlots();
     },
 
     newGame: (teamName, seed, difficulty, crest, slot, mode) => {
+      resetPlayClock(0);
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman, managerName: mode?.managerName, squad: mode?.squad });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
@@ -224,10 +227,13 @@ export const useGame = create<GameStore>()((set, get) => {
       }
     },
     loadSlot: async (slot) => {
-      // Leaving the game in play: it is already saved in its own slot.
+      // Leaving the game in play: it is already saved in its own slot (only its time played is brought up to date).
+      const prev = get().game;
+      if (prev) await savePlayTime(get().slot, prev.worldSeed);
       const game = await loadGame(slot);
       if (!game) return;
       setCurrentSlot(slot);
+      resetPlayClock(game.playTime ?? 0);
       set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], signings: [], contractTalks: false, boardNotes: [], boardRules: false, sheet: null });
     },
     deleteSlot: async (slot) => {
@@ -398,6 +404,18 @@ export const useGame = create<GameStore>()((set, get) => {
     },
   };
 });
+
+// Play time runs while a game is open and the start screen closed (and the tab visible: see playClock).
+useGame.subscribe((s, prev) => {
+  setPlayClockActive(!!s.game && !s.launch);
+  // Back on the start screen: the save shows the time played up to now (then the slots are listed again).
+  if (s.launch && !prev.launch && s.game) void savePlayTime(s.slot, s.game.worldSeed).then(() => useGame.getState().refreshSlots());
+});
+if (typeof document !== 'undefined')
+  document.addEventListener('visibilitychange', () => {
+    const s = useGame.getState();
+    if (document.visibilityState === 'hidden' && s.game) void savePlayTime(s.slot, s.game.worldSeed);
+  });
 
 // Dev only: lets the headless checks (scripts/*.mjs) read the store.
 if (import.meta.env.DEV && typeof window !== 'undefined') Object.assign(window, { __fm: useGame });

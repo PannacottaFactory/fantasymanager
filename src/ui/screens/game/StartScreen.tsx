@@ -16,6 +16,15 @@ import { useGame } from '../../store/gameStore.ts';
 import { useTutorial } from '../../tutorial/tutorial.ts';
 import { SLOTS, type SlotId, type SlotMeta } from '../../store/saves.ts';
 import type { Translator } from '../../i18n/index.ts';
+import { playTime } from '../../store/playClock.ts';
+
+/** Time played: « < 1 min », « 42 min », « 3 h 05 ». */
+function formatPlayTime(ms: number): string {
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return '< 1 min';
+  if (min < 60) return `${min} min`;
+  return `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}`;
+}
 
 function slotWeek(tr: Translator, m: SlotMeta): string {
   const { t } = tr;
@@ -56,7 +65,17 @@ function SlotCard({ n, slot, meta, playing, onNew }: { n: number; slot: SlotId; 
             {meta.career ? ` · ${t('slot.career')}` : ''}
             {meta.ironman ? ` · ${t('slot.ironman')}` : ''}
           </span>
-          {date && <small className="faint">{t('start.savedAt', { date })}</small>}
+          {(date || meta.playTime !== undefined) && (
+            <small className="faint">
+              {meta.playTime !== undefined && (
+                <span className="slot-time">
+                  <UiIcon name="breaks" size="1em" /> {t('start.playTime', { t: formatPlayTime(playing ? playTime() : meta.playTime) })}
+                </span>
+              )}
+              {meta.playTime !== undefined && date && ' · '}
+              {date && t('start.savedAt', { date })}
+            </small>
+          )}
         </div>
       </div>
       <div className="slot-actions">

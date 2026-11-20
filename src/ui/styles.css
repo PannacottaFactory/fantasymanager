@@ -4291,3 +4291,6 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
 .jr-upset { flex: none; display: inline-grid; place-items: center; width: 1.3em; height: 1.3em; border-radius: 50%; font-size: var(--fs-xs); font-weight: 800; }
 .jr-upset.up-exploit, .jr-upset.up-bigExploit { color: var(--on-gold); background: var(--gold); }
 .jr-upset.up-slip { color: var(--bad); border: 1px solid var(--bad); }
+
+/* Start screen: time played on a save card. */
+.slot-time { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }

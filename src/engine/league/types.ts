@@ -386,6 +386,8 @@ export interface FallenCreature {
 export interface GameState {
   version: 6;
   worldSeed: string;
+  /** Time spent playing (ms), kept by the UI when it saves (absent in older saves); the engine never reads it. */
+  playTime?: number;
   /** Language of names generated during the game (free agents). */
   lang: Lang;
   season: number;
