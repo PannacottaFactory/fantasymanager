@@ -19,7 +19,7 @@ const list: AbilityDef[] = [
   { id: 'longbow', name: 'Longbow', kind: 'ranged', element: 'physical', target: 'enemy', power: 14, staminaCost: 5, cooldown: 0, accuracyMod: 0.05, verb: 'looses an arrow at', description: 'Elegant and deadly.' },
   { id: 'aimed-shot', name: 'Aimed Shot', kind: 'ranged', element: 'physical', target: 'enemy', power: 26, staminaCost: 10, cooldown: 2, critMod: 0.1, verb: 'takes careful aim at', description: 'Patient shot at a vital spot.' },
   { id: 'moonbeam', name: 'Moonbeam', kind: 'spell', element: 'light', target: 'enemy', power: 17, staminaCost: 7, cooldown: 1, verb: 'calls a moonbeam down on', description: 'Pale searing light.' },
-  { id: 'healing-song', name: 'Healing Song', kind: 'heal', element: 'nature', target: 'ally', power: 20, staminaCost: 10, cooldown: 2, aiWeight: 1.6, verb: 'sings a healing song for', description: 'Mends the wounds of an ally.' },
+  { id: 'healing-song', name: 'Healing Song', kind: 'heal', element: 'nature', target: 'ally', power: 24, staminaCost: 9, cooldown: 2, aiWeight: 1.6, verb: 'sings a healing song for', description: 'Mends the wounds of an ally.' },
 
   // ——— Golem ———
   { id: 'stone-fist', name: 'Stone Fist', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 7, cooldown: 0, verb: 'pounds', description: 'A fist of solid rock.' },
@@ -56,7 +56,7 @@ const list: AbilityDef[] = [
   { id: 'branch-slam', name: 'Branch Slam', kind: 'melee', element: 'physical', target: 'enemy', power: 15, staminaCost: 8, cooldown: 0, verb: 'slams a massive branch into', description: 'Like being hit by a forest.' },
   { id: 'entangle', name: 'Entangle', kind: 'debuff', element: 'nature', target: 'enemy', power: 7, staminaCost: 8, cooldown: 2, verb: 'sends roots to entangle', description: 'Roots burst from the sand to bind a foe.', effects: [{ effect: 'slowed', chance: 0.9, on: 'target' }, { effect: 'stunned', chance: 0.3, on: 'target' }] },
   { id: 'barkskin', name: 'Barkskin', kind: 'buff', element: 'nature', target: 'ally', power: 0, staminaCost: 10, cooldown: 3, aiWeight: 3.5, verb: 'wraps protective bark around', description: 'Shields an ally.', effects: [{ effect: 'shielded', chance: 1, on: 'target' }] },
-  { id: 'sap-mend', name: 'Sap Mend', kind: 'heal', element: 'nature', target: 'ally', power: 15, staminaCost: 9, cooldown: 3, verb: 'seals the wounds of', description: 'Healing sap that keeps working.', effects: [{ effect: 'regenerating', chance: 1, on: 'target' }] },
+  { id: 'sap-mend', name: 'Sap Mend', kind: 'heal', element: 'nature', target: 'ally', power: 18, staminaCost: 8, cooldown: 2, verb: 'seals the wounds of', description: 'Healing sap that keeps working.', effects: [{ effect: 'regenerating', chance: 1, on: 'target' }] },
 
   // ——— Naga ———
   { id: 'trident', name: 'Trident Thrust', kind: 'melee', element: 'physical', target: 'enemy', power: 14, staminaCost: 6, cooldown: 0, verb: 'thrusts a trident at', description: 'Three points of pain.' },
@@ -359,7 +359,7 @@ const list: AbilityDef[] = [
   // Pixie
   { id: 'glitter-bolt', name: 'Glitter Bolt', kind: 'spell', element: 'light', target: 'enemy', power: 14, staminaCost: 5, cooldown: 0, verb: 'flicks a glitter bolt at', description: 'Pretty, and it stings.' },
   { id: 'mirror-images', name: 'Mirror Images', kind: 'spell', element: 'light', target: 'enemy', power: 9, staminaCost: 7, cooldown: 4, effects: [{ effect: 'mirror-images', chance: 1, on: 'self', stacks: 3 }], verb: 'flashes at, then splits into shimmering copies before', description: 'A flash of light at a foe, then three illusory doubles: each takes a single-target blow in its place (area attacks ignore them).' },
-  { id: 'fey-mend', name: 'Fey Mend', kind: 'heal', element: 'nature', target: 'ally', power: 18, staminaCost: 8, cooldown: 2, verb: 'sprinkles mending dust over', description: 'Fairy dust that closes wounds.' },
+  { id: 'fey-mend', name: 'Fey Mend', kind: 'heal', element: 'nature', target: 'ally', power: 21, staminaCost: 7, cooldown: 2, aiWeight: 1.6, verb: 'sprinkles mending dust over', description: 'Fairy dust that closes wounds.' },
   { id: 'sleep-dust', name: 'Sleep Dust', kind: 'debuff', element: 'nature', target: 'enemy', power: 4, staminaCost: 7, cooldown: 3, effects: [{ effect: 'stunned', chance: 0.6, on: 'target' }], verb: 'blows sleep dust into the face of', description: 'May put a foe to sleep for a turn.' },
   { id: 'glamour', name: 'Glamour', kind: 'buff', element: 'light', target: 'ally', power: 0, staminaCost: 8, cooldown: 3, effects: [{ effect: 'mirror-images', chance: 1, on: 'target', stacks: 2 }], verb: 'weaves a glamour around', description: 'Two illusory doubles for an ally: each takes a single-target blow in its place.' },
   { id: 'fairy-prank', name: 'Fairy Prank', kind: 'debuff', element: 'light', target: 'enemy', power: 6, staminaCost: 6, cooldown: 2, effects: [{ effect: 'jinxed', chance: 0.8, on: 'target' }], verb: 'plays a nasty prank on', description: 'A trick that hurts a little and jinxes a foe until the break.' },

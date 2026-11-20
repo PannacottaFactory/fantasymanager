@@ -20,13 +20,13 @@ export type FactorKey =
   | 'typesGood' | 'typesBad' | 'theirTypes' | 'outdamaged' | 'outdamagedThem' | 'kos' | 'theirStar' | 'ourStar' | 'weakLink'
   | 'misses' | 'crits' | 'dotGood' | 'dotBad' | 'cleansed' | 'breakPaid' | 'breakFailed' | 'unusedSubs' | 'controlled'
   | 'thorns' | 'spread' | 'backline' | 'healers' | 'sustain' | 'exhausted' | 'nerves' | 'disobey' | 'guarded' | 'healed'
-  | 'close' | 'quick' | 'graceOurs' | 'graceTheirs';
+  | 'close' | 'quick' | 'graceOurs' | 'graceTheirs' | 'banked';
 
 export type TipKey =
   | 'rest' | 'roles' | 'benchBetter' | 'frontLine' | 'healer' | 'morale' | 'counterApproach' | 'elements' | 'stopStar'
   | 'replaceWeak' | 'accuracy' | 'cleanseDot' | 'watchLive' | 'useSubs' | 'antiControl' | 'thornsRanged' | 'focus' | 'tank'
   | 'targetHealers' | 'cautious' | 'calm' | 'discipline' | 'improve' | 'keepGoing' | 'finishKo'
-  | 'reachBack' | 'subsEarly' | 'closeLoss'
+  | 'reachBack' | 'subsEarly' | 'closeLoss' | 'bankHealth'
   // running the stable
   | 'deepenSquad' | 'fillBench' | 'injuryCover' | 'spendPoints'
   // next match (see advice.ts)
@@ -304,6 +304,26 @@ export function explainMatch(result: MatchResult, side: Side, setup?: MatchSetup
   if (!won && subsLeft > 0 && benchLeft > 0 && needed && result.outcome.rounds > cfg.match.breakRounds[0]!) {
     add('unusedSubs', 'bad', 3, { n: Math.min(subsLeft, benchLeft) });
     tip('useSubs', 4, null);
+  }
+
+  // Health put out of reach: a creature taken off keeps its health for the judges, where no blow can reach it.
+  const banked = (s: Side) => {
+    const out = new Set(result.events.flatMap((e) => (e.type === 'substitution' && e.side === s ? [e.outId] : [])));
+    const entered = report.creatures.filter((c) => c.side === s && c.played);
+    const total = entered.reduce((n, c) => n + result.roster[c.id]!.maxHp, 0);
+    const kept = entered.filter((c) => out.has(c.id) && !c.knockedOut).reduce((n, c) => n + (c.finalHpPct / 100) * result.roster[c.id]!.maxHp, 0);
+    return total ? Math.round((100 * kept) / total) : 0;
+  };
+  if (!won && result.outcome.method === 'points') {
+    const theirBank = banked(opp);
+    const ourBank = banked(side);
+    const fallen = ours.filter((c) => c.knockedOut).length;
+    if (theirBank >= 10 && theirBank >= ourBank + 5) {
+      add('banked', 'bad', 4 + theirBank / 4, { n: theirBank });
+      tip('bankHealth', 4 + theirBank / 5, null);
+    } else if (fallen >= 3 && ourBank < 5 && Math.abs(result.outcome.score[0] - result.outcome.score[1]) <= rc.closePointsMargin)
+      // A close loss with many of ours knocked out: taking one off in time would have kept its health.
+      tip('bankHealth', 3, null);
   }
 
   const o = result.outcome;

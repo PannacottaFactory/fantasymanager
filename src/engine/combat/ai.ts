@@ -366,7 +366,7 @@ export function chooseAction(ctx: AiContext, actor: Combatant, opts: ChooseOptio
         const worst = Math.max(...hurt.map((a) => 1 - hpFraction(a)));
         const purge = (ability.cleanse ? hurt.reduce((s, a) => s + cleanseValue(a), 0) : 0) + hurt.reduce((s, a) => s + bleedValue(a), 0);
         if (worst < 0.25 && purge < 0.2) continue;
-        const score = (missing * 1.6 + purge * 1.5) * role.heal * (t ? 1 : 0.6);
+        const score = (missing * 1.6 + purge * 1.5) * Math.max(role.heal, ai.healFloor) * (t ? 1 : 0.6);
         options.push({ type: 'ability', ability, target: t, flank: false, score: score * bigMult });
       }
     } else if (ability.kind === 'buff') {

@@ -164,12 +164,12 @@ export const COMBAT_CONFIG = {
     talks: {
       rally: { share: 0.3, target: 75 },
       secondWind: { share: 0.1 },
-      focus: { hit: 0.018 },
+      focus: { hit: 0.03 },
       /** Front-line armour against melee only, plus interceptions. */
       ranks: { mitigation: 0.05, intercept: 0.06 },
       /** Against ranged attacks and spells. */
       evade: { dodge: 0.045 },
-      fury: { damage: 0.08, cost: 0.2 },
+      fury: { damage: 0.08, cost: 0.1 },
     },
     ascendancy: { bonus: 0.08, beats: { cautious: 'aggressive', aggressive: 'balanced', balanced: 'cautious' } as Record<'cautious' | 'balanced' | 'aggressive', 'cautious' | 'balanced' | 'aggressive'> },
   },
@@ -234,6 +234,11 @@ export const COMBAT_CONFIG = {
     debuffWeight: 1,
     /** Same for cries and auras on a whole line or every foe (roars, screeches, blights). */
     cryWeight: 0.7,
+    /**
+     * Heal floor: a creature whose role does not heal (tank, striker, skirmisher weigh healing at 0) still uses a heal
+     * it has equipped at this weight, so a heal skill is never dead outside the support role.
+     */
+    healFloor: 0.6,
     /**
      * Stamina reserve: a cheaper action that would leave too little stamina to cast, next round, an ability costing at
      * least `reserveMinCost` that is ready (or back next round) has its score × `staminaReserve` (1 = no reserve).
