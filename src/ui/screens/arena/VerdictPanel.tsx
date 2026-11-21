@@ -62,6 +62,18 @@ export function useTipVars() {
   });
 }
 
+/** The report keeps the verdict short: the heaviest reasons and a few tips (the analysis below has the rest). */
+const MAX_FACTORS = 3;
+const MAX_TIPS = 3;
+/** Small symbol of where a tip is acted on (tactics, squad…). */
+const TIP_ICON: Record<TipTarget, string> = {
+  tactics: 'nav-tactics',
+  training: 'nav-training',
+  recruit: 'nav-recruit',
+  encyclopedia: 'nav-encyclopedia',
+  squad: 'nav-squad',
+};
+
 export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: MatchSetup }) {
   const { t } = useT();
   const game = useGame((s) => s.game);
@@ -70,37 +82,32 @@ export function VerdictPanel({ result, setup }: { result: MatchResult; setup?: M
   // A league match (line-ups found in the stable's history): tips about running the stable apply too.
   const v = useMemo(() => explainMatch(result, 0, before, undefined, { stable: !setup && !!game }), [result, before, setup, game]);
   const next = useNextTips(result, game);
-  // Lessons of the match first; at most five tips in all, with something about the next opponent when there is.
-  const lessons = next?.tips.length ? v.tips.filter((x) => x.key !== 'keepGoing').slice(0, 5 - Math.min(2, next.tips.length)) : v.tips;
-  const ahead = next ? next.tips.filter((x) => !lessons.some((l) => l.key === 'rest' && x.key === 'nextRest')).slice(0, 5 - lessons.length) : [];
+  // Lessons of the match first; at most three tips in all, with one about the next opponent when there is.
+  const lessons = next?.tips.length ? v.tips.filter((x) => x.key !== 'keepGoing').slice(0, MAX_TIPS - 1) : v.tips.slice(0, MAX_TIPS);
+  const ahead = next ? next.tips.filter((x) => !lessons.some((l) => l.key === 'rest' && x.key === 'nextRest')).slice(0, MAX_TIPS - lessons.length) : [];
+  const factors = v.factors.slice(0, MAX_FACTORS);
   const vars = useTipVars();
   const TipList = ({ tips }: { tips: Tip[] }) => (
     <ul className="verdict-list tips">
       {tips.map((tip) => (
         <li key={tip.key}>
-          <span className="grow">{t(`verdict.t.${tip.key}` as StringKey, vars(tip.vars))}</span>
-          {tip.to && (game || tip.to === 'encyclopedia') && (
-            <button className="btn small" onClick={() => go(tip.to!)}>
-              {t(`verdict.go.${tip.to}` as StringKey)} →
-            </button>
-          )}
+          <span className="ico" title={tip.to ? t(`verdict.go.${tip.to}` as StringKey) : undefined}>
+            <UiIcon name={tip.to ? TIP_ICON[tip.to] : 'tip'} />
+          </span>
+          <span>{t(`verdict.t.${tip.key}` as StringKey, vars(tip.vars))}</span>
         </li>
       ))}
     </ul>
   );
-  const go = (to: TipTarget) => {
-    if (to === 'encyclopedia') useGame.getState().setScreen('encyclopedia');
-    else if (game) useGame.getState().setScreen(to);
-  };
   return (
     <section className={`panel verdict ${v.won ? 'won' : 'lost'}`} data-tip="report">
       {!setup && <UpsetStamp won={v.won} forecast={record?.forecast} />}
       <div className="verdict-cols">
         <div>
           <h3>{v.won ? t('verdict.whyWin') : t('verdict.whyLoss')}</h3>
-          {v.factors.length === 0 && <div className="muted">{t('verdict.nothing')}</div>}
+          {factors.length === 0 && <div className="muted">{t('verdict.nothing')}</div>}
           <ul className="verdict-list">
-            {v.factors.map((f) => (
+            {factors.map((f) => (
               <li key={f.key} className={f.tone}>
                 <span className="ico">{f.tone === 'good' ? '▲' : f.tone === 'bad' ? '▼' : '•'}</span>
                 <span>{t(`verdict.f.${f.key}` as StringKey, vars(f.vars))}</span>

@@ -95,3 +95,21 @@ describe('next-match advice', () => {
     }
   });
 });
+
+describe('action log', () => {
+  it('words every event in both languages, no hole left', async () => {
+    const { ActionLog } = await import('../src/ui/screens/arena/ActionLog.tsx');
+    const { LOG_DICTS } = await import('../src/ui/i18n/actionLog.ts');
+    const holes = (x: string) => [...x.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();
+    for (const [k, v] of Object.entries(LOG_DICTS.en)) expect(holes(LOG_DICTS.fr[k as keyof typeof LOG_DICTS.fr]), k).toEqual(holes(v));
+    for (const lang of ['en', 'fr'] as const) {
+      useSettings.setState({ lang });
+      for (let i = 0; i < 4; i++) {
+        const result = match(30 + i, i % 2 ? ['giant-spider', 'hag', 'raptor', 'unicorn', 'skeleton'] : undefined);
+        const html = renderToString(createElement(ActionLog, { result, withEffects: true }));
+        expect(html).not.toMatch(/\{\w+\}|undefined|NaN/);
+        expect(html).toContain('al-row');
+      }
+    }
+  });
+});

@@ -118,7 +118,7 @@ export function BreakPanel({ combat, onResume }: Props) {
             <UiIcon name="scout" /> {t('break.peek')}
           </button>
           <button ref={adviceBtn} className="btn small assistant-btn" onClick={suggest} title={t('break.advice.title')}>
-            {t('break.advice')}
+            <UiIcon name="talk-assistant" /> {t('break.advice')}
           </button>
           <button className="btn primary" onClick={resume} data-tip="break">
             {t('break.resume')} ▶

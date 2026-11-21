@@ -12,6 +12,8 @@ import type { StringKey } from '../../i18n/strings.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { AnalysisPanel } from './AnalysisPanel.tsx';
 import { VerdictPanel } from './VerdictPanel.tsx';
+import { ActionLog } from './ActionLog.tsx';
+import { logT } from '../../i18n/actionLog.ts';
 
 function MomentumChart({ momentum, breaks }: { momentum: number[]; breaks: readonly number[] }) {
   const { t } = useT();
@@ -92,6 +94,8 @@ export function ReportView({ result, actions, setup }: { result: MatchResult; ac
   const { t, lang } = tr;
   const report = useMemo(() => buildReport(result, 0, DEFAULT_CONFIG, lang), [result, lang]);
   const [showLog, setShowLog] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const L = logT(lang);
   const log = useMemo(
     () => (showLog ? new Commentator(result.seed, result.roster, [result.teams[0].name, result.teams[1].name], DEFAULT_CONFIG, lang).narrateAll(result.events) : []),
     [showLog, result, lang],
@@ -221,6 +225,16 @@ export function ReportView({ result, actions, setup }: { result: MatchResult; ac
       <Lineups result={result} creatures={report.creatures} mvp={report.mvp} />
 
       <AnalysisPanel result={result} />
+
+      <section className="panel">
+        <div className="row wrap" style={{ gap: 'var(--sp-2)' }}>
+          <button className="btn small" onClick={() => setShowActions((v) => !v)}>
+            {showActions ? L('hide') : L('show')}
+          </button>
+          {!showActions && <span className="faint small">{L('intro')}</span>}
+        </div>
+        {showActions && <ActionLog result={result} />}
+      </section>
 
       <section className="panel">
         <button className="btn small" onClick={() => setShowLog((v) => !v)}>

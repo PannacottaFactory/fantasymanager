@@ -24,7 +24,7 @@ import { arenaActive, arenaFor } from '../../../engine/league/arena.ts';
 import { preMatchSituation, readTalk } from '../../../engine/combat/talks.ts';
 import { TalkPicker } from '../../components/TeamTalk.tsx';
 
-function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
+export function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
   const { t, lang } = useT();
   const byId = new Map(team.creatures.map((c) => [c.id, c]));
   return (
@@ -256,7 +256,8 @@ export function MatchScreen() {
   const game = useGame((s) => s.game)!;
   const match = useGame((s) => s.match);
   const playerControls = useGame((s) => s.playerControls);
-  const { finishLive, closeMatch } = useGame.getState();
+  const canRetry = useGame((s) => !!s.undo);
+  const { finishLive, closeMatch, retryMatch } = useGame.getState();
   if (!match) return null;
   if (match.phase === 'pre') return <PreMatch game={game} match={match} />;
   if (match.phase === 'live' && match.setup) return <LiveMatch key={match.liveKey} setup={match.setup} playerControls={playerControls} onFinish={finishLive} />;
@@ -266,9 +267,17 @@ export function MatchScreen() {
         <ReportView
           result={match.result}
           actions={
-            <button className="btn primary" onClick={closeMatch}>
-              {t('match.continue')}
-            </button>
+            <>
+              {canRetry && (
+                <button className="btn retry" onClick={retryMatch} title={t('match.retryTitle')}>
+                  <UiIcon name="dice" size="1.3em" />
+                  {t('match.retry')}
+                </button>
+              )}
+              <button className="btn primary" onClick={closeMatch}>
+                {t('match.continue')}
+              </button>
+            </>
           }
         />
         <DayResults game={game} matchday={match.matchday} fixtureId={match.fixtureId} />

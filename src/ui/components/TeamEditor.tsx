@@ -73,6 +73,8 @@ interface Props {
   onChange: (t: Team) => void;
   /** Header content (team name, buttons…). */
   header?: ReactNode;
+  /** Buttons on the right of the team-orders row (keeps the space above the table tight). */
+  toolbar?: ReactNode;
   /** League mode: shows condition columns and flags injured creatures as errors. */
   league?: boolean;
   /** Sandbox only: replace a creature by a new one of another species. */
@@ -82,7 +84,7 @@ interface Props {
   onOpenCreature?: (creatureId: string) => void;
 }
 
-export function TeamEditor({ team, onChange, header, league, onSwapSpecies, className, onOpenCreature }: Props) {
+export function TeamEditor({ team, onChange, header, toolbar, league, onSwapSpecies, className, onOpenCreature }: Props) {
   const tr = useT();
   const { t, lang } = tr;
   const [openLocal, setOpenLocal] = useState<string | null>(null);
@@ -303,7 +305,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
             <OrdersFields team={team} onChange={onChange} />
           </div>
         </div>
-        <span className="muted" style={{ fontSize: '0.857rem', alignSelf: 'end' }}>
+        <span className="muted te-count" style={{ fontSize: '0.857rem', alignSelf: 'end' }}>
           {t('tactics.count', { s: team.tactic.lineup.length, smax: m.starters, b: team.tactic.bench.length, bmax: m.benchSize })}
         </span>
         {issues.length > 0 && (
@@ -311,6 +313,7 @@ export function TeamEditor({ team, onChange, header, league, onSwapSpecies, clas
             {issueText(tr, team, issues[0]!)}
           </span>
         )}
+        {toolbar && <div className="te-toolbar">{toolbar}</div>}
       </div>
       <div data-tip={league ? 'lineup' : undefined} className="squad-table">
       <div className="faint drag-hint">{t('sel.drag.hint')}</div>

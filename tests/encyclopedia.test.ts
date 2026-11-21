@@ -41,7 +41,7 @@ describe('encyclopedia pages', () => {
       ];
       for (const p of pages) {
         const html = renderToString(p);
-        expect(html, html.slice(0, 120)).not.toMatch(/\{\w+\}|undefined|NaN/);
+        expect(html, html.slice(0, 120)).not.toMatch(/\{\w+\}|undefined|NaN|\*\*|>[#>-] /);
       }
     }
   }, 30000);

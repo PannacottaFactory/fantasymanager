@@ -16,18 +16,19 @@ import { INJURIES } from '../../data/injuries.ts';
 import { ROLES } from '../../data/roles.ts';
 import { SPECIES, SPECIES_IDS } from '../../data/species.ts';
 import { TRAITS } from '../../data/traits.ts';
-import type { AbilityDef, EffectDef, EffectMods, ElementId, RoleId, TraitCombatEffects } from '../../data/schema.ts';
+import type { AbilityDef, EffectDef, EffectMods, ElementId, RoleId } from '../../data/schema.ts';
 import {
   abilityKindName, abilityText, attributeText, categoryName, effectText, elementName, injuryText, roleText, sizeName,
   speciesText, traitText,
 } from '../../engine/text/localize.ts';
 import { RoleIcon, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
-import { encT, type EncKey } from '../i18n/encyclopedia.ts';
+import { ENC_DICTS, encT, type EncKey } from '../i18n/encyclopedia.ts';
 import { useT } from '../i18n/index.ts';
 import { AbilityCard, durationLabel, effectDuration, KindIcon } from '../components/AbilityCard.tsx';
 import { skillLevel, skillUnlockLevel } from '../../engine/creature/derived.ts';
 import { coverReduction } from '../../engine/combat/formulas.ts';
 import { useGame } from '../store/gameStore.ts';
+import { useTraitEffects } from '../traitEffects.ts';
 import { BestiaryView } from './BestiaryView.tsx';
 import { ArenaConditionList } from '../components/ArenaCondition.tsx';
 
@@ -717,30 +718,9 @@ export function EffectEntry({ id, go }: { id: string; go: (l: Link) => void }) {
 export function TraitEntry({ id, go }: { id: string; go: (l: Link) => void }) {
   const { lang } = useT();
   const e = encT(lang);
-  const pct = usePct();
-  const mult = useMult();
   const tdef = TRAITS[id]!;
   const txt = traitText(id, lang);
-  const c: TraitCombatEffects = tdef.combat ?? {};
-  const lines: string[] = [];
-  for (const [k, v] of Object.entries(c.attrMods ?? {})) lines.push(e('trc.attr', { attr: attributeText(k as AttributeKey, lang).name, v: `${v! > 0 ? '+' : ''}${v}` }));
-  if (c.moraleLossMult) lines.push(e('trc.moraleLossMult', { v: mult(c.moraleLossMult) }));
-  if (c.moraleGainMult) lines.push(e('trc.moraleGainMult', { v: mult(c.moraleGainMult) }));
-  if (c.disobeyMult) lines.push(e('trc.disobeyMult', { v: mult(c.disobeyMult) }));
-  if (c.enrageBelowHp) lines.push(e('trc.enrageBelowHp', { v: Math.round(c.enrageBelowHp * 100) }));
-  if (c.enrageOnAllyKo) lines.push(e('trc.enrageOnAllyKo'));
-  if (c.auraMorale) lines.push(e('trc.auraMorale', { v: c.auraMorale }));
-  if (c.interceptBonus) lines.push(e('trc.interceptBonus', { v: pct(c.interceptBonus, false) }));
-  if (c.critBonus) lines.push(e('trc.critBonus', { v: pct(c.critBonus, false) }));
-  if (c.damageMult) lines.push(e('trc.damageMult', { v: mult(c.damageMult) }));
-  if (c.breakThresholdMod) lines.push(e('trc.breakThresholdMod', { v: Math.abs(c.breakThresholdMod), dir: e(c.breakThresholdMod > 0 ? 'trc.sooner' : 'trc.later') }));
-  if (c.instinctTarget) lines.push(e('trc.instinctTarget', { v: e(`prio.${c.instinctTarget}` as EncKey) }));
-  if (c.showboatChance) lines.push(e('trc.showboatChance', { v: Math.round(c.showboatChance * 100) }));
-  if (c.soloDamageMult) lines.push(e('trc.soloDamageMult', { v: mult(c.soloDamageMult) }));
-  if (c.comboBonus) lines.push(e('trc.comboBonus', { v: pct(c.comboBonus, false) }));
-  if (tdef.training?.gainMult) lines.push(e('trc.gainMult', { v: mult(tdef.training.gainMult) }));
-  if (tdef.training?.injuryMult) lines.push(e('trc.injuryMult', { v: mult(tdef.training.injuryMult) }));
-  if (tdef.personality?.moraleVolatility) lines.push(e('trc.moraleVolatility', { v: mult(tdef.personality.moraleVolatility) }));
+  const lines = useTraitEffects()(id);
   return (
     <div>
       <h3 className="enc-title">{txt.name}</h3>
@@ -1046,8 +1026,15 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       koWin: m.points.koWin, pointsWin: m.points.pointsWin, pointsLoss: m.points.pointsLoss, koLoss: m.points.koLoss,
     },
     turn: { antic: mult(c.initiative.perAnticipation), small: c.initiative.sizeMod.small, large: c.initiative.sizeMod.large, huge: c.initiative.sizeMod.huge, noise: c.initiative.noise },
-    hit: { base: p(c.hit.base), per: p(c.hit.perPoint), min: p(c.hit.min), max: p(c.hit.max), huge: p(c.hit.sizeMod.huge), small: pct(c.hit.sizeMod.small), spell: p(-c.hit.spellBonus) },
-    damage: { base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), variance: p(c.damage.variance), minM: pct(c.damage.minMitigation), maxM: p(c.damage.maxMitigation), crit: mult(c.damage.critMult) },
+    hit: {
+      base: p(c.hit.base), per: p(c.hit.perPoint), min: p(c.hit.min), max: p(c.hit.max), huge: p(c.hit.sizeMod.huge), small: pct(c.hit.sizeMod.small), spell: p(-c.hit.spellBonus),
+      mA: p(c.mix.meleeHit.attack), mAc: p(c.mix.meleeHit.accuracy), mT: p(c.mix.meleeHit.technique), rAc: p(c.mix.rangedHit.accuracy), rT: p(c.mix.rangedHit.technique),
+      comp: p(c.hit.perComposure), spd: p(c.hit.dodgePerSpeed), lead: p(c.hit.perLeadership), fat: p(c.fatigue.maxPenalty * c.fatigue.hitShare),
+    },
+    damage: {
+      base: mult(c.damage.statBase), per: mult(c.damage.statPerPoint), variance: p(c.damage.variance), minM: pct(c.damage.minMitigation), maxM: p(c.damage.maxMitigation), crit: mult(c.damage.critMult),
+      pS: p(c.mix.meleePower.strength), pT: p(c.mix.meleePower.technique),
+    },
     cover: {
       one: p(coverReduction(1, cfg)), tank: p(coverReduction(c.cover.tankWeight, cfg)), two: p(coverReduction(2, cfg)),
       three: p(coverReduction(3, cfg)), four: p(coverReduction(4, cfg)), max: p(c.cover.max),
@@ -1070,7 +1057,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     },
     stamina: {
       large: mult(c.stamina.sizeCostMult.large), huge: mult(c.stamina.sizeCostMult.huge), threshold: p(c.fatigue.threshold), max: p(c.fatigue.maxPenalty),
-      pre: mult(c.stamina.preMatchFatigueLoss), inj: mult(1 + c.fatigue.injuryFromFatigue),
+      pre: mult(c.stamina.preMatchFatigueLoss), inj: mult(1 + c.fatigue.injuryFromFatigue), hitMax: p(c.fatigue.maxPenalty * c.fatigue.hitShare),
     },
     morale: {
       allyKo: c.morale.allyKo, enemyKo: c.morale.enemyKo, heavy: c.morale.heavyHitTaken, crit: c.morale.critDealt, lead: c.morale.minLeadership,
@@ -1092,14 +1079,100 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     age: { young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining) },
   };
   return (
-    <div>
+    <div className="rule-page">
       <h3 className="enc-title">{e(`ru.${id}.title` as EncKey)}</h3>
-      {e(`ru.${id}.body` as EncKey, vars[id])
-        .split('\n')
-        .map((para, i) => (
-          <p key={i}>{para}</p>
-        ))}
+      <RuleText text={markNumbers(ENC_DICTS[lang][`ru.${id}.body` as EncKey], vars[id])} />
       {id === 'arena' && <ArenaConditionList />}
     </div>
   );
+}
+
+// Rule bodies use a tiny markup, one block per line: « # » a heading, « - » a list item, « > » an assistant's tip,
+// anything else a paragraph (the first one is the lede); « **…** » bolds a label. Filled-in numbers are marked
+// (with their sign and « % ») so they stand out.
+const NUM_OPEN = '\u0001';
+const NUM_CLOSE = '\u0002';
+
+/** Fills the placeholders, wrapping each value (with a sign before and a « % » after) in number marks. */
+function markNumbers(template: string, vars: Record<string, string | number>) {
+  return template.replace(/([+−×±-]?)\{(\w+)\}(\s?%)?/g, (m, sign: string, k: string, unit?: string) =>
+    vars[k] === undefined ? m : `${NUM_OPEN}${sign}${vars[k]}${unit ?? ''}${NUM_CLOSE}`,
+  );
+}
+
+/** Inline text: numbers stand out, « **label** » is bold. */
+function RuleInline({ text }: { text: string }) {
+  const numbers = (s: string, key: string) =>
+    s.split(new RegExp(`(${NUM_OPEN}[^${NUM_CLOSE}]*${NUM_CLOSE})`)).map((part, i) =>
+      part.startsWith(NUM_OPEN) ? (
+        <span key={`${key}-${i}`} className="rule-num">
+          {part.slice(1, -1).replace(/\s%/, ' %').replace(/^-/, '−')}
+        </span>
+      ) : (
+        part
+      ),
+    );
+  return (
+    <>
+      {text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+        part.startsWith('**') && part.endsWith('**') ? <strong key={i}>{numbers(part.slice(2, -2), `b${i}`)}</strong> : numbers(part, `t${i}`),
+      )}
+    </>
+  );
+}
+
+function RuleText({ text }: { text: string }) {
+  const blocks: ReactNode[] = [];
+  let items: string[] = [];
+  let lede = true;
+  const flush = () => {
+    if (!items.length) return;
+    blocks.push(
+      <ul key={blocks.length} className="rule-list">
+        {items.map((it, i) => (
+          <li key={i}>
+            <RuleInline text={it} />
+          </li>
+        ))}
+      </ul>,
+    );
+    items = [];
+  };
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('- ')) {
+      items.push(line.slice(2));
+      lede = false;
+      continue;
+    }
+    flush();
+    if (line.startsWith('# ')) {
+      blocks.push(
+        <h4 key={blocks.length} className="rule-head">
+          {line.slice(2)}
+        </h4>,
+      );
+    } else if (line.startsWith('> ')) {
+      blocks.push(
+        <div key={blocks.length} className="rule-tip">
+          <span className="rule-tip-ico">
+            <UiIcon name="tip" />
+          </span>
+          <span>
+            <RuleInline text={line.slice(2)} />
+          </span>
+        </div>,
+      );
+    } else {
+      blocks.push(
+        <p key={blocks.length} className={lede ? 'rule-lede' : undefined}>
+          <RuleInline text={line} />
+        </p>,
+      );
+    }
+    lede = false;
+  }
+  flush();
+  return <>{blocks}</>;
 }

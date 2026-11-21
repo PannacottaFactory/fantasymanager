@@ -35,7 +35,11 @@ export function SeasonRibbon({ game }: { game: GameState }) {
       <span className="sr-label">
         <b>{t('ribbon.season', { s: game.season })}</b>
         <small>{current === 0 ? t('cal.before') : current > n ? t('ribbon.end') : t('ribbon.week', { d: current, n })}</small>
-        {played.length > 0 && <small className="sr-record">{t('ribbon.record', { w: wins, l: played.length - wins })}</small>}
+        {played.length > 0 && (
+          <small className="sr-record">
+            <span className="good-text">{t('ribbon.wins', { n: wins })}</span> · <span className="bad-text">{t('ribbon.losses', { n: played.length - wins })}</span>
+          </small>
+        )}
       </span>
       <span className="sr-track">
         {Array.from({ length: n + 2 }, (_, w) => {

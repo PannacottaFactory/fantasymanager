@@ -36,6 +36,13 @@ export interface MatchFlow {
   liveKey: number;
 }
 
+/** A point to come back to before a match: the game, the pre-match flow and the windows queued at that time. */
+interface Undo {
+  game: GameState;
+  match: MatchFlow;
+  ui: { weekStart: GameState | null; reveals: string[]; signings: { id: string; before: number }[]; contractTalks: boolean; boardNotes: string[] };
+}
+
 interface GameStore {
   ready: boolean;
   game: GameState | null;
@@ -63,6 +70,10 @@ interface GameStore {
   simulate: () => void;
   finishLive: (r: MatchResult) => void;
   closeMatch: () => void;
+  /** The state before the match whose report is open (not saved, never in Ironman): `retryMatch` goes back to it. */
+  undo: Undo | null;
+  /** Plays the match just finished again from its pre-match screen (the result is thrown away). */
+  retryMatch: () => void;
   markAllRead: () => void;
   viewReport: (r: MatchResult | null) => void;
   /** Applies a market action (bid, signing, renewal…), saves, and returns its outcome. */
@@ -177,6 +188,12 @@ export const useGame = create<GameStore>()((set, get) => {
     set({ recap: { before: get().weekStart ?? prev, after: next }, weekStart: next });
     return true;
   };
+  /** What a match changes in the store, kept before it is played so it can be played again (not in Ironman). */
+  const undoPoint = (game: GameState, match: MatchFlow): Undo | null => {
+    if (game.manager?.ironman) return null;
+    const s = get();
+    return { game, match, ui: { weekStart: s.weekStart, reveals: s.reveals, signings: s.signings, contractTalks: s.contractTalks, boardNotes: s.boardNotes } };
+  };
   const mapPlayerTeam = (f: (t: Team) => Team) => {
     const g = get().game;
     if (!g) return;
@@ -210,7 +227,7 @@ export const useGame = create<GameStore>()((set, get) => {
       const game = newGame({ seed: seed?.trim() || randomSeed(), teamName, lang: useSettings.getState().lang, difficulty, crest, career: mode?.career, ironman: mode?.ironman, managerName: mode?.managerName, squad: mode?.squad });
       const target = slot ?? get().slot;
       setCurrentSlot(target);
-      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], signings: [], contractTalks: false, boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
+      set({ slot: target, match: null, viewing: null, replaying: null, screen: 'dashboard', intro: true, launch: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, undo: null, reveals: [], signings: [], contractTalks: false, boardNotes: game.inbox.filter((m) => BOARD_NOTE_KINDS.has(m.kind)).map((m) => m.id), boardRules: false, sheet: null });
       commit(game);
       void get().refreshSlots();
     },
@@ -234,7 +251,7 @@ export const useGame = create<GameStore>()((set, get) => {
       if (!game) return;
       setCurrentSlot(slot);
       resetPlayClock(game.playTime ?? 0);
-      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, reveals: [], signings: [], contractTalks: false, boardNotes: [], boardRules: false, sheet: null });
+      set({ game, slot, match: null, viewing: null, replaying: null, screen: 'dashboard', launch: false, intro: false, weekStart: game, recap: null, drill: false, progress: null, afterMatch: null, undo: null, reveals: [], signings: [], contractTalks: false, boardNotes: [], boardRules: false, sheet: null });
     },
     deleteSlot: async (slot) => {
       await deleteGame(slot);
@@ -296,19 +313,33 @@ export const useGame = create<GameStore>()((set, get) => {
     simulate: () => {
       const { game: g, match } = get();
       if (!g || !match) return;
+      const undo = undoPoint(g, match);
       const next = playMatchday(g);
       advance(g, next);
-      set({ afterMatch: { before: g, after: next } });
+      set({ afterMatch: { before: g, after: next }, undo });
       set({ match: { ...match, phase: 'report', result: next.lastMatch?.result ?? null } });
     },
 
     finishLive: (result) => {
       const { game: g, match } = get();
       if (!g || !match) return;
+      const undo = undoPoint(g, match);
       const next = playMatchday(g, result);
       advance(g, next);
-      set({ afterMatch: { before: g, after: next } });
+      set({ afterMatch: { before: g, after: next }, undo });
       set({ match: { ...match, phase: 'report', result } });
+    },
+
+    undo: null,
+    retryMatch: () => {
+      const u = get().undo;
+      if (!u || u.game.manager?.ironman) return;
+      // Back to the pre-match screen as it was: the week, its windows and the save are those before the match.
+      set({ ...u.ui, game: u.game, undo: null, afterMatch: null, recap: null, progress: null, drill: false, viewing: null, screen: 'match', match: { ...u.match, phase: 'pre', setup: null, result: null, liveKey: u.match.liveKey + 1 } });
+      saveGame(u.game, get().slot).then(
+        () => get().saveError && set({ saveError: false }),
+        () => set({ saveError: true }),
+      );
     },
 
     closeMatch: () => {
@@ -318,7 +349,7 @@ export const useGame = create<GameStore>()((set, get) => {
       // The match's progress (XP bars filling) comes first, when there is any.
       const am = get().afterMatch;
       const progress = am && weekGrowth(am.before, am.after).length > 0 ? am : null;
-      set({ match: null, screen: 'league', drill, progress, afterMatch: null });
+      set({ match: null, screen: 'league', drill, progress, afterMatch: null, undo: null });
     },
 
     markAllRead: () => {

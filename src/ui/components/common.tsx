@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { useTraitEffects } from '../traitEffects.ts';
 import { ELEMENTS } from '../../data/elements.ts';
 import { SPECIES } from '../../data/species.ts';
 import { TRAITS } from '../../data/traits.ts';
@@ -200,16 +202,52 @@ export function ElementDots({ speciesId }: { speciesId: string }) {
   );
 }
 
+/** A trait as a chip; hovering (or focusing) it opens a card with what it does exactly, numbers included. */
 export function TraitChip({ id }: { id: string }) {
-  const { lang } = useT();
-  const t = TRAITS[id];
-  if (!t) return null;
+  const { t, lang } = useT();
+  const effects = useTraitEffects();
+  const [at, setAt] = useState<DOMRect | null>(null);
+  const def = TRAITS[id];
+  if (!def) return null;
   const txt = traitText(id, lang);
-  const cls = t.polarity === 'positive' ? 'pos' : t.polarity === 'negative' ? 'neg' : 'mixed';
+  const cls = def.polarity === 'positive' ? 'pos' : def.polarity === 'negative' ? 'neg' : 'mixed';
+  const lines = effects(id);
+  const show = (el: HTMLElement) => setAt(el.getBoundingClientRect());
+  // Below the chip, or above it when it sits low on the screen; kept inside the viewport.
+  const below = at ? at.bottom + 150 < window.innerHeight : true;
+  const left = at ? Math.max(8, Math.min(at.left, window.innerWidth - 270)) : 0;
   return (
-    <span className={`chip ${cls}`} title={txt.description}>
-      {txt.name}
-    </span>
+    <>
+      <span
+        className={`chip ${cls} trait-chip`}
+        tabIndex={0}
+        aria-label={`${txt.name}: ${[txt.description, ...lines].join(' · ')}`}
+        onMouseEnter={(e) => show(e.currentTarget)}
+        onMouseLeave={() => setAt(null)}
+        onFocus={(e) => show(e.currentTarget)}
+        onBlur={() => setAt(null)}
+      >
+        {txt.name}
+      </span>
+      {at &&
+        createPortal(
+          <div className={`trait-pop ${cls}`} role="tooltip" style={below ? { left, top: at.bottom + 6 } : { left, bottom: window.innerHeight - at.top + 6 }}>
+            <div className="trait-pop-head">
+              <b>{txt.name}</b>
+              <span className="trait-pop-kind">{t(`trait.kind.${def.polarity}`)}</span>
+            </div>
+            <div className="trait-pop-desc">{txt.description}</div>
+            {lines.length > 0 && (
+              <ul className="trait-pop-fx">
+                {lines.map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ul>
+            )}
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 

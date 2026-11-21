@@ -535,7 +535,9 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
 - [x] **Encyclopedia** (`ui/screens/EncyclopediaScreen.tsx`, texts in `ui/i18n/encyclopedia.ts`): species, abilities,
   effects, traits, roles, elements chart, attributes, injuries and combat rules, generated from the data and config
   (exact numbers, cross-links, search); reachable without a game (nav + Help). Never names play styles. Adding a
-  mechanic ⇒ describe it there (ability `spec.*`, effect `mod.*` / `fx.*`, or a rule). Test renders every page in
+  mechanic ⇒ describe it there (ability `spec.*`, effect `mod.*` / `fx.*`, or a rule). Rule bodies (`ru.*.body`) use a
+  tiny markup rendered by `RuleText`: one block per line, `# ` heading, `- ` list item, `> ` assistant's tip, else a
+  paragraph (the first = lede), `**label**` bold; filled-in numbers (with sign and « % ») become `.rule-num` pills. Test renders every page in
   both languages. 103 tests.
 - [x] **Post-match analysis** (`engine/report/analysis.ts` → `ui/screens/arena/AnalysisPanel.tsx`, texts in
   `ui/i18n/analysis.ts`): conclusions (data + key, worded by the UI), damage sources (validated categorical palette
@@ -575,6 +577,15 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   heaviest first) with a button to the right screen. After the player's latest match, `engine/report/advice.ts`
   (`nextMatchAdvice`) adds tips about the next opponent from public info only (their elements vs ours, healers, tanks,
   thorns) and our squad (injured / tired starters, points to place, two matches next week): « Leçons » + « Prochain adversaire ».
+  Kept short: 3 reasons, 3 tips in all (2 lessons + 1 ahead), each tip with the icon of the screen it is done on, no buttons.
+- **Opponent line-up in Tactics** (`OpponentPeek` in `TacticsScreen.tsx`, button « Composition adverse »): floating panel (not modal, so the line-up can be edited beside it) with the next opponent's expected line-up (`aiPrepare` as on the pre-match screen, `LineupCard` read left to right: `.opp-peek-card`) and its manager's temperament.
+- **Trait hover card** (`TraitChip` in `components/common.tsx`, everywhere a trait chip shows): name, quality / flaw, description and the exact effects from `useTraitEffects` (`ui/traitEffects.ts`, also used by the Encyclopedia trait page; only effects the engine applies: the declared `training.gainMult` and `personality.moraleVolatility` are applied nowhere, so not shown). Portal on `<body>`, `.trait-pop`.
+- **Play a match again** (not in Ironman): store `undo` (game + pre-match flow + queued windows, taken in `simulate` /
+  `finishLive`) → « Rejouer le match » in the report header → `retryMatch` restores and saves the state before the match and
+  reopens the pre-match screen. Gone once the report is closed.
+- **Action log** (`ui/screens/arena/ActionLog.tsx`, texts `ui/i18n/actionLog.ts`): report section listing every event plainly
+  (round headings, creature, action, target, result, stamina paid from the preceding `spend`), filters side / creature /
+  effects and statuses; a new event type ⇒ word it there too.
 - **Time** (`ui/season.ts`: `playerSeason` = the player's matches past and coming in play order, `byWeek`,
   `completedWeek` = last week fully played, −1 during pre-season, `itemLabel`): **season ribbon** under the top bar
   (`ui/components/SeasonRibbon.tsx`: pre-season + weeks 1…n, circle = league, diamond = competition in its colour,
