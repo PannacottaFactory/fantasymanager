@@ -13,7 +13,8 @@ import { managerName } from '../../../engine/team/identity.ts';
 import { Gold, Modal } from '../../components/common.tsx';
 import { divName } from '../../competitions.ts';
 import { useT, type Translator } from '../../i18n/index.ts';
-import { BadgeIcon } from '../../icons/Icon.tsx';
+import { BadgeIcon, DivIcon } from '../../icons/Icon.tsx';
+import { capitalize } from '../../../core/text.ts';
 import { BOARD_NOTE_KINDS, matchUnderway, useGame } from '../../store/gameStore.ts';
 import { objectiveText } from './InboxScreen.tsx';
 
@@ -257,6 +258,8 @@ function Meeting({ title, tone, children, onClose, closeLabel }: { title: string
   );
 }
 
+const signed = (v: number) => (v < 0 ? `−${-v}` : `+${v}`);
+
 /** The chair speaks: a moment of the season with the board (queued like the scout reports). */
 export function BoardMeeting() {
   const tr = useT();
@@ -281,6 +284,7 @@ export function BoardMeeting() {
   }
   const n = noteText(tr, m);
   const mood = boardMood(game);
+  const loss = DEFAULT_CONFIG.identity.difficulties[game.difficulty ?? 'normal'].boardLoss;
   return (
     <Meeting title={n.title} tone={n.tone} onClose={st.closeBoardNote} closeLabel={t('meet.ok')}>
       <div className="meeting">
@@ -300,7 +304,49 @@ export function BoardMeeting() {
           <blockquote className={`meeting-speech ${n.tone}`}>
             <Gold>{`« ${n.speech} »`}</Gold>
           </blockquote>
-          {n.rules && <Rules game={game} />}
+          {m.kind === 'boardObjective' && (
+            <div className={`meeting-goal tier-${m.division}`}>
+              <span className="meeting-goal-ico">
+                <DivIcon d={m.division} />
+              </span>
+              <div>
+                <small>{t('meet.objective.label')}</small>
+                <b>{capitalize(objectiveText(tr, m.objective))}</b>
+                <span className="muted">{divName(t, m.division)}</span>
+              </div>
+            </div>
+          )}
+          {m.kind === 'boardObjective' && (
+            <h4 className="meeting-pulse-title">{t('board.rules.moves')}</h4>
+          )}
+          {m.kind === 'boardObjective' && (
+            <div className="meeting-pulse">
+              <span className="good">
+                <small>{t('meet.pulse.win')}</small>
+                <b>
+                  {signed(B.result.pointsWin)} / {signed(B.result.koWin)}
+                </b>
+              </span>
+              <span className="bad">
+                <small>{t('meet.pulse.loss')}</small>
+                <b>
+                  {signed(Math.round(B.result.pointsLoss * loss * 10) / 10)} / {signed(Math.round(B.result.koLoss * loss * 10) / 10)}
+                </b>
+              </span>
+              <span className="gold">
+                <small>{t('meet.pulse.season')}</small>
+                <b>
+                  {signed(B.met)} / {signed(Math.round(B.missed * loss))}
+                </b>
+              </span>
+            </div>
+          )}
+          {n.rules && (
+            <details className="meeting-rules">
+              <summary>{t('meet.rules.more')}</summary>
+              <Rules game={game} />
+            </details>
+          )}
         </div>
       </div>
     </Meeting>

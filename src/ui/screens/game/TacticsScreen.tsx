@@ -3,6 +3,9 @@ import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
 import { aiPrepare, playerFixture, playerPrepare, playerTeam, teamById } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import { managerName } from '../../../engine/team/identity.ts';
+import { elementOutlook, type ElementOutlook } from '../../../engine/report/advice.ts';
+import { ELEMENTS } from '../../../data/elements.ts';
+import { elementName } from '../../../engine/text/localize.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { LineupCard } from './MatchScreen.tsx';
 import { validateTactic } from '../../../engine/team/team.ts';
@@ -99,6 +102,7 @@ function OpponentPeek({ game, onClose }: { game: GameState; onClose: () => void 
           <div className="prematch-lineups opp-peek-card">
             <LineupCard team={opp} title={t('match.opponent')} side={1} />
           </div>
+          <ElementAdvice outlook={elementOutlook(opp)} />
           {opp.identity && (
             <div className="muted opp-peek-note" title={t(`manager.${opp.identity.manager}.desc`)}>
               {t('match.manager', { name: managerName(opp), m: t(`manager.${opp.identity.manager}`) })}
@@ -110,5 +114,31 @@ function OpponentPeek({ game, onClose }: { game: GameState; onClose: () => void 
         <div className="muted">{t('tactics.oppPeek.none')}</div>
       )}
     </aside>
+  );
+}
+
+/** Elements worth fielding against their likely starters, and those to keep out (net of damage dealt and taken). */
+function ElementAdvice({ outlook }: { outlook: { favour: ElementOutlook[]; avoid: ElementOutlook[] } }) {
+  const { t, lang } = useT();
+  const x = (v: number) => v.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const row = (key: 'favour' | 'avoid', list: ElementOutlook[], cls: string) => (
+    <div className="opp-elems-row">
+      <span className="opp-elems-label">{t(`tactics.oppPeek.${key}`)}</span>
+      {list.length ? (
+        list.map((o) => (
+          <span key={o.element} className={`chip ${cls}`} title={t('tactics.oppPeek.elemTip', { deals: x(o.deals), takes: x(o.takes) })}>
+            <i className="elem" style={{ background: ELEMENTS[o.element].color }} /> {elementName(o.element, lang)}
+          </span>
+        ))
+      ) : (
+        <span className="faint">{t('tactics.oppPeek.noElem')}</span>
+      )}
+    </div>
+  );
+  return (
+    <div className="opp-elems" title={t('tactics.oppPeek.elemHint')}>
+      {row('favour', outlook.favour, 'pos')}
+      {row('avoid', outlook.avoid, 'neg')}
+    </div>
   );
 }

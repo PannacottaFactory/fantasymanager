@@ -88,3 +88,38 @@ export function nextMatchAdvice(ctx: NextMatchContext, cfg: GameConfig = DEFAULT
   }
   return tips.sort((a, b) => b.weight - a.weight);
 }
+
+/** How a creature of one element fares against a line-up: damage its attacks deal, damage their attacks deal it. */
+export interface ElementOutlook {
+  element: ElementId;
+  /** Average multiplier of an attack of this element against their starters. */
+  deals: number;
+  /** Average multiplier of their starters' best element against a creature of this element. */
+  takes: number;
+  /** deals − takes: above 0 = worth fielding, below = to avoid. */
+  score: number;
+}
+
+/**
+ * The elements to favour and to avoid against a team's likely starters (public information only), best first.
+ * `favour` = net score ≥ `edge`, `avoid` = ≤ −`edge`, at most `max` of each.
+ */
+export function elementOutlook(foe: Team, cfg: GameConfig = DEFAULT_CONFIG, edge = 0.1, max = 3): { favour: ElementOutlook[]; avoid: ElementOutlook[] } {
+  const foes = likelyStarters(foe);
+  if (!foes.length) return { favour: [], avoid: [] };
+  const all = (Object.keys(cfg.elements.strong) as ElementId[]).map((element) => {
+    const deals = avg(foes.map((f) => elementMultiplier(element, getSpecies(f).elements, cfg)));
+    const takes = avg(
+      foes.map((f) => {
+        const els = getSpecies(f).elements;
+        return els.length ? Math.max(...els.map((e: ElementId) => elementMultiplier(e, [element], cfg))) : 1;
+      }),
+    );
+    return { element, deals, takes, score: deals - takes };
+  });
+  const sorted = [...all].sort((a, b) => b.score - a.score);
+  return {
+    favour: sorted.filter((o) => o.score >= edge).slice(0, max),
+    avoid: sorted.filter((o) => o.score <= -edge).reverse().slice(0, max),
+  };
+}

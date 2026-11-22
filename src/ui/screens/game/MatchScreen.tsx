@@ -23,6 +23,22 @@ import { Versus } from './Versus.tsx';
 import { arenaActive, arenaFor } from '../../../engine/league/arena.ts';
 import { preMatchSituation, readTalk } from '../../../engine/combat/talks.ts';
 import { TalkPicker } from '../../components/TeamTalk.tsx';
+import type { Lang } from '../../../core/i18n.ts';
+
+/** Species name, icon and element dots in fixed sub-columns, so icons and elements line up from row to row. */
+function SpeciesCell({ speciesId, lang }: { speciesId: string; lang: Lang }) {
+  return (
+    <span className="lr-sp lineup-species faint">
+      <span className="lsp-name ellipsis">{speciesName(speciesId, lang)}</span>
+      <span className="lsp-icon">
+        <SpeciesIcon id={speciesId} size="1.1em" />
+      </span>
+      <span className="lsp-elems">
+        <ElementDots speciesId={speciesId} />
+      </span>
+    </span>
+  );
+}
 
 export function LineupCard({ team, title, side }: { team: Team; title: string; side: 0 | 1 }) {
   const { t, lang } = useT();
@@ -46,9 +62,7 @@ export function LineupCard({ team, title, side }: { team: Team; title: string; s
                 <Bar value={c.condition.fatigue} max={100} color={fatigueColor(c.condition.fatigue)} thin />
               </span>
               <span className="lr-line tag">{s.line === 'front' ? t('tag.front') : t('tag.back')}</span>
-              <span className="lr-sp lineup-species faint">
-                <span className="ellipsis">{speciesName(c.speciesId, lang)}</span> <SpeciesIcon id={c.speciesId} size="1.1em" /> <ElementDots speciesId={c.speciesId} />
-              </span>
+              <SpeciesCell speciesId={c.speciesId} lang={lang} />
               <span className="lr-role tag">
                 <RoleLabel role={s.role} short />
               </span>
@@ -61,10 +75,9 @@ export function LineupCard({ team, title, side }: { team: Team; title: string; s
           return (
             <div key={id} className="lineup-row dim">
               <span className="lr-crest"><Crest speciesId={c.speciesId} name={c.name} /></span>
-              <span className="lr-name grow lr-bench-name">
-                <span className="ellipsis">{c.name}</span> <ElementDots speciesId={c.speciesId} />
-              </span>
-              <span className="lr-bench tag">{t('tag.bench')}</span>
+              <span className="lr-name grow ellipsis">{c.name}</span>
+              <SpeciesCell speciesId={c.speciesId} lang={lang} />
+              <span className="lr-role lr-bench tag">{t('tag.bench')}</span>
             </div>
           );
         })}

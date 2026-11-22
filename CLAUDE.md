@@ -11,7 +11,9 @@ resolves them. 100 % front-end, deployable on GitHub Pages.
 - Repo: https://github.com/PannacottaFactory/fantasymanager (Pages deploy via `.github/workflows/deploy.yml`;
   `index.html` has `<meta name="robots" content="noindex, nofollow">` so search engines skip the site).
 - Top bar: dragon icon (game-icons) + title « Fantasy Manager », subtitle = the player's stable name during a game.
-  A new game opens a welcome window (`IntroModal`, store flag `intro`, not saved).
+  A new game opens a welcome window (`IntroModal`, store flag `intro`, not saved: banner in the crest colours, pyramid
+  « Vous partez d'ici », objective / treasury / first fight tiles, the three stars as cards); the first board meeting
+  then shows the objective as a card, three confidence tiles (win / defeat / season) and the full rules folded.
 - **Gold**: amounts are written in gold colour (`--gold`): `<Money v>` for a standalone amount, `<Gold>{text}</Gold>`
   colours every amount inside a worded string (regex on what `money()` writes). Inside `.good-text`/`.bad-text` they
   keep the gain/loss colour. Morale words use `moraleColor` (red → green).
@@ -578,7 +580,7 @@ in the 20 stables (one every ~5 seasons per stable). Not shown during the live m
   (`nextMatchAdvice`) adds tips about the next opponent from public info only (their elements vs ours, healers, tanks,
   thorns) and our squad (injured / tired starters, points to place, two matches next week): « Leçons » + « Prochain adversaire ».
   Kept short: 3 reasons, 3 tips in all (2 lessons + 1 ahead), each tip with the icon of the screen it is done on, no buttons.
-- **Opponent line-up in Tactics** (`OpponentPeek` in `TacticsScreen.tsx`, button « Composition adverse »): floating panel (not modal, so the line-up can be edited beside it) with the next opponent's expected line-up (`aiPrepare` as on the pre-match screen, `LineupCard` read left to right: `.opp-peek-card`) and its manager's temperament.
+- **Opponent line-up in Tactics** (`OpponentPeek` in `TacticsScreen.tsx`, button « Composition adverse »): floating panel (not modal, so the line-up can be edited beside it) with the next opponent's expected line-up (`aiPrepare` as on the pre-match screen, `LineupCard` mirrored as in the face-off; species cell = name · icon · elements in fixed sub-columns so icons and dots line up), the elements to favour / avoid against its likely starters (`elementOutlook` in `engine/report/advice.ts`: average damage dealt − taken per element, ≥ 0.1 / ≤ −0.1, 3 max, ×dealt / ×taken in the tooltip) and its manager's temperament.
 - **Trait hover card** (`TraitChip` in `components/common.tsx`, everywhere a trait chip shows): name, quality / flaw, description and the exact effects from `useTraitEffects` (`ui/traitEffects.ts`, also used by the Encyclopedia trait page; only effects the engine applies: the declared `training.gainMult` and `personality.moraleVolatility` are applied nowhere, so not shown). Portal on `<body>`, `.trait-pop`.
 - **Play a match again** (not in Ironman): store `undo` (game + pre-match flow + queued windows, taken in `simulate` /
   `finishLive`) → « Rejouer le match » in the report header → `retryMatch` restores and saves the state before the match and
