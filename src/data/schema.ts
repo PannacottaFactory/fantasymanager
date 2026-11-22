@@ -227,6 +227,20 @@ export interface TraitCombatEffects {
   soloDamageMult?: number;
   /** Bonus when allies already hit the same target this round. */
   comboBonus?: number;
+  /** Chance to hit (added). */
+  hitBonus?: number;
+  /** Chance to be hit (taken off the attacker's chance). */
+  dodgeBonus?: number;
+  /** Armour (damage reduction share, added). */
+  mitigationBonus?: number;
+  /** Healing given ×. */
+  healMult?: number;
+  /** Stamina recovered each round ×. */
+  staminaRegenMult?: number;
+  /** Stamina spent on abilities ×. */
+  staminaCostMult?: number;
+  /** Damage × against a target below `combat.damage.woundedBelow` of its health. */
+  woundedTargetMult?: number;
 }
 
 export interface TraitDef {
@@ -236,6 +250,8 @@ export interface TraitDef {
   polarity: 'positive' | 'negative' | 'mixed';
   /** Mutually exclusive traits. */
   excludes?: string[];
+  /** Never drawn when a creature is generated: only earned (or caught) in matches. */
+  acquired?: boolean;
   combat?: TraitCombatEffects;
   /** Used from phase 4 (training) and phase 5 (morale). */
   training?: { gainMult?: number; injuryMult?: number };

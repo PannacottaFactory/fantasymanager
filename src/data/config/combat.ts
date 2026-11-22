@@ -85,6 +85,8 @@ export const COMBAT_CONFIG = {
     critMult: 1.6,
     /** Execution abilities hit harder on targets below this health fraction. */
     executeBelow: 0.3,
+    /** Traits that finish off the wounded (`woundedTargetMult`) hit harder on targets below this health fraction. */
+    woundedBelow: 0.4,
     /** Pack abilities count at most this many allies already on the target. */
     packMax: 4,
     /** Chain abilities: each leap to another enemy deals this fraction of the previous one. */

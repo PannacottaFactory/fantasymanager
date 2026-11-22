@@ -3,7 +3,7 @@ import { bestRole, isInjured, maxHp, overallRating } from '../../../engine/creat
 import { playerTeam } from '../../../engine/league/season.ts';
 import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, SquadCount, StageMark, Stars, TraitChip } from '../../components/common.tsx';
+import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, SquadCount, StageMark, Stars, TraitChips } from '../../components/common.tsx';
 import { useAxisColumns } from '../../components/ProfileRadar.tsx';
 import { creatureValue } from '../../../engine/economy/value.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -103,7 +103,7 @@ export function SquadScreen() {
     { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)} style={{ color: moraleColor(c.condition.morale) }}>{t(moraleKey(c.condition.morale))}</span> },
     { key: 'hp', label: t('col.hp'), num: true, className: 'col-hp', sort: (c) => maxHp(c, DEFAULT_CONFIG), render: (c) => maxHp(c, DEFAULT_CONFIG) },
     ...axisColumns,
-    { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
+    { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => <TraitChips c={c} /> },
   ];
   // Contracts view: age, value, wage, end of contract, for sale.
   const contractColumns: Column<Creature>[] = [

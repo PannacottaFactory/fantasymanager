@@ -23,6 +23,7 @@ import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/
 import { applyIdentity, drawIdentities, identitySkills, styleShare } from '../team/identity.ts';
 import { alignPotential, levelOf, matchXp } from '../progression/levels.ts';
 import { afterMatchSessions } from '../progression/sessions.ts';
+import { evolveTraits } from '../progression/traitEvolution.ts';
 import { INJURIES } from '../../data/injuries.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard, weeklyBoardStanding } from '../club/board.ts';
@@ -41,6 +42,7 @@ import { computeStandings } from './standings.ts';
 import type { Fixture, FixtureResult, GameState, MatchComp } from './types.ts';
 import { championsFrom, cupKey, finishTournamentRound, midweekKey, startTournaments, tournamentFixture, tournamentsAt } from './tournaments.ts';
 import { preMatchSituation, readTalk } from '../combat/talks.ts';
+import { moraleVolatility } from '../creature/traitPersonality.ts';
 
 export interface NewGameOptions {
   seed: string;
@@ -324,7 +326,7 @@ function applyMatchEffects(team: Team, result: MatchResult, side: Side, injuryFa
     // Experience from the fight (turned into progress by this week's training).
     const g = (c.growth ??= { ability: 0, pool: 0, season: 0 });
     g.matchXp = (g.matchXp ?? 0) + matchXp({ played: true, starter: !!result.roster[c.id]?.starter, rating: st?.rating ?? 5, kos: st?.kos ?? 0, won }, cfg);
-    let morale = cond.morale + moraleDelta;
+    let morale = cond.morale + moraleDelta * moraleVolatility(c);
     if (report.mvp === c.id) morale += lc.mvpMorale;
     cond.morale = clamp(Math.round(morale), 0, 100);
     if (st?.played) cond.form = clamp(Math.round(cond.form + (st.rating - 6) * lc.formPerRatingPoint), 1, 20);
@@ -424,6 +426,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
       }
       const dead = fatalities(next, team, result, fx, injuryFactor, cfg);
       fx.injuries = fx.injuries.filter((i) => !dead.some((x) => x.id === i.creatureId));
+      const trait = evolveTraits(next, team, result, side, fixture.id, cfg);
       if (teamId !== next.playerTeamId) {
         team.tactic = aiPrepare(team, cfg, next.difficulty ?? 'normal').tactic;
         continue;
@@ -444,6 +447,10 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
       for (const x of dead) {
         pushMessage(next, { kind: 'death', creatureId: x.id, name: x.name, speciesId: x.speciesId, injuryId: x.injuryId, opponent: opp.name, friends: x.friends });
         (next.fallen ??= []).push({ id: x.id, name: x.name, speciesId: x.speciesId, age: x.age, level: x.level, season: next.season, matchday: next.matchday, opponent: opp.name, injuryId: x.injuryId });
+      }
+      if (trait) {
+        const { creature: c, change: ch } = trait;
+        pushMessage(next, { kind: 'trait', creatureId: c.id, name: c.name, traitId: ch.t, gained: ch.gained, line: ch.line, ...(ch.replaced ? { replaced: ch.replaced } : {}) });
       }
       for (const inj of fx.injuries) {
         pushMessage(next, { kind: 'injury', creatureId: inj.creatureId, name: team.creatures.find((c) => c.id === inj.creatureId)!.name, injuryId: inj.injuryId, weeks: inj.weeks });

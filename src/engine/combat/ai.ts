@@ -18,6 +18,7 @@ import {
   effectStacks,
   coverMult,
   executeMult,
+  woundedMult,
   lineTargets,
   packMult,
   elementMultiplier,
@@ -164,7 +165,7 @@ export function expectedDamage(ctx: AiContext, actor: Combatant, ability: Abilit
   const hits = ability.hits ?? 1;
   const images = aoe ? 0 : imagesLeft(target);
   const landing = images ? Math.max(0, hits - images) : hits;
-  return raw * perceivedMult * weather * executeMult(ability, target, cfg) * pack * cover * (1 - mit) * hit * landing * takenMult(target, kind, aoe);
+  return raw * perceivedMult * weather * executeMult(ability, target, cfg) * woundedMult(actor, target, cfg) * pack * cover * (1 - mit) * hit * landing * takenMult(target, kind, aoe);
 }
 
 /** Beneficial effects a dispel would tear off this target (shields, hiding, undying weigh most). */

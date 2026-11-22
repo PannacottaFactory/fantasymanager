@@ -10,7 +10,9 @@ import { JobOfferActions } from './Career.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { locate } from '../../../engine/economy/market.ts';
-import { abilityText, attributeText, categoryName, injuryText, speciesName } from '../../../engine/text/localize.ts';
+import { abilityText, attributeText, categoryName, injuryText, speciesName, traitText } from '../../../engine/text/localize.ts';
+import { TRAITS } from '../../../data/traits.ts';
+import { changeKind } from '../../../engine/progression/traitEvolution.ts';
 import { errorText } from './CreatureSheet.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -63,6 +65,8 @@ function messageIcon(m: InboxMessage): string {
       return 'nav-staff';
     case 'medal':
       return `medal-${m.family}`;
+    case 'trait':
+      return 'nav-squad';
     case 'bestiary':
       return 'bestiary';
     case 'arenaIntro':
@@ -133,6 +137,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'friendLeft':
     case 'relation':
     case 'medal':
+    case 'trait':
     case 'request':
     case 'requestOutcome':
       return 'squad';
@@ -399,6 +404,19 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
         body: t('msg.medal.body', { name: m.name, desc: medalDesc(tr, m.family, DEFAULT_CONFIG.collection.medals[m.family][m.tier - 1] ?? 0) }),
         tone: 'good',
       };
+    case 'trait': {
+      const tr8 = traitText(m.traitId, tr.lang);
+      const polarity = TRAITS[m.traitId]?.polarity ?? 'mixed';
+      const line = t(`msg.trait.line.${changeKind(m.traitId, m.gained)}.${m.line}` as StringKey, { name: m.name });
+      const body = m.gained ? t('msg.trait.gained.body', { line, trait: tr8.name, desc: tr8.description }) : t('msg.trait.lost.body', { line, trait: tr8.name });
+      const replaced = m.replaced ? ` ${t('msg.trait.replaced', { old: traitText(m.replaced, tr.lang).name })}` : '';
+      const good = polarity === 'mixed' ? null : (polarity === 'positive') === m.gained;
+      return {
+        title: t(m.gained ? 'msg.trait.gained.title' : 'msg.trait.lost.title', { name: m.name, trait: tr8.name }),
+        body: body + replaced,
+        tone: good === null ? 'info' : good ? 'good' : 'bad',
+      };
+    }
     case 'bestiary': {
       const names = (ids: string[]) => ids.map((id) => speciesName(id, tr.lang)).join(', ');
       const n = m.seen.length + m.owned.length;
@@ -491,7 +509,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
         </button>
       </div>
     );
-  const sheetId = m.kind === 'gemNoticed' ? m.creatureId : m.kind === 'transferIn' || m.kind === 'medal' ? m.creatureId : null;
+  const sheetId = m.kind === 'gemNoticed' ? m.creatureId : m.kind === 'transferIn' || m.kind === 'medal' || m.kind === 'trait' ? m.creatureId : null;
   if (sheetId && locate(game, sheetId))
     return (
       <button className="btn small ghost" onClick={() => openSheet(sheetId)}>

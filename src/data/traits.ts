@@ -158,6 +158,220 @@ const list: TraitDef[] = [
     description: 'Waits for the right moment and sticks to the plan.',
     combat: { attrMods: { composure: 1 }, disobeyMult: 0.8 },
   },
+  // ——— Drawn at birth, and also earned or caught in matches ———
+  {
+    id: 'complacent', name: 'Complacent', polarity: 'negative', excludes: ['ambitious', 'iron-will'],
+    description: 'Too many easy wins. No longer sees why it should push itself.',
+    combat: { attrMods: { determination: -2 } },
+    training: { gainMult: 0.9 },
+  },
+  {
+    id: 'tireless', name: 'Tireless', polarity: 'positive', excludes: ['lazy', 'sluggish'],
+    description: 'Gets its breath back faster than anyone.',
+    combat: { attrMods: { stamina: 1 }, staminaRegenMult: 1.12 },
+  },
+  {
+    id: 'elusive', name: 'Elusive', polarity: 'positive', excludes: ['sluggish'],
+    description: 'Never quite where the blow lands.',
+    combat: { attrMods: { agility: 1 }, dodgeBonus: 0.03 },
+  },
+  {
+    id: 'sharp-eyed', name: 'Sharp-Eyed', polarity: 'positive', excludes: ['clumsy', 'jinxed'],
+    description: 'Sees the opening and does not miss it.',
+    combat: { attrMods: { accuracy: 1 }, hitBonus: 0.03 },
+  },
+  {
+    id: 'thick-skinned', name: 'Thick-Skinned', polarity: 'mixed', excludes: ['glass-jaw'],
+    description: 'Takes the blows without blinking, but its hide weighs it down.',
+    combat: { attrMods: { speed: -1 }, mitigationBonus: 0.04 },
+  },
+  {
+    id: 'finisher', name: 'Finisher', polarity: 'positive',
+    description: 'Smells weakness and finishes the job.',
+    combat: { woundedTargetMult: 1.12, instinctTarget: 'weakest' },
+  },
+  {
+    id: 'second-wind', name: 'Second Wind', polarity: 'positive', excludes: ['lazy'],
+    description: 'When it seems spent, it finds something more.',
+    combat: { attrMods: { recovery: 2, determination: 1 } },
+  },
+  {
+    id: 'economical', name: 'Economical', polarity: 'positive', excludes: ['reckless'],
+    description: 'Never wastes a movement.',
+    combat: { staminaCostMult: 0.9 },
+  },
+  {
+    id: 'gentle-hands', name: 'Gentle Hands', polarity: 'positive',
+    description: 'Knows how to tend a wound, even in the middle of a fight.',
+    combat: { healMult: 1.1 },
+  },
+  {
+    id: 'heavy-handed', name: 'Heavy-Handed', polarity: 'mixed', excludes: ['sharp-eyed'],
+    description: 'Hits like a falling wall, when it hits.',
+    combat: { damageMult: 1.05, hitBonus: -0.03 },
+  },
+  {
+    id: 'glass-jaw', name: 'Glass Jaw', polarity: 'negative', excludes: ['iron-hide', 'thick-skinned', 'battle-scarred'],
+    description: 'Goes down far too easily.',
+    combat: { attrMods: { toughness: -2 } },
+    training: { injuryMult: 1.2 },
+  },
+  {
+    id: 'sluggish', name: 'Sluggish', polarity: 'negative', excludes: ['elusive', 'tireless'],
+    description: 'Heavy on its feet, and tires itself out moving.',
+    combat: { attrMods: { speed: -2 }, staminaCostMult: 1.06 },
+  },
+  {
+    id: 'inspired', name: 'Inspired', polarity: 'positive', excludes: ['stoic', 'jinxed'],
+    description: 'Riding high. Every success lifts it further.',
+    combat: { attrMods: { composure: 1 }, moraleGainMult: 1.3 },
+  },
+  {
+    id: 'timid', name: 'Timid', polarity: 'negative', excludes: ['reckless', 'bloodthirsty', 'berserker', 'fearless', 'iron-will'],
+    description: 'Holds back from the fray and flinches at the first scare.',
+    combat: { attrMods: { aggression: -2, courage: -1 }, breakThresholdMod: 4 },
+  },
+  {
+    id: 'wary', name: 'Wary', polarity: 'positive', excludes: ['reckless'],
+    description: 'Always expects the next blow.',
+    combat: { attrMods: { anticipation: 2 }, dodgeBonus: 0.01 },
+  },
+  {
+    id: 'focused', name: 'Focused', polarity: 'positive', excludes: ['showboat'],
+    description: 'Nothing distracts it once the fight has begun.',
+    combat: { attrMods: { focus: 2 }, critBonus: 0.01 },
+  },
+  {
+    id: 'jinxed', name: 'Jinxed', polarity: 'negative', excludes: ['lucky', 'sharp-eyed', 'inspired'],
+    description: 'Nothing goes its way, and it knows it.',
+    combat: { critBonus: -0.02, hitBonus: -0.01 },
+  },
+  {
+    id: 'iron-will', name: 'Iron Will', polarity: 'positive', excludes: ['frail-nerves', 'timid', 'complacent', 'coward'],
+    description: 'Does not bend, whatever the score.',
+    combat: { attrMods: { determination: 2 }, breakThresholdMod: -4 },
+  },
+  {
+    id: 'brawler', name: 'Brawler', polarity: 'mixed', excludes: ['timid'],
+    description: 'Loves a scrap more than a plan.',
+    combat: { attrMods: { strength: 1, aggression: 1, discipline: -1 } },
+  },
+  {
+    id: 'quick-footed', name: 'Quick-Footed', polarity: 'positive', excludes: ['sluggish'],
+    description: 'First to move, first to strike.',
+    combat: { attrMods: { speed: 2 } },
+  },
+  {
+    id: 'hard-hitter', name: 'Hard Hitter', polarity: 'mixed',
+    description: 'All the weight goes into the blow, none into the footwork.',
+    combat: { attrMods: { strength: 2, agility: -1 } },
+  },
+  {
+    id: 'acrobat', name: 'Acrobat', polarity: 'positive', excludes: ['sluggish', 'clumsy'],
+    description: 'Leaps, rolls and twists out of trouble.',
+    combat: { attrMods: { agility: 2 }, dodgeBonus: 0.01 },
+  },
+  {
+    id: 'bulwark', name: 'Bulwark', polarity: 'positive', excludes: ['reckless', 'selfish'],
+    description: 'A wall the others can shelter behind.',
+    combat: { attrMods: { defense: 2 }, interceptBonus: 0.04 },
+  },
+  {
+    id: 'arcane-gift', name: 'Arcane Gift', polarity: 'positive',
+    description: 'Magic comes to it as easily as breathing.',
+    combat: { attrMods: { magic: 2 } },
+  },
+  {
+    id: 'scatterbrained', name: 'Scatterbrained', polarity: 'negative', excludes: ['focused', 'cunning', 'tactician'],
+    description: 'Its mind wanders off in the middle of the fight.',
+    combat: { attrMods: { focus: -2, tactics: -1 } },
+  },
+  {
+    id: 'mean-streak', name: 'Mean Streak', polarity: 'mixed', excludes: ['gentle-soul', 'patient'],
+    description: 'Fights dirty and enjoys it, orders or not.',
+    combat: { attrMods: { aggression: 2 }, critBonus: 0.01, disobeyMult: 1.15 },
+  },
+  {
+    id: 'gentle-soul', name: 'Gentle Soul', polarity: 'mixed', excludes: ['bloodthirsty', 'mean-streak', 'brawler', 'merciless'],
+    description: 'Fights because it must. Everyone likes having it around.',
+    combat: { attrMods: { aggression: -2, teamwork: 1 }, auraMorale: 0.5 },
+  },
+  {
+    id: 'slow-witted', name: 'Slow-Witted', polarity: 'negative', excludes: ['cunning', 'wary', 'tactician'],
+    description: 'Always one move behind the fight.',
+    combat: { attrMods: { tactics: -2, anticipation: -1 } },
+  },
+  {
+    id: 'tactician', name: 'Tactician', polarity: 'positive', excludes: ['slow-witted', 'scatterbrained'],
+    description: 'Reads the fight like an open book.',
+    combat: { attrMods: { tactics: 2, anticipation: 1 } },
+  },
+  {
+    id: 'crowd-pleaser', name: 'Crowd Pleaser', polarity: 'mixed', excludes: ['stoic'],
+    description: 'Feeds on the roar of the stands, and sometimes plays to them.',
+    combat: { moraleGainMult: 1.2, showboatChance: 0.02 },
+  },
+  {
+    id: 'sore-loser', name: 'Sore Loser', polarity: 'negative', excludes: ['stoic', 'cool-headed'],
+    description: 'Takes every setback badly, and lets everyone know.',
+    combat: { moraleLossMult: 1.2, disobeyMult: 1.2 },
+  },
+  {
+    id: 'rousing', name: 'Rousing', polarity: 'positive',
+    description: 'Its battle cry lifts the whole team.',
+    combat: { attrMods: { leadership: 2 }, auraMorale: 1 },
+  },
+  {
+    id: 'selfish', name: 'Selfish', polarity: 'mixed', excludes: ['team-player', 'guardian', 'bulwark'],
+    description: 'Fights for itself first.',
+    combat: { attrMods: { teamwork: -2 }, soloDamageMult: 1.06 },
+  },
+  {
+    id: 'tough-as-nails', name: 'Tough as Nails', polarity: 'positive', excludes: ['glass-jaw', 'brittle', 'thin-skinned'],
+    description: 'Hurts it? It barely notices.',
+    combat: { attrMods: { toughness: 2, courage: 1 } },
+  },
+  {
+    id: 'skittish', name: 'Skittish', polarity: 'mixed', excludes: ['fearless', 'cool-headed', 'iron-will'],
+    description: 'Jumps at every shadow: hard to pin down, quick to break.',
+    combat: { attrMods: { composure: -2 }, dodgeBonus: 0.02, breakThresholdMod: 3 },
+  },
+  {
+    id: 'deadeye', name: 'Deadeye', polarity: 'positive', excludes: ['clumsy', 'jinxed'],
+    description: 'Puts its shots exactly where it wants them.',
+    combat: { attrMods: { accuracy: 2 }, critBonus: 0.01 },
+  },
+  {
+    id: 'short-winded', name: 'Short-Winded', polarity: 'negative', excludes: ['tireless', 'second-wind'],
+    description: 'Runs out of breath long before the others.',
+    combat: { attrMods: { stamina: -2 }, staminaRegenMult: 0.9 },
+  },
+  {
+    id: 'merciless', name: 'Merciless', polarity: 'positive', excludes: ['gentle-soul'],
+    description: 'Never lets a wounded foe get back up.',
+    combat: { woundedTargetMult: 1.08, critBonus: 0.01, instinctTarget: 'weakest' },
+  },
+  {
+    id: 'thin-skinned', name: 'Thin-Skinned', polarity: 'negative', excludes: ['thick-skinned', 'iron-hide', 'tough-as-nails'],
+    description: 'Every blow hurts, in the body and in the mind.',
+    combat: { mitigationBonus: -0.03, moraleLossMult: 1.1 },
+  },
+  {
+    id: 'rebel', name: 'Rebel', polarity: 'mixed', excludes: ['professional', 'patient'],
+    description: 'Does it its own way, and does not give up.',
+    combat: { attrMods: { determination: 2 }, disobeyMult: 1.6 },
+  },
+  // ——— Earned or caught only in matches (never at birth) ———
+  {
+    id: 'battle-scarred', name: 'Battle-Scarred', polarity: 'positive', acquired: true, excludes: ['traumatised', 'glass-jaw'],
+    description: 'Has been to the brink and back. Little shakes it any more.',
+    combat: { attrMods: { toughness: 1, composure: 1 }, mitigationBonus: 0.02 },
+  },
+  {
+    id: 'traumatised', name: 'Traumatised', polarity: 'negative', acquired: true, excludes: ['battle-scarred', 'fearless', 'iron-will'],
+    description: 'A bad fight has left its mark. It can heal, with time and a few good matches.',
+    combat: { attrMods: { courage: -3 }, moraleLossMult: 1.2, breakThresholdMod: 6 },
+  },
 ];
 
 export const TRAITS: Record<string, TraitDef> = Object.fromEntries(list.map((t) => [t.id, t]));

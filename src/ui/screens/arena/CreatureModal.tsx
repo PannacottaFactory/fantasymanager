@@ -29,6 +29,8 @@ import { SkillPanel } from '../../components/SkillPanel.tsx';
 import { attributeCeiling } from '../../../engine/progression/training.ts';
 import { MAX_NAME_LENGTH } from '../../../engine/team/rename.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
+import { newTraits } from '../../../engine/progression/traitEvolution.ts';
+import { useGame } from '../../store/gameStore.ts';
 
 interface Props {
   creature: Creature;
@@ -71,6 +73,8 @@ function StatTile({ label, value, title, big }: { label: string; value: ReactNod
 
 export function CreatureModal({ creature, onClose, showHidden = true, skills, showSkills, onEquip, extra, footer, aside, knowledge = 100, deltas, onSpendPoint, pointKeys, onRename, reference }: Props) {
   const freePoints = onSpendPoint ? (creature.growth?.freePoints ?? 0) : 0;
+  const game = useGame((s) => s.game);
+  const fresh = game ? newTraits(creature, game.season, game.matchday) : null;
   const tr = useT();
   const { t, lang } = tr;
   const sp = getSpecies(creature);
@@ -212,12 +216,18 @@ export function CreatureModal({ creature, onClose, showHidden = true, skills, sh
             {traitsKnown(knowledge) && creature.traits.length === 0 && <span className="faint">{t('cr.noTraits')}</span>}
             {(traitsKnown(knowledge) ? creature.traits : []).map((x) => (
               <div key={x} className="trait-line">
-                <TraitChip id={x} />{' '}
+                <TraitChip id={x} fresh={fresh?.has(x)} />{' '}
                 <span className="muted" style={{ fontSize: '0.857rem' }}>
                   {traitText(x, lang).description}
                 </span>
               </div>
             ))}
+            {traitsKnown(knowledge) &&
+              (creature.traitLog ?? []).slice(-3).map((x, i) => (
+                <div key={i} className="faint trait-log">
+                  {t(x.gained ? 'cr.traitLog.gained' : 'cr.traitLog.lost', { trait: traitText(x.t, lang).name, s: x.s, w: x.w })}
+                </div>
+              ))}
           </div>
           {known && (
             <div className="sheet-box sec-roles" data-tip="sheet-roles">

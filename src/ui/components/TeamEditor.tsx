@@ -15,7 +15,7 @@ import { ABILITIES } from '../../data/abilities.ts';
 import type { Aggression, Creature, Stance, Team } from '../../engine/model.ts';
 import { useT, type Translator } from '../i18n/index.ts';
 import { CreatureModal } from '../screens/arena/CreatureModal.tsx';
-import { ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChip } from './common.tsx';
+import { ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Modal, Stars, TraitChips } from './common.tsx';
 import { SortableTable, type Column } from './SortableTable.tsx';
 import { useAxisColumns } from './ProfileRadar.tsx';
 import { useRowDrag } from './rowDrag.ts';
@@ -287,7 +287,7 @@ export function TeamEditor({ team, onChange, header, toolbar, league, onSwapSpec
     },
     { key: 'hp', label: t('col.hp'), num: true, className: 'col-hp', sort: (c) => maxHp(c, DEFAULT_CONFIG), render: (c) => maxHp(c, DEFAULT_CONFIG) },
     ...axisColumns,
-    { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => c.traits.map((x) => <TraitChip key={x} id={x} />) },
+    { key: 'traits', label: t('col.traits'), className: 'col-cat', render: (c) => <TraitChips c={c} /> },
   );
   // Column order after the species: rating, potential, fatigue, role, line, instruction, skills, level / XP;
   // then health, attributes and traits. Columns absent from the test arena are simply skipped.

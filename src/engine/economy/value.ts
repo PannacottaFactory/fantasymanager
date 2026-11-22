@@ -3,6 +3,7 @@ import { clamp } from '../../core/math.ts';
 import { DEFAULT_CONFIG, type GameConfig } from '../../data/config/index.ts';
 import { getSpecies } from '../creature/derived.ts';
 import type { Creature } from '../model.ts';
+import { ambitionOf } from '../creature/traitPersonality.ts';
 
 export const roundTo = (v: number, step: number) => Math.max(step, Math.round(v / step) * step);
 
@@ -26,7 +27,7 @@ export function creatureValue(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): nu
 export function askingWage(c: Creature, reputation: number, years = 1, cfg: GameConfig = DEFAULT_CONFIG): number {
   const w = cfg.economy.wage;
   let wage = creatureValue(c, cfg) * w.perValue + w.base;
-  wage *= 1 + (c.hidden.ambition - 10) * w.ambitionWeight;
+  wage *= 1 + (ambitionOf(c) - 10) * w.ambitionWeight;
   wage *= 1 + Math.max(0, w.referenceReputation - reputation) / w.reputationDivisor;
   wage *= 1 + (clamp(years, w.minYears, w.maxYears) - 1) * w.perExtraYear;
   return roundTo(wage, 10);

@@ -15,6 +15,7 @@ import { divisionOf } from '../league/divisions.ts';
 import { pushMessage } from '../league/messages.ts';
 import type { CreatureRequest, GameState, RequestChoice, RequestKind } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
+import { leaveDrive } from '../creature/traitPersonality.ts';
 
 const playerTeamOf = (state: GameState) => state.teams.find((t) => t.id === state.playerTeamId)!;
 
@@ -122,7 +123,7 @@ function reasonOf(state: GameState, c: Creature, cfg: GameConfig, rng: Rng): Omi
     if (fit >= q.playtime.minAvailable && starts <= q.playtime.maxStarts) return { kind: 'playtime', creatureId: c.id, name: c.name };
   }
   // Courted by a bigger stable.
-  if (c.hidden.ambition >= q.leave.ambition && canLose(playerTeamOf(state), cfg)) {
+  if (leaveDrive(c) >= q.leave.ambition && canLose(playerTeamOf(state), cfg)) {
     const fee = roundTo(creatureValue(c, cfg) * rng.range(q.leave.feeMin, q.leave.feeMax), cfg.economy.value.round);
     const team = suitor(state, fee, cfg);
     if (team) return { kind: 'leave', creatureId: c.id, name: c.name, fromTeamId: team.id, fee };

@@ -73,7 +73,7 @@ export function generateTraits(rng: Rng, species: SpeciesDef, cfg: GameConfig): 
   const weights = cfg.generation.traitCountWeights;
   const count = rng.weighted([0, 1, 2, 3], (n) => weights[n] ?? 0);
   const chosen: string[] = [];
-  const all = Object.keys(TRAITS);
+  const all = Object.keys(TRAITS).filter((t) => !TRAITS[t]!.acquired);
   for (let i = 0; i < count; i++) {
     const available = all.filter(
       (t) =>

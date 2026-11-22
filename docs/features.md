@@ -214,6 +214,29 @@ add a new bullet for a new one.
   renewed/released (AI) → young prospects (2–4 per stable: AI stables sign the promising ones, the rest and the player's share join the
   free agents — no nursery, no « brood » the player keeps) →
   new coach market → `ensureSquads` keeps every squad ≥ 9.
+- **Traits that change** (Nov 2026, `engine/progression/traitEvolution.ts`, `cfg.traitEvolution` in
+  `data/config/traits.ts`): purely random, nothing in the match decides (a first version with marks left by match
+  signals was dropped: hard to balance, 86 % good news, a few traits everywhere). After each match (`playFixtures`, after
+  deaths) `evolveTraits` gives each stable `chance` (25 %, ≈ one change every 4 weeks) that one creature that played
+  changes: `gainShare` (60 %) a gain among `gainableTraits` (not held, no opposite held; match-only traits included),
+  else it loses one of its own (no traits → always a gain); a creature already holding `maxTraits` (3) that gains loses
+  another at random (`replaced`). Stream `deriveSeed(worldSeed, 'traits', season, fixtureId, teamId)`, never touches a
+  result; same rules for AI stables. Logged in `Creature.traitLog`; the player gets an inbox `trait` message with a
+  generic sentence (`line` 1–3, `msg.trait.line.<changeKind>.<n>`: quality / flaw / double-edged × gained / lost) and
+  « Le trait X disparaît » for the trait pushed out (toast only for good news), a « Nouveau » tag on the chip for 6
+  weeks (`newTraits`, `TraitChips`), the last 3 changes in the sheet. Encyclopedia rule `traits` and « Origine » fact.
+  21 new traits, drawn at birth in new games (a seed still gives the same world, but not the same one as before they
+  existed): complacent, tireless, elusive, sharp-eyed, thick-skinned, finisher, second-wind, economical, gentle-hands,
+  heavy-handed, glass-jaw, sluggish, inspired, timid, wary, focused, jinxed, iron-will, brawler; only after matches
+  (`acquired: true`, never at birth): battle-scarred, traumatised. Second batch (21 more, drawn at birth): quick-footed, hard-hitter,
+  acrobat, bulwark, arcane-gift, scatterbrained, mean-streak, gentle-soul, slow-witted, tactician, crowd-pleaser,
+  sore-loser, rousing, selfish, tough-as-nails, skittish, deadeye, short-winded, merciless, thin-skinned, rebel (combat
+  effects only). Traits outside the arena (`engine/creature/traitPersonality.ts`, were declared but read nowhere
+  until Nov 2026): `training.gainMult` × the weekly progress (`traitTrainingMult`), `personality.ambitionMod` in
+  `ambitionOf` (wage asked, ambitious free agents' bonus), `personality.loyaltyMod` taken off it in `leaveDrive` (star
+  requests « leave »), `personality.moraleVolatility` × the after-match morale change. New trait hooks in the formulas: `hitBonus`,
+  `dodgeBonus`, `mitigationBonus`, `healMult`, `staminaRegenMult`, `staminaCostMult`, `woundedTargetMult` (below
+  `combat.damage.woundedBelow` 0.4, also in the AI's expected damage).
 - **Levels & XP** (`engine/progression/levels.ts`, `cfg.training.levels / xp`): the player sees a level 1–10 and
   0–100 XP; underneath, levels are steps of the hidden aptitude (`ability`, 1–200; `levels.steps` = [28, 40, 50, 60,
   72, 86, 102, 120, 142, 168]: short at the bottom so modest creatures still climb, long at the top), which still drives the

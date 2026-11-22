@@ -13,6 +13,8 @@ import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.
 import { lifeStage } from '../../engine/progression/training.ts';
 import { potentialLevelRange } from '../../engine/economy/scouting.ts';
 import type { Creature } from '../../engine/model.ts';
+import { newTraits } from '../../engine/progression/traitEvolution.ts';
+import { useGame } from '../store/gameStore.ts';
 import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 
 /** An attribute value coloured by tier; `cell` = a filled box (dense tables, manager-game style). */
@@ -203,7 +205,7 @@ export function ElementDots({ speciesId }: { speciesId: string }) {
 }
 
 /** A trait as a chip; hovering (or focusing) it opens a card with what it does exactly, numbers included. */
-export function TraitChip({ id }: { id: string }) {
+export function TraitChip({ id, fresh }: { id: string; /** Earned in a recent match: a « new » tag. */ fresh?: boolean }) {
   const { t, lang } = useT();
   const effects = useTraitEffects();
   const [at, setAt] = useState<DOMRect | null>(null);
@@ -228,6 +230,11 @@ export function TraitChip({ id }: { id: string }) {
         onBlur={() => setAt(null)}
       >
         {txt.name}
+        {fresh && (
+          <span className="new-badge" title={t('trait.newTip')}>
+            {t('trait.new')}
+          </span>
+        )}
       </span>
       {at &&
         createPortal(
@@ -247,6 +254,19 @@ export function TraitChip({ id }: { id: string }) {
           </div>,
           document.body,
         )}
+    </>
+  );
+}
+
+/** A creature's traits as chips, the ones earned in recent matches tagged « new ». */
+export function TraitChips({ c }: { c: Creature }) {
+  const game = useGame((s) => s.game);
+  const fresh = game ? newTraits(c, game.season, game.matchday) : null;
+  return (
+    <>
+      {c.traits.map((x) => (
+        <TraitChip key={x} id={x} fresh={fresh?.has(x)} />
+      ))}
     </>
   );
 }

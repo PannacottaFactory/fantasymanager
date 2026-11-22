@@ -203,6 +203,7 @@ export function hitChance(
   if (ctx.combo) p += h.comboBase + (attacker.attrs.teamwork - 10) * h.comboPerTeamwork + traitSum(attacker, 'comboBonus');
   if (ctx.friendCombo) p += cfg.combat.bonds.friendCombo;
   p += effectMod(attacker, 'hitBonus') - effectMod(defender, 'dodgeBonus');
+  p += traitSum(attacker, 'hitBonus') - traitSum(defender, 'dodgeBonus');
   // Composure steadies the blow, speed makes the target harder to catch, the best leader on the field guides the strikes
   // (all centred on 10).
   p += (attacker.attrs.composure - 10) * h.perComposure - (defender.attrs.speed - 10) * h.dodgePerSpeed + (attacker.led ?? 0);
@@ -323,6 +324,11 @@ export function executeMult(ability: AbilityDef, target: Combatant, cfg: GameCon
   return ability.execute && hpFraction(target) < cfg.combat.damage.executeBelow ? 1 + ability.execute : 1;
 }
 
+/** Trait multiplier of an attacker that finishes off the wounded, on this target. */
+export function woundedMult(attacker: Combatant, target: Combatant, cfg: GameConfig): number {
+  return hpFraction(target) < cfg.combat.damage.woundedBelow ? traitMult(attacker, 'woundedTargetMult') : 1;
+}
+
 /** Pack multiplier: allies that already struck this target this round. */
 export function packMult(ability: AbilityDef, alliesOnTarget: number, cfg: GameConfig): number {
   return ability.pack ? 1 + ability.pack * Math.min(alliesOnTarget, cfg.combat.damage.packMax) : 1;
@@ -347,7 +353,7 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
   }
   // Courage: holding the front line without flinching.
   if (defender.line === 'front') m += (a.courage - 10) * d.courageFrontPerPoint;
-  m += effectMod(defender, 'mitigation');
+  m += effectMod(defender, 'mitigation') + traitSum(defender, 'mitigationBonus');
   m += roleMitigation(defender, cfg);
   m += cfg.combat.orders[orders.aggression].mitigation;
   m += cfg.combat.stances[defender.stance].mitigation;
@@ -358,7 +364,7 @@ export function mitigation(defender: Combatant, kind: AttackKind, orders: TeamOr
 
 export function healAmount(healer: Combatant, ability: AbilityDef, cfg: GameConfig): number {
   const h = cfg.combat.heal;
-  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg) * roleHealFactor(healer, cfg);
+  return ability.power * (h.statBase + healer.attrs.magic * h.statPerPoint) * moraleFactor(healer, cfg) * roleHealFactor(healer, cfg) * traitMult(healer, 'healMult');
 }
 
 export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrders, cfg: GameConfig): number {
@@ -368,13 +374,14 @@ export function staminaCost(c: Combatant, ability: AbilityDef, orders: TeamOrder
   if (orders.talk === 'fury') cost *= 1 + cfg.combat.orders.talks.fury.cost;
   // Discipline: a disciplined fighter spends its strength sparingly (centred on 10, so the average does not move).
   cost *= 1 - (c.attrs.discipline - 10) * cfg.combat.stamina.disciplinePerPoint;
+  cost *= traitMult(c, 'staminaCostMult');
   return Math.round(cost);
 }
 
 export function staminaRegen(c: Combatant, cfg: GameConfig): number {
   const s = cfg.combat.stamina;
   // Centred on recovery 10 (regenBase is negative): never below a trickle.
-  return Math.max(s.regenMin, s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina) * effectMod(c, 'staminaRegenMult');
+  return Math.max(s.regenMin, s.regenBase + c.attrs.recovery * s.regenPerRecovery + c.attrs.stamina * s.regenPerStamina) * effectMod(c, 'staminaRegenMult') * traitMult(c, 'staminaRegenMult');
 }
 
 export function interceptChance(guard: Combatant, cfg: GameConfig, orders?: TeamOrders): number {

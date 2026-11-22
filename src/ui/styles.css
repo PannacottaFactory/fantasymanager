@@ -4507,6 +4507,8 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
 
 /* Trait chip: hover card with the exact effects (portal on <body>, fixed, above dialogs). */
 .trait-chip { cursor: help; }
+.trait-chip .new-badge { margin-left: var(--sp-1); }
+.trait-log { font-size: var(--fs-xs); margin-top: var(--sp-1); }
 .trait-pop {
   position: fixed; z-index: 60; width: max-content; max-width: min(16rem, calc(100vw - 16px)); pointer-events: none;
   padding: 6px 10px; border-radius: var(--r-sm); background: var(--panel);

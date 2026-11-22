@@ -67,6 +67,18 @@ export interface Creature {
    * wage demands) × this, AI stables chase it. Fades after `scouting.gem.hypeWeeks`.
    */
   hype?: number;
+  /** Traits gained or lost after matches, oldest first. */
+  traitLog?: TraitChange[];
+}
+
+/** A trait gained (`gained`) or lost after a match: season, week, the message's sentence, the trait it pushed out. */
+export interface TraitChange {
+  t: string;
+  gained: boolean;
+  s: number;
+  w: number;
+  line: number;
+  replaced?: string;
 }
 
 /** What a creature has done in its career (league, cup and tournament matches). */

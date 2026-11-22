@@ -49,7 +49,18 @@ export function useTraitEffects(): (id: string) => string[] {
     if (c.showboatChance) lines.push(e('trc.showboatChance', { v: Math.round(c.showboatChance * 100) }));
     if (c.soloDamageMult) lines.push(e('trc.soloDamageMult', { v: mult(c.soloDamageMult) }));
     if (c.comboBonus) lines.push(e('trc.comboBonus', { v: pct(c.comboBonus) }));
+    if (c.hitBonus) lines.push(e('trc.hitBonus', { v: `${c.hitBonus > 0 ? '+' : '−'}${pct(c.hitBonus)}` }));
+    if (c.dodgeBonus) lines.push(e('trc.dodgeBonus', { v: pct(c.dodgeBonus) }));
+    if (c.mitigationBonus) lines.push(e('trc.mitigationBonus', { v: `${c.mitigationBonus > 0 ? '+' : '−'}${pct(c.mitigationBonus)}` }));
+    if (c.healMult) lines.push(e('trc.healMult', { v: mult(c.healMult) }));
+    if (c.staminaRegenMult) lines.push(e('trc.staminaRegenMult', { v: mult(c.staminaRegenMult) }));
+    if (c.staminaCostMult) lines.push(e('trc.staminaCostMult', { v: mult(c.staminaCostMult) }));
+    if (c.woundedTargetMult) lines.push(e('trc.woundedTargetMult', { v: mult(c.woundedTargetMult), t: Math.round(DEFAULT_CONFIG.combat.damage.woundedBelow * 100) }));
     if (tdef.training?.injuryMult) lines.push(e('trc.injuryMult', { v: mult(tdef.training.injuryMult) }));
+    if (tdef.training?.gainMult) lines.push(e('trc.gainMult', { v: mult(tdef.training.gainMult) }));
+    if (tdef.personality?.ambitionMod) lines.push(e('trc.ambitionMod', { v: tdef.personality.ambitionMod }));
+    if (tdef.personality?.loyaltyMod) lines.push(e('trc.loyaltyMod'));
+    if (tdef.personality?.moraleVolatility) lines.push(e('trc.moraleVolatility', { v: mult(tdef.personality.moraleVolatility) }));
     return lines;
   };
 }

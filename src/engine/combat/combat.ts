@@ -32,6 +32,7 @@ import {
   effectMod,
   coverMult,
   executeMult,
+  woundedMult,
   lineTargets,
   packMult,
   isCleansable,
@@ -975,7 +976,7 @@ export class Combat {
     // Swarms scatter around a single blow but are swept by area attacks; a golden hide turns blades.
     dmg *= takenMult(target, kind, aoe);
     const exec = executeMult(ability, target, cfg);
-    dmg *= exec;
+    dmg *= exec * woundedMult(actor, target, cfg);
     dmg *= coverMult(kind, target, this.coverPoints(target.side), cfg);
     const pack = ability.pack ? this.ai.alliesOn(actor, target) : 0;
     dmg *= packMult(ability, pack, cfg);

@@ -36,7 +36,7 @@ const cfg = DEFAULT_CONFIG;
 export type Tab = 'bestiary' | 'species' | 'abilities' | 'effects' | 'traits' | 'roles' | 'elements' | 'attributes' | 'injuries' | 'rules';
 const TABS: Tab[] = ['species', 'abilities', 'effects', 'traits', 'roles', 'elements', 'attributes', 'injuries', 'rules'];
 const ROLE_IDS = Object.keys(ROLES) as RoleId[];
-export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'talks', 'stamina', 'morale', 'injury', 'levels', 'age', 'arena'] as const;
+export const RULES = ['match', 'turn', 'hit', 'damage', 'cover', 'guard', 'orders', 'talks', 'stamina', 'morale', 'injury', 'levels', 'age', 'traits', 'arena'] as const;
 
 /**
  * Accent-insensitive, case-insensitive form of a text, one character for one character (so a position found in the
@@ -725,7 +725,7 @@ export function TraitEntry({ id, go }: { id: string; go: (l: Link) => void }) {
     <div>
       <h3 className="enc-title">{txt.name}</h3>
       <p>{txt.description}</p>
-      <Facts rows={[[e('tr.polarity'), e(`tr.${tdef.polarity}` as EncKey)]]} />
+      <Facts rows={[[e('tr.polarity'), e(`tr.${tdef.polarity}` as EncKey)], ...(tdef.acquired ? [[e('tr.origin'), e('tr.acquired')] as [string, string]] : [])]} />
       <List title={e('tr.effects')} items={lines} />
       <List
         title={e('tr.excludes')}
@@ -1077,6 +1077,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
       young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining),
     },
     age: { young: mult(cfg.training.stage.young), prime: mult(cfg.training.stage.prime), old: mult(cfg.training.stage.declining) },
+    traits: { chance: Math.round(cfg.traitEvolution.chance * 100), gain: Math.round(cfg.traitEvolution.gainShare * 100), max: cfg.traitEvolution.maxTraits },
   };
   return (
     <div className="rule-page">

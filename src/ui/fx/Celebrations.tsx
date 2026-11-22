@@ -15,6 +15,7 @@ import { centreOf, fxLayer } from './FxLayer.tsx';
 import { BadgeIcon, UiIcon } from '../icons/Icon.tsx';
 import { Medal } from '../components/CreatureRecord.tsx';
 import { play } from '../sound/sfx.ts';
+import { TRAITS } from '../../data/traits.ts';
 
 type Moment = 'small' | 'big' | 'huge' | 'sad';
 
@@ -29,6 +30,9 @@ function momentOf(m: InboxMessage): Moment | null {
     case 'boardMood':
     case 'fansMood':
       return 'small';
+    case 'trait':
+      // Only good news gets a toast: a quality earned or a flaw shaken off.
+      return (TRAITS[m.traitId]?.polarity === 'positive' && m.gained) || (TRAITS[m.traitId]?.polarity === 'negative' && !m.gained) ? 'small' : null;
     case 'scoutReport':
       return m.target !== 'creature' || !m.verdict ? null : m.verdict === 'gem' ? 'big' : 'small';
     case 'bestiary':

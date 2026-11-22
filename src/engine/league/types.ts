@@ -143,6 +143,8 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'ambition'; ambition: AmbitionId }
   | { kind: 'medal'; creatureId: string; name: string; family: MedalFamily; tier: number; /** Other creatures that won the same medal that week. */ more?: { creatureId: string; name: string }[] }
   | { kind: 'bestiary'; seen: string[]; owned: string[]; rewards: BestiaryReward[] }
+  /** A trait gained (or lost) after a match: `line` = its generic sentence, `replaced` = the trait it pushed out. */
+  | { kind: 'trait'; creatureId: string; name: string; traitId: string; gained: boolean; line: number; replaced?: string }
   | { kind: 'arenaIntro' }
   // ——— Career mode ———
   | { kind: 'sacked'; team: string; reason: SackReason; reputation: number }

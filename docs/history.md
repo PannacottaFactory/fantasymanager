@@ -370,3 +370,11 @@ moonbeam, bloom, prism beam and blood bolt (18 cooldown-1 skills). `sim:abilitie
 (`--override`) vs new: uses per match +35 %, average added 9.7 → 10.1 points (within the noise); to watch: dissolve on
 the ooze 6.2 → −1.0 (sandworm 12.8 → 16.5), life drain slightly up (+2 on average). Follow-up: dissolve gets its 2
 corrosion doses back (power 13, cooldown 1), life drain 16 → 15.
+
+**Traits that change** (Nov 2026): first version with marks left by match signals (24 signals, thresholds, decay)
+measured on 3 worlds × 2 seasons: one change every 5.1 weeks per stable but 86 % good news, natural losses 10 out of
+1058, a few traits everywhere (second wind, guardian, focused) and some never seen: dropped for a purely random draw
+(25 % per match and stable, 60 % gains, 3 traits max). Same measure: one change every 4 weeks (5.6 a season, 4.8
+messages for the player), gains 875 / losses 474 / pushed out at random 113, good 40 % / bad 37 % / double-edged 23 %,
+traits per creature 0: 15 %, 1: 38 %, 2: 30 %, 3: 17 %, every trait seen (sharp-eyed rarest: three common opposites).
+Then 21 more traits (73 in all), and `training.gainMult` / `personality.*` finally read by the engine (not measured).

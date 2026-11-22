@@ -17,6 +17,7 @@ import { favouredSpecies } from '../team/identity.ts';
 import { clubOf, earn, spend, weeklyBill } from './finance.ts';
 import { isOwn, knowledgeOf, learn, scoutVerdict } from './scouting.ts';
 import { askingWage, creatureValue, roundTo } from './value.ts';
+import { ambitionOf } from '../creature/traitPersonality.ts';
 
 // ——— Lookups ———
 
@@ -95,7 +96,7 @@ export const signingBonus = (c: Creature, cfg: GameConfig = DEFAULT_CONFIG) =>
 
 /** A very ambitious free agent finds a stable of this reputation too modest: it asks a bigger bonus to join. */
 export const ambitiousFor = (c: Creature, reputation: number, cfg: GameConfig = DEFAULT_CONFIG) =>
-  c.hidden.ambition >= cfg.economy.transfers.ambitiousFrom && reputation < cfg.economy.transfers.ambitiousReputation;
+  ambitionOf(c) >= cfg.economy.transfers.ambitiousFrom && reputation < cfg.economy.transfers.ambitiousReputation;
 
 /** Signing bonus a free agent asks from a stable of this reputation (premium for ambitious ones at small stables). */
 export const freeAgentBonus = (c: Creature, reputation: number, cfg: GameConfig = DEFAULT_CONFIG) =>

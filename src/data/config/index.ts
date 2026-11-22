@@ -11,6 +11,7 @@ import { LEAGUE_CONFIG } from './league.ts';
 import { MATCH_CONFIG } from './match.ts';
 import { TRAINING_CONFIG } from './training.ts';
 import { REPORT_CONFIG } from './report.ts';
+import { TRAIT_EVOLUTION_CONFIG } from './traits.ts';
 
 /**
  * Single entry point for every balancing value.
@@ -29,11 +30,13 @@ export const DEFAULT_CONFIG = {
   collection: COLLECTION_CONFIG,
   arena: ARENA_CONFIG,
   career: CAREER_CONFIG,
+  traitEvolution: TRAIT_EVOLUTION_CONFIG,
   identity: { styles: PLAY_STYLES, managers: MANAGERS, difficulties: DIFFICULTIES },
 };
 
 export type GameConfig = typeof DEFAULT_CONFIG;
 export type { QualityId } from './generation.ts';
 export type { MedalFamily } from './collection.ts';
+export type { TraitChangeKind } from './traits.ts';
 export type { ArenaConditionId } from './arena.ts';
 export type { DifficultyId, ManagerId, PlayStyleId } from './identity.ts';

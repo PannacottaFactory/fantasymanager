@@ -21,6 +21,7 @@ import { pushMessage } from '../league/messages.ts';
 import { levelOf, maxLevelOf, xpPerAbility } from './levels.ts';
 import type { Coach, GameState, TrainingPlan } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
+import { traitTrainingMult } from '../creature/traitPersonality.ts';
 
 /** Training follows the creature's role by default. Intensity is no longer chosen: always normal. */
 export const DEFAULT_PLAN: TrainingPlan = { program: 'role', intensity: 'normal' };
@@ -264,8 +265,8 @@ export function weeklyTraining(state: GameState, _played: Set<string>, cfg: Game
       const stage = lifeStage(c);
       const gap = c.potential - c.ability;
       if (gap > 0 && t.stage[stage] > 0) {
-        // Match XP × life stage × the coach of the creature's program × the training ground, up to the potential.
-        const gain = Math.min(gap, (fromMatch / xpPerAbility(cfg)) * t.stage[stage] * coachFactor(state, team.id, category, cfg) * trainingFactor(state, team.id, cfg));
+        // Match XP × life stage × the coach of the creature's program × the training ground × its traits, up to the potential.
+        const gain = Math.min(gap, (fromMatch / xpPerAbility(cfg)) * t.stage[stage] * coachFactor(state, team.id, category, cfg) * trainingFactor(state, team.id, cfg) * traitTrainingMult(c));
         const weights = programWeights(c, team, category, cfg);
         const record = isPlayer ? progressLogger(c, state.season, state.matchday, cfg) : undefined;
         const gains: Partial<Record<AttributeKey, number>> = {};
