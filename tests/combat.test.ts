@@ -134,7 +134,7 @@ describe('combat rules', () => {
     expect(c.active(0).length).toBe(standing);
   });
 
-  it('a substitute can come on in another role and line, and replays keep it', () => {
+  it('a substitute can come on in another role, line and order, and replays keep it', () => {
     const s = setup(6);
     const c = new Combat(s);
     c.advance();
@@ -142,10 +142,12 @@ describe('combat rules', () => {
     const inc = c.bench(0)[0]!;
     const role = inc.role === 'tank' ? 'caster' : 'tank';
     const line = out.line === 'front' ? 'back' : 'front';
+    const stance = inc.stance === 'allOut' ? 'conserve' : 'allOut';
     const factor = inc.roleFactor;
-    expect(c.applyBreakDecision(0, { substitutions: [{ outId: out.id, inId: inc.id, role, line }] })).toEqual([]);
+    expect(c.applyBreakDecision(0, { substitutions: [{ outId: out.id, inId: inc.id, role, line, stance }] })).toEqual([]);
     expect(inc.role).toBe(role);
     expect(inc.line).toBe(line);
+    expect(inc.stance).toBe(stance);
     expect(c.getRoster()[inc.id]!.role).toBe(role);
     expect(inc.roleFactor).not.toBe(factor);
     c.resume();

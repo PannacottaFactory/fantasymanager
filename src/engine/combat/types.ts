@@ -96,6 +96,8 @@ export interface SubstitutionDecision {
   role?: RoleId;
   /** Line it takes (default: the line of the creature it replaces). */
   line?: Line;
+  /** Individual order it comes on with (default: the one it had on the team sheet). */
+  stance?: Stance;
 }
 
 export interface BreakDecision {

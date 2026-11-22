@@ -29,7 +29,7 @@ interface Props {
 
 /** Manager decisions at a break: substitutions, team orders, individual stances. */
 export function BreakPanel({ combat, onResume }: Props) {
-  const { t, lang } = useT();
+  const { t } = useT();
   const side = 0;
   const cfg = combat.cfg;
   const subsLeft = cfg.match.maxSubstitutions - combat.sides[side].subsUsed;
@@ -71,7 +71,8 @@ export function BreakPanel({ combat, onResume }: Props) {
       if (free && subs.length < subsLeft) setSubs([...subs, { outId: id, inId: free.id }]);
     }
   };
-  const setIn = (outId: string, inId: string) => setSubs(subs.map((s) => (s.outId === outId ? { outId, inId } : s)));
+  // Another creature comes on: its role and order are its own again (the line chosen stays).
+  const setIn = (outId: string, inId: string) => setSubs(subs.map((s) => (s.outId === outId ? { outId, inId, line: s.line } : s)));
   const patchSub = (outId: string, p: Partial<SubstitutionDecision>) => setSubs(subs.map((s) => (s.outId === outId ? { ...s, ...p } : s)));
   const resume = () => {
     const stanceChanges = Object.entries(stances)
@@ -192,12 +193,10 @@ export function BreakPanel({ combat, onResume }: Props) {
                     </td>
                     <td style={{ color: down ? undefined : moraleColor(c.morale) }}>{down ? '—' : t(moraleKey(c.morale))}</td>
                     <td>
-                      {!down && (
-                        <select className="compact" value={stances[c.id]} onChange={(e) => setStances({ ...stances, [c.id]: e.target.value as Stance })}>
-                          <option value="normal">{t('stance.normal')}</option>
-                          <option value="conserve">{t('stance.conserve')}</option>
-                          <option value="allOut">{t('stance.allOut')}</option>
-                        </select>
+                      {sub ? (
+                        <StanceSelect className="incoming" title={t('break.subStance.title')} value={sub.stance ?? combat.get(sub.inId).stance} onChange={(stance) => patchSub(c.id, { stance })} />
+                      ) : (
+                        !down && <StanceSelect value={stances[c.id] ?? c.stance} onChange={(st) => setStances({ ...stances, [c.id]: st })} />
                       )}
                     </td>
                     <td className="sub-td">
@@ -206,36 +205,16 @@ export function BreakPanel({ combat, onResume }: Props) {
                           {sub ? t('break.replacing') : t('break.replace')}
                         </button>
                         {sub && (
-                          <select className="compact" value={sub.inId} onChange={(e) => setIn(c.id, e.target.value)}>
+                          <select className="compact" title={t('break.subIn.title')} value={sub.inId} onChange={(e) => setIn(c.id, e.target.value)}>
                             {bench
                               .filter((b) => b.id === sub.inId || !inIds.has(b.id))
                               .map((b) => (
                                 <option key={b.id} value={b.id}>
-                                  {b.name} ({speciesName(b.speciesId, lang)})
+                                  → {b.name}
                                 </option>
                               ))}
                           </select>
                         )}
-                        {sub && (() => {
-                          const inc = combat.get(sub.inId);
-                          const natural = SPECIES[inc.speciesId]?.roles ?? [];
-                          return (
-                            <span className="sub-role">
-                              <select className="compact" title={t('break.subRole.title')} value={sub.role ?? inc.role} onChange={(e) => patchSub(c.id, { role: e.target.value as RoleId })}>
-                                {ROLE_IDS.map((r) => (
-                                  <option key={r} value={r}>
-                                    {roleText(r, lang).name}
-                                    {natural.includes(r) ? '' : ` (${t('break.offRole')})`}
-                                  </option>
-                                ))}
-                              </select>
-                              <select className="compact" title={t('break.subLine.title')} value={sub.line ?? c.line} onChange={(e) => patchSub(c.id, { line: e.target.value as Line })}>
-                                <option value="front">{t('line.front')}</option>
-                                <option value="back">{t('line.back')}</option>
-                              </select>
-                            </span>
-                          );
-                        })()}
                       </span>
                     </td>
                   </tr>
@@ -258,14 +237,16 @@ export function BreakPanel({ combat, onResume }: Props) {
                     c={b}
                     foes={combat.active(1)}
                     cfg={cfg}
-                    replacing={sub?.outId ?? null}
-                    role={sub?.role ?? b.role}
+                    sub={sub ?? null}
+                    outLine={sub ? combat.get(sub.outId).line : null}
                     options={mine.filter((m) => !outIds.has(m.id) || subs.find((x) => x.outId === m.id)?.inId === b.id)}
                     canAdd={!!sub || subs.length < subsLeft}
                     onPick={(outId) => {
                       const rest = subs.filter((x) => x.inId !== b.id && x.outId !== outId);
-                      setSubs(outId ? [...rest, { outId, inId: b.id }] : rest);
+                      // Same substitute for another creature: its role and order stay, the line follows the new spot.
+                      setSubs(outId ? [...rest, { outId, inId: b.id, role: sub?.role, stance: sub?.stance }] : rest);
                     }}
+                    onPatch={(p) => sub && patchSub(sub.outId, p)}
                   />
                 );
               })}
@@ -287,56 +268,95 @@ function AscendancyHint() {
   );
 }
 
-/** A substitute at a break: what it brings (level, role, health, stamina, elements against the creatures still standing, abilities). */
+function StanceSelect({ value, onChange, className, title }: { value: Stance; onChange: (s: Stance) => void; className?: string; title?: string }) {
+  const { t } = useT();
+  return (
+    <select className={`compact ${className ?? ''}`} title={title} value={value} onChange={(e) => onChange(e.target.value as Stance)}>
+      <option value="normal">{t('stance.normal')}</option>
+      <option value="conserve">{t('stance.conserve')}</option>
+      <option value="allOut">{t('stance.allOut')}</option>
+    </select>
+  );
+}
+
+/**
+ * A substitute at a break, kept short so the bench fits without scrolling: who it is, what it brings (health, morale,
+ * fatigue, element match-ups as the crests of the creatures still standing, abilities), then who it replaces and,
+ * once chosen, the role, line and order it comes on with.
+ */
 function BenchCard({
   c,
   foes,
   cfg,
-  replacing,
-  role,
+  sub,
+  outLine,
   options,
   canAdd,
   onPick,
+  onPatch,
 }: {
   c: Combatant;
   foes: Combatant[];
   cfg: Combat['cfg'];
-  replacing: string | null;
-  role: RoleId;
+  sub: SubstitutionDecision | null;
+  outLine: Line | null;
   options: Combatant[];
   canAdd: boolean;
   onPick: (outId: string | null) => void;
+  onPatch: (p: Partial<SubstitutionDecision>) => void;
 }) {
   const { t, lang } = useT();
   const strong = foes.filter((f) => c.elements.some((e) => elementMultiplier(e, f.elements, cfg) > 1));
   const weak = foes.filter((f) => f.elements.some((e) => elementMultiplier(e, c.elements, cfg) > 1));
   const fatigue = Math.round(c.preFatigue);
+  const role = sub?.role ?? c.role;
+  const natural = SPECIES[c.speciesId]?.roles ?? [];
+  const tired = c.stamina < c.maxStamina * 0.99;
   return (
-    <div className={`bench-card ${replacing ? 'chosen' : ''}`}>
+    <div className={`bench-card ${sub ? 'chosen' : ''}`}>
       <div className="bc-head">
-        <Crest speciesId={c.speciesId} name={c.name} />
-        <b className="grow ellipsis">{c.name}</b>
-        <span className="tag">{t('break.level', { n: levelOfAbility(c.ability, cfg) })}</span>
+        <Crest speciesId={c.speciesId} name={c.name} size={30} />
+        <div className="bc-id">
+          <b className="ellipsis">{c.name}</b>
+          <small className="muted ellipsis">
+            <ElementDots speciesId={c.speciesId} /> {speciesName(c.speciesId, lang)} · {t('break.level', { n: levelOfAbility(c.ability, cfg) })}
+          </small>
+        </div>
+        <span className="bc-role">
+          <RoleLabel role={role} />
+          {!natural.includes(role) && (
+            <span className="tag bad" title={t('break.offRole.title')}>
+              {t('break.offRole')}
+            </span>
+          )}
+        </span>
       </div>
-      <div className="row" style={{ gap: 6 }}>
-        <ElementDots speciesId={c.speciesId} />
-        <span className="muted">{speciesName(c.speciesId, lang)}</span>
-        <span className="spacer" />
-        <RoleLabel role={role} />
-        {!SPECIES[c.speciesId]?.roles.includes(role) && <span className="tag bad" title={t('break.offRole.title')}>{t('break.offRole')}</span>}
+      <div className="bc-line">
+        <span>{t('break.hpStats', { hp: c.maxHp })}</span>
+        <span style={{ color: moraleColor(c.morale) }}>{t(moraleKey(c.morale))}</span>
+        {fatigue > 0 && <span className="warn-text">{t('break.fatigue', { n: fatigue })}</span>}
       </div>
-      <div className="bc-stats">
-        <span className="muted">{t('col.health')}</span>
-        <Bar value={c.hp} max={c.maxHp} color={hpColor(hpFraction(c))} title={`${Math.round(c.hp)}/${c.maxHp}`} />
-        <span className="muted">{t('col.stamina')}</span>
-        <Bar value={c.stamina} max={c.maxStamina} color="var(--stamina)" title={`${Math.round(staminaFraction(c) * 100)} %`} />
-      </div>
-      <div className="muted">
-        {t('break.hpStats', { hp: c.maxHp })} · <span style={{ color: moraleColor(c.morale) }}>{t(moraleKey(c.morale))}</span>
-        {fatigue > 0 && <> · {t('break.fatigue', { n: fatigue })}</>}
-      </div>
-      {strong.length > 0 && <div className="good-text">▲ {t('break.strongVs', { names: strong.map((f) => f.name).join(', ') })}</div>}
-      {weak.length > 0 && <div className="bad-text">▼ {t('break.weakVs', { names: weak.map((f) => f.name).join(', ') })}</div>}
+      {tired && <Bar thin value={c.stamina} max={c.maxStamina} color="var(--stamina)" title={`${t('col.stamina')} ${Math.round(staminaFraction(c) * 100)} %`} />}
+      {(strong.length > 0 || weak.length > 0) && (
+        <div className="bc-matchup">
+          {strong.length > 0 && (
+            <span className="good-text" title={t('break.strongVs', { names: strong.map((f) => f.name).join(', ') })}>
+              ▲
+              {strong.map((f) => (
+                <Crest key={f.id} speciesId={f.speciesId} name={f.name} size={18} />
+              ))}
+            </span>
+          )}
+          {weak.length > 0 && (
+            <span className="bad-text" title={t('break.weakVs', { names: weak.map((f) => f.name).join(', ') })}>
+              ▼
+              {weak.map((f) => (
+                <Crest key={f.id} speciesId={f.speciesId} name={f.name} size={18} />
+              ))}
+            </span>
+          )}
+        </div>
+      )}
       <div className="bc-abilities">
         {c.abilities.slice(0, 5).map((a) => (
           <span key={a} title={abilityText(a, lang).description}>
@@ -344,17 +364,45 @@ function BenchCard({
           </span>
         ))}
       </div>
-      <label className="bc-enter">
-        <span className="muted">{t('break.enterFor')}</span>
-        <select className="compact" value={replacing ?? ''} disabled={!canAdd} onChange={(e) => onPick(e.target.value || null)}>
-          <option value="">{t('break.stayBench')}</option>
-          {options.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name} ({roleText(o.role, lang).name}, {Math.round(hpFraction(o) * 100)} %{o.state !== 'active' ? `, ${o.state.toUpperCase()}` : ''})
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="bc-enter">
+        <label className="bc-field wide">
+          <span className="muted">{t('break.enterFor')}</span>
+          <select className="compact" value={sub?.outId ?? ''} disabled={!canAdd} onChange={(e) => onPick(e.target.value || null)}>
+            <option value="">{t('break.stayBench')}</option>
+            {options.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name} ({roleText(o.role, lang).name}, {Math.round(hpFraction(o) * 100)} %{o.state !== 'active' ? `, ${o.state.toUpperCase()}` : ''})
+              </option>
+            ))}
+          </select>
+        </label>
+        {sub && (
+          <>
+            <label className="bc-field" title={t('break.subRole.title')}>
+              <span className="muted">{t('col.role')}</span>
+              <select className="compact" value={role} onChange={(e) => onPatch({ role: e.target.value as RoleId })}>
+                {ROLE_IDS.map((r) => (
+                  <option key={r} value={r}>
+                    {roleText(r, lang).name}
+                    {natural.includes(r) ? '' : ` (${t('break.offRole')})`}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="bc-field" title={t('break.subLine.title')}>
+              <span className="muted">{t('col.line')}</span>
+              <select className="compact" value={sub.line ?? outLine ?? 'front'} onChange={(e) => onPatch({ line: e.target.value as Line })}>
+                <option value="front">{t('line.front')}</option>
+                <option value="back">{t('line.back')}</option>
+              </select>
+            </label>
+            <label className="bc-field" title={t('break.subStance.title')}>
+              <span className="muted">{t('col.orders')}</span>
+              <StanceSelect value={sub.stance ?? c.stance} onChange={(stance) => onPatch({ stance })} />
+            </label>
+          </>
+        )}
+      </div>
     </div>
   );
 }

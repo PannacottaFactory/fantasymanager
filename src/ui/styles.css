@@ -1484,16 +1484,25 @@ tr.drag-row:hover .drag-grip { color: var(--accent); }
 :root[data-effects='reduced'] .live.ko-shake { animation: none; }
 
 /* ——— Break panel: substitutes ——— */
-.bench-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
-.bench-card { border: 1px solid var(--border); border-radius: var(--r-md); padding: 8px 10px; background: var(--panel-2); display: flex; flex-direction: column; gap: 5px; font-size: var(--fs-md); }
+/* Component: substitute card. Kept short (identity, one line of facts, match-ups as crests, abilities, then the entry
+   controls on a small grid) so the whole bench sits side by side without scrolling. */
+.bench-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--sp-2); }
+.bench-card { border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--sp-2) 10px; background: var(--panel-2); display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-md); min-width: 0; }
 .bench-card.chosen { border-color: var(--home); box-shadow: inset 3px 0 0 var(--home); }
-.bench-card .bc-head { display: flex; gap: 6px; align-items: center; }
-.bench-card .bc-head b { font-size: var(--fs-body-sm); }
-.bench-card .bc-stats { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; }
-.bench-card .bc-abilities { display: flex; flex-wrap: wrap; gap: 3px; }
-.bench-card .bc-enter { display: flex; flex-direction: column; gap: 2px; margin-top: auto; }
-.bench-card .bc-enter select { width: 100%; }
+.bench-card .bc-head { display: flex; gap: var(--sp-2); align-items: center; min-width: 0; }
+.bench-card .bc-id { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; line-height: 1.25; }
+.bench-card .bc-id b { font-size: var(--fs-body-sm); }
+.bench-card .bc-id small { font-size: var(--fs-sm); }
+.bench-card .bc-role { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: none; }
+.bench-card .bc-line { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--muted); }
+.bench-card .bc-matchup { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.bench-card .bc-matchup > span { display: inline-flex; align-items: center; gap: 3px; cursor: help; }
+.bench-card .bc-abilities { display: flex; flex-wrap: wrap; gap: 3px; font-size: var(--fs-sm); }
 .bench-card .bc-abilities span { border: 1px solid var(--border); border-radius: var(--r-sm); padding: 0 5px; }
+.bench-card .bc-enter { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-1) 6px; margin-top: auto; padding-top: 6px; border-top: 1px solid var(--border); }
+.bench-card .bc-field { display: flex; flex-direction: column; gap: 1px; min-width: 0; font-size: var(--fs-sm); }
+.bench-card .bc-field.wide { grid-column: 1 / -1; }
+.bench-card .bc-field select { width: 100%; min-width: 0; text-overflow: ellipsis; }
 
 /* ——— League: pyramid, division hero, competitions, honours ——— */
 /* Division metals, bottom to top: bronze (D4), silver (D3), gold (D2), platinum (D1). */
@@ -1916,11 +1925,11 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .dialog.wide { width: min(1240px, 100%); }
 .break-orders { align-items: flex-end; padding: 6px 0; }
 .break-hint { font-size: var(--fs-sm); align-self: center; cursor: help; }
-/* Substitute cell: who comes on, then its role and line on a second row, so the table never needs a side scroll. */
+/* Substitute cell: the button, then who comes on (its role, line and order are set on its card). */
 .sub-cell { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; max-width: 300px; }
 .sub-cell select { max-width: 190px; text-overflow: ellipsis; }
-.sub-role { display: flex; gap: 4px; flex-basis: 100%; }
-.sub-role select:first-child { flex: 1 1 auto; }
+/* Order column of a creature being replaced: it is the order of the one coming on. */
+select.incoming { border-color: var(--home); }
 
 .kind-icon { display: inline-flex; vertical-align: -0.12em; }
 .dom-icon { display: inline-flex; vertical-align: -0.15em; }
@@ -1935,7 +1944,7 @@ tr.comp-row-bracket > td { padding: 8px 4px 14px; }
 .rename-input { font: inherit; font-size: var(--fs-base); padding: 2px 6px; width: 16rem; max-width: 50vw; }
 .dialog.wide > .stack { align-items: stretch; width: 100%; }
 .dialog.wide > .stack > * { width: 100%; }
-.dialog.wide .bench-cards { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+.dialog.wide .bench-cards { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 
 /* ——— Navigation tabs ——— */
 .nav .nav-tab { display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-md) var(--r-md) 0 0; padding-inline: 10px; }

@@ -280,6 +280,7 @@ export class Combat {
       inc.state = 'active';
       inc.line = sub.line ?? out.line;
       if (sub.role && sub.role !== inc.role) this.setRole(inc, sub.role);
+      if (sub.stance) inc.stance = sub.stance;
       inc.enteredRound = this.round + 1;
       for (const p of SPECIES[inc.speciesId]?.passives ?? []) this.addEffect(inc, p, 999, undefined, true);
       st.subsUsed++;
