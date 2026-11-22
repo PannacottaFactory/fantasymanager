@@ -3404,8 +3404,8 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .session-stage { position: relative; display: grid; gap: 14px; justify-items: center; padding: 18px 14px; border-radius: var(--r-lg);
   background: linear-gradient(180deg, color-mix(in srgb, var(--panel-2) 85%, #000), var(--panel-2)); border: 1px solid var(--border);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), inset 0 -20px 40px rgb(0 0 0 / 0.18); }
-/* Training screen: sessions + guide on the left, the creatures' table on the right — one screen, no scroll. */
-.train-layout { display: grid; grid-template-columns: 29rem minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+/* Training screen: the creatures' table on the left at its own width, sessions + guide fill the rest on the right. */
+.train-layout { display: grid; grid-template-columns: minmax(0, max-content) minmax(29rem, 1fr); gap: var(--sp-4); align-items: start; }
 .train-layout > .panel, .train-side > .panel { margin: 0; }
 .train-side { display: grid; gap: var(--sp-4); min-width: 0; }
 /* Sessions in the side column: the head wraps, the button (also « next session after the next match ») stays large. */

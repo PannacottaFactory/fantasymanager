@@ -129,12 +129,6 @@ export function TrainingScreen() {
         </div>
       </section>
       <div className="train-layout">
-        <div className="train-side">
-          <TrainingSession />
-          <section className="panel train-aside">
-            <TrainingGuide />
-          </section>
-        </div>
         <section className="panel train-main">
           <div className="row wrap" style={{ gap: 8, marginBottom: 10 }}>
             <select className="compact" value={allProgram} onChange={(e) => setAllProgram(e.target.value as ProgramId)}>
@@ -153,6 +147,12 @@ export function TrainingScreen() {
             <SortableTable rows={team.creatures} columns={cols} rowKey={(c) => c.id} initialSort={{ key: 'level', dir: -1 }} />
           </div>
         </section>
+        <div className="train-side">
+          <TrainingSession />
+          <section className="panel train-aside">
+            <TrainingGuide />
+          </section>
+        </div>
       </div>
     </div>
   );
