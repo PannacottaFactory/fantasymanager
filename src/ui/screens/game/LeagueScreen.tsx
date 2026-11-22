@@ -15,7 +15,7 @@ import { compName, divName, roundKey } from '../../competitions.ts';
 import { CompIcon, DivIcon, UiIcon } from '../../icons/Icon.tsx';
 import { byWeek, itemLabel, playerSeason, type SeasonItem } from '../../season.ts';
 import { ReputationLine } from '../../components/Reputation.tsx';
-import { Gold, Money, Seg } from '../../components/common.tsx';
+import { Gold, Money, ScreenTitle, Seg } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -1073,9 +1073,7 @@ export function LeagueScreen() {
   return (
     <div className="stack league">
       <section className="panel page-head">
-        <h2 className="page-title">
-          <UiIcon name="nav-league" /> {t('nav.league')}
-        </h2>
+        <ScreenTitle icon="nav-league">{t('nav.league')}</ScreenTitle>
         <span className="muted page-sub">
           {divName(t, playerDivision(game))} · {t('honours.season')} {game.season}
         </span>

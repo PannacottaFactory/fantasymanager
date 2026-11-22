@@ -8,11 +8,10 @@ import type { ExpenseKind, IncomeKind, LedgerEntry } from '../../../engine/leagu
 import type { Creature } from '../../../engine/model.ts';
 import { getSpecies } from '../../../engine/creature/derived.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
-import { Crest, Gold, Money, RollingMoney, Seg, useCountUp } from '../../components/common.tsx';
+import { Crest, Gold, Money, RollingMoney, ScreenTitle, Seg, useCountUp } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
-import { UiIcon } from '../../icons/Icon.tsx';
 import { useGame } from '../../store/gameStore.ts';
 import { levelOf } from '../../../engine/progression/levels.ts';
 
@@ -258,9 +257,7 @@ export function FinancesScreen() {
   return (
     <div className="stack fin">
       <section className="panel fin-hero" data-tip="finances">
-        <h2 className="fin-title">
-          <UiIcon name="nav-finances" /> {t('fin.title')}
-        </h2>
+        <ScreenTitle icon="nav-finances">{t('fin.title')}</ScreenTitle>
         <div className="kpis">
           <div className="kpi">
             <span className="kpi-label">{t('fin.balance')}</span>

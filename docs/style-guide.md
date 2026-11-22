@@ -97,7 +97,10 @@ yellow). Primary buttons use the accent; gold never fills a button.
 - **Table**: header `--fs-sm` muted uppercase-free, rows separated by a 1px `--border` line, hover `--panel-3`,
   numbers right-aligned.
 - **Panel title**: `h3` in the title font at `--fs-base` (the small caps read larger), with an optional link « … → »
-  on the right; a screen's title is the first panel's `h2` at `--fs-xl`.
+  on the right.
+- **Screen title**: `<ScreenTitle icon>` (`.screen-title`), the first panel's `h2`: the screen's navigation icon in
+  the accent, then its name in the title font at `--fs-xl`, text colour; no stable name after it (the sidebar shows it).
+  Hero screens (Home, Pantheon) keep their own hero heading.
 - **Bar / gauge**: height 6px, radius `--r-sm`, track `--panel-3`.
 - **Creature emblem** (`<Crest speciesId name size level?>`): the species icon, flat, in its elements' colours (top →
   bottom), on a dark disc inside a metal ring: bronze levels 1–3, silver 4–6, gold 7–9, legend 10 (violet, a soft glow)
@@ -138,3 +141,6 @@ yellow). Primary buttons use the accent; gold never fills a button.
   sidebar `SideNav` on the left (stable identity, every screen under small group headings, foldable to icons,
   `fm.sideCollapsed`, icons only below 1100 px); `top` = the former tabs. The start screen always uses the tabs.
   Fourth theme **slate** (« Ardoise », dark blue-grey + gold), token block beside the three others.
+- 2026-11-22: one screen title component `<ScreenTitle>` for Squad, Tactics, Training, Recruitment, Staff, Facilities,
+  Finances, Journal, News, League, Career, Encyclopedia, Test arena and Help (was five different looks: with or without icon, « — stable »
+  suffix, inline margins); `.fin-title` / `.page-title` removed.

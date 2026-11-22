@@ -190,7 +190,9 @@ h1, h2, h3, h4 { font-family: var(--font-title); font-weight: 600; margin: 0; le
 h2 { font-size: var(--fs-lg); }
 h3 { font-size: var(--fs-base); letter-spacing: 0.04em; }
 h4 { font-size: var(--fs-body-sm); color: var(--muted); }
-/* A screen's title. */
+/* Component: screen title (`<ScreenTitle>`): nav icon in the accent, name in the title font. */
+.screen-title { display: flex; align-items: center; gap: var(--sp-2); margin: 0; font-size: var(--fs-xl); line-height: 1.15; letter-spacing: 0.04em; color: var(--text); }
+.screen-title .gicon { color: var(--accent); flex: none; }
 .panel-head h2, .screen-enter h2 { font-size: var(--fs-xl); letter-spacing: 0.04em; }
 .panel-head h2 { color: var(--text); }
 /* A card's title row: the title, then a quiet link « … → » on the right. */
@@ -2450,8 +2452,6 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 
 /* ——— Finances ——— */
 .fin-hero { display: grid; gap: 14px; }
-.fin-title { display: flex; align-items: center; gap: 8px; }
-.fin-title .gicon { color: var(--accent); }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
 .kpi { display: flex; flex-direction: column; gap: 4px; padding: 2px 20px; min-width: 0; }
 .kpi + .kpi { border-left: 1px solid var(--border); }
@@ -2531,8 +2531,6 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 
 /* ——— Page header with tabs (League) ——— */
 .page-head { display: flex; align-items: center; gap: 6px 14px; flex-wrap: wrap; padding-bottom: 0; }
-.page-title { display: flex; align-items: center; gap: 8px; margin: 0; }
-.page-title .gicon { color: var(--accent); }
 .page-sub { font-size: var(--fs-md); }
 .page-tabs { display: flex; gap: 4px; flex: 1 1 100%; margin: 6px calc(-1 * var(--sp)) 0; padding: 0 var(--sp); border-top: 1px solid var(--border); }
 .page-tab { position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 11px 14px; border: 0; background: none; cursor: pointer;
@@ -2973,7 +2971,6 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .journal > .panel { min-height: 0; margin: 0; }
 .jr-folders { display: flex; flex-direction: column; gap: 10px; padding: 14px 10px; overflow-y: auto; }
 .jr-heading { padding: 0 6px; }
-.jr-heading h2 { font-size: var(--fs-xl); margin: 0; }
 .jr-sub { font-size: var(--fs-sm); color: var(--faint); }
 .jr-sub.on { color: var(--accent); font-weight: 600; }
 .jr-readall { display: block; margin-top: 6px; }
@@ -3423,7 +3420,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .train-side .training-guide { font-size: var(--fs-sm); }
 .train-side .guide-steps { margin: 6px 0 4px; gap: 4px; }
 .train-side .guide-steps li { padding: 4px 8px; }
-.train-main .panel-head { flex-wrap: wrap; row-gap: 6px; }
+.train-head .panel-head { flex-wrap: wrap; row-gap: 6px; margin-bottom: 0; }
 .train-aside .training-guide { margin: 0; background: transparent; padding: 0; }
 .train-aside .training-guide > summary { font-family: var(--font-title); font-size: var(--fs-base); margin-bottom: 2px; }
 .train-aside .guide-steps { flex-direction: column; }
@@ -3822,10 +3819,9 @@ h4.meeting-pulse-title { margin: var(--sp-4) 0 var(--sp-2); font-size: var(--fs-
 .career-who { display: flex; flex-direction: column; line-height: 1.2; }
 
 /* ——— Career statistics ——— */
-.cs-hero { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.cs-icon { color: var(--accent); display: inline-flex; }
+.cs-hero-body { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .cs-who { display: flex; flex-direction: column; gap: 2px; }
-.cs-who h2 { margin: 0; font-family: var(--font-title); color: var(--accent); }
+.cs-who h3 { margin: 0; font-size: var(--fs-lg); color: var(--accent); }
 .cs-rep { display: grid; grid-template-columns: auto auto; align-items: baseline; gap: 2px 8px; min-width: 200px; }
 .cs-rep b { font-size: var(--fs-2xl); color: var(--gold); justify-self: end; }
 .cs-rep .career-bar { grid-column: 1 / -1; display: block; }

@@ -6,7 +6,7 @@ import type { Creature } from '../../../engine/model.ts';
 import { jackpotChance } from '../../../engine/progression/sessions.ts';
 import { coachFactor, lifeStage, programCategory, setPlan } from '../../../engine/progression/training.ts';
 import { attributeText, categoryName, speciesName } from '../../../engine/text/localize.ts';
-import { Crest, ElementDots, LevelBadge, StageMark, Stars } from '../../components/common.tsx';
+import { Crest, ElementDots, LevelBadge, ScreenTitle, StageMark, Stars } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
@@ -108,16 +108,10 @@ export function TrainingScreen() {
   ];
 
   return (
-    <div className="train-layout">
-      <div className="train-side">
-        <TrainingSession />
-        <section className="panel train-aside">
-          <TrainingGuide />
-        </section>
-      </div>
-      <section className="panel train-main">
+    <div className="stack train-screen">
+      <section className="panel train-head">
         <div className="panel-head">
-          <h2>{t('train.title')}</h2>
+          <ScreenTitle icon="nav-training">{t('train.title')}</ScreenTitle>
           <span className="spacer" />
           <span className="row wrap" style={{ gap: 8 }}>
             <span className="muted">{t('train.coaches')} :</span>
@@ -133,23 +127,33 @@ export function TrainingScreen() {
             ))}
           </span>
         </div>
-        <div className="row wrap" style={{ gap: 8, marginBottom: 10 }}>
-          <select className="compact" value={allProgram} onChange={(e) => setAllProgram(e.target.value as ProgramId)}>
-            <option value="role">{t('prog.byRole')}</option>
-            {PROGRAM_IDS.map((p) => (
-              <option key={p} value={p}>
-                {t(`prog.${p}` as StringKey)}
-              </option>
-            ))}
-          </select>
-          <button className="btn small" onClick={() => update((g) => setPlan(g, team.creatures.map((c) => c.id), { program: allProgram }))}>
-            {t('train.applyAll')}
-          </button>
-        </div>
-        <div data-tip="training" className="train-table">
-          <SortableTable rows={team.creatures} columns={cols} rowKey={(c) => c.id} initialSort={{ key: 'level', dir: -1 }} />
-        </div>
       </section>
+      <div className="train-layout">
+        <div className="train-side">
+          <TrainingSession />
+          <section className="panel train-aside">
+            <TrainingGuide />
+          </section>
+        </div>
+        <section className="panel train-main">
+          <div className="row wrap" style={{ gap: 8, marginBottom: 10 }}>
+            <select className="compact" value={allProgram} onChange={(e) => setAllProgram(e.target.value as ProgramId)}>
+              <option value="role">{t('prog.byRole')}</option>
+              {PROGRAM_IDS.map((p) => (
+                <option key={p} value={p}>
+                  {t(`prog.${p}` as StringKey)}
+                </option>
+              ))}
+            </select>
+            <button className="btn small" onClick={() => update((g) => setPlan(g, team.creatures.map((c) => c.id), { program: allProgram }))}>
+              {t('train.applyAll')}
+            </button>
+          </div>
+          <div data-tip="training" className="train-table">
+            <SortableTable rows={team.creatures} columns={cols} rowKey={(c) => c.id} initialSort={{ key: 'level', dir: -1 }} />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

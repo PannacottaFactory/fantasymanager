@@ -3,7 +3,7 @@ import { compName, divName } from '../../competitions.ts';
 import type { NewsItem } from '../../../engine/league/types.ts';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { Gold } from '../../components/common.tsx';
+import { Gold, ScreenTitle } from '../../components/common.tsx';
 
 /** Icon of a news item (game-icons, coloured by tone in CSS). */
 export function NewsIcon({ kind }: { kind: NewsItem['kind'] }) {
@@ -52,7 +52,9 @@ export function NewsScreen() {
   return (
     <div className="stack narrow">
       <section className="panel">
-        <h2 style={{ marginBottom: 10 }}><UiIcon name="nav-news" /> {t('news.title')}</h2>
+        <div className="panel-head">
+          <ScreenTitle icon="nav-news">{t('news.title')}</ScreenTitle>
+        </div>
         {items.length === 0 && <div className="muted">{t('news.empty')}</div>}
         <ul className="news">
           {items.map((n) => (

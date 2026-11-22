@@ -1,4 +1,5 @@
 import { validateTactic } from '../../../engine/team/team.ts';
+import { ScreenTitle } from '../../components/common.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useArena } from '../../store/arenaStore.ts';
 import { TeamPanel } from './TeamPanel.tsx';
@@ -14,7 +15,7 @@ export function SetupView() {
       <section className="panel">
         <div className="matchbar">
           <div>
-            <h2>{t('arena.title')}</h2>
+            <ScreenTitle icon="nav-arena">{t('nav.arena')}</ScreenTitle>
             <div className="muted" style={{ fontSize: '0.857rem' }}>
               {t('arena.hint')}
             </div>

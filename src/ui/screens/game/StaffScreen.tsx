@@ -13,7 +13,7 @@ import type { Coach } from '../../../engine/league/types.ts';
 import { levelOf } from '../../../engine/progression/levels.ts';
 import { fireCoach, hireCoach, hireFee, programCategory } from '../../../engine/progression/training.ts';
 import { categoryName } from '../../../engine/text/localize.ts';
-import { Crest, Gold, Money, Seg, Stars } from '../../components/common.tsx';
+import { Crest, Gold, Money, ScreenTitle, Seg, Stars } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -113,7 +113,7 @@ export function StaffScreen() {
     <div className="stack staff">
       <section className="panel st-screen">
         <div className="panel-head">
-          <h2>{t('staff.title')}</h2>
+          <ScreenTitle icon="nav-staff">{t('staff.title')}</ScreenTitle>
         </div>
         <div className="kpis st-kpis">
           <div className="kpi">

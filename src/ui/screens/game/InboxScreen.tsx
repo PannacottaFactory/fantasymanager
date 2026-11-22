@@ -3,7 +3,7 @@ import { RequestActions } from './Requests.tsx';
 import { matchComp, teamById } from '../../../engine/league/season.ts';
 import type { GameState, InboxMessage, MatchComp, ObjectiveId } from '../../../engine/league/types.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
-import { Gold } from '../../components/common.tsx';
+import { Gold, ScreenTitle } from '../../components/common.tsx';
 import type { StringKey } from '../../i18n/strings.ts';
 import { compDef, compName, divName, roundKey } from '../../competitions.ts';
 import { JobOfferActions } from './Career.tsx';
@@ -730,7 +730,7 @@ export function InboxScreen() {
     <div className="journal" data-tip="inbox">
       <nav className="panel jr-folders" aria-label={t('inbox.title')}>
         <div className="jr-heading">
-          <h2>{t('inbox.title')}</h2>
+          <ScreenTitle icon="nav-inbox">{t('inbox.title')}</ScreenTitle>
           <span className={totalUnread > 0 ? 'jr-sub on' : 'jr-sub'}>{totalUnread > 0 ? t('inbox.unread', { n: totalUnread }) : t('inbox.allRead')}</span>
           {totalUnread > 0 && (
             <button

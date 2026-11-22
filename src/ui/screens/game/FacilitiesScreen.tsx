@@ -14,7 +14,7 @@ import type { GameState } from '../../../engine/league/types.ts';
 import { useT } from '../../i18n/index.ts';
 import type { StringKey } from '../../i18n/strings.ts';
 import { useGame } from '../../store/gameStore.ts';
-import { Gold, Money } from '../../components/common.tsx';
+import { Gold, Money, ScreenTitle } from '../../components/common.tsx';
 import { UiIcon } from '../../icons/Icon.tsx';
 
 const F = DEFAULT_CONFIG.club.facilities;
@@ -174,7 +174,7 @@ export function FacilitiesScreen() {
     <div className="stack">
       <section className="panel fac-screen">
         <div className="panel-head">
-          <h2>{t('fac.title')}</h2>
+          <ScreenTitle icon="nav-facilities">{t('fac.title')}</ScreenTitle>
         </div>
         <div className="kpis fac-kpis">
           <div className="kpi">

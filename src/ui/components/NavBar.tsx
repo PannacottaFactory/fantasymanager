@@ -38,7 +38,6 @@ const NAV_ENTRIES: Entry[] = [
       { id: 'squad', label: 'nav.squad', needsGame: true },
       { id: 'tactics', label: 'nav.tactics', needsGame: true },
       { id: 'training', label: 'nav.training', needsGame: true },
-      { id: 'pantheon', label: 'nav.pantheon', needsGame: true },
     ],
   },
   {
@@ -58,6 +57,7 @@ const NAV_ENTRIES: Entry[] = [
       { id: 'staff', label: 'nav.staff', needsGame: true },
       { id: 'facilities', label: 'nav.facilities', needsGame: true },
       { id: 'career', label: 'nav.career', needsGame: true },
+      { id: 'pantheon', label: 'nav.pantheon', needsGame: true },
     ],
   },
   {

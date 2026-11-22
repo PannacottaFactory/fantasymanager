@@ -770,8 +770,7 @@ export const en = {
   'issue.noSkill': '{name} has no skill equipped: pick at least one (its sheet, or the Skills column).',
 
   // Training arena
-  'arena.title': 'Test arena — free fights, no effect on your game',
-  'arena.hint': 'Pick your creatures, set the tactics, and let the simulation decide. Same seed + same choices = same fight.',
+  'arena.hint': 'Free fights, no effect on your game. Pick your creatures, set the tactics, and let the simulation decide. Same seed + same choices = same fight.',
   'arena.seed': 'Match seed',
   'arena.randomSeed': 'Random seed',
   'arena.manageBreaks': 'Manage my team at breaks',
@@ -2955,8 +2954,7 @@ export const fr: Record<StringKey, string> = {
   'issue.injured': 'Blessure : {name} ne peut pas combattre.',
   'issue.noSkill': '{name} n’a aucune compétence équipée : choisissez-en au moins une (sa fiche, ou la colonne Compétences).',
 
-  'arena.title': 'Arène d’essai — combats libres, sans effet sur votre partie',
-  'arena.hint': 'Choisissez vos créatures, réglez la tactique et laissez la simulation trancher. Même graine + mêmes choix = même combat.',
+  'arena.hint': 'Combats libres, sans effet sur votre partie. Choisissez vos créatures, réglez la tactique et laissez la simulation trancher. Même graine + mêmes choix = même combat.',
   'arena.seed': 'Graine du match',
   'arena.randomSeed': 'Graine aléatoire',
   'arena.manageBreaks': 'Gérer mon équipe pendant les pauses',

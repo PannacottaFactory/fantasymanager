@@ -3,6 +3,7 @@
  * rules — all generated from the game data and config, so the numbers are always the real ones.
  * Play styles are never named: only mechanics.
  */
+import { ScreenTitle } from '../components/common.tsx';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
@@ -229,8 +230,7 @@ export function EncyclopediaScreen() {
     <div className="stack">
       <section className="panel">
         <div className="panel-head">
-          <h2><UiIcon name="nav-encyclopedia" /> {e('title')}</h2>
-          <span className="muted">{e('intro')}</span>
+          <ScreenTitle icon="nav-encyclopedia">{e('title')}</ScreenTitle>
         </div>
         <div className="enc-tabs">
           {tabs.map((t) => (

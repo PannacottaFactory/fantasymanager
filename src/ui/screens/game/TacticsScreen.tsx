@@ -9,7 +9,7 @@ import { elementName } from '../../../engine/text/localize.ts';
 import { UiIcon } from '../../icons/Icon.tsx';
 import { LineupCard } from './MatchScreen.tsx';
 import { validateTactic } from '../../../engine/team/team.ts';
-import { SquadCount } from '../../components/common.tsx';
+import { ScreenTitle, SquadCount } from '../../components/common.tsx';
 import { TeamEditor } from '../../components/TeamEditor.tsx';
 import { centreOf, fxLayer } from '../../fx/FxLayer.tsx';
 import { useT } from '../../i18n/index.ts';
@@ -53,9 +53,9 @@ export function TacticsScreen() {
         className="side-home"
         header={
           <>
-            <h2 title={t('tactics.hint')}>
-              {t('tactics.title')} — {team.name}
-            </h2>
+            <ScreenTitle icon="nav-tactics" title={t('tactics.hint')}>
+              {t('tactics.title')}
+            </ScreenTitle>
             <SquadCount n={team.creatures.length} />
           </>
         }

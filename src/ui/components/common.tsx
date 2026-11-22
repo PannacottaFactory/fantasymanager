@@ -111,6 +111,16 @@ export function ConditionCell({ c }: { c: Creature }) {
   );
 }
 
+/** A screen's title: the screen's navigation icon, then its name. Every screen uses this one, never restyled. */
+export function ScreenTitle({ icon, children, title }: { icon: string; children: ReactNode; title?: string }) {
+  return (
+    <h2 className="screen-title" title={title}>
+      <UiIcon name={icon} />
+      <span>{children}</span>
+    </h2>
+  );
+}
+
 /** How many creatures the stable owns out of the most allowed, beside the Squad / Tactics titles. */
 export function SquadCount({ n }: { n: number }) {
   const { t } = useT();

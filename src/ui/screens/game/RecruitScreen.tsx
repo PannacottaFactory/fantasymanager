@@ -16,7 +16,7 @@ import { playerTeam } from '../../../engine/league/season.ts';
 import type { GameState } from '../../../engine/league/types.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { speciesName } from '../../../engine/text/localize.ts';
-import { Crest, ElementDots, Knowledge, PotentialStars, Seg, Gold, Money } from '../../components/common.tsx';
+import { Crest, ElementDots, Gold, Knowledge, Money, PotentialStars, ScreenTitle, Seg } from '../../components/common.tsx';
 import { SortableTable, type Column } from '../../components/SortableTable.tsx';
 import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
@@ -400,7 +400,7 @@ export function RecruitScreen() {
     <div className="stack">
       <section className="panel">
         <div className="panel-head">
-          <h2>{t('recruit.title')}</h2>
+          <ScreenTitle icon="nav-recruit">{t('recruit.title')}</ScreenTitle>
           <span className="spacer" />
           <span className="muted">
             <Gold>{t('recruit.squad', { n: mine.creatures.length, max: DEFAULT_CONFIG.economy.club.maxSquad, money: money(clubOf(game, game.playerTeamId).balance) })}</Gold>

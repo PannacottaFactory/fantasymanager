@@ -9,7 +9,8 @@ import { lastMatchday, playerTeam, standings } from '../../../engine/league/seas
 import type { GameState, SeasonRecord } from '../../../engine/league/types.ts';
 import { compName, divName } from '../../competitions.ts';
 import { StableCrest } from '../../components/TeamCrest.tsx';
-import { CompIcon, DivIcon, UiIcon } from '../../icons/Icon.tsx';
+import { ScreenTitle } from '../../components/common.tsx';
+import { CompIcon, DivIcon } from '../../icons/Icon.tsx';
 import { useT, type Translator } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { objectiveText } from './InboxScreen.tsx';
@@ -119,27 +120,29 @@ export function CareerScreen() {
   return (
     <div className="stack career-screen">
       <section className="panel cs-hero">
-        <span className="cs-icon">
-          <UiIcon name="nav-career" size="2.2em" />
-        </span>
-        <div className="cs-who">
-          <h2>{m?.name ?? t('cs.unnamed')}</h2>
-          <span className="muted">
-            {t(m?.career ? 'start.mode.career' : 'start.mode.free')} · {t(`diff.${game.difficulty ?? 'normal'}`)}
-            {m?.ironman ? ` · ${t('career.ironman')}` : ''}
-          </span>
-          <span className="muted">{t('cs.now', { team: me.name, div: divName(t, div) })}</span>
+        <div className="panel-head">
+          <ScreenTitle icon="nav-career">{t('nav.career')}</ScreenTitle>
         </div>
-        <span className="spacer" />
-        {m && (
-          <div className="cs-rep" title={t('career.reputation.title')}>
-            <small>{t('career.reputation')}</small>
-            <b>{m.reputation}</b>
-            <span className="career-bar">
-              <i style={{ width: `${m.reputation}%` }} />
+        <div className="cs-hero-body">
+          <div className="cs-who">
+            <h3>{m?.name ?? t('cs.unnamed')}</h3>
+            <span className="muted">
+              {t(m?.career ? 'start.mode.career' : 'start.mode.free')} · {t(`diff.${game.difficulty ?? 'normal'}`)}
+              {m?.ironman ? ` · ${t('career.ironman')}` : ''}
             </span>
+            <span className="muted">{t('cs.now', { team: me.name, div: divName(t, div) })}</span>
           </div>
-        )}
+          <span className="spacer" />
+          {m && (
+            <div className="cs-rep" title={t('career.reputation.title')}>
+              <small>{t('career.reputation')}</small>
+              <b>{m.reputation}</b>
+              <span className="career-bar">
+                <i style={{ width: `${m.reputation}%` }} />
+              </span>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="panel cs-tiles">

@@ -3,7 +3,7 @@ import { bestRole, isInjured, maxHp, overallRating } from '../../../engine/creat
 import { playerTeam } from '../../../engine/league/season.ts';
 import { attributeText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
-import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, SquadCount, StageMark, Stars, TraitChips } from '../../components/common.tsx';
+import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, ScreenTitle, Seg, SquadCount, StageMark, Stars, TraitChips } from '../../components/common.tsx';
 import { useAxisColumns } from '../../components/ProfileRadar.tsx';
 import { creatureValue } from '../../../engine/economy/value.ts';
 import { DEFAULT_CONFIG } from '../../../data/config/index.ts';
@@ -131,9 +131,7 @@ export function SquadScreen() {
     <div className="stack">
       <section className="panel side-home" data-tip="squad">
         <div className="panel-head">
-          <h2>
-            {t('squad.title')} — {team.name}
-          </h2>
+          <ScreenTitle icon="nav-squad">{t('squad.title')}</ScreenTitle>
           <SquadCount n={team.creatures.length} />
         </div>
         {waiting.length > 0 && (

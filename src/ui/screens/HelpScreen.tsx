@@ -1,5 +1,5 @@
 import { TEXT_SIZES, useSettings, useT, type TextSize } from '../i18n/index.ts';
-import { Seg } from '../components/common.tsx';
+import { ScreenTitle, Seg } from '../components/common.tsx';
 import type { StringKey } from '../i18n/strings.ts';
 import { useTutorial } from '../tutorial/tutorial.ts';
 import { useGame } from '../store/gameStore.ts';
@@ -17,7 +17,7 @@ export function HelpScreen() {
     <div className="stack narrow">
       <section className="panel">
         <div className="panel-head">
-          <h2><UiIcon name="help" /> {t('help.title')}</h2>
+          <ScreenTitle icon="help">{t('help.title')}</ScreenTitle>
           <span className="spacer" />
           <button className="btn small primary" onClick={restart}>
             {t('help.restart')}

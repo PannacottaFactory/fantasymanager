@@ -7,7 +7,6 @@ import { fill } from '../../core/text.ts';
 
 const en = {
   title: 'Encyclopedia',
-  intro: 'Everything the arena runs on, with the exact numbers the simulation uses.',
   search: 'Search…',
   none: 'Nothing matches.',
   searchAll: 'Search the whole encyclopedia…',
@@ -327,7 +326,6 @@ export type EncKey = keyof typeof en;
 
 const fr: Record<EncKey, string> = {
   title: 'Encyclopédie',
-  intro: 'Tout ce qui fait tourner l’arène, avec les chiffres exacts qu’utilise la simulation.',
   search: 'Rechercher…',
   none: 'Aucun résultat.',
   searchAll: 'Rechercher dans toute l’encyclopédie…',

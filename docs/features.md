@@ -442,7 +442,7 @@ the creature sheet (friends / rivals chips).
 (`deriveSeed(world, 'death', …)`), so match results never change. `bury()` removes it (friends mourn, whole stable
 −6 morale), `death` inbox message + news, `GameState.fallen` = memorial in the Pantheon (with a snapshot of record, traits, scars). ≈ 3–4 deaths per season
 in the 20 stables (one every ~5 seasons per stable). Not shown during the live match.
-**Pantheon** (`screens/game/PantheonScreen.tsx`, nav Stable › Pantheon, tutorial step `pantheon`): the player's retired
+**Pantheon** (`screens/game/PantheonScreen.tsx`, nav Club › Pantheon (after Career), tutorial step `pantheon`): the player's retired
 creatures (`GameState.retired`, snapshot taken by `ageing()`: level, age, last season, record, traits, scars) and the
 fallen (`GameState.fallen`). Hero tiles (legends, fallen, matches, KOs), stable records (most matches / KOs / MVP /
 damage, best rating, most trophies) among the squad + retired + fallen, hall of legends sorted by a legacy score (the
