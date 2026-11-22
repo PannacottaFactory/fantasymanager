@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useTraitEffects } from '../traitEffects.ts';
+import { useScarEffects, useTraitEffects } from '../traitEffects.ts';
 import { ELEMENTS } from '../../data/elements.ts';
 import { SPECIES } from '../../data/species.ts';
+import { SCARS } from '../../data/scars.ts';
 import { TRAITS } from '../../data/traits.ts';
 import type { ElementId } from '../../data/schema.ts';
-import { elementName, injuryText, speciesName, traitText } from '../../engine/text/localize.ts';
+import { elementName, injuryText, scarText, speciesName, traitText } from '../../engine/text/localize.ts';
 import { attrClass, fatigueColor, initials } from '../format.ts';
 import { effectsOn, useT } from '../i18n/index.ts';
 import { ICON_VIEWBOX, SPECIES_ICONS } from '../icons/gameIcons.ts';
+import { UiIcon } from '../icons/Icon.tsx';
 import { levelOf, maxLevelOf, xpInLevel } from '../../engine/progression/levels.ts';
 import { lifeStage } from '../../engine/progression/training.ts';
 import { potentialLevelRange } from '../../engine/economy/scouting.ts';
@@ -208,12 +210,26 @@ export function ElementDots({ speciesId }: { speciesId: string }) {
 export function TraitChip({ id, fresh }: { id: string; /** Earned in a recent match: a « new » tag. */ fresh?: boolean }) {
   const { t, lang } = useT();
   const effects = useTraitEffects();
-  const [at, setAt] = useState<DOMRect | null>(null);
   const def = TRAITS[id];
   if (!def) return null;
   const txt = traitText(id, lang);
   const cls = def.polarity === 'positive' ? 'pos' : def.polarity === 'negative' ? 'neg' : 'mixed';
-  const lines = effects(id);
+  return <HoverChip cls={cls} name={txt.name} kind={t(`trait.kind.${def.polarity}`)} desc={txt.description} lines={effects(id)} fresh={fresh} />;
+}
+
+/** A scar (permanent mark of a healed injury) as a chip, with the same hover card as traits. */
+export function ScarChip({ id }: { id: string }) {
+  const { t, lang } = useT();
+  const effects = useScarEffects();
+  if (!SCARS[id]) return null;
+  const txt = scarText(id, lang);
+  return <HoverChip cls="scar" icon="injury" name={txt.name} kind={t('scar.kind')} desc={txt.description} lines={effects(id)} />;
+}
+
+/** Chip + hover card (portal on <body>): name, kind, description, effect lines. */
+function HoverChip({ cls, name, kind, desc, lines, fresh, icon }: { cls: string; name: string; kind: string; desc: string; lines: string[]; fresh?: boolean; icon?: string }) {
+  const { t } = useT();
+  const [at, setAt] = useState<DOMRect | null>(null);
   const show = (el: HTMLElement) => setAt(el.getBoundingClientRect());
   // Below the chip, or above it when it sits low on the screen; kept inside the viewport.
   const below = at ? at.bottom + 150 < window.innerHeight : true;
@@ -223,13 +239,14 @@ export function TraitChip({ id, fresh }: { id: string; /** Earned in a recent ma
       <span
         className={`chip ${cls} trait-chip`}
         tabIndex={0}
-        aria-label={`${txt.name}: ${[txt.description, ...lines].join(' · ')}`}
+        aria-label={`${name}: ${[desc, ...lines].join(' · ')}`}
         onMouseEnter={(e) => show(e.currentTarget)}
         onMouseLeave={() => setAt(null)}
         onFocus={(e) => show(e.currentTarget)}
         onBlur={() => setAt(null)}
       >
-        {txt.name}
+        {icon && <UiIcon name={icon} size="0.9em" />}
+        {name}
         {fresh && (
           <span className="new-badge" title={t('trait.newTip')}>
             {t('trait.new')}
@@ -240,10 +257,10 @@ export function TraitChip({ id, fresh }: { id: string; /** Earned in a recent ma
         createPortal(
           <div className={`trait-pop ${cls}`} role="tooltip" style={below ? { left, top: at.bottom + 6 } : { left, bottom: window.innerHeight - at.top + 6 }}>
             <div className="trait-pop-head">
-              <b>{txt.name}</b>
-              <span className="trait-pop-kind">{t(`trait.kind.${def.polarity}`)}</span>
+              <b>{name}</b>
+              <span className="trait-pop-kind">{kind}</span>
             </div>
-            <div className="trait-pop-desc">{txt.description}</div>
+            <div className="trait-pop-desc">{desc}</div>
             {lines.length > 0 && (
               <ul className="trait-pop-fx">
                 {lines.map((l) => (
@@ -258,7 +275,6 @@ export function TraitChip({ id, fresh }: { id: string; /** Earned in a recent ma
   );
 }
 
-/** A creature's traits as chips, the ones earned in recent matches tagged « new ». */
 export function TraitChips({ c }: { c: Creature }) {
   const game = useGame((s) => s.game);
   const fresh = game ? newTraits(c, game.season, game.matchday) : null;
@@ -266,6 +282,9 @@ export function TraitChips({ c }: { c: Creature }) {
     <>
       {c.traits.map((x) => (
         <TraitChip key={x} id={x} fresh={fresh?.has(x)} />
+      ))}
+      {(c.scars ?? []).map((x) => (
+        <ScarChip key={x.id} id={x.id} />
       ))}
     </>
   );

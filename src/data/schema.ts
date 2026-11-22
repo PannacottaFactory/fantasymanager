@@ -275,6 +275,16 @@ export interface RoleDef {
   kit?: { missing: number; each: number };
 }
 
+/** A permanent mark a healed injury may leave: a slight malus and a small counterpart, read like trait `attrMods`. */
+export interface ScarDef {
+  id: string;
+  name: string;
+  description: string;
+  /** Injuries that can leave it. */
+  from: string[];
+  attrMods: Partial<Attributes>;
+}
+
 export interface InjuryDef {
   id: string;
   name: string;

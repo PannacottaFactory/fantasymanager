@@ -132,6 +132,12 @@ describe('ageing & youth', () => {
     expect(old.ability).toBeLessThan(ability);
     expect(playerTeam(g).creatures.some((c) => c.id === ending.id)).toBe(false);
     expect(g.inbox.some((m) => m.kind === 'retired')).toBe(true);
+    // The Pantheon keeps a snapshot of the player's retired creature.
+    const legend = g.retired?.find((x) => x.id === ending.id);
+    expect(legend).toBeDefined();
+    expect(legend!.name).toBe(ending.name);
+    expect(legend!.season).toBe(g.season - 1);
+    expect(legend!.traits).toEqual(ending.traits);
   });
 
   it('young prospects arrive each off-season: AI stables sign some, the rest (and the player\'s share) go to the market', () => {

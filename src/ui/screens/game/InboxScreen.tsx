@@ -10,7 +10,7 @@ import { JobOfferActions } from './Career.tsx';
 import { answerOffer } from '../../../engine/economy/actions.ts';
 import { estimatedValue, knowledgeOf } from '../../../engine/economy/scouting.ts';
 import { locate } from '../../../engine/economy/market.ts';
-import { abilityText, attributeText, categoryName, injuryText, speciesName, traitText } from '../../../engine/text/localize.ts';
+import { abilityText, attributeText, categoryName, injuryText, scarText, speciesName, traitText } from '../../../engine/text/localize.ts';
 import { TRAITS } from '../../../data/traits.ts';
 import { changeKind } from '../../../engine/progression/traitEvolution.ts';
 import { errorText } from './CreatureSheet.tsx';
@@ -46,6 +46,8 @@ function messageIcon(m: InboxMessage): string {
       return 'nav-squad';
     case 'recovered':
       return 'fac-infirmary';
+    case 'scar':
+      return 'injury';
     case 'tired':
       return 'stamina';
     case 'offerReceived':
@@ -113,6 +115,7 @@ export function messageCategory(m: InboxMessage): MessageCategory {
     case 'injury':
     case 'death':
     case 'recovered':
+    case 'scar':
     case 'tired':
       return 'medical';
     case 'offerReceived':
@@ -184,6 +187,10 @@ export function wording(tr: Translator, m: InboxMessage, cupRounds: number): { t
       return { title: t('msg.injury.title', { name: m.name }), body: t('msg.injury.body', { injury: injuryText(m.injuryId, tr.lang).name, weeks: tr.weeks(m.weeks) }), tone: 'bad' };
     case 'recovered':
       return { title: t('msg.recovered.title', { name: m.name }), body: t('msg.recovered.body', { name: m.name }), tone: 'good' };
+    case 'scar': {
+      const sc = scarText(m.scarId, tr.lang);
+      return { title: t('msg.scar.title', { name: m.name, scar: sc.name }), body: t('msg.scar.body', { name: m.name, injury: injuryText(m.injuryId, tr.lang).short, scar: sc.name, desc: sc.description }), tone: 'bad' };
+    }
     case 'tired':
       return { title: t('msg.tired.title'), body: t('msg.tired.body', { names: m.names.join(', ') }), tone: 'info' };
     case 'seasonEnd':
@@ -509,7 +516,7 @@ function MessageActions({ game, m }: { game: GameState; m: InboxMessage }) {
         </button>
       </div>
     );
-  const sheetId = m.kind === 'gemNoticed' ? m.creatureId : m.kind === 'transferIn' || m.kind === 'medal' || m.kind === 'trait' ? m.creatureId : null;
+  const sheetId = m.kind === 'gemNoticed' ? m.creatureId : m.kind === 'transferIn' || m.kind === 'medal' || m.kind === 'trait' || m.kind === 'scar' ? m.creatureId : null;
   if (sheetId && locate(game, sheetId))
     return (
       <button className="btn small ghost" onClick={() => openSheet(sheetId)}>

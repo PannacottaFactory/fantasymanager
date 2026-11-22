@@ -1,7 +1,7 @@
 import { ATTRIBUTE_CATEGORIES, type AttributeCategory, type AttributeKey } from '../../../data/attributes.ts';
 import { bestRole, isInjured, maxHp, overallRating } from '../../../engine/creature/derived.ts';
 import { playerTeam } from '../../../engine/league/season.ts';
-import { attributeText, injuryText, speciesName } from '../../../engine/text/localize.ts';
+import { attributeText, speciesName } from '../../../engine/text/localize.ts';
 import type { Creature } from '../../../engine/model.ts';
 import { Attr, ConditionCell, conditionSort, Crest, ElementDots, LevelBadge, Money, Seg, SquadCount, StageMark, Stars, TraitChips } from '../../components/common.tsx';
 import { useAxisColumns } from '../../components/ProfileRadar.tsx';
@@ -15,7 +15,6 @@ import { useT } from '../../i18n/index.ts';
 import { useGame } from '../../store/gameStore.ts';
 import { RoleLabel } from '../../icons/Icon.tsx';
 import { SpeciesIcon } from '../../icons/Icon.tsx';
-import { UiIcon } from '../../icons/Icon.tsx';
 import { levelOf } from '../../../engine/progression/levels.ts';
 
 const VIEW_KEY = 'fm.squadView';
@@ -182,21 +181,6 @@ export function SquadScreen() {
           />
         </div>
       </section>
-      {(game.fallen?.length ?? 0) > 0 && (
-        <section className="panel memorial">
-          <h3><UiIcon name="memorial" /> {t('memorial.title')}</h3>
-          <ul>
-            {[...game.fallen!].reverse().map((f) => (
-              <li key={f.id}>
-                <SpeciesIcon id={f.speciesId} size="1.2em" /> <b>{f.name}</b>{' '}
-                <span className="muted">
-                  {t('memorial.line', { species: speciesName(f.speciesId, lang), age: f.age, level: f.level, s: f.season, w: f.matchday, opponent: f.opponent, injury: injuryText(f.injuryId, lang).short })}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 }

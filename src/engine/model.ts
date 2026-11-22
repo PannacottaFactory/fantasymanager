@@ -69,6 +69,16 @@ export interface Creature {
   hype?: number;
   /** Traits gained or lost after matches, oldest first. */
   traitLog?: TraitChange[];
+  /** Permanent marks left by healed injuries, oldest first (absent = none). Public: anyone can see a scar. */
+  scars?: Scar[];
+}
+
+/** A scar (`data/scars.ts`): the injury that left it, season and week it healed. */
+export interface Scar {
+  id: string;
+  injuryId: string;
+  s: number;
+  w: number;
 }
 
 /** A trait gained (`gained`) or lost after a match: season, week, the message's sentence, the trait it pushed out. */

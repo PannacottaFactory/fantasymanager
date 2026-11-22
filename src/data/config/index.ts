@@ -11,6 +11,7 @@ import { LEAGUE_CONFIG } from './league.ts';
 import { MATCH_CONFIG } from './match.ts';
 import { TRAINING_CONFIG } from './training.ts';
 import { REPORT_CONFIG } from './report.ts';
+import { SCAR_CONFIG } from './scars.ts';
 import { TRAIT_EVOLUTION_CONFIG } from './traits.ts';
 
 /**
@@ -31,6 +32,7 @@ export const DEFAULT_CONFIG = {
   arena: ARENA_CONFIG,
   career: CAREER_CONFIG,
   traitEvolution: TRAIT_EVOLUTION_CONFIG,
+  scars: SCAR_CONFIG,
   identity: { styles: PLAY_STYLES, managers: MANAGERS, difficulties: DIFFICULTIES },
 };
 

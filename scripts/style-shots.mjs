@@ -62,7 +62,7 @@ for (const theme of themes) {
   }
   await calm();
 
-  const screens = ['dashboard', 'inbox', 'squad', 'tactics', 'training', 'recruit', 'finances', 'staff', 'facilities', 'career', 'news', 'encyclopedia', 'help'];
+  const screens = ['dashboard', 'inbox', 'squad', 'tactics', 'training', 'recruit', 'finances', 'staff', 'facilities', 'career', 'pantheon', 'news', 'encyclopedia', 'help'];
   for (const s of screens) {
     await page.evaluate((x) => window.__fm.getState().setScreen(x), s);
     await calm();

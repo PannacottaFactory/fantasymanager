@@ -24,7 +24,7 @@ import { sessionPool, sessionState } from '../../engine/progression/sessions.ts'
 import { knowledgeOf } from '../../engine/economy/scouting.ts';
 import { resetPlayClock, setPlayClockActive } from './playClock.ts';
 
-export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'career' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
+export type Screen = 'dashboard' | 'inbox' | 'squad' | 'tactics' | 'league' | 'recruit' | 'finances' | 'training' | 'staff' | 'facilities' | 'career' | 'pantheon' | 'news' | 'help' | 'encyclopedia' | 'arena' | 'match';
 
 export interface MatchFlow {
   fixtureId: string;

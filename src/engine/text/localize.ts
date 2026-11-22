@@ -9,12 +9,13 @@ import { DEFAULT_CONFIG } from '../../data/config/index.ts';
 import { EFFECTS } from '../../data/effects.ts';
 import { ELEMENTS } from '../../data/elements.ts';
 import { INJURIES } from '../../data/injuries.ts';
+import { SCARS } from '../../data/scars.ts';
 import { ROLES } from '../../data/roles.ts';
 import { SPECIES } from '../../data/species.ts';
 import { TRAITS } from '../../data/traits.ts';
 import type { AbilityKind, ElementId, RoleId, SizeClass } from '../../data/schema.ts';
 import {
-  FR_ABILITIES, FR_ABILITY_KINDS, FR_ATTRIBUTES, FR_CATEGORIES, FR_EFFECTS, FR_ELEMENTS, FR_INJURIES, FR_QUALITIES,
+  FR_ABILITIES, FR_ABILITY_KINDS, FR_ATTRIBUTES, FR_CATEGORIES, FR_EFFECTS, FR_ELEMENTS, FR_INJURIES, FR_SCARS, FR_QUALITIES,
   FR_ROLES, FR_SIZES, FR_SPECIES, FR_TRAITS, type SpeciesText,
 } from '../../data/i18n/fr.ts';
 
@@ -45,6 +46,12 @@ export function traitText(id: string, lang: Lang): { name: string; description: 
   if (lang === 'fr' && FR_TRAITS[id]) return FR_TRAITS[id];
   const t = TRAITS[id];
   return t ? { name: t.name, description: t.description } : { name: id, description: '' };
+}
+
+export function scarText(id: string, lang: Lang): { name: string; description: string } {
+  if (lang === 'fr' && FR_SCARS[id]) return FR_SCARS[id];
+  const sc = SCARS[id];
+  return sc ? { name: sc.name, description: sc.description } : { name: id, description: '' };
 }
 
 /** `name` reads inside a sentence ("a deep gash" / "une entaille profonde"); `short` is a label. */

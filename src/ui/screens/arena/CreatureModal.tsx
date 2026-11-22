@@ -18,7 +18,7 @@ import {
   traitText,
 } from '../../../engine/text/localize.ts';
 import type { Creature, HiddenAttributes } from '../../../engine/model.ts';
-import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, PotentialStars, TraitChip, LevelBadge, XpTrack } from '../../components/common.tsx';
+import { Attr, AttrRange, Bar, Crest, ElementDots, Modal, PotentialStars, ScarChip, TraitChip, LevelBadge, XpTrack } from '../../components/common.tsx';
 import { attributeRange, overallRange, traitsKnown } from '../../../engine/economy/scouting.ts';
 import { fatigueColor, moraleColor, moraleKey } from '../../format.ts';
 import { useT } from '../../i18n/index.ts';
@@ -228,6 +228,19 @@ export function CreatureModal({ creature, onClose, showHidden = true, skills, sh
                   {t(x.gained ? 'cr.traitLog.gained' : 'cr.traitLog.lost', { trait: traitText(x.t, lang).name, s: x.s, w: x.w })}
                 </div>
               ))}
+            {(creature.scars ?? []).length > 0 && (
+              <>
+                <h4 className="sheet-box-title sheet-scars-title">{t('cr.scars')}</h4>
+                {creature.scars!.map((x) => (
+                  <div key={x.id} className="trait-line">
+                    <ScarChip id={x.id} />{' '}
+                    <span className="muted" style={{ fontSize: '0.857rem' }}>
+                      {t('cr.scarFrom', { injury: injuryText(x.injuryId, lang).short, s: x.s, w: x.w })}
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
           </div>
           {known && (
             <div className="sheet-box sec-roles" data-tip="sheet-roles">

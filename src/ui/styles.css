@@ -343,6 +343,7 @@ table.data tr.warn-row td { background: color-mix(in srgb, var(--bad) 12%, trans
 .chip.pos { border-color: color-mix(in srgb, var(--good) 60%, transparent); color: var(--good); }
 .chip.neg { border-color: color-mix(in srgb, var(--bad) 60%, transparent); color: var(--bad); }
 .chip.mixed { border-color: color-mix(in srgb, var(--warn) 60%, transparent); color: var(--warn); }
+.chip.scar { border-color: color-mix(in srgb, var(--bad) 35%, var(--border)); color: color-mix(in srgb, var(--bad) 45%, var(--muted)); }
 /* Component: tag — a small filled label (status words, « new », « gem »). */
 .tag, .new-badge, .gem-badge {
   display: inline-block; padding: 0 6px; border-radius: var(--r-sm); font-size: var(--fs-xs); font-weight: 700;
@@ -486,7 +487,6 @@ table.data.team-compare th:first-child { width: 50%; }
 .dash-tile b { font: 700 var(--fs-xl) var(--font-body); font-variant-numeric: tabular-nums; }
 .dash-tile span { font-size: var(--fs-sm); color: var(--muted); }
 .stat-tile.big .val { font-size: var(--fs-lg); color: var(--accent); line-height: 1.1; }
-.memorial ul { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .attr-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: var(--fs-body-sm); }
 .kv dt { color: var(--muted); }
@@ -778,7 +778,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 .mirror .fighter .bars > span, .mirror .fighter .fx span, .mirror .fighter .skill { direction: ltr; unicode-bidi: isolate; }
 .mirror .fighter .top { text-align: right; }
 .mirror .bar > i { inset: 0 0 0 auto; }
-.mirror .float { right: auto; left: 64px; }
+.mirror .float { right: auto; left: 64px; direction: ltr; unicode-bidi: isolate; }
 
 /* ——— Encyclopedia ——— */
 .enc-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -2803,6 +2803,7 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .sheet-traits { display: flex; flex-direction: column; gap: 8px; }
 .trait-line { display: flex; align-items: baseline; gap: 8px; font-size: var(--fs-md); }
 .trait-line + .trait-line { margin-top: 4px; }
+.sheet-scars-title { margin-top: var(--sp-3); }
 .role-line { font-size: var(--fs-md); gap: 8px; margin-bottom: 2px; }
 .role-name { width: 9.5rem; flex: none; white-space: nowrap; }
 .sheet-col .ability-card { border-radius: var(--r-md); }
@@ -3856,6 +3857,85 @@ h4.meeting-pulse-title { margin: var(--sp-4) 0 var(--sp-2); font-size: var(--fs-
 .cs-table th, .cs-table td { padding: 5px 10px; }
 .cs-tile b { font-size: var(--fs-2xl); overflow-wrap: anywhere; }
 
+/* ——— Pantheon: retired legends, the fallen, the stable's records ——— */
+.pan-hero {
+  display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; position: relative; overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 140% at 0% 50%, color-mix(in srgb, var(--gold) 14%, transparent), transparent 70%),
+    var(--panel);
+}
+.pan-temple { color: var(--gold); display: inline-flex; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gold) 35%, transparent)); }
+.pan-who { display: flex; flex-direction: column; gap: 2px; }
+.pan-who h2 { margin: 0; font-family: var(--font-title); color: var(--accent); font-size: var(--fs-3xl); letter-spacing: 0.04em; }
+.pan-team { display: inline-flex; align-items: center; gap: var(--sp-2); font-weight: 600; }
+.pan-who em { font-family: var(--font-title); }
+.pan-tiles { display: grid; grid-template-columns: repeat(4, minmax(96px, 1fr)); gap: var(--sp-2); }
+@media (max-width: 1100px) { .pan-tiles { grid-template-columns: repeat(2, minmax(96px, 1fr)); } }
+.pan-tile { align-items: center; text-align: center; }
+.pan-tile b { color: var(--gold); font-size: var(--fs-2xl); }
+.pan-tile span { font-size: var(--fs-sm); color: var(--muted); }
+.pan-hint { margin: 2px 0 var(--sp-3); font-size: var(--fs-md); }
+
+.pan-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--sp-2); padding: var(--sp-6) var(--sp-4); color: var(--accent); }
+.pan-empty h3 { margin: 0; font-family: var(--font-title); }
+.pan-empty p { margin: 0; max-width: 46ch; }
+
+.pan-records { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-2); }
+.pan-record { gap: var(--sp-1); position: relative; }
+.pan-record-label { font-size: var(--fs-xs); color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; }
+.pan-record-value { color: var(--gold); }
+.pan-record-holder { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; font-weight: 600; }
+.pan-record-holder > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pan-record-top { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.pan-status { white-space: nowrap; }
+.pan-status.active { color: var(--good); }
+.pan-status.retired { color: var(--gold); }
+.pan-status.fallen { color: var(--muted); }
+
+.pan-section { display: flex; flex-direction: column; gap: var(--sp-3); }
+.pan-section-head { display: flex; align-items: baseline; gap: var(--sp-3); flex-wrap: wrap; padding: 0 var(--sp-1); }
+.pan-section-head h3 { margin: 0; font-family: var(--font-title); color: var(--accent); display: inline-flex; align-items: center; gap: var(--sp-2); }
+.pan-memorial .pan-section-head h3 { color: var(--muted); }
+.pan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--sp-3); align-items: start; }
+
+.pan-card {
+  display: flex; flex-direction: column; gap: var(--sp-3); position: relative; overflow: hidden;
+  border-top: 3px solid color-mix(in srgb, var(--gold) 55%, var(--border));
+  animation: intro-in 0.45s ease-out backwards; animation-delay: calc(min(var(--i), 12) * 50ms);
+}
+.pan-card.legend {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 7%, var(--panel)), var(--panel) 45%);
+}
+.pan-card.greatest {
+  border-top-color: var(--gold);
+  box-shadow: var(--panel-shadow), 0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent), 0 0 22px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+.pan-card.fallen { border-top-color: var(--border-strong); background: linear-gradient(180deg, var(--panel-2), var(--panel) 45%); }
+.pan-card.fallen .pan-portrait { filter: grayscale(0.85) brightness(0.9); }
+.pan-card.fallen .pan-name { color: var(--muted); }
+.pan-ribbon {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 2px var(--sp-2); border-radius: var(--r-pill); font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--gold); color: var(--on-gold);
+}
+.pan-card-head { display: flex; align-items: center; gap: var(--sp-3); }
+.pan-portrait { display: inline-flex; flex: none; border-radius: 50%; }
+.pan-card.legend .pan-portrait { box-shadow: 0 0 18px color-mix(in srgb, var(--gold) 25%, transparent); }
+.pan-id { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pan-name { margin: 0; font-family: var(--font-title); font-size: var(--fs-xl); color: var(--accent); line-height: 1.15; overflow-wrap: anywhere; }
+.pan-card.greatest .pan-name { color: var(--gold); }
+.pan-id small { font-size: var(--fs-sm); }
+.pan-cause { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--bad); }
+.pan-none { margin: 0; font-size: var(--fs-md); }
+.pan-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--sp-1); padding: var(--sp-2) 0; border-block: 1px solid var(--border); }
+.pan-stat { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0; min-width: 0; }
+.pan-stat b { font-size: var(--fs-lg); font-variant-numeric: tabular-nums; }
+.pan-stat small { font-size: var(--fs-2xs); color: var(--faint); line-height: 1.15; }
+.pan-honours, .pan-marks { display: flex; flex-wrap: wrap; gap: var(--sp-1); align-items: center; }
+.pan-trophy { display: inline-flex; align-items: center; gap: 3px; padding: 2px var(--sp-2) 2px var(--sp-1); border-radius: var(--r-pill); background: var(--panel-3); color: var(--gold); }
+.pan-trophy small { color: var(--muted); font-size: var(--fs-xs); }
+:root[data-effects='reduced'] .pan-card { animation: none; }
+
 /* ——— Dashboard: board and career side by side, compact ——— */
 .dash-pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: stretch; }
 .dash-pair.two { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
@@ -4518,6 +4598,7 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
 .trait-pop.pos { --tp: var(--good); }
 .trait-pop.neg { --tp: var(--bad); }
 .trait-pop.mixed { --tp: var(--gold); }
+.trait-pop.scar { --tp: color-mix(in srgb, var(--bad) 55%, var(--muted)); }
 .trait-pop-head { display: flex; align-items: baseline; gap: var(--sp-2); }
 .trait-pop-head b { font-size: var(--fs-md); }
 .trait-pop-kind { margin-left: auto; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--tp); }

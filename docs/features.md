@@ -430,6 +430,21 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0.
 **Deaths (rare)**: after a league/cup match, a creature knocked out that picked up an injury dies of it with
 `cfg.league.death.chance[severity]` (moderate 2 %, severe 20 %, career 50 %) × the infirmary factor — own RNG stream
 (`deriveSeed(world, 'death', …)`), so match results never change. `bury()` removes it (friends mourn, whole stable
-−6 morale), `death` inbox message + news, `GameState.fallen` = memorial shown under the Squad. ≈ 3–4 deaths per season
+−6 morale), `death` inbox message + news, `GameState.fallen` = memorial in the Pantheon (with a snapshot of record, traits, scars). ≈ 3–4 deaths per season
 in the 20 stables (one every ~5 seasons per stable). Not shown during the live match.
+**Pantheon** (`screens/game/PantheonScreen.tsx`, nav Stable › Pantheon, tutorial step `pantheon`): the player's retired
+creatures (`GameState.retired`, snapshot taken by `ageing()`: level, age, last season, record, traits, scars) and the
+fallen (`GameState.fallen`). Hero tiles (legends, fallen, matches, KOs), stable records (most matches / KOs / MVP /
+damage, best rating, most trophies) among the squad + retired + fallen, hall of legends sorted by a legacy score (the
+first is « greatest legend »), memorial cards. Old saves: no retired entries, fallen without a record. UI only.
+**Scars** (`data/scars.ts`, `config/scars.ts`, `engine/progression/scars.ts`): when an injury heals (`weeklyRecovery`),
+it may leave a permanent scar with `scars.chance[severity]` (minor 0, moderate 10 %, severe 50 %, career 100 %), at
+most `scars.max` 3 per creature, never twice the same. Each injury lists the scars it can leave (`from`): weak joint,
+badly knit ribs, ragged wing, burnt hide, lost eye, cracked soul, blackouts, crooked limb, broken horn, scarred face,
+maimed. Each one is a slight malus and a small counterpart in `attrMods` (e.g. lost eye: accuracy −2, composure +1),
+added in `effectiveAttributes` like trait mods (not in the overall rating, like traits). Stored in `Creature.scars`
+(`{ id, injuryId, s, w }`, absent = none, old saves fine) for the future chronicle. Own RNG stream
+(`deriveSeed(world, 'scar', …)`). Public: shown on any creature's sheet (« Cicatrices », with the injury and the week)
+and as chips beside the traits (`ScarChip`, same hover card), `scar` inbox message, Encyclopedia: injury pages list
+their scars, rule « Blessures » § Cicatrices. ≈ 17 scars a season over the 40 stables (≈ 0.4 per stable).
 

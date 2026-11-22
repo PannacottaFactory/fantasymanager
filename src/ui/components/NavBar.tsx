@@ -21,7 +21,7 @@ interface Group {
 const ICON: Partial<Record<Screen, string>> = {
   dashboard: 'nav-dashboard', inbox: 'nav-inbox', squad: 'nav-squad', tactics: 'nav-tactics', training: 'nav-training',
   league: 'nav-league', news: 'nav-news', recruit: 'nav-recruit', finances: 'nav-finances', staff: 'nav-staff',
-  facilities: 'nav-facilities', career: 'nav-career', encyclopedia: 'nav-encyclopedia', arena: 'nav-arena',
+  facilities: 'nav-facilities', career: 'nav-career', pantheon: 'nav-pantheon', encyclopedia: 'nav-encyclopedia', arena: 'nav-arena',
 };
 
 type Entry = Item | Group;
@@ -38,6 +38,7 @@ const NAV_ENTRIES: Entry[] = [
       { id: 'squad', label: 'nav.squad', needsGame: true },
       { id: 'tactics', label: 'nav.tactics', needsGame: true },
       { id: 'training', label: 'nav.training', needsGame: true },
+      { id: 'pantheon', label: 'nav.pantheon', needsGame: true },
     ],
   },
   {

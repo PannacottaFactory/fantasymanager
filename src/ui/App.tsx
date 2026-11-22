@@ -39,6 +39,7 @@ import { RecruitScreen } from './screens/game/RecruitScreen.tsx';
 import { FinancesScreen } from './screens/game/FinancesScreen.tsx';
 import { FacilitiesScreen } from './screens/game/FacilitiesScreen.tsx';
 import { CareerScreen } from './screens/game/CareerScreen.tsx';
+import { PantheonScreen } from './screens/game/PantheonScreen.tsx';
 import { NewsScreen } from './screens/game/NewsScreen.tsx';
 import { StaffScreen } from './screens/game/StaffScreen.tsx';
 import { TrainingScreen } from './screens/game/TrainingScreen.tsx';
@@ -251,6 +252,7 @@ export function App() {
   else if (screen === 'staff') content = <StaffScreen />;
   else if (screen === 'facilities') content = <FacilitiesScreen />;
   else if (screen === 'career') content = <CareerScreen />;
+  else if (screen === 'pantheon') content = <PantheonScreen />;
   else if (screen === 'news') content = <NewsScreen />;
   else if (screen === 'match') content = <MatchScreen />;
   else if (screen === 'inbox') content = <InboxScreen />;

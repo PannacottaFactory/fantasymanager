@@ -577,6 +577,20 @@ export const FR_INJURIES: Record<string, { name: string; short: string }> = {
   'crippling-wound': { name: 'une blessure invalidante', short: 'Blessure invalidante' },
 };
 
+export const FR_SCARS: Record<string, { name: string; description: string }> = {
+  'weak-joint': { name: 'Articulation fragile', description: 'L’articulation n’a jamais vraiment guéri. Il bouge avec prudence et lit le combat avec un temps d’avance.' },
+  'stiff-ribs': { name: 'Côtes mal soudées', description: 'Ses côtes se sont ressoudées de travers : il s’essouffle plus vite, mais sa poitrine est un bouclier.' },
+  'ragged-wing': { name: 'Aile mal recousue', description: 'La membrane a été recousue comme on a pu. Il vole moins vite, et se bat d’autant plus fort.' },
+  'burn-scars': { name: 'Peau brûlée', description: 'Sa peau tire là où le feu est passé. Les flammes ne lui font plus peur.' },
+  'lost-eye': { name: 'Œil crevé', description: 'Il lui manque un œil. Il vise moins bien, et plus rien ne semble le troubler.' },
+  'cracked-soul': { name: 'Âme fêlée', description: 'Quelque chose en lui est resté brisé. Ses nerfs sont à vif, mais la magie passe mieux par la fêlure.' },
+  blackouts: { name: 'Absences', description: 'Il perd parfois le fil du combat, et ne voit plus le danger venir.' },
+  'crooked-limb': { name: 'Membre mal ressoudé', description: 'L’os s’est ressoudé de travers, plus épais qu’avant : plus lent, mais plus dur à briser.' },
+  'broken-horn': { name: 'Corne brisée', description: 'Son arme n’est plus qu’un moignon. Il frappe moins fort, et avec plus de hargne.' },
+  'facial-scar': { name: 'Balafre', description: 'Une balafre en travers du visage que personne n’oublie. Ses compagnons gardent leurs distances, et le suivent.' },
+  maimed: { name: 'Mutilé', description: 'Il est revenu du pire. Son corps est diminué ; sa volonté, non.' },
+};
+
 export const FR_ELEMENTS: Record<ElementId, string> = {
   fire: 'Feu',
   water: 'Eau',

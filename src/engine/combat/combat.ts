@@ -14,6 +14,7 @@ import { Rng, normalizeSeed } from '../../core/rng.ts';
 import { ABILITIES } from '../../data/abilities.ts';
 import { EFFECTS } from '../../data/effects.ts';
 import { INJURIES } from '../../data/injuries.ts';
+import { SCARS } from '../../data/scars.ts';
 import { SPECIES } from '../../data/species.ts';
 import { TRAITS } from '../../data/traits.ts';
 import { ATTRIBUTE_KEYS, type Attributes } from '../../data/attributes.ts';
@@ -1284,11 +1285,11 @@ export function other(side: Side): Side {
   return side === 0 ? 1 : 0;
 }
 
-/** Visible attributes + trait modifiers, clamped to 1–20. */
+/** Visible attributes + trait and scar modifiers, clamped to 1–20. */
 export function effectiveAttributes(cr: Creature): Attributes {
   const out = { ...cr.attributes };
-  for (const t of cr.traits) {
-    const mods = TRAITS[t]?.combat?.attrMods;
+  const all = [...cr.traits.map((t) => TRAITS[t]?.combat?.attrMods), ...(cr.scars ?? []).map((s) => SCARS[s.id]?.attrMods)];
+  for (const mods of all) {
     if (!mods) continue;
     for (const k of ATTRIBUTE_KEYS) if (mods[k]) out[k] = clamp(out[k] + mods[k]!, 1, 20);
   }

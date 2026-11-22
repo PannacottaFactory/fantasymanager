@@ -6,6 +6,7 @@ import type { AttributeKey } from '../data/attributes.ts';
 import { DEFAULT_CONFIG } from '../data/config/index.ts';
 import { EFFECTS } from '../data/effects.ts';
 import type { TraitCombatEffects } from '../data/schema.ts';
+import { SCARS } from '../data/scars.ts';
 import { TRAITS } from '../data/traits.ts';
 import { attributeText } from '../engine/text/localize.ts';
 import { encT, type EncKey } from './i18n/encyclopedia.ts';
@@ -63,4 +64,12 @@ export function useTraitEffects(): (id: string) => string[] {
     if (tdef.personality?.moraleVolatility) lines.push(e('trc.moraleVolatility', { v: mult(tdef.personality.moraleVolatility) }));
     return lines;
   };
+}
+
+/** What a scar does: its attribute changes, signed. */
+export function useScarEffects(): (id: string) => string[] {
+  const { lang } = useT();
+  const e = encT(lang);
+  return (id) =>
+    Object.entries(SCARS[id]?.attrMods ?? {}).map(([k, v]) => e('trc.attr', { attr: attributeText(k as AttributeKey, lang).name, v: `${v! > 0 ? '+' : '−'}${Math.abs(v!)}` }));
 }

@@ -138,6 +138,8 @@ const UI = {
   'nav-staff': 'whistle',
   'nav-facilities': 'hammer-nails',
   'nav-career': 'stairs-goal',
+  'nav-pantheon': 'greek-temple',
+  'laurels': 'laurels',
   'nav-tools': 'toolbox',
   'nav-encyclopedia': 'open-book',
   'nav-arena': 'arena',

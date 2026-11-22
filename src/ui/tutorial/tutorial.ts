@@ -37,6 +37,7 @@ export const STEPS: TutorialStep[] = [
   { id: 'league', anchor: 'league-tabs' },
   { id: 'recruit', anchor: 'recruit' },
   { id: 'finances', anchor: 'finances' },
+  { id: 'pantheon', anchor: 'pantheon' },
 ];
 
 /** First steps: a short list of things to do, ticked as the player does them. */

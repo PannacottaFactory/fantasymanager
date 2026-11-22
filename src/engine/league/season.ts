@@ -15,7 +15,7 @@ import { simulateMatch } from '../combat/simulate.ts';
 import type { MatchResult, MatchSetup, Side } from '../combat/types.ts';
 import { isInjured } from '../creature/derived.ts';
 import { generateTeamName } from '../creature/names.ts';
-import type { Team } from '../model.ts';
+import type { Creature, Scar, Team } from '../model.ts';
 import { buildReport, type MatchReport } from '../report/report.ts';
 import { awardTrophy, initBestiary, recordSide, updateBestiary } from '../team/record.ts';
 import { arenaFor } from './arena.ts';
@@ -24,6 +24,7 @@ import { applyIdentity, drawIdentities, identitySkills, styleShare } from '../te
 import { alignPotential, levelOf, matchXp } from '../progression/levels.ts';
 import { afterMatchSessions } from '../progression/sessions.ts';
 import { evolveTraits } from '../progression/traitEvolution.ts';
+import { maybeScar } from '../progression/scars.ts';
 import { INJURIES } from '../../data/injuries.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import { boardVerdict, newSeasonObjective, teamStrength, weeklyBoard, weeklyBoardStanding } from '../club/board.ts';
@@ -39,7 +40,7 @@ import { pushMessage } from './messages.ts';
 import { addNews, divisionTables, isStar, newsFromResults } from './news.ts';
 import { matchdayCount, roundRobin } from './schedule.ts';
 import { computeStandings } from './standings.ts';
-import type { Fixture, FixtureResult, GameState, MatchComp } from './types.ts';
+import type { FallenCreature, Fixture, FixtureResult, GameState, MatchComp } from './types.ts';
 import { championsFrom, cupKey, finishTournamentRound, midweekKey, startTournaments, tournamentFixture, tournamentsAt } from './tournaments.ts';
 import { preMatchSituation, readTalk } from '../combat/talks.ts';
 import { moraleVolatility } from '../creature/traitPersonality.ts';
@@ -341,7 +342,7 @@ function applyMatchEffects(team: Team, result: MatchResult, side: Side, injuryFa
 function fatalities(state: GameState, team: Team, result: MatchResult, fx: MatchEffects, injuryFactor: number, cfg: GameConfig) {
   const d = cfg.league.death;
   const kod = new Set(result.events.flatMap((e) => (e.type === 'ko' ? [e.target] : [])));
-  const dead: { id: string; name: string; speciesId: string; age: number; level: number; injuryId: string; friends: string[] }[] = [];
+  const dead: { id: string; name: string; speciesId: string; age: number; level: number; injuryId: string; friends: string[]; legacy: Pick<FallenCreature, 'record' | 'traits' | 'scars'> }[] = [];
   for (const inj of fx.injuries) {
     if (!kod.has(inj.creatureId) || dead.some((x) => x.id === inj.creatureId)) continue;
     const chance = (d.chance[INJURIES[inj.injuryId]?.severity ?? 'minor'] ?? 0) * injuryFactor;
@@ -350,7 +351,8 @@ function fatalities(state: GameState, team: Team, result: MatchResult, fx: Match
     if (!rng.chance(chance)) continue;
     const c = team.creatures.find((x) => x.id === inj.creatureId);
     if (!c) continue;
-    dead.push({ id: c.id, name: c.name, speciesId: c.speciesId, age: c.age, level: levelOf(c, cfg), injuryId: inj.injuryId, friends: [] });
+    const legacy = { ...(c.record ? { record: structuredClone(c.record) } : {}), traits: [...c.traits], ...(c.scars?.length ? { scars: structuredClone(c.scars) } : {}) };
+    dead.push({ id: c.id, name: c.name, speciesId: c.speciesId, age: c.age, level: levelOf(c, cfg), injuryId: inj.injuryId, friends: [], legacy });
   }
   for (const x of dead) {
     x.friends = bury(state, team, x.id, cfg);
@@ -360,16 +362,26 @@ function fatalities(state: GameState, team: Team, result: MatchResult, fx: Match
   return dead;
 }
 
-/** One week passes for a team: injuries heal (mutates). Returns the healed creatures' ids. */
-function weeklyRecovery(team: Team): string[] {
+/**
+ * One week passes for a team: injuries heal (mutates), a healed injury may leave a scar. Returns the healed creatures'
+ * ids and the scars left.
+ */
+function weeklyRecovery(state: GameState, team: Team, cfg: GameConfig): { healed: string[]; scars: { creature: Creature; scar: Scar }[] } {
   const healed: string[] = [];
+  const scars: { creature: Creature; scar: Scar }[] = [];
   for (const c of team.creatures) {
     const cond = c.condition;
     const wasInjured = cond.injuries.length > 0;
-    cond.injuries = cond.injuries.map((i) => ({ ...i, weeksLeft: i.weeksLeft - 1 })).filter((i) => i.weeksLeft > 0);
+    const ticked = cond.injuries.map((i) => ({ ...i, weeksLeft: i.weeksLeft - 1 }));
+    cond.injuries = ticked.filter((i) => i.weeksLeft > 0);
+    for (const i of ticked) {
+      if (i.weeksLeft > 0) continue;
+      const scar = maybeScar(state.worldSeed, state.season, state.matchday, c, i.injuryId, cfg);
+      if (scar) scars.push({ creature: c, scar });
+    }
     if (wasInjured && cond.injuries.length === 0) healed.push(c.id);
   }
-  return healed;
+  return { healed, scars };
 }
 
 /** Rest between matches: fatigue recovers (`share` of a full week), morale and form drift to normal. */
@@ -446,7 +458,7 @@ function playFixtures(next: GameState, fixtures: Fixture[], playerMatch: MatchRe
       });
       for (const x of dead) {
         pushMessage(next, { kind: 'death', creatureId: x.id, name: x.name, speciesId: x.speciesId, injuryId: x.injuryId, opponent: opp.name, friends: x.friends });
-        (next.fallen ??= []).push({ id: x.id, name: x.name, speciesId: x.speciesId, age: x.age, level: x.level, season: next.season, matchday: next.matchday, opponent: opp.name, injuryId: x.injuryId });
+        (next.fallen ??= []).push({ id: x.id, name: x.name, speciesId: x.speciesId, age: x.age, level: x.level, season: next.season, matchday: next.matchday, opponent: opp.name, injuryId: x.injuryId, ...x.legacy });
       }
       if (trait) {
         const { creature: c, change: ch } = trait;
@@ -491,9 +503,10 @@ export function playMatchday(state: GameState, playerMatch: MatchResult | null =
 
   // 1. Existing injuries heal.
   for (const team of next.teams) {
-    const healed = weeklyRecovery(team);
+    const { healed, scars } = weeklyRecovery(next, team, cfg);
     if (team.id === next.playerTeamId) {
       for (const id of healed) pushMessage(next, { kind: 'recovered', creatureId: id, name: team.creatures.find((c) => c.id === id)!.name });
+      for (const { creature: c, scar } of scars) pushMessage(next, { kind: 'scar', creatureId: c.id, name: c.name, scarId: scar.id, injuryId: scar.injuryId });
     }
   }
 

@@ -19,7 +19,7 @@ import { TRAITS } from '../../data/traits.ts';
 import type { AbilityDef, EffectDef, EffectMods, ElementId, RoleId } from '../../data/schema.ts';
 import {
   abilityKindName, abilityText, attributeText, categoryName, effectText, elementName, injuryText, roleText, sizeName,
-  speciesText, traitText,
+  scarText, speciesText, traitText,
 } from '../../engine/text/localize.ts';
 import { RoleIcon, SpeciesIcon, UiIcon } from '../icons/Icon.tsx';
 import { ENC_DICTS, encT, type EncKey } from '../i18n/encyclopedia.ts';
@@ -28,7 +28,8 @@ import { AbilityCard, durationLabel, effectDuration, KindIcon } from '../compone
 import { skillLevel, skillUnlockLevel } from '../../engine/creature/derived.ts';
 import { coverReduction } from '../../engine/combat/formulas.ts';
 import { useGame } from '../store/gameStore.ts';
-import { useTraitEffects } from '../traitEffects.ts';
+import { useScarEffects, useTraitEffects } from '../traitEffects.ts';
+import { scarsOfInjury } from '../../engine/progression/scars.ts';
 import { BestiaryView } from './BestiaryView.tsx';
 import { ArenaConditionList } from '../components/ArenaCondition.tsx';
 
@@ -996,7 +997,9 @@ export function AttributeEntry({ id, go }: { id: AttributeKey; go?: (l: Link) =>
 export function InjuryEntry({ id }: { id: string }) {
   const { lang } = useT();
   const e = encT(lang);
+  const scarFx = useScarEffects();
   const inj = INJURIES[id]!;
+  const scars = cfg.scars.chance[inj.severity] > 0 ? scarsOfInjury(id) : [];
   return (
     <div>
       <h3 className="enc-title">{injuryText(id, lang).short}</h3>
@@ -1005,6 +1008,7 @@ export function InjuryEntry({ id }: { id: string }) {
           [e('inj.weeks'), `${inj.weeks[0]}–${inj.weeks[1]}`],
           [e('inj.severity'), e(`sev.${inj.severity}` as EncKey)],
           [e('inj.cause'), inj.cause === 'any' ? e('inj.any') : inj.cause === 'physical' || inj.cause === 'innate' ? e('ab.physical') : elementName(inj.cause, lang)],
+          [e('inj.scars'), scars.length ? scars.map((x) => `${scarText(x, lang).name} (${scarFx(x).join(', ')})`).join(' ; ') : e('inj.noScar'), 2],
         ]}
       />
     </div>
@@ -1069,6 +1073,7 @@ export function RuleEntry({ id }: { id: (typeof RULES)[number] }) {
     injury: {
       ko: p(c.injury.onKo), heavyHit: p(c.morale.heavyHitFraction), heavy: pct(c.injury.onHeavyHit, false),
       moderate: p(cfg.league.death.chance.moderate!), severe: p(cfg.league.death.chance.severe!), career: p(cfg.league.death.chance.career!),
+      sMod: p(cfg.scars.chance.moderate), sSev: p(cfg.scars.chance.severe), sCar: p(cfg.scars.chance.career), sMax: cfg.scars.max,
     },
     arena: { start: cfg.arena.startWeek, clear: p(cfg.arena.clearChance) },
     levels: {

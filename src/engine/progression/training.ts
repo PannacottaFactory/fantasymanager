@@ -395,7 +395,14 @@ export function ageing(state: GameState, cfg: GameConfig = DEFAULT_CONFIG) {
       if (c.growth) c.growth.season = 0;
       const lc = getSpecies(c).lifeCurve;
       if (c.age > lc.maxAge) {
-        if (team?.id === state.playerTeamId) retired.push(c.name);
+        if (team?.id === state.playerTeamId) {
+          retired.push(c.name);
+          // The Pantheon keeps who it was (its last season is the one that just ended).
+          (state.retired ??= []).push({
+            id: c.id, name: c.name, speciesId: c.speciesId, age: c.age - 1, level: levelOf(c, cfg), season: state.season - 1,
+            ...(c.record ? { record: structuredClone(c.record) } : {}), traits: [...c.traits], ...(c.scars?.length ? { scars: structuredClone(c.scars) } : {}),
+          });
+        }
         if (team) transfer(state, c.id, null, 0, null, cfg);
         state.freeAgents = state.freeAgents.filter((x) => x.id !== c.id);
         continue;

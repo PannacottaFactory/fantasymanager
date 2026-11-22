@@ -7,7 +7,7 @@ import type { FacilityId } from '../../data/config/club.ts';
 import type { DifficultyId } from '../../data/config/identity.ts';
 import type { MedalFamily } from '../../data/config/collection.ts';
 import type { MatchMethod, MatchResult, MatchSetup, Side } from '../combat/types.ts';
-import type { Creature, Team } from '../model.ts';
+import type { Creature, CreatureRecord, Scar, Team } from '../model.ts';
 import type { SessionState } from '../progression/sessions.ts';
 
 export interface FixtureResult {
@@ -77,6 +77,8 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
     }
   | { kind: 'injury'; creatureId: string; name: string; injuryId: string; weeks: number }
   | { kind: 'recovered'; creatureId: string; name: string }
+  /** A healed injury left a permanent mark (`data/scars.ts`). */
+  | { kind: 'scar'; creatureId: string; name: string; scarId: string; injuryId: string }
   | { kind: 'tired'; names: string[] }
   | { kind: 'seasonEnd'; position: number; champion: string; points: number }
   | { kind: 'newSeason' }
@@ -383,6 +385,24 @@ export interface FallenCreature {
   matchday: number;
   opponent: string;
   injuryId: string;
+  /** Snapshot for the Pantheon (absent in older saves). */
+  record?: CreatureRecord;
+  traits?: string[];
+  scars?: Scar[];
+}
+
+/** A creature that retired from the player's stable (Pantheon): a snapshot taken at the season change. */
+export interface RetiredCreature {
+  id: string;
+  name: string;
+  speciesId: string;
+  age: number;
+  level: number;
+  /** Last season it played. */
+  season: number;
+  record?: CreatureRecord;
+  traits: string[];
+  scars?: Scar[];
 }
 
 export interface GameState {
@@ -451,6 +471,8 @@ export interface GameState {
   matchHistory?: MatchRecord[];
   /** The player's creatures who died (memorial), oldest first. */
   fallen?: FallenCreature[];
+  /** The player's creatures who retired (Pantheon), oldest first (absent in older saves: none). */
+  retired?: RetiredCreature[];
   /** The player's finished seasons, oldest first. */
   career?: SeasonRecord[];
   /** Ambitions reached (season when reached). */
