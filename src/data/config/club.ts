@@ -91,13 +91,21 @@ export const CLUB_CONFIG = {
     trendWeeks: 12,
   },
   relations: {
-    /** Starters who fought together gain this much relation per match. */
-    perMatch: 3,
-    teamPlayerBonus: 2,
-    lonerFactor: 0.5,
-    /** Weekly chance of a quarrel in each stable (between volatile creatures). */
-    quarrelChance: 0.08,
-    quarrel: -25,
+    /**
+     * Weekly chance of a « moment » between two creatures of each stable: a good one makes them friends (or reconciles
+     * rivals: back to neutral), a bad one makes them rivals (or breaks a friendship: back to neutral). Creatures that
+     * fought together that week are `fightersWeight` × as likely to be the pair.
+     */
+    momentChance: 0.15,
+    fightersWeight: 3,
+    /** Chance the moment is good: `good` + `traitShift` per team player − `traitShift` per hothead in the pair. */
+    good: 0.5,
+    traitShift: 0.1,
+    /** Text variants per kind of moment (`moment.good.N` / `moment.bad.N` strings). */
+    variants: 10,
+    /** Values set by a moment. */
+    friendValue: 75,
+    rivalValue: -60,
     friend: 60,
     rival: -50,
     /** Match-start morale per teammate on the field: relation / 100 × this (total clamped to ±maxMorale). */

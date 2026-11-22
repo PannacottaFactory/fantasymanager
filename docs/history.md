@@ -378,3 +378,9 @@ measured on 3 worlds × 2 seasons: one change every 5.1 weeks per stable but 86 
 messages for the player), gains 875 / losses 474 / pushed out at random 113, good 40 % / bad 37 % / double-edged 23 %,
 traits per creature 0: 15 %, 1: 38 %, 2: 30 %, 3: 17 %, every trait seen (sharp-eyed rarest: three common opposites).
 Then 21 more traits (73 in all), and `training.gainMult` / `personality.*` finally read by the engine (not measured).
+
+**Relations by moments (2026-11-22).** The +3 per match fought together made every regular starter a friend: replaced
+by random weekly moments only (15 % per stable, 50/50 good / bad, bond set at once or undone). Measured (3 worlds ×
+2 seasons, ad-hoc script): ≈ 4.5 moments a season for the player; per stable (≈ 75 pairs) friends 2 → 4.4 → 5.8,
+rivals 1 → 3.4 → 5.1 (start → season 1 → 2); among the 10 starter pairs only ≈ 0.8 friends and 0.7 rivals, so the
+match-start morale stays light. No decay: bonds pile up slowly, departures clear them.

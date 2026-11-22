@@ -1,6 +1,6 @@
 /**
  * Relations between creatures of a stable (−100 rivalry … +100 bond), stored on both creatures.
- * They grow by fighting together, sour in quarrels, lift or sap morale at the start of a match.
+ * They change through random weekly « moments » (good or bad), and lift or sap morale at the start of a match.
  */
 import { clamp } from '../../core/math.ts';
 import { Rng, deriveSeed } from '../../core/rng.ts';
@@ -48,39 +48,42 @@ export function relationMorale(c: Creature, teammates: readonly Creature[], cfg:
   return clamp(sum, -r.maxMorale, r.maxMorale);
 }
 
+/** Chance that a moment between two creatures is a good one (team players lean to good, hotheads to bad). */
+export function goodMomentChance(a: Creature, b: Creature, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const r = cfg.club.relations;
+  let p = r.good;
+  for (const c of [a, b]) {
+    if (c.traits.includes('team-player')) p += r.traitShift;
+    if (c.traits.includes('hothead')) p -= r.traitShift;
+  }
+  return clamp(p, 0.05, 0.95);
+}
+
 /**
- * Weekly relations: starters who fought together bond; volatile creatures sometimes quarrel.
+ * Weekly relations: in each stable, sometimes a « moment » between two creatures (more often two that fought together
+ * that week). A good one makes them friends at once (rivals reconcile: neutral), a bad one rivals (friends fall out:
+ * neutral). A moment that would change nothing (good between friends) tries another pair.
  * `starters` maps team id → ids of the creatures that started its match this week.
  */
 export function weeklyRelations(state: GameState, starters: Map<string, string[]>, cfg: GameConfig = DEFAULT_CONFIG) {
   const r = cfg.club.relations;
   const rng = new Rng(deriveSeed(state.worldSeed, 'relations', state.season, state.matchday));
-  const announce = (team: Team, a: Creature, b: Creature, before: number, after: number) => {
-    if (team.id !== state.playerTeamId) return;
-    if (before < r.friend && after >= r.friend) pushMessage(state, { kind: 'relation', a: a.name, b: b.name, bond: 'friends' });
-    if (before > r.rival && after <= r.rival) pushMessage(state, { kind: 'relation', a: a.name, b: b.name, bond: 'rivals' });
-  };
   for (const team of state.teams) {
+    if (team.creatures.length < 2 || !rng.chance(r.momentChance)) continue;
     const ids = starters.get(team.id) ?? [];
-    const fighters = team.creatures.filter((c) => ids.includes(c.id));
-    for (let i = 0; i < fighters.length; i++) {
-      for (let j = i + 1; j < fighters.length; j++) {
-        const a = fighters[i]!;
-        const b = fighters[j]!;
-        let gain = r.perMatch;
-        if (a.traits.includes('team-player') || b.traits.includes('team-player')) gain += r.teamPlayerBonus;
-        if (a.traits.includes('loner') || b.traits.includes('loner')) gain *= r.lonerFactor;
-        const before = relationOf(a, b);
-        announce(team, a, b, before, shiftRelation(a, b, gain));
-      }
-    }
-    if (team.creatures.length >= 2 && rng.chance(r.quarrelChance)) {
-      // Volatile tempers clash more often.
-      const a = rng.weighted(team.creatures, (c) => c.hidden.temperament + (c.traits.includes('hothead') ? 10 : 0));
-      const others = team.creatures.filter((c) => c.id !== a.id);
-      const b = rng.weighted(others, (c) => c.hidden.temperament);
-      const before = relationOf(a, b);
-      announce(team, a, b, before, shiftRelation(a, b, r.quarrel));
+    const weight = (c: Creature) => (ids.includes(c.id) ? r.fightersWeight : 1);
+    for (let tries = 0; tries < 5; tries++) {
+      const a = rng.weighted(team.creatures, weight);
+      const b = rng.weighted(team.creatures.filter((c) => c.id !== a.id), weight);
+      const good = rng.chance(goodMomentChance(a, b, cfg));
+      const v = relationOf(a, b);
+      if (good ? v >= r.friend : v <= r.rival) continue;
+      const bond = good ? (v <= r.rival ? 'reconciled' : 'friends') : v >= r.friend ? 'fallenOut' : 'rivals';
+      const target = bond === 'friends' ? r.friendValue : bond === 'rivals' ? r.rivalValue : 0;
+      shiftRelation(a, b, target - v);
+      const moment = rng.int(0, r.variants - 1);
+      if (team.id === state.playerTeamId) pushMessage(state, { kind: 'relation', a: a.name, b: b.name, bond, moment });
+      break;
     }
   }
 }

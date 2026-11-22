@@ -375,10 +375,16 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       };
     case 'friendLeft':
       return { title: t('msg.friendLeft.title', { name: m.name }), body: t('msg.friendLeft.body', { friends: m.friends.join(', ') }), tone: 'bad' };
-    case 'relation':
-      return m.bond === 'friends'
-        ? { title: t('msg.relation.friends'), body: t('msg.relation.friendsBody', { a: m.a, b: m.b }), tone: 'good' }
-        : { title: t('msg.relation.rivals'), body: t('msg.relation.rivalsBody', { a: m.a, b: m.b }), tone: 'bad' };
+    case 'relation': {
+      // The scene of the moment (absent in old saves), then what it changed.
+      const good = m.bond === 'friends' || m.bond === 'reconciled';
+      const scene = m.moment === undefined ? '' : `${t(`moment.${good ? 'good' : 'bad'}.${m.moment}` as StringKey, { a: m.a, b: m.b })}\n`;
+      return {
+        title: t(`msg.relation.${m.bond}`),
+        body: scene + t(`msg.relation.${m.bond}Body`, { a: m.a, b: m.b }),
+        tone: m.bond === 'friends' ? 'good' : m.bond === 'rivals' ? 'bad' : 'info',
+      };
+    }
     case 'ambition':
       return { title: t('msg.ambition.title', { a: t(`amb.${m.ambition}`) }), body: t('msg.ambition.body', { a: t(`amb.${m.ambition}`), desc: t(`amb.${m.ambition}.desc`) }), tone: 'good' };
     case 'emergencySigning':

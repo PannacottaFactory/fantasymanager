@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 import { startBuilding, ticketsFactor } from '../src/engine/club/facilities.ts';
-import { friendsMourn, relationOf, shiftRelation } from '../src/engine/club/relations.ts';
+import { friendsMourn, shiftRelation } from '../src/engine/club/relations.ts';
 import { migrateGame } from '../src/engine/league/migrate.ts';
 import { cupDue, newGame, playMatchday, playerTeam, seasonOver, startNextSeason } from '../src/engine/league/season.ts';
 import type { GameState } from '../src/engine/league/types.ts';
@@ -70,17 +70,17 @@ describe('facilities', () => {
 });
 
 describe('relations', () => {
-  it('starters bond by fighting together; friends mourn a departure', () => {
+  it('moments make friends or rivals at once, or undo a bond; friends mourn a departure', () => {
+    const r = DEFAULT_CONFIG.club.relations;
     let g = game('rel');
-    const team = playerTeam(g);
-    const [a, b] = team.tactic.lineup.map((s) => team.creatures.find((c) => c.id === s.creatureId)!);
-    const before = relationOf(a!, b!);
-    for (let i = 0; i < 3; i++) g = playMatchday(g);
-    const t2 = playerTeam(g);
-    const a2 = t2.creatures.find((c) => c.id === a!.id);
-    const b2 = t2.creatures.find((c) => c.id === b!.id);
-    if (a2 && b2 && t2.tactic.lineup.some((s) => s.creatureId === a2.id)) expect(relationOf(a2, b2)).toBeGreaterThanOrEqual(before);
+    for (let i = 0; i < 20; i++) g = playMatchday(g);
+    const seen = new Set(g.inbox.flatMap((m) => (m.kind === 'relation' && m.moment !== undefined ? [m.bond] : [])));
+    // Every relation sits on one of the bond values: a moment sets it outright.
+    const values = new Set(g.teams.flatMap((t) => t.creatures.flatMap((c) => Object.values(c.relations))));
+    for (const v of values) expect(v === 0 || v >= r.friend || v <= r.rival).toBe(true);
+    expect(seen.size).toBeGreaterThan(0);
 
+    const t2 = playerTeam(g);
     const x = t2.creatures[0]!;
     const y = t2.creatures[1]!;
     shiftRelation(x, y, 100);

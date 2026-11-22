@@ -427,6 +427,15 @@ Then tank role armour +3 % → +2 % (the tank's job is intercepting), support he
 (fortress) 65 → 62 %, purify 59 → 55 % in `sim:archetypes`; phoenix `valueMult` 1.08 → 1.5. A striker hits as hard from
 the back line (melee ignores the attacker's line) but moving strikers back costs ≈ 4 points (thinner front line).
 League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0.
+**Relations** (`engine/club/relations.ts`, `club.relations`): −100…+100 per pair of stablemates, friends ≥ 60, rivals
+≤ −50. Drawn at game start (2 friendships, 1 rivalry per stable). Then only random **moments** (`weeklyRelations`, own
+stream `deriveSeed(world, 'relations', …)`): each week a stable has `momentChance` 15 % of one, the pair drawn with
+weight ×3 for that week's starters; good with 50 % (+10 % per team player, −10 % per hothead in the pair). Good: friends
+at once (75), or rivals reconcile (0). Bad: rivals at once (−60), or friends fall out (0). A moment that changes nothing
+tries another pair. `relation` inbox message with a scene (`moment.good|bad.0–9`) + its consequence. No gain from
+fighting together any more, no separate quarrels. Effects unchanged: match-start morale ±4 per teammate (cap ±8),
+friends add +4 % to the combo and avenge a fallen friend (`avenging`), a rival's hit never counts as a combo. Shown on
+the creature sheet (friends / rivals chips).
 **Deaths (rare)**: after a league/cup match, a creature knocked out that picked up an injury dies of it with
 `cfg.league.death.chance[severity]` (moderate 2 %, severe 20 %, career 50 %) × the infirmary factor — own RNG stream
 (`deriveSeed(world, 'death', …)`), so match results never change. `bury()` removes it (friends mourn, whole stable

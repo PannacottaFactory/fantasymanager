@@ -141,7 +141,13 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'facilityDone'; facility: FacilityId; level: number }
   | { kind: 'friendLeft'; name: string; friends: string[] }
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
-  | { kind: 'relation'; a: string; b: string; bond: 'friends' | 'rivals' }
+  | {
+      kind: 'relation'; a: string; b: string;
+      /** New bond (`reconciled` / `fallenOut`: back to neutral). Old saves only have friends / rivals, without `moment`. */
+      bond: 'friends' | 'rivals' | 'reconciled' | 'fallenOut';
+      /** Text variant of the scene (`moment.good.N` / `moment.bad.N`). */
+      moment?: number;
+    }
   | { kind: 'ambition'; ambition: AmbitionId }
   | { kind: 'medal'; creatureId: string; name: string; family: MedalFamily; tier: number; /** Other creatures that won the same medal that week. */ more?: { creatureId: string; name: string }[] }
   | { kind: 'bestiary'; seen: string[]; owned: string[]; rewards: BestiaryReward[] }
