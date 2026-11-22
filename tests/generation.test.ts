@@ -7,7 +7,7 @@ import { ABILITIES } from '../src/data/abilities.ts';
 import { EFFECTS } from '../src/data/effects.ts';
 import { NAME_CULTURES } from '../src/data/names.ts';
 import { generateCreature, ageAbilityFactor } from '../src/engine/creature/generate.ts';
-import { getAbilities, maxHp } from '../src/engine/creature/derived.ts';
+import { bestRole, getAbilities, maxHp, servesRole, skillPool } from '../src/engine/creature/derived.ts';
 import { autoTactic, generateTeam, validateTactic } from '../src/engine/team/team.ts';
 import { DEFAULT_CONFIG } from '../src/data/config/index.ts';
 
@@ -110,6 +110,30 @@ describe('teams', () => {
     star.condition.injuries.push({ injuryId: 'gash', weeksLeft: 2 });
     const t = autoTactic(team.creatures);
     expect(t.lineup.map((s) => s.creatureId)).not.toContain(star.id);
+  });
+
+  it('autoTactic gives roles the equipped skills can play (a support helps its allies, a caster casts)', () => {
+    for (let i = 0; i < 300; i++) {
+      const team = generateTeam(new Rng(`kit|${i}`), { quality: (['novice', 'professional', 'elite'] as const)[i % 3] });
+      const byId = new Map(team.creatures.map((c) => [c.id, c]));
+      for (const s of autoTactic(team.creatures).lineup) {
+        if (s.role !== 'support' && s.role !== 'caster') continue;
+        const skills = getAbilities(byId.get(s.creatureId)!);
+        expect(skills.some((a) => servesRole(a, s.role)), `${byId.get(s.creatureId)!.speciesId} as ${s.role}`).toBe(true);
+      }
+    }
+  });
+
+  it("autoTactic reads the manager's skill choice and keeps it", () => {
+    const team = generateTeam(new Rng('kit-choice'));
+    const healer = team.creatures.find((c) => skillPool(c).some((id) => ABILITIES[id]!.kind === 'heal'));
+    if (!healer) return;
+    const heal = skillPool(healer).find((id) => ABILITIES[id]!.kind === 'heal')!;
+    const attacks = skillPool(healer).filter((id) => !servesRole(ABILITIES[id]!, 'support'));
+    expect(bestRole(healer, attacks)).not.toBe('support');
+    const skills = { [healer.id]: [heal] };
+    const t = autoTactic(team.creatures, DEFAULT_CONFIG, undefined, skills);
+    expect(t.skills).toEqual(skills);
   });
 });
 

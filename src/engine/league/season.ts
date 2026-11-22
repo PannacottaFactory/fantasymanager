@@ -20,7 +20,7 @@ import { buildReport, type MatchReport } from '../report/report.ts';
 import { awardTrophy, initBestiary, recordSide, updateBestiary } from '../team/record.ts';
 import { arenaFor } from './arena.ts';
 import { autoTactic, generateTeam, repairTactic, validateTactic } from '../team/team.ts';
-import { applyIdentity, drawIdentities, styleShare } from '../team/identity.ts';
+import { applyIdentity, drawIdentities, identitySkills, styleShare } from '../team/identity.ts';
 import { alignPotential, levelOf, matchXp } from '../progression/levels.ts';
 import { afterMatchSessions } from '../progression/sessions.ts';
 import { INJURIES } from '../../data/injuries.ts';
@@ -230,8 +230,10 @@ export function aiPrepare(team: Team, cfg: GameConfig = DEFAULT_CONFIG, difficul
   const restAbove = cfg.identity.difficulties[difficulty].restFatigue;
   const fresh = team.creatures.filter((c) => !isInjured(c) && c.condition.fatigue <= restAbove);
   const pool = fresh.length >= needed ? fresh : team.creatures;
-  const tactic = autoTactic(pool, cfg, team.tactic.orders);
-  // Without an identity (the player's "pick for me"), keep the current orders.
+  // Roles follow the skills taken into the match: the stable's build, or (the player's "pick for me") the manager's choice.
+  const skills = team.identity ? identitySkills(team, difficulty, cfg) : team.tactic.skills;
+  const tactic = autoTactic(pool, cfg, team.tactic.orders, skills);
+  // Without an identity (the player's "pick for me"), keep the current orders and skills.
   return { ...team, tactic: team.identity ? applyIdentity(team, tactic, difficulty, opponent, cfg) : tactic };
 }
 

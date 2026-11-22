@@ -21,10 +21,11 @@ export function selectionScore(c: Creature, cfg: GameConfig = DEFAULT_CONFIG): n
 }
 
 /**
- * Lineup chosen by ability (discounted by fatigue) with natural roles; skips injured creatures
- * when possible and guarantees at least one creature in front.
+ * Lineup chosen by ability (discounted by fatigue), each creature in the role its attributes and its equipped skills
+ * (`skills`, kept in the tactic) suit best; skips injured creatures when possible and guarantees at least one creature
+ * in front.
  */
-export function autoTactic(creatures: Creature[], cfg: GameConfig = DEFAULT_CONFIG, orders = DEFAULT_ORDERS): Tactic {
+export function autoTactic(creatures: Creature[], cfg: GameConfig = DEFAULT_CONFIG, orders = DEFAULT_ORDERS, skills?: Record<string, string[]>): Tactic {
   const healthy = creatures.filter((c) => !isInjured(c));
   const pool = (healthy.length >= cfg.match.starters ? healthy : creatures)
     .slice()
@@ -32,7 +33,7 @@ export function autoTactic(creatures: Creature[], cfg: GameConfig = DEFAULT_CONF
   const starters = pool.slice(0, cfg.match.starters);
   const bench = pool.slice(cfg.match.starters, cfg.match.starters + cfg.match.benchSize).map((c) => c.id);
   const lineup: LineupSlot[] = starters.map((c) => {
-    const role = bestRole(c);
+    const role = bestRole(c, skills?.[c.id], cfg);
     return { creatureId: c.id, role, line: ROLES[role].defaultLine, stance: 'normal' };
   });
   if (!lineup.some((s) => s.line === 'front') && lineup.length) {
@@ -44,7 +45,7 @@ export function autoTactic(creatures: Creature[], cfg: GameConfig = DEFAULT_CONF
     sturdiest.line = 'front';
     sturdiest.role = 'tank';
   }
-  return { lineup, bench, orders: { ...orders } };
+  return { lineup, bench, orders: { ...orders }, ...(skills ? { skills: { ...skills } } : {}) };
 }
 
 export interface GenerateTeamOptions {
@@ -134,6 +135,11 @@ export function repairTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team
     return !!c && !isInjured(c);
   };
   const t = structuredClone(team.tactic);
+  // A creature left without any skill goes back to the default choice (before any role is picked from its skills).
+  for (const id of Object.keys(t.skills ?? {})) {
+    const c = byId.get(id);
+    if (c && t.skills?.[id] && !equippedSkills(c, t.skills[id], cfg).length) delete t.skills[id];
+  }
   t.lineup = t.lineup.filter((s) => fit(s.creatureId));
   t.bench = t.bench.filter((id) => fit(id) && !t.lineup.some((s) => s.creatureId === id));
   const free = () =>
@@ -145,7 +151,7 @@ export function repairTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team
     const fromBench = t.bench.length ? t.bench.shift()! : free()[0]?.id;
     if (!fromBench) break;
     const c = byId.get(fromBench)!;
-    const role = bestRole(c);
+    const role = bestRole(c, t.skills?.[c.id], cfg);
     t.lineup.push({ creatureId: c.id, role, line: ROLES[role].defaultLine, stance: 'normal' });
   }
   while (t.bench.length < cfg.match.benchSize) {
@@ -154,10 +160,5 @@ export function repairTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team
     t.bench.push(next.id);
   }
   if (t.lineup.length && !t.lineup.some((s) => s.line === 'front')) t.lineup[0]!.line = 'front';
-  // A creature left without any skill goes back to the default choice.
-  for (const id of [...t.lineup.map((s) => s.creatureId), ...t.bench]) {
-    const c = byId.get(id);
-    if (c && t.skills?.[id] && !equippedSkills(c, t.skills[id], cfg).length) delete t.skills[id];
-  }
   return { ...team, tactic: t };
 }

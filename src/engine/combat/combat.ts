@@ -137,7 +137,7 @@ export class Combat {
       for (const id of team.tactic.bench) {
         const cr = byCreature.get(id);
         if (!cr) throw new Error(`Bench creature ${id} not in team ${team.name}`);
-        const role = bestRole(cr);
+        const role = bestRole(cr, team.tactic.skills?.[cr.id], cfg);
         this.addCombatant(cr, side, role, ROLES[role].defaultLine, 'normal', false, team.tactic.skills?.[cr.id]);
       }
       // Friends lift each other before the first blow; rivals sap the mood.

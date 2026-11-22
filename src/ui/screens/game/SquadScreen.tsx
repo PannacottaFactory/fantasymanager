@@ -98,7 +98,7 @@ export function SquadScreen() {
   // General view: role, condition, morale, health, the six profile axes, traits.
   const columns: Column<Creature>[] = [
     ...idColumns,
-    { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c), render: (c) => <RoleLabel role={bestRole(c)} /> },
+    { key: 'best', label: t('col.bestRole'), sort: (c) => bestRole(c, team.tactic.skills?.[c.id]), render: (c) => <RoleLabel role={bestRole(c, team.tactic.skills?.[c.id])} /> },
     { key: 'cond', label: t('col.condition'), title: t('col.condition.title'), sort: conditionSort, render: (c) => <ConditionCell c={c} /> },
     { key: 'morale', label: t('col.morale'), sort: (c) => c.condition.morale, render: (c) => <span title={String(c.condition.morale)} style={{ color: moraleColor(c.condition.morale) }}>{t(moraleKey(c.condition.morale))}</span> },
     { key: 'hp', label: t('col.hp'), num: true, className: 'col-hp', sort: (c) => maxHp(c, DEFAULT_CONFIG), render: (c) => maxHp(c, DEFAULT_CONFIG) },

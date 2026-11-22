@@ -19,7 +19,7 @@ export function toggleStarter(team: Team, id: string, cfg: GameConfig = DEFAULT_
     if (t.lineup.length >= cfg.match.starters) return team;
     const c = team.creatures.find((x) => x.id === id);
     if (!c) return team;
-    const role = bestRole(c);
+    const role = bestRole(c, t.skills?.[id], cfg);
     t.lineup = frontFirst([...t.lineup, { creatureId: id, role, line: ROLES[role].defaultLine, stance: 'normal' }]);
     t.bench = t.bench.filter((b) => b !== id);
   }
@@ -45,7 +45,7 @@ export function setSelection(team: Team, id: string, to: Selection, cfg: GameCon
   t.lineup = t.lineup.filter((s) => s.creatureId !== id);
   t.bench = t.bench.filter((b) => b !== id);
   if (to === 'starter') {
-    const role = bestRole(c);
+    const role = bestRole(c, t.skills?.[id], cfg);
     t.lineup = frontFirst([...t.lineup, { creatureId: id, role, line: ROLES[role].defaultLine, stance: 'normal' }]);
   } else if (to === 'bench') t.bench.push(id);
   return { ...team, tactic: t };
@@ -65,7 +65,7 @@ export function swapCreatures(team: Team, a: string, b: string): Team {
   const t = structuredClone(team.tactic);
   const put = (id: string, c: Creature, to: Selection, slotOf?: LineupSlot) => {
     if (to === 'starter') {
-      const role = bestRole(c);
+      const role = bestRole(c, t.skills?.[id]);
       t.lineup.push({ creatureId: id, role, line: slotOf?.line ?? ROLES[role].defaultLine, stance: 'normal' });
     } else if (to === 'bench') t.bench.push(id);
   };
@@ -114,7 +114,7 @@ export function replaceCreature(team: Team, oldId: string, replacement: Creature
   const creatures = team.creatures.map((c) => (c.id === oldId ? replacement : c));
   const lineup = team.tactic.lineup.map((s) => {
     if (s.creatureId !== oldId) return s;
-    const role = bestRole(replacement);
+    const role = bestRole(replacement, team.tactic.skills?.[replacement.id]);
     return { ...s, creatureId: replacement.id, role, line: ROLES[role].defaultLine };
   });
   const bench = team.tactic.bench.map((b) => (b === oldId ? replacement.id : b));
@@ -192,7 +192,7 @@ export function insertInGroup(team: Team, id: string, group: Selection, anchor: 
   if (group === 'starter') {
     const at = t.lineup.findIndex((s) => s.creatureId === anchor);
     const anchorLine = at >= 0 ? t.lineup[at]!.line : undefined;
-    const role = oldSlot?.role ?? bestRole(c);
+    const role = oldSlot?.role ?? bestRole(c, t.skills?.[id]);
     const slot: LineupSlot = { creatureId: id, role, line: anchorLine ?? oldSlot?.line ?? ROLES[role].defaultLine, stance: oldSlot?.stance ?? 'normal' };
     t.lineup.splice(at < 0 ? t.lineup.length : at + (after ? 1 : 0), 0, slot);
   } else if (group === 'bench') {

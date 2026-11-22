@@ -338,6 +338,10 @@ Append new passes here.
   `node scripts/species-check.mjs <outDir> [url]` (dev server, dev store `window.__arena`) plays two live Test-arena matches
   between the 20 wave-6 species with their key skill, screenshots, and counts the mechanics that fired. `sim:species --only a,b --mean m` tests a few species against a full run's mean.
   Tests `tests/wave6.test.ts`.
+- [x] Assistant roles from the kit (Nov 2026): `bestRole` reads the equipped skills (`RoleDef.kit`). On 1200 generated
+  line-ups, starters in a role their skills can't play: supports 217 / 471 → 0, casters 234 / 1301 → 0, skirmishers
+  1183 / 1649 → 30 / 636 (strikers 1341 → 2487). Paired run, same squad with the new vs the old roles against the same
+  varied opponents (6000 matches): 50.5 % vs 48.4 % (+2.1). The player's « pick for me » keeps the equipped skills.
 - [ ] Phase 6 — mass season sims in a worker, balancing, polish, save slots & import/export.
 
 ## Balance snapshot

@@ -102,13 +102,42 @@ export function roleFit(creature: Creature, role: RoleId): number {
   return wsum ? total / wsum : 0;
 }
 
-/** Best role, slightly favouring the roles natural to the species. */
-export function bestRole(creature: Creature): RoleId {
+/** Does this skill serve the role (see `RoleDef.kit`)? */
+export function servesRole(a: AbilityDef, role: RoleId): boolean {
+  switch (role) {
+    case 'support':
+      return (a.kind === 'heal' || a.kind === 'buff') && a.target !== 'self';
+    case 'caster':
+      return a.kind === 'spell' || a.kind === 'debuff';
+    case 'skirmisher':
+      return a.kind === 'ranged' || (a.kind === 'melee' && !!a.reachBack);
+    case 'striker':
+      return a.kind === 'melee';
+    default:
+      return true;
+  }
+}
+
+/** What the equipped skills add to (or take from) the fit for a role, on the 1–20 scale. */
+export function kitFit(skills: readonly AbilityDef[], role: RoleId): number {
+  const kit = ROLES[role].kit;
+  if (!kit) return 0;
+  const n = skills.filter((a) => servesRole(a, role)).length;
+  return n ? kit.each * Math.min(2, n) : -kit.missing;
+}
+
+/**
+ * Best role for the skills it takes into the match (`chosen` as in `equippedSkills`: none = the default ones), slightly
+ * favouring the roles natural to the species: a creature without any heal or help for its allies is never a support,
+ * one without a spell hardly a caster.
+ */
+export function bestRole(creature: Creature, chosen?: readonly string[], cfg: GameConfig = DEFAULT_CONFIG): RoleId {
   const natural = getSpecies(creature).roles;
+  const skills = equippedSkills(creature, chosen, cfg).map(abilityDef);
   let best: RoleId = natural[0] ?? 'striker';
   let bestScore = -Infinity;
   for (const r of ROLE_IDS) {
-    const score = roleFit(creature, r) + (natural.includes(r) ? 1.5 : 0);
+    const score = roleFit(creature, r) + (natural.includes(r) ? 1.5 : 0) + kitFit(skills, r);
     if (score > bestScore) {
       bestScore = score;
       best = r;

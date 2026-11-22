@@ -188,6 +188,13 @@ add a new bullet for a new one.
   Competition colours: `.def-<id>` sets `--comp` (league, shadow, champions, division, or, argent, marches, preseason),
   used by `.comp-badge` (schedule, pre-match title). Emblems are game-icons: `<CompIcon def>` / `<DivIcon d>` (`COMP_ICONS`, `DIV_ICONS` in `scripts/extract-icons.mjs`: crown, fleur-de-lys, castle, watchtower), no emojis.
 - **Selection** (`selectionScore`, assistant + AI line-ups, `repairTactic`; break substitutions `benchScore`; star requests `starsOf`): the overall rating (attribute average, species included) × fatigue, never the hidden aptitude — picking on the aptitude lost ≈ 7 points of win rate (a gifted kobold over an average death knight) and the verdict's « better creature on the bench » blamed the assistant's own choice.
+- **Roles from the kit** (`bestRole(c, chosen)`, `kitFit`, `servesRole`, `RoleDef.kit` in `data/roles.ts`): the role the
+  assistant, the AI line-ups, `repairTactic`, the editor and the bench give a creature reads its attributes, its species'
+  natural roles (+1.5) **and the skills it takes into the match** (the manager's choice, the AI's build, else the default
+  ones). Without a skill serving the role the fit loses `missing` (support 10: a heal or a buff / help for allies; caster 6:
+  a spell or a debuff; skirmisher 4: a ranged blow or a dive; striker 3: a melee blow), each serving skill adds `each`
+  (two at most). « Laisser l'assistant choisir » keeps the player's equipped skills (it used to drop them). The Squad
+  « best role » column reads the equipped skills too.
 - **Starting squad**: the player's creatures keep their drawn strength but little room to grow
   (`generation.startingSquad`: potential = ability + gap × 0.35, at most 101 = 6★); stars come later (market, prospects).
 - **Stable names** (`generateTeamName`): six kinds (adjective + noun, noun of place, order of emblem, order of place,

@@ -16,6 +16,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
     defaultLine: 'front',
     fit: { strength: 3, attack: 3, technique: 1, aggression: 1, speed: 1, stamina: 1 },
     ai: { damage: 1.4, heal: 0, buff: 0.6, debuff: 0.6, guard: 0, backlineHunter: 0.2 },
+    kit: { missing: 3, each: 0.5 },
   },
   support: {
     id: 'support',
@@ -24,6 +25,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
     defaultLine: 'back',
     fit: { magic: 2.5, focus: 2, teamwork: 2, tactics: 1.5, composure: 1, leadership: 1 },
     ai: { damage: 0.5, heal: 1.8, buff: 1.5, debuff: 1, guard: 0, backlineHunter: 0 },
+    kit: { missing: 10, each: 1 },
   },
   caster: {
     id: 'caster',
@@ -32,6 +34,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
     defaultLine: 'back',
     fit: { magic: 3.5, focus: 2.5, tactics: 1.5, composure: 1 },
     ai: { damage: 1.4, heal: 0.4, buff: 0.6, debuff: 1, guard: 0, backlineHunter: 0.3 },
+    kit: { missing: 6, each: 0.75 },
   },
   skirmisher: {
     id: 'skirmisher',
@@ -40,6 +43,7 @@ export const ROLES: Record<RoleId, RoleDef> = {
     defaultLine: 'back',
     fit: { speed: 3, agility: 2.5, technique: 1.5, accuracy: 1, attack: 1, anticipation: 1 },
     ai: { damage: 1.2, heal: 0, buff: 0.5, debuff: 1, guard: 0, backlineHunter: 1.5 },
+    kit: { missing: 4, each: 0.75 },
   },
 };
 

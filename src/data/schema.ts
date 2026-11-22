@@ -251,6 +251,12 @@ export interface RoleDef {
   fit: Partial<Record<AttributeKey, number>>;
   /** Action preferences of the combat AI. */
   ai: { damage: number; heal: number; buff: number; debuff: number; guard: number; backlineHunter: number };
+  /**
+   * What the equipped skills must offer for the role to make sense (support: a heal or help for allies, caster: a
+   * spell, skirmisher: a ranged blow or a dive, striker: a melee blow). The assistant's choice of role: `missing` is
+   * taken off the fit (1–20 scale) without any such skill, `each` added per such skill (up to two).
+   */
+  kit?: { missing: number; each: number };
 }
 
 export interface InjuryDef {

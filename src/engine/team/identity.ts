@@ -91,9 +91,18 @@ export function styleSkills(c: Creature, style: PlayStyleId, cfg: GameConfig = D
   return [...own, ...fill].slice(0, cfg.combat.skills.equipped);
 }
 
+/** Skills an AI stable equips: its style's build, none (= the default ones) for eclectic stables. */
+export function identitySkills(team: Team, difficulty: DifficultyId, cfg: GameConfig = DEFAULT_CONFIG): Record<string, string[]> {
+  const skills: Record<string, string[]> = {};
+  // Eclectic stables don't bother with builds (they take the latest skills).
+  if (cfg.identity.difficulties[difficulty].styleSkills && team.identity && (team.identity.focus ?? 0.5) >= 0.3) {
+    for (const c of team.creatures) skills[c.id] = styleSkills(c, team.identity.style, cfg);
+  }
+  return skills;
+}
+
 /** Applies the identity to a freshly built AI tactic: orders, equipped skills, break behaviour, reading the opponent. */
 export function applyIdentity(team: Team, tactic: Tactic, difficulty: DifficultyId, opponent?: Team, cfg: GameConfig = DEFAULT_CONFIG): Tactic {
-  const d = cfg.identity.difficulties[difficulty];
   const orders = identityOrders(team, difficulty, cfg);
   if (opponent && readsOpponent(team, difficulty, cfg)) {
     const byId = new Map(opponent.creatures.map((c) => [c.id, c]));
@@ -102,11 +111,7 @@ export function applyIdentity(team: Team, tactic: Tactic, difficulty: Difficulty
     // Pick the approach that has the upper hand on the opponent's.
     orders.aggression = counterApproach(opponent.tactic.orders.aggression, cfg);
   }
-  const skills: Record<string, string[]> = {};
-  // Eclectic stables don't bother with builds (they take the latest skills).
-  if (d.styleSkills && team.identity && (team.identity.focus ?? 0.5) >= 0.3) {
-    for (const c of team.creatures) skills[c.id] = styleSkills(c, team.identity.style, cfg);
-  }
+  const skills = identitySkills(team, difficulty, cfg);
   const ai = managerStyle(team, difficulty, orders, cfg);
   orders.talk = managerTalk(ai, preMatchSituation({ ...team, tactic }, opponent));
   return { ...tactic, orders, skills, ai: { ...ai, base: orders } };
