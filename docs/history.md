@@ -360,3 +360,13 @@ Species: at equal potential dragon > golem ≈ kraken ≈ minotaur > … > harpy
 market value (and wages) scale with `valueMult` (0.6–1.6), so weak species are cheap and strong ones expensive.
 Knobs used: youth potential (base 55 + 0.5 × reputation, sd 18), free-agent quality weights, weekly fatigue
 recovery (16 + 0.6 × recovery), D1 money ×1.35, distressed sales, rich-club spending.
+
+**Cooldown-1 skills** (Nov 2026): 14 cooldown-2 skills moved to cooldown 1 (usable every other round instead of every
+third), their edge over the basic attack cut by about a third: tail crush 20→18 (cost 7→8), life drain 18→16
+(lifesteal 0.6→0.5), ravenous bite 14→13 (0.5→0.4), sun ray 20→18, dawn javelin 18→17, void maw 18→16, mob rush
+12→11 (cost 6→7), dissolve 14→13 (1 corrosion dose instead of 2), plague bite 9→8 (poison 0.9→0.65), flurry 7→6 ×3,
+shield bash 12→11 (stun 0.35→0.2), healing wind 20→17, backstab 17→16 (crit +0.2→+0.15), arc coil 15→13. Joins
+moonbeam, bloom, prism beam and blood bolt (18 cooldown-1 skills). `sim:abilities` 400 paired matches, old values
+(`--override`) vs new: uses per match +35 %, average added 9.7 → 10.1 points (within the noise); to watch: dissolve on
+the ooze 6.2 → −1.0 (sandworm 12.8 → 16.5), life drain slightly up (+2 on average). Follow-up: dissolve gets its 2
+corrosion doses back (power 13, cooldown 1), life drain 16 → 15.

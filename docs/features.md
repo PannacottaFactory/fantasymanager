@@ -72,7 +72,7 @@ add a new bullet for a new one.
 - **Forecast & upsets** (`engine/report/forecast.ts`, `cfg.report.forecast`, UI `components/Forecast.tsx`): before a match the
   assistant's chance of winning = logistic(slope × gap) of the starters' average rating × (1 − fatigue × 0.35), the
   opponent's from the player's estimates (`overallRange` middle; « ~ 37 % » when they are little known); band (grand favori …
-  gros outsider) + split gauge under the pre-match face-off. Stored at kick-off in `MatchRecord.forecast` and the
+  gros outsider) in a card under the pre-match face-off: big % per side, the band in title font coloured by tone, « estimation grossière » when little known, a thick split gauge (home / away crest colours, 50 % mark) that fills once. Stored at kick-off in `MatchRecord.forecast` and the
   `matchResult` message; a win at ≤ 40 % = « Exploit ! » (≤ 27 % « Exploit retentissant ! »), a loss at ≥ 60 % = « Faux pas »:
   stamp in the report (verdict) and the Journal reader, « ! » in the Journal list. Calibrated with `sim:upsets --league`
   (prints predicted → actual; ±2 points per decile). Measured: in the league the weaker side wins ≈ 31 % (21 % even 10

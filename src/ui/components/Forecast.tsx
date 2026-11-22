@@ -13,13 +13,27 @@ export function ForecastGauge({ f }: { f: Forecast }) {
   const p = pctOf(f.win);
   const title = `${t('fc.hint')}${f.unsure ? ` ${t('fc.unsure')}` : ''}`;
   return (
-    <div className={`forecast fc-${f.band}`} title={title}>
+    <div
+      className={`forecast fc-${f.band}`}
+      title={title}
+      role="img"
+      aria-label={`${t('fc.title')}, ${t(`fc.band.${f.band}`)}, ${t('fc.chance', { p })}`}
+    >
       <span className="fc-head">
-        <span className="fc-label">{t('fc.title')}</span>
-        <b className="fc-band">{t(`fc.band.${f.band}`)}</b>
-        <span className="fc-chance">
-          {f.unsure && '~ '}
-          {t('fc.chance', { p })}
+        <span className="fc-pct fc-pct-mine">
+          {f.unsure && <small>~</small>}
+          {p}
+          <small>%</small>
+        </span>
+        <span className="fc-mid">
+          <span className="fc-label">{t('fc.title')}</span>
+          <b className="fc-band">{t(`fc.band.${f.band}`)}</b>
+          {f.unsure && <small className="fc-unsure">{t('fc.rough')}</small>}
+        </span>
+        <span className="fc-pct fc-pct-theirs">
+          {f.unsure && <small>~</small>}
+          {100 - p}
+          <small>%</small>
         </span>
       </span>
       <span className="fc-bar" aria-hidden="true">
