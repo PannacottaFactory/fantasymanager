@@ -384,3 +384,6 @@ by random weekly moments only (15 % per stable, 50/50 good / bad, bond set at on
 2 seasons, ad-hoc script): ≈ 4.5 moments a season for the player; per stable (≈ 75 pairs) friends 2 → 4.4 → 5.8,
 rivals 1 → 3.4 → 5.1 (start → season 1 → 2); among the 10 starter pairs only ≈ 0.8 friends and 0.7 rivals, so the
 match-start morale stays light. No decay: bonds pile up slowly, departures clear them.
+Then a light wear: a bond not fought together that week fades to neutral with 1.5 % a week. Measured (2 worlds ×
+4 seasons): per stable friends / rivals 2 / 1 → 3.1 / 2.6 → 3.4 / 3.4 → 2.9 / 2.9 → 3.0 / 3.2 (stable from season 2),
+among starters ≈ 0.5 friends and 0.5 rivals; ≈ 1.4 bonds fade a season in the player's stable.

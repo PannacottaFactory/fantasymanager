@@ -432,7 +432,8 @@ League points (phase 2): KO win 3, points win 2, points loss 1, KO loss 0.
 stream `deriveSeed(world, 'relations', …)`): each week a stable has `momentChance` 15 % of one, the pair drawn with
 weight ×3 for that week's starters; good with 50 % (+10 % per team player, −10 % per hothead in the pair). Good: friends
 at once (75), or rivals reconcile (0). Bad: rivals at once (−60), or friends fall out (0). A moment that changes nothing
-tries another pair. `relation` inbox message with a scene (`moment.good|bad.0–9`) + its consequence. No gain from
+tries another pair. Wear (own stream `relations-fade`): each week a bond (friends or rivals) whose pair did not both
+start has `fadeChance` 1.5 % to go back to neutral (`friendsFaded` / `rivalsFaded` message). `relation` inbox message with a scene (`moment.good|bad.0–9`) + its consequence. No gain from
 fighting together any more, no separate quarrels. Effects unchanged: match-start morale ±4 per teammate (cap ±8),
 friends add +4 % to the combo and avenge a fallen friend (`avenging`), a rival's hit never counts as a combo. Shown on
 the creature sheet (friends / rivals chips).

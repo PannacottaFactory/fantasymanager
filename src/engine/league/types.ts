@@ -143,8 +143,11 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'death'; creatureId: string; name: string; speciesId: string; injuryId: string; opponent: string; friends: string[] }
   | {
       kind: 'relation'; a: string; b: string;
-      /** New bond (`reconciled` / `fallenOut`: back to neutral). Old saves only have friends / rivals, without `moment`. */
-      bond: 'friends' | 'rivals' | 'reconciled' | 'fallenOut';
+      /**
+       * New bond (`reconciled` / `fallenOut`: back to neutral after a moment; `friendsFaded` / `rivalsFaded`: worn away
+       * by time, no moment). Old saves only have friends / rivals, without `moment`.
+       */
+      bond: 'friends' | 'rivals' | 'reconciled' | 'fallenOut' | 'friendsFaded' | 'rivalsFaded';
       /** Text variant of the scene (`moment.good.N` / `moment.bad.N`). */
       moment?: number;
     }

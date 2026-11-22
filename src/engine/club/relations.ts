@@ -68,6 +68,24 @@ export function goodMomentChance(a: Creature, b: Creature, cfg: GameConfig = DEF
 export function weeklyRelations(state: GameState, starters: Map<string, string[]>, cfg: GameConfig = DEFAULT_CONFIG) {
   const r = cfg.club.relations;
   const rng = new Rng(deriveSeed(state.worldSeed, 'relations', state.season, state.matchday));
+  // Wear: a bond not fought together this week may fade back to neutral (own stream: moments stay the same).
+  const fade = new Rng(deriveSeed(state.worldSeed, 'relations-fade', state.season, state.matchday));
+  for (const team of state.teams) {
+    const ids = starters.get(team.id) ?? [];
+    const cs = team.creatures;
+    for (let i = 0; i < cs.length; i++) {
+      for (let j = i + 1; j < cs.length; j++) {
+        const a = cs[i]!;
+        const b = cs[j]!;
+        const v = relationOf(a, b);
+        if (v < r.friend && v > r.rival) continue;
+        if (ids.includes(a.id) && ids.includes(b.id)) continue;
+        if (!fade.chance(r.fadeChance)) continue;
+        shiftRelation(a, b, -v);
+        if (team.id === state.playerTeamId) pushMessage(state, { kind: 'relation', a: a.name, b: b.name, bond: v > 0 ? 'friendsFaded' : 'rivalsFaded' });
+      }
+    }
+  }
   for (const team of state.teams) {
     if (team.creatures.length < 2 || !rng.chance(r.momentChance)) continue;
     const ids = starters.get(team.id) ?? [];

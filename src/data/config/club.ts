@@ -98,6 +98,8 @@ export const CLUB_CONFIG = {
      */
     momentChance: 0.15,
     fightersWeight: 3,
+    /** Weekly chance that a bond (friends or rivals) not fought together that week fades back to neutral. */
+    fadeChance: 0.015,
     /** Chance the moment is good: `good` + `traitShift` per team player − `traitShift` per hothead in the pair. */
     good: 0.5,
     traitShift: 0.1,

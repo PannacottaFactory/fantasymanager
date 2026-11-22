@@ -377,7 +377,7 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
       return { title: t('msg.friendLeft.title', { name: m.name }), body: t('msg.friendLeft.body', { friends: m.friends.join(', ') }), tone: 'bad' };
     case 'relation': {
       // The scene of the moment (absent in old saves), then what it changed.
-      const good = m.bond === 'friends' || m.bond === 'reconciled';
+      const good = m.bond === 'friends' || m.bond === 'reconciled' || m.bond === 'rivalsFaded';
       const scene = m.moment === undefined ? '' : `${t(`moment.${good ? 'good' : 'bad'}.${m.moment}` as StringKey, { a: m.a, b: m.b })}\n`;
       return {
         title: t(`msg.relation.${m.bond}`),
