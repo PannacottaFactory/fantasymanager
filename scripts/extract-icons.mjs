@@ -92,7 +92,7 @@ const SPECIES = {
   cockatrice: 'rooster',
   dwarf: 'dwarf-face',
   gnome: 'bad-gnome',
-  siren: 'siren',
+  siren: 'mermaid',
   valkyrie: 'winged-sword',
   'locust-swarm': 'cricket',
   'rat-swarm': 'rat',
@@ -104,7 +104,7 @@ const SPECIES = {
   lamassu: 'bull',
   sandworm: 'worm-mouth',
   'sea-serpent': 'eel',
-  ettin: 'barbarian',
+  ettin: 'composite:ettin',
   mandrake: 'plant-roots',
   'giant-moth': 'butterfly',
   poltergeist: 'ghost',
@@ -284,7 +284,19 @@ const ROLES = {
   skirmisher: 'sprint',
 };
 
+/** Icons composed from game-icons parts when the set has no fitting one (same 512 viewBox, currentColor). */
+const COMPOSITES = {
+  /** Two ogre heads leaning apart on one pair of shoulders. */
+  ettin: () => {
+    const head = (x, rot) =>
+      `<g transform="translate(${x} 215) rotate(${rot}) scale(0.58) translate(-256 -256)">${set.icons.ogre.body}</g>`;
+    const shoulders = '<path fill="currentColor" d="M24 512C24 415 80 361 160 345L256 379L352 345C432 361 488 415 488 512Z"/>';
+    return head(132, 14) + head(380, -14) + shoulders;
+  },
+};
+
 const body = (name) => {
+  if (name.startsWith('composite:')) return COMPOSITES[name.slice(10)]();
   const icon = set.icons[name];
   if (!icon) throw new Error(`Unknown icon ${name}`);
   return icon.body;

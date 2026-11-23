@@ -1508,11 +1508,11 @@ tr.drag-row:hover .drag-grip { color: var(--accent); }
 
 /* ——— League: pyramid, division hero, competitions, honours ——— */
 /* Division metals, bottom to top: bronze (D4), silver (D3), gold (D2), platinum (D1). */
-.tier-0 { --tier: #cfe6f2; }
+.tier-0 { --tier: #6cc4f4; }
 .tier-1 { --tier: #e8c547; }
 .tier-2 { --tier: #c3cad3; }
 .tier-3 { --tier: #c98f5a; }
-:root[data-theme='parchment'] .tier-0 { --tier: #3f6f86; }
+:root[data-theme='parchment'] .tier-0 { --tier: #1f6f9e; }
 :root[data-theme='parchment'] .tier-1 { --tier: #9c7400; }
 :root[data-theme='parchment'] .tier-2 { --tier: #5f6874; }
 :root[data-theme='parchment'] .tier-3 { --tier: #8a5424; }
