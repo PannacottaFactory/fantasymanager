@@ -4625,28 +4625,32 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
   --depth: 3px 3px 0 rgb(0 0 0 / 0.35);
 }
 :root:is([data-retro='crt'], [data-retro='lcd'], [data-retro='amber']) :is(img, canvas, svg image) { image-rendering: pixelated; }
-:root:is([data-retro='crt'], [data-retro='lcd'], [data-retro='amber']) body::after,
-:root[data-retro='amber'] body::before {
+:root:is([data-retro='crt'], [data-retro='lcd'], [data-retro='amber']) body::before,
+:root:is([data-retro='crt'], [data-retro='lcd'], [data-retro='amber']) body::after {
   content: ''; position: fixed; inset: 0; z-index: 2147483000; pointer-events: none;
 }
-/* Cathode-ray TV: scanlines, faint RGB phosphor stripes, darker rounded-off edges. */
+/* Brightness balance: each filter darkens with fine lines, then gives the light back with a faint screen lift, so the
+   average brightness stays within a few % of the bare screen (measured). A light theme needs lighter lines and no lift. */
+:root:is([data-retro='crt'], [data-retro='lcd'], [data-retro='amber']) { --scan: 0.1; --lift: rgb(255 255 255 / 0.008); --vignette: 0.2; --lcd-tint: 0.22; }
+:root[data-theme='parchment']:is([data-retro='crt'], [data-retro='lcd'], [data-retro='amber']) { --scan: 0.035; --lift: transparent; --vignette: 0.06; --lcd-tint: 0.4; }
+:root:is([data-retro='crt'], [data-retro='lcd']) body::before { z-index: 2147482999; background: var(--lift); mix-blend-mode: screen; }
+/* Cathode-ray TV: scanlines, faint RGB phosphor stripes, slightly darker edges. */
 :root[data-retro='crt'] body::after {
   background:
-    radial-gradient(ellipse at center, transparent 60%, rgb(0 0 0 / 0.42) 100%),
-    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 70%, rgb(0 0 0 / var(--vignette)) 100%),
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / var(--scan)) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(to right, rgb(255 0 0 / 0.025) 0 1px, rgb(0 255 0 / 0.025) 1px 2px, rgb(0 0 255 / 0.025) 2px 3px);
 }
-/* Handheld console: a visible pixel grid over a green LCD cast. */
+/* Handheld console: a visible pixel grid, a green LCD cast (soft-light tints without darkening), lifted blacks. */
+:root[data-retro='lcd'] body::before { background: rgb(150 200 60 / var(--lcd-tint)); mix-blend-mode: soft-light; }
 :root[data-retro='lcd'] body::after {
   background:
-    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.13) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(to right, rgb(0 0 0 / 0.13) 0 1px, transparent 1px 3px),
-    rgb(150 190 60 / 0.16);
-  mix-blend-mode: multiply;
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / calc(var(--scan) * 0.8)) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(to right, rgb(0 0 0 / calc(var(--scan) * 0.8)) 0 1px, transparent 1px 3px);
 }
-/* Amber monochrome monitor: every colour becomes amber (colour blend), then scanlines. */
+/* Amber monochrome monitor: every colour becomes amber (colour blend, keeps the brightness), then scanlines. */
 :root[data-retro='amber'] body::before { z-index: 2147482999; background: #ffb000; mix-blend-mode: color; }
-:root[data-retro='amber'] body::after { background: repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0 1px, transparent 1px 3px); }
+:root[data-retro='amber'] body::after { background: repeating-linear-gradient(to bottom, rgb(0 0 0 / var(--scan)) 0 1px, transparent 1px 3px), var(--lift); }
 
 /* Retro font (setting, independent of the filter). Titles: pixel headings, body untouched. Terminal: VT323 (small letters,
    enlarged with font-size-adjust). Pixel: Pixelify Sans everywhere. */

@@ -48,7 +48,8 @@ add a new bullet for a new one.
 - **Retro look** (⚙ settings, per viewer, `useSettings().retro / retroFont`, `fm.retro` / `fm.retroFont`): a screen filter
   `:root[data-retro]` = off / crt (scanlines, RGB stripes, vignette) / lcd (pixel grid, green cast) / amber (monochrome,
   `mix-blend-mode: color`), each with square corners (`--r-*` = 0) and hard offset shadows; overlays are `body::before/after`
-  fixed with no pointer events (never a `filter` on an ancestor). A separate font `:root[data-retro-font]` = off / titles
+  fixed with no pointer events (never a `filter` on an ancestor). Brightness is balanced per theme (`--scan`, `--lift`, `--vignette`, `--lcd-tint`;
+  parchment gets lighter lines and no lift): every filter stays within ±4 % of the bare screen's mean brightness (measured). A separate font `:root[data-retro-font]` = off / titles
   (Silkscreen headings only, most readable) / terminal (VT323, `font-size-adjust`) / pixel (Pixelify Sans). The sidebar is
   `max(188px, 12.6rem)` wide and its labels ellipsize so badges stay inside with large text.
 - **Accessibility** (⚙ settings, per viewer): colour blindness `:root[data-cvd]` = off / redgreen (protan / deutan: blue against
