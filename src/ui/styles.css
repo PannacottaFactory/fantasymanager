@@ -1373,7 +1373,8 @@ table.standings tr.mine td:nth-child(2) { color: var(--home); }
 .toasts {
   position: fixed;
   right: 16px;
-  z-index: 70;
+  /* Under the modal overlays (20): a toast never hides a window's buttons; it shows again once the window closes. */
+  z-index: 19;
   display: flex;
   flex-direction: column-reverse;
   gap: 8px;

@@ -104,7 +104,8 @@ export type InboxMessage = { id: string; matchday: number; season: number; read:
   | { kind: 'seasonPrize'; position: number; amount: number }
   | { kind: 'financeWarning'; balance: number }
   | { kind: 'marketNews'; moves: TransferMove[] }
-  | { kind: 'emergencySigning'; names: string[] }
+  /** `board`: change of the board's confidence (absent in older saves: none). */
+  | { kind: 'emergencySigning'; names: string[]; board?: number }
   // ——— Phase 4: training & life cycle ———
   | { kind: 'youthIntake'; names: string[]; count?: number }
   | { kind: 'youthReleased'; names: string[] }

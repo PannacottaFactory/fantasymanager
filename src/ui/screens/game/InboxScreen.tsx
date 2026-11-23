@@ -388,7 +388,11 @@ ${t('msg.scoutReport.quiet', { weeks: tr.weeks(m.quiet) })}` : '';
     case 'ambition':
       return { title: t('msg.ambition.title', { a: t(`amb.${m.ambition}`) }), body: t('msg.ambition.body', { a: t(`amb.${m.ambition}`), desc: t(`amb.${m.ambition}.desc`) }), tone: 'good' };
     case 'emergencySigning':
-      return { title: t('msg.emergencySigning.title'), body: t('msg.emergencySigning.body', { names: m.names.join(', ') }), tone: 'bad' };
+      return {
+        title: t('msg.emergencySigning.title'),
+        body: t('msg.emergencySigning.body', { names: m.names.join(', ') }) + (m.board ? `\n${t('msg.emergencySigning.board', { d: m.board })}` : ''),
+        tone: 'bad',
+      };
     case 'arenaIntro':
       return { title: t('msg.arenaIntro.title'), body: t('msg.arenaIntro.body'), tone: 'info' };
     case 'sacked':

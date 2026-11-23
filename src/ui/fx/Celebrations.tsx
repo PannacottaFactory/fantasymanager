@@ -1,7 +1,9 @@
 /**
  * Toasts for the big moments of a week (level-ups, new abilities, signings, trophies, deaths…), worded like the
  * inbox, with particles in proportion to the moment. Only messages that arrive while playing are shown: the ones
- * already in a loaded save are not replayed. They stay until clicked (opens the matter) or dismissed (✕, or « close all »).
+ * already in a loaded save are not replayed. They go away by themselves after a while on screen (longer for the big
+ * moments; the count pauses while the pointer is over them, a window is open or the tab is hidden), or when clicked
+ * (opens the matter) or dismissed (✕, or « close all »).
  * Display only.
  */
 import { useEffect, useRef, useState } from 'react';
@@ -66,6 +68,11 @@ function momentOf(m: InboxMessage): Moment | null {
 const ORDER: Record<Moment, number> = { huge: 0, sad: 1, big: 2, small: 3 };
 /** Toasts shown at once; the others wait behind (counted on the « close all » button). */
 const MAX_TOASTS = 4;
+/** Toasts kept waiting at most, newest first (the older ones stay in the journal). */
+const MAX_QUEUED = 12;
+/** Time on screen (ms) before a toast goes away by itself: small news first, trophies and deaths stay longest. */
+const LIFE: Record<Moment, number> = { small: 10_000, big: 15_000, huge: 22_000, sad: 22_000 };
+const TICK = 500;
 
 interface Toast {
   id: string;
@@ -85,6 +92,26 @@ export function Celebrations() {
   const seen = useRef<Set<string> | null>(null);
   const gameId = useRef<string | null>(null);
   const refs = useRef(new Map<string, HTMLDivElement>());
+  const shown = useRef(new Map<string, number>());
+  const hover = useRef(false);
+
+  // The toasts on screen age while they can be read: not under the pointer, not behind a window, not in a hidden tab.
+  useEffect(() => {
+    if (!toasts.length) return;
+    const timer = window.setInterval(() => {
+      if (hover.current || document.hidden || document.querySelector('.overlay')) return;
+      const expired = new Set<string>();
+      for (const x of toasts.slice(0, MAX_TOASTS)) {
+        const age = (shown.current.get(x.id) ?? 0) + TICK;
+        shown.current.set(x.id, age);
+        if (age >= LIFE[x.moment]) expired.add(x.id);
+      }
+      if (!expired.size) return;
+      for (const k of expired) shown.current.delete(k);
+      setToasts((old) => old.filter((t) => !expired.has(t.id)));
+    }, TICK);
+    return () => window.clearInterval(timer);
+  }, [toasts]);
 
   useEffect(() => {
     if (!game) {
@@ -106,7 +133,7 @@ export function Celebrations() {
       })
       .sort((a, b) => ORDER[a.moment] - ORDER[b.moment]);
     if (!picked.length) return;
-    setToasts((old) => [...picked, ...old]);
+    setToasts((old) => [...picked, ...old].slice(0, MAX_QUEUED));
     const top = picked[0]!;
     play(
       top.moment === 'huge' ? 'fanfare'
@@ -142,7 +169,7 @@ export function Celebrations() {
   };
   const dismiss = (id: string) => setToasts((old) => old.filter((t) => t.id !== id));
   return (
-    <div className="toasts" aria-live="polite">
+    <div className="toasts" aria-live="polite" onMouseEnter={() => (hover.current = true)} onMouseLeave={() => (hover.current = false)}>
       {toasts.slice(0, MAX_TOASTS).map((x) => {
         const w = wording(tr, x.message, game.cup.rounds);
         const cid = creatureOf(x.message);

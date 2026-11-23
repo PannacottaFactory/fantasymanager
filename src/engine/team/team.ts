@@ -140,8 +140,12 @@ export function repairTactic(team: Team, cfg: GameConfig = DEFAULT_CONFIG): Team
     const c = byId.get(id);
     if (c && t.skills?.[id] && !equippedSkills(c, t.skills[id], cfg).length) delete t.skills[id];
   }
-  t.lineup = t.lineup.filter((s) => fit(s.creatureId));
-  t.bench = t.bench.filter((id) => fit(id) && !t.lineup.some((s) => s.creatureId === id));
+  // Unknown, injured and repeated creatures leave; starters over the rule (an over-filled editor) go back to the bench.
+  const seen = new Set<string>();
+  const once = (id: string) => fit(id) && !seen.has(id) && !!seen.add(id);
+  t.lineup = t.lineup.filter((s) => once(s.creatureId));
+  const extra = t.lineup.splice(cfg.match.starters).map((s) => s.creatureId);
+  t.bench = [...extra, ...t.bench.filter((id) => once(id))].slice(0, cfg.match.benchSize);
   const free = () =>
     team.creatures
       .filter((c) => !isInjured(c) && !t.lineup.some((s) => s.creatureId === c.id) && !t.bench.includes(c.id))

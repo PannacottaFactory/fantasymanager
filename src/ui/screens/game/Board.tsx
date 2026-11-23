@@ -23,7 +23,7 @@ export const MOODS: BoardMood[] = ['delighted', 'content', 'uneasy', 'angry'];
 export const MOOD_COLOR: Record<BoardMood, string> = { delighted: 'var(--gold)', content: 'var(--good)', uneasy: 'var(--warn)', angry: 'var(--bad)' };
 
 /** Name of the board's chair (fantasy name drawn from the stable id, no RNG of the world). */
-export const chairName = (game: GameState) => managerName({ id: `${game.playerTeamId}:board` });
+export const chairName = (game: GameState) => managerName({ id: `${game.playerTeamId}:board` }, game.manager?.name);
 
 export function MoodPill({ mood }: { mood: BoardMood }) {
   const { t } = useT();
@@ -191,6 +191,7 @@ function Rules({ game }: { game: GameState }) {
         <li>{t('board.rules.results', { kw: r.koWin, w: r.pointsWin, l: Math.round(r.pointsLoss * loss * 10) / 10, kl: Math.round(r.koLoss * loss * 10) / 10 })}</li>
         <li>{t('board.rules.table', { from: B.standing.from, on: B.standing.onTarget, n: B.standing.behind, off: Math.round(B.standing.offTarget * loss * 10) / 10 })}</li>
         <li>{t('board.rules.season', { met: B.met, missed: Math.round(B.missed * loss) })}</li>
+        <li>{t('board.rules.emergency', { d: Math.round(B.emergency * loss) })}</li>
       </ul>
       <h4>{t('board.rules.moods')}</h4>
       <div className="mood-ladder">

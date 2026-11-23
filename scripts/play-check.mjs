@@ -68,7 +68,8 @@ const clearOne = async () => {
       note(`  tip: ${title}`);
       await shot(`tip-${title}`);
     }
-    await tip.first().click();
+    // A tip may move or go away by itself while it animates (live match): no click is then needed.
+    await tip.first().click({ timeout: 5000 }).catch(() => {});
     await wait(250);
     return true;
   }
@@ -259,6 +260,20 @@ for (let w = 1; w <= maxWeeks; w++) {
     if (await cta.isDisabled().catch(() => true)) {
       note('  ! match button disabled');
       await shot(`disabled-${w}`);
+      // The player's tactic as it stands (starters, bench, fit creatures) to see why the assistant could not fix it.
+      const dump = await page.evaluate(() => {
+        const g = window.__fm.getState().game;
+        const t = g.teams.find((x) => x.id === g.playerTeamId);
+        const hurt = (c) => c.condition.injuries.some((i) => i.weeksLeft > 0);
+        const name = (id) => t.creatures.find((c) => c.id === id)?.name ?? `?${id}`;
+        return {
+          lineup: t.tactic.lineup.map((s) => name(s.creatureId)),
+          bench: t.tactic.bench.map(name),
+          squad: t.creatures.length,
+          fit: t.creatures.filter((c) => !hurt(c)).length,
+        };
+      });
+      note(`  tactic: ${JSON.stringify(dump)}`);
     }
     await cta.click().catch((e) => note(`  ! ${e.message.split('\n')[0]}`));
     await wait(800);

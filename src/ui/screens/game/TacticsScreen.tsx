@@ -105,7 +105,7 @@ function OpponentPeek({ game, onClose }: { game: GameState; onClose: () => void 
           <ElementAdvice outlook={elementOutlook(opp)} />
           {opp.identity && (
             <div className="muted opp-peek-note" title={t(`manager.${opp.identity.manager}.desc`)}>
-              {t('match.manager', { name: managerName(opp), m: t(`manager.${opp.identity.manager}`) })}
+              {t('match.manager', { name: managerName(opp, game.manager?.name), m: t(`manager.${opp.identity.manager}`) })}
             </div>
           )}
           <div className="faint opp-peek-note">{t('tactics.oppPeek.hint')}</div>

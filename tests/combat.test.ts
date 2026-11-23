@@ -269,6 +269,20 @@ describe('equipped skills', () => {
     expect(validateTactic(fixed).some((i) => i.code === 'noSkill')).toBe(false);
   });
 
+  it('the assistant fixes an over-filled editor: extra starters go to the bench, repeats leave', () => {
+    const team = setup('over').teams[0];
+    const t = team.tactic;
+    const extra = t.bench[0]!;
+    const over = {
+      ...team,
+      tactic: { ...t, lineup: [...t.lineup, { ...t.lineup[0]!, creatureId: extra }], bench: [...t.bench, t.bench[1]!, ...team.creatures.map((c) => c.id)] },
+    };
+    expect(validateTactic(over).length).toBeGreaterThan(0);
+    const fixed = repairTactic(over);
+    expect(validateTactic(fixed)).toEqual([]);
+    expect(fixed.tactic.bench[0]).toBe(extra);
+  });
+
   it('spend events keep the stamina gauge consistent', () => {
     const r = simulateMatch(setup('spend'));
     const spends = r.events.filter((e) => e.type === 'spend');

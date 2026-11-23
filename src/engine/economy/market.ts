@@ -5,11 +5,13 @@
 import { Rng, deriveSeed } from '../../core/rng.ts';
 import { DEFAULT_CONFIG, type GameConfig, type QualityId } from '../../data/config/index.ts';
 import { generateCreature } from '../creature/generate.ts';
+import { isInjured } from '../creature/derived.ts';
 import { matchdayCount } from '../league/schedule.ts';
 import { divisionOf } from '../league/divisions.ts';
 import { pushMessage } from '../league/messages.ts';
 import { addNews } from '../league/news.ts';
 import { friendsMourn } from '../club/relations.ts';
+import { boardEmergency } from '../club/board.ts';
 import type { GameState, TransferMove } from '../league/types.ts';
 import type { Creature, Team } from '../model.ts';
 import { autoTactic, repairTactic } from '../team/team.ts';
@@ -256,7 +258,8 @@ function aiBudget(state: GameState, team: Team, cfg: GameConfig): number {
 const cheapest = (cfg: GameConfig) => (a: Creature, b: Creature) => signingBonus(a, cfg) - signingBonus(b, cfg) || b.ability - a.ability;
 
 /**
- * Keeps every stable able to field a team: below the minimum, stables sign the cheapest free agents
+ * Keeps every stable able to field a team: below the minimum (or with fewer fit creatures than starters), stables
+ * sign the cheapest fit free agents
  * whatever their money (the player's assistant does it too, with a message).
  */
 export function ensureSquads(state: GameState, rng: Rng, cfg: GameConfig = DEFAULT_CONFIG) {
@@ -264,16 +267,17 @@ export function ensureSquads(state: GameState, rng: Rng, cfg: GameConfig = DEFAU
   for (const team of state.teams) {
     const isPlayer = team.id === state.playerTeamId;
     const signed: string[] = [];
-    while (team.creatures.length < floor) {
+    const fit = () => team.creatures.filter((c) => !isInjured(c)).length;
+    for (let guard = 0; guard < 20 && (team.creatures.length < floor || fit() < cfg.match.starters); guard++) {
       if (state.freeAgents.length === 0) fillFreeAgents(state, rng, cfg);
-      const pick = [...state.freeAgents].sort(cheapest(cfg))[0];
+      const pick = [...state.freeAgents].filter((c) => !isInjured(c)).sort(cheapest(cfg))[0];
       if (!pick) break;
       const fee = signingBonus(pick, cfg);
       spend(state, team.id, 'purchases', fee);
       transfer(state, pick.id, team.id, 0, { wage: askingWage(pick, clubOf(state, team.id).reputation, 1, cfg), years: 1 }, cfg);
       signed.push(pick.name);
     }
-    if (isPlayer && signed.length) pushMessage(state, { kind: 'emergencySigning', names: signed });
+    if (isPlayer && signed.length) pushMessage(state, { kind: 'emergencySigning', names: signed, board: boardEmergency(state, cfg) });
   }
 }
 

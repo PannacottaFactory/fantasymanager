@@ -41,12 +41,12 @@ function Side({ game, team, away }: { game: GameState; team: Team; away?: boolea
         {row && (
           <span className="muted">
             {d !== divisionOf(game, game.playerTeamId) && `${divName(t, d)} · `}
-            {t('match.position', { pos: tr.ordinal(pos), pts: row.points })}
+            {t(row.points === 1 ? 'match.position.one' : 'match.position', { pos: tr.ordinal(pos), pts: row.points })}
           </span>
         )}
         {showManager && (
           <span className="muted" title={t(`manager.${team.identity!.manager}.desc`)}>
-            {t('match.manager', { name: managerName(team), m: t(`manager.${team.identity!.manager}`) })}
+            {t('match.manager', { name: managerName(team, game.manager?.name), m: t(`manager.${team.identity!.manager}`) })}
           </span>
         )}
         {row && row.form.length > 0 && <FormDots form={row.form} />}

@@ -96,6 +96,14 @@ export function playerPosition(state: GameState, cfg: GameConfig = DEFAULT_CONFI
   return { position: table.findIndex((r) => r.teamId === state.playerTeamId) + 1, size: ids.length };
 }
 
+/** The assistant had to sign in an emergency to field a team: the board holds it against the manager. Returns the change. */
+export function boardEmergency(state: GameState, cfg: GameConfig = DEFAULT_CONFIG): number {
+  const before = state.board.confidence;
+  shift(state, cfg.club.board.emergency * lossMult(state, cfg));
+  settle(state, cfg);
+  return state.board.confidence - before;
+}
+
 function shift(state: GameState, d: number) {
   state.board.confidence = clamp(Math.round(state.board.confidence + d), 0, 100);
 }

@@ -12,11 +12,16 @@ import { counterApproach } from '../combat/formulas.ts';
 import type { AiManagerStyle, Creature, StableIdentity, Tactic, Team, TeamOrders } from '../model.ts';
 import { managerTalk, preMatchSituation } from '../combat/talks.ts';
 
-/** Name of a stable's manager: fixed for the stable (drawn from its id), never changes results. */
-export function managerName(team: { id: string; identity?: { gen?: number } }): string {
+/**
+ * Name of a stable's manager: fixed for the stable (drawn from its id), never changes results. `avoid` (the player's
+ * own name) is never returned: the draw goes on until it differs.
+ */
+export function managerName(team: { id: string; identity?: { gen?: number } }, avoid?: string): string {
   const gen = team.identity?.gen ?? 0;
   const rng = new Rng(gen ? `manager|${team.id}|${gen}` : `manager|${team.id}`);
-  return personName(rng);
+  let name = personName(rng);
+  for (let i = 0; i < 8 && avoid && name === avoid; i++) name = personName(rng);
+  return name;
 }
 
 /** A manager's name drawn at random (suggestion at new game). */

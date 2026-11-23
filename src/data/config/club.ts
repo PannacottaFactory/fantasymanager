@@ -39,6 +39,8 @@ export const CLUB_CONFIG = {
     ultimatum: { need: 2, of: 4, reward: 12, reputation: 5, frozenWeeks: 4, cooldown: 6 },
     /** Weeks of confidence kept for the trend line. */
     trendWeeks: 12,
+    /** Emergency signings (the assistant had to sign to field a team): confidence change (× boardLoss), once per week. */
+    emergency: -4,
     /** End of season: objective met / missed. */
     met: 15,
     missed: -20,

@@ -657,6 +657,8 @@ export function playCupRound(state: GameState, playerMatch: MatchResult | null =
     } else drawCupRound(next, cfg);
   }
   for (const t of tours) finishTournamentRound(next, t, played.filter((p) => p.fixture.tournamentId === t.id).map((p) => p.fixture), cfg);
+  // Injuries of the round may leave a stable unable to field a team before the league week's market: sign now.
+  ensureSquads(next, new Rng(deriveSeed(next.worldSeed, 'emergency', next.season, key)), cfg);
   checkAmbitions(next, cfg);
   return next;
 }

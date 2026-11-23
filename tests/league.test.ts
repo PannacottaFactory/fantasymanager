@@ -8,6 +8,7 @@ import {
 } from '../src/engine/league/season.ts';
 import { repairTactic, validateTactic } from '../src/engine/team/team.ts';
 import { simulateMatch } from '../src/engine/combat/simulate.ts';
+import { ensureSquads } from '../src/engine/economy/market.ts';
 
 describe('calendar', () => {
   it('double round-robin: everyone meets twice, once at home, one match per matchday', () => {
@@ -196,5 +197,21 @@ describe('match replay', () => {
     const again = replayMatch(structuredClone(setup), live.decisions);
     expect(again.outcome).toEqual(live.outcome);
     expect(JSON.stringify(again.events)).toBe(JSON.stringify(live.events));
+  });
+});
+
+describe('short squads', () => {
+  it('fewer fit creatures than starters: the assistant signs fit free agents so the match can be played', () => {
+    const g = newGame({ seed: 'short', teamName: 'T', lang: 'en' });
+    const me = g.teams.find((t) => t.id === g.playerTeamId)!;
+    for (const c of me.creatures.slice(DEFAULT_CONFIG.match.starters - 2)) c.condition.injuries.push({ injuryId: 'x', weeksLeft: 4 });
+    expect(me.creatures.filter((c) => !isInjured(c)).length).toBeLessThan(DEFAULT_CONFIG.match.starters);
+    g.board.confidence = DEFAULT_CONFIG.club.board.start;
+    ensureSquads(g, new Rng('short'));
+    expect(me.creatures.filter((c) => !isInjured(c)).length).toBeGreaterThanOrEqual(DEFAULT_CONFIG.match.starters);
+    expect(validateTactic(repairTactic(me), DEFAULT_CONFIG, true)).toEqual([]);
+    const msg = g.inbox.find((m) => m.kind === 'emergencySigning');
+    expect(msg?.kind === 'emergencySigning' && msg.board).toBeLessThan(0);
+    expect(g.board.confidence).toBeLessThan(DEFAULT_CONFIG.club.board.start);
   });
 });

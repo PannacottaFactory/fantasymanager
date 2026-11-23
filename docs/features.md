@@ -133,8 +133,10 @@ add a new bullet for a new one.
 - **Visual effects** (display only): setting `effects` (full / reduced, ✨ button, default = system reduced-motion,
   `effectsOn()`, `:root[data-effects]` turns CSS animations off). `ui/fx/FxLayer.tsx` = app-wide particle canvas
   (`fxLayer()?.confetti() / fireworks() / sparkle() / coins()`), `ui/fx/Celebrations.tsx` = toasts for new inbox
-  messages that matter (level-up, ability, signing, trophies, death), worded by `wording()` from the inbox. Toasts stay until
-  clicked (opens the matter) or dismissed (✕); 4 shown at once, « Tout fermer (n) » above them when 2+ wait. Live match:
+  messages that matter (level-up, ability, signing, trophies, death), worded by `wording()` from the inbox. Toasts go away
+  after 10 s on screen (big moments 15 s, trophies / deaths 22 s; paused under the pointer, behind a window, tab hidden) or when
+  clicked (opens the matter) or dismissed (✕); 4 shown at once, 12 kept waiting at most (newest first), « Tout fermer (n) » above
+  them when 2+ wait; they sit under the modal overlays (never hide a window's buttons). Live match:
   status auras on cards (`AURA` in Scoreboard), KO dust + grey fall, revive light, crit label, victory confetti,
   score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
 - **Live match dressing** (stays textual, columns kept): each fighter column = « Première ligne » block (cards with a shield
@@ -231,7 +233,11 @@ add a new bullet for a new one.
   ageing (+1 year, decline past the prime, retirement past maxAge) → expired contracts leave (player) or are
   renewed/released (AI) → young prospects (2–4 per stable: AI stables sign the promising ones, the rest and the player's share join the
   free agents — no nursery, no « brood » the player keeps) →
-  new coach market → `ensureSquads` keeps every squad ≥ 9.
+  new coach market → `ensureSquads` keeps every squad ≥ 9 **and ≥ 5 fit creatures** (cheapest fit free agents,
+  `emergencySigning` message; the signing bonus is paid even into debt and the board loses `board.emergency` × boardLoss
+  confidence, shown in the message and the board rules), also after every cup / tournament round (injuries there used to leave the player unable to
+  field a team: blocked game). The assistant fix (`repairTactic`) also sends extra starters of an over-filled editor back to
+  the bench and drops repeats, so every issue it lists can be fixed.
 - **Traits that change** (Nov 2026, `engine/progression/traitEvolution.ts`, `cfg.traitEvolution` in
   `data/config/traits.ts`): purely random, nothing in the match decides (a first version with marks left by match
   signals was dropped: hard to balance, 86 % good news, a few traits everywhere). After each match (`playFixtures`, after

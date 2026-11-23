@@ -53,12 +53,12 @@ function Side({ game, team, side, home, star }: { game: GameState; team: Team; s
         </span>
         {row && (
           <span className="vs-meta">
-            {t('match.position', { pos: tr.ordinal(pos), pts: row.points })} {row.form.length > 0 && <FormDots form={row.form} />}
+            {t(row.points === 1 ? 'match.position.one' : 'match.position', { pos: tr.ordinal(pos), pts: row.points })} {row.form.length > 0 && <FormDots form={row.form} />}
           </span>
         )}
         {showManager && (
           <span className="vs-manager" title={t(`manager.${team.identity!.manager}.desc`)}>
-            {t('match.manager', { name: managerName(team), m: t(`manager.${team.identity!.manager}`) })}
+            {t('match.manager', { name: managerName(team, game.manager?.name), m: t(`manager.${team.identity!.manager}`) })}
           </span>
         )}
       </div>
@@ -82,7 +82,7 @@ function StarCard({ c, side, own }: { c?: Creature; side: 0 | 1; own: boolean })
         <small>{speciesName(c.speciesId, lang)}</small>
         <small className="vs-star-stats">
           {own && <>{t('col.ovr')} <b>{overallRating(c)}</b> · </>}
-          {r && r.matches > 0 ? t('vs.starStats', { m: r.matches, k: r.kos, s: r.mvp }) : t('vs.debut')}
+          {r && r.matches > 0 ? t(r.matches === 1 ? 'vs.starStats.one' : 'vs.starStats', { m: r.matches, k: r.kos, s: r.mvp }) : t('vs.debut')}
         </small>
       </span>
     </div>
