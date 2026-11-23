@@ -34,7 +34,9 @@
     "ui:check": "node scripts/ui-check.mjs"
   },
   "dependencies": {
+    "@fontsource/atkinson-hyperlegible": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
+    "@fontsource/opendyslexic": "^5.3.0",
     "@fontsource/pixelify-sans": "^5.3.0",
     "@fontsource/silkscreen": "^5.3.0",
     "@fontsource/spectral-sc": "^5.3.0",

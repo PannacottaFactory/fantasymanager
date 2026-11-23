@@ -160,7 +160,7 @@ function ClubIdentity({ game }: { game: GameState }) {
 
 export function App() {
   const { t } = useT();
-  const { lang, theme, textSize, effects, layout, retro, retroFont } = useSettings();
+  const { lang, theme, textSize, effects, layout, retro, retroFont, colorblind, readFont } = useSettings();
   const { ready, game, screen, viewing, saveError, replaying, intro, launch } = useGame();
   useFirstStepsTracker();
   const { init, setScreen, viewReport } = useGame.getState();
@@ -207,6 +207,12 @@ export function App() {
   useEffect(() => {
     document.documentElement.dataset.retroFont = retroFont;
   }, [retroFont]);
+  useEffect(() => {
+    document.documentElement.dataset.cvd = colorblind;
+  }, [colorblind]);
+  useEffect(() => {
+    document.documentElement.dataset.readFont = readFont;
+  }, [readFont]);
   useEffect(() => {
     document.documentElement.style.setProperty('--text-scale', String(TEXT_SCALE[textSize]));
   }, [textSize]);

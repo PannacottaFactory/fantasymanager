@@ -2105,6 +2105,8 @@ table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: v
 .retro-opts .rf-titles small { font-family: 'Silkscreen', monospace; }
 .retro-opts .rf-terminal small { font-family: 'VT323', monospace; font-size: var(--fs-md); }
 .retro-opts .rf-pixel small { font-family: 'Pixelify Sans', monospace; }
+.retro-opts .rd-dyslexic small { font-family: 'OpenDyslexic', sans-serif; }
+.retro-opts .rd-legible small { font-family: 'Atkinson Hyperlegible', sans-serif; }
 .themes button { padding-block: 6px; }
 .theme-chip { display: block; width: 2.4rem; height: 1.5rem; border-radius: var(--r-sm); border: 1px solid rgb(127 127 127 / 0.45); position: relative; overflow: hidden; }
 .theme-chip > i { position: absolute; left: 4px; right: 4px; bottom: 4px; height: 6px; border-radius: var(--r-sm); }
@@ -4659,3 +4661,42 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
   --font-body: 'Pixelify Sans', 'Courier New', monospace;
 }
 :root:is([data-retro-font='terminal'], [data-retro-font='pixel']) body { -webkit-font-smoothing: none; text-rendering: optimizeSpeed; }
+
+/* Colour-blind palettes (setting): only the colours that carry meaning (good / bad / warning, health, the attribute
+   scale, home / away, the striker / support roles). Red-green = blue against orange (Okabe-Ito hues); blue-yellow =
+   teal against red. The light theme (parchment) gets darker inks. Placed after the themes so it wins over them. */
+:root[data-cvd='redgreen'] {
+  --good: #4a9fe0; --bad: #e8862a; --warn: #e6c84a; --info: #9ab4d0;
+  --hp: #4a9fe0; --hp-mid: #e6c84a; --hp-low: #e8862a;
+  --a1: #e0701f; --a2: #e8a33a; --a3: #d6cf7a; --a4: #7ab8e6; --a5: #3d8ae8;
+  --home: #4a9fe0; --away: #e8862a;
+  --role-striker: #e8862a; --role-support: #4ac0e0;
+  --on-good: #08121d;
+}
+:root[data-theme='parchment'][data-cvd='redgreen'] {
+  --good: #1f63b0; --bad: #b35a00; --warn: #8a6d00; --info: #4a6a8a;
+  --hp: #1f63b0; --hp-mid: #9a7a00; --hp-low: #b35a00;
+  --a1: #b34f00; --a2: #a86a10; --a3: #8a7d20; --a4: #3a78b8; --a5: #1a55a0;
+  --home: #1f63b0; --away: #b35a00;
+  --role-striker: #b35a00; --role-support: #1a7f9a;
+}
+:root[data-cvd='blueyellow'] {
+  --good: #2fbfb0; --bad: #e8455a; --warn: #e88aa0; --info: #8fb0b8;
+  --hp: #2fbfb0; --hp-mid: #e88aa0; --hp-low: #e8455a;
+  --a1: #e0435a; --a2: #e07f90; --a3: #b4a8b0; --a4: #5ec4ba; --a5: #1fa89a;
+  --home: #2fbfb0; --away: #e8455a;
+  --role-striker: #e8455a; --role-support: #2fbfb0;
+  --on-good: #061614;
+}
+:root[data-theme='parchment'][data-cvd='blueyellow'] {
+  --good: #11807a; --bad: #b8243a; --warn: #a8466a; --info: #4f6f78;
+  --hp: #11807a; --hp-mid: #a8466a; --hp-low: #b8243a;
+  --a1: #b8243a; --a2: #a8466a; --a3: #7a6f78; --a4: #2a8a82; --a5: #0f6e66;
+  --home: #11807a; --away: #b8243a;
+  --role-striker: #b8243a; --role-support: #11807a;
+}
+
+/* Reading font (setting): body text only, titles keep theirs (retro titles too). Wins over a retro body font. */
+:root[data-read-font='dyslexic'] { --font-body: 'OpenDyslexic', 'Inter', sans-serif; }
+:root[data-read-font='dyslexic'] * { font-size-adjust: 0.44; }
+:root[data-read-font='legible'] { --font-body: 'Atkinson Hyperlegible', 'Inter', sans-serif; }

@@ -51,6 +51,11 @@ add a new bullet for a new one.
   fixed with no pointer events (never a `filter` on an ancestor). A separate font `:root[data-retro-font]` = off / titles
   (Silkscreen headings only, most readable) / terminal (VT323, `font-size-adjust`) / pixel (Pixelify Sans). The sidebar is
   `max(188px, 12.6rem)` wide and its labels ellipsize so badges stay inside with large text.
+- **Accessibility** (⚙ settings, per viewer): colour blindness `:root[data-cvd]` = off / redgreen (protan / deutan: blue against
+  orange) / blueyellow (tritan: teal against red) overrides only the meaningful tokens (`--good/--bad/--warn`, `--hp*`, `--a1..5`,
+  `--home/--away`, striker / support roles), with darker inks under parchment; reading font `:root[data-read-font]` = off /
+  dyslexic (OpenDyslexic, `font-size-adjust`) / legible (Atkinson Hyperlegible), body text only, winning over a retro body font.
+  New colours that carry meaning must go through these tokens, never a raw hex.
 - **i18n**: engine text functions take a `lang` (`Commentator(…, cfg, lang)`, `buildReport(…, cfg, lang)`,
   `generateTeam({ lang })`); the language never changes RNG draws or results (tested). French templates must not
   write `de {x}` / `à {x}` / `que {x}` before a creature (elision), use `{aE}/{tE}/{oE}` for gender agreement;

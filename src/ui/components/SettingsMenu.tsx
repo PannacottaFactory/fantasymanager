@@ -4,14 +4,14 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { LANGS } from '../../core/i18n.ts';
-import { LAYOUTS, RETRO_FILTERS, RETRO_FONTS, TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
+import { COLOR_BLIND, LAYOUTS, READ_FONTS, RETRO_FILTERS, RETRO_FONTS, TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { UiIcon } from '../icons/Icon.tsx';
 import { play, SOUND_ENABLED } from '../sound/sfx.ts';
 
 export function SettingsMenu() {
   const { t } = useT();
-  const { lang, setLang, theme, setTheme, textSize, setTextSize, effects, setEffects, volume, setVolume, layout, setLayout, retro, setRetro, retroFont, setRetroFont } = useSettings();
+  const { lang, setLang, theme, setTheme, textSize, setTextSize, effects, setEffects, volume, setVolume, layout, setLayout, retro, setRetro, retroFont, setRetroFont, colorblind, setColorblind, readFont, setReadFont } = useSettings();
   // Volume before muting, to come back to it.
   const before = useRef(volume || 0.5);
   const [open, setOpen] = useState(false);
@@ -110,6 +110,27 @@ export function SettingsMenu() {
               {RETRO_FONTS.map((f) => (
                 <button key={f} className={`rf-${f} ${f === retroFont ? 'on' : ''}`} onClick={() => setRetroFont(f)} role="radio" aria-checked={f === retroFont} title={f === 'off' ? undefined : t(`retroFont.tip.${f}` as StringKey)}>
                   <small>{t(`retroFont.${f}` as StringKey)}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-sep" />
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.colorblind')}</span>
+            <div className="opt-seg retro-opts" role="radiogroup" aria-label={t('settings.colorblind')}>
+              {COLOR_BLIND.map((c) => (
+                <button key={c} className={c === colorblind ? 'on' : ''} onClick={() => setColorblind(c)} role="radio" aria-checked={c === colorblind} title={c === 'off' ? undefined : t(`cvd.tip.${c}` as StringKey)}>
+                  <small>{t(`cvd.${c}` as StringKey)}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.readFont')}</span>
+            <div className="opt-seg retro-opts" role="radiogroup" aria-label={t('settings.readFont')}>
+              {READ_FONTS.map((f) => (
+                <button key={f} className={`rd-${f} ${f === readFont ? 'on' : ''}`} onClick={() => setReadFont(f)} role="radio" aria-checked={f === readFont} title={f === 'off' ? undefined : t(`readFont.tip.${f}` as StringKey)}>
+                  <small>{t(`readFont.${f}` as StringKey)}</small>
                 </button>
               ))}
             </div>

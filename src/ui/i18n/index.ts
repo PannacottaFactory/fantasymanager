@@ -48,6 +48,14 @@ export const RETRO_FILTERS: RetroFilter[] = ['off', 'crt', 'lcd', 'amber'];
 /** Retro fonts: none, pixel titles only (body stays readable), terminal everywhere, pixel everywhere. */
 export type RetroFont = 'off' | 'titles' | 'terminal' | 'pixel';
 export const RETRO_FONTS: RetroFont[] = ['off', 'titles', 'terminal', 'pixel'];
+const CVD_KEY = 'fm.colorblind';
+const READ_FONT_KEY = 'fm.readFont';
+/** Red-green (protanopia / deuteranopia, the most common): blue against orange. Blue-yellow (tritanopia): teal against red. */
+export type ColorBlind = 'off' | 'redgreen' | 'blueyellow';
+export const COLOR_BLIND: ColorBlind[] = ['off', 'redgreen', 'blueyellow'];
+/** OpenDyslexic (weighted letter bottoms) or Atkinson Hyperlegible (letters told apart, made for low vision). */
+export type ReadFont = 'off' | 'dyslexic' | 'legible';
+export const READ_FONTS: ReadFont[] = ['off', 'dyslexic', 'legible'];
 const systemReduced = () => {
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -77,6 +85,12 @@ interface SettingsState {
   /** Retro font, independent of the filter. */
   retroFont: RetroFont;
   setRetroFont: (f: RetroFont) => void;
+  /** Colour-blind palette for the colours that carry meaning (good / bad, health, attribute scale, home / away). */
+  colorblind: ColorBlind;
+  setColorblind: (c: ColorBlind) => void;
+  /** Reading font for the body text (titles keep theirs). */
+  readFont: ReadFont;
+  setReadFont: (f: ReadFont) => void;
 }
 
 export const useSettings = create<SettingsState>()((set) => ({
@@ -133,6 +147,22 @@ export const useSettings = create<SettingsState>()((set) => ({
   setRetroFont: (retroFont) => {
     write(RETRO_FONT_KEY, retroFont);
     set({ retroFont });
+  },
+  colorblind: (() => {
+    const v = read(CVD_KEY);
+    return COLOR_BLIND.includes(v as ColorBlind) ? (v as ColorBlind) : 'off';
+  })(),
+  setColorblind: (colorblind) => {
+    write(CVD_KEY, colorblind);
+    set({ colorblind });
+  },
+  readFont: (() => {
+    const v = read(READ_FONT_KEY);
+    return READ_FONTS.includes(v as ReadFont) ? (v as ReadFont) : 'off';
+  })(),
+  setReadFont: (readFont) => {
+    write(READ_FONT_KEY, readFont);
+    set({ readFont });
   },
   volume: (() => {
     const v = Number(read(VOLUME_KEY));
