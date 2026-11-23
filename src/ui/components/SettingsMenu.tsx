@@ -4,14 +4,14 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { LANGS } from '../../core/i18n.ts';
-import { LAYOUTS, TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
+import { LAYOUTS, RETRO_FILTERS, RETRO_FONTS, TEXT_SIZES, THEMES, useSettings, useT } from '../i18n/index.ts';
 import type { StringKey } from '../i18n/strings.ts';
 import { UiIcon } from '../icons/Icon.tsx';
 import { play, SOUND_ENABLED } from '../sound/sfx.ts';
 
 export function SettingsMenu() {
   const { t } = useT();
-  const { lang, setLang, theme, setTheme, textSize, setTextSize, effects, setEffects, volume, setVolume, layout, setLayout } = useSettings();
+  const { lang, setLang, theme, setTheme, textSize, setTextSize, effects, setEffects, volume, setVolume, layout, setLayout, retro, setRetro, retroFont, setRetroFont } = useSettings();
   // Volume before muting, to come back to it.
   const before = useRef(volume || 0.5);
   const [open, setOpen] = useState(false);
@@ -49,13 +49,12 @@ export function SettingsMenu() {
               ))}
             </div>
           </div>
-          <div className="settings-block">
+          <div className="settings-line">
             <span className="settings-label">{t('settings.text')}</span>
-            <div className="opt-seg text-sizes" role="radiogroup">
+            <div className="opt-seg text-sizes" role="radiogroup" aria-label={t('settings.text')}>
               {TEXT_SIZES.map((s, i) => (
                 <button key={s} className={s === textSize ? 'on' : ''} onClick={() => setTextSize(s)} role="radio" aria-checked={s === textSize} title={t(`text.${s}` as StringKey)}>
-                  <span className="ts-a" style={{ fontSize: `${0.9 + i * 0.22}rem` }}>A</span>
-                  <small>{t(`text.short.${s}` as StringKey)}</small>
+                  <span className={`ts-a s${i}`}>A</span>
                 </button>
               ))}
             </div>
@@ -94,6 +93,26 @@ export function SettingsMenu() {
               <i />
               <span>{t(effects === 'full' ? 'settings.on' : 'settings.off')}</span>
             </button>
+          </div>
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.retro')}</span>
+            <div className="opt-seg retro-opts" role="radiogroup" aria-label={t('settings.retro')}>
+              {RETRO_FILTERS.map((f) => (
+                <button key={f} className={f === retro ? 'on' : ''} onClick={() => setRetro(f)} role="radio" aria-checked={f === retro} title={f === 'off' ? undefined : t(`retro.tip.${f}` as StringKey)}>
+                  <small>{t(`retro.${f}` as StringKey)}</small>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="settings-block">
+            <span className="settings-label">{t('settings.retroFont')}</span>
+            <div className="opt-seg retro-opts" role="radiogroup" aria-label={t('settings.retroFont')}>
+              {RETRO_FONTS.map((f) => (
+                <button key={f} className={`rf-${f} ${f === retroFont ? 'on' : ''}`} onClick={() => setRetroFont(f)} role="radio" aria-checked={f === retroFont} title={f === 'off' ? undefined : t(`retroFont.tip.${f}` as StringKey)}>
+                  <small>{t(`retroFont.${f}` as StringKey)}</small>
+                </button>
+              ))}
+            </div>
           </div>
           {SOUND_ENABLED && (
           <div className="settings-line">

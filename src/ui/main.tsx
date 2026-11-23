@@ -8,6 +8,12 @@ import '@fontsource/inter/700.css';
 import '@fontsource/spectral-sc/500.css';
 import '@fontsource/spectral-sc/600.css';
 import '@fontsource/spectral-sc/700.css';
+import '@fontsource/pixelify-sans/400.css';
+import '@fontsource/pixelify-sans/600.css';
+import '@fontsource/pixelify-sans/700.css';
+import '@fontsource/vt323/400.css';
+import '@fontsource/silkscreen/400.css';
+import '@fontsource/silkscreen/700.css';
 import './styles.css';
 
 createRoot(document.getElementById('root')!).render(
