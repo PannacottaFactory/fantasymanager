@@ -213,6 +213,12 @@ add a new bullet for a new one.
 - **Stable names** (`generateTeamName`): six kinds (adjective + noun, noun of place, order of emblem, order of place,
   standalone, figure's troupe), same draws in every language (indices modulo each list); French names carry no leading
   article (« face à Les … »). EN / FR team-name lists are index-aligned (same draw = same name translated).
+- **Stable crests** (`data/crest.ts`, `CrestEditor` on the new-game form): emblem (96 game-icons) on a field of two colours
+  split by a pattern, emblem in any colour. The player picks from 28 colours, 18 patterns (plein, parti, coupé, tranché,
+  taillé, écartelé, écartelé en sautoir, gironné, chevron, chef, bordure, pal, fasce, croix, sautoir, palé, fascé,
+  échiqueté) and 29 emblem colours (gold, silver, black + field colours). AI stables draw theirs from the id with the
+  classic palette only (`CREST_CLASSIC_*`, 12 colours, 6 patterns, gold / silver / black) so their crests never change;
+  the « Au hasard » button uses `defaultCrest(seed, true)` (whole palette, a coloured emblem one time in three).
 - **Name cultures** (`data/names.ts`, 24): winged beasts `beast`, wolves / hounds / werebeasts `wild`, raptor / salamander
   `saurian`; surnames index-aligned with `FR_SURNAMES` (tested). Syllables are joined without a doubled vowel at the
   seam. Coaches: 40 % a person's name (`personName`, the managers' pool), else a creature name of a random species.

@@ -129,7 +129,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
   const [squad, setSquad] = useState<StartingSquad>('solid');
   const [ironman, setIronman] = useState(false);
   const [more, setMore] = useState(false);
-  const [crest, setCrest] = useState<TeamCrest>(() => defaultCrest(randomSeed()));
+  const [crest, setCrest] = useState<TeamCrest>(() => defaultCrest(randomSeed(), true));
 
   const start = () => {
     const taken = slots?.[into];

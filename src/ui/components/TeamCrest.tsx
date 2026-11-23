@@ -28,6 +28,55 @@ function Division({ pattern, color }: { pattern: CrestPattern; color: string }) 
       );
     case 'chevron':
       return <polygon points="0,17 12,8 24,17 24,22 12,13 0,22" fill={color} />;
+    case 'bendSinister':
+      return <polygon points="0,0 24,0 0,24" fill={color} />;
+    case 'perSaltire':
+      return <polygon points="0,0 24,0 12,12.5 24,25 0,25 12,12.5" fill={color} />;
+    case 'gyronny':
+      return <polygon points="12,12 0,0 12,0 12,12 24,0 24,12 12,12 24,24 12,24 12,12 0,24 0,12" fill={color} />;
+    case 'chief':
+      return <rect x="0" y="0" width="24" height="8" fill={color} />;
+    case 'bordure':
+      return <path d={SHIELD} fill="none" stroke={color} strokeWidth="5" />;
+    case 'stripe':
+      return <rect x="8.5" y="0" width="7" height="24" fill={color} />;
+    case 'band':
+      return <rect x="0" y="9" width="24" height="7" fill={color} />;
+    case 'cross':
+      return (
+        <>
+          <rect x="9.75" y="0" width="4.5" height="24" fill={color} />
+          <rect x="0" y="8.5" width="24" height="4.5" fill={color} />
+        </>
+      );
+    case 'saltire':
+      return <path d="M0 0 L24 25 M24 0 L0 25" stroke={color} strokeWidth="4" />;
+    case 'paly':
+      return (
+        <>
+          {[0, 1, 2].map((i) => (
+            <rect key={i} x={2.5 + (19 / 6) * (2 * i + 1)} y="0" width={19 / 6} height="24" fill={color} />
+          ))}
+        </>
+      );
+    case 'barry':
+      return (
+        <>
+          {[0, 1, 2].map((i) => (
+            <rect key={i} x="0" y={2.5 + (20 / 6) * (2 * i + 1)} width="24" height={20 / 6} fill={color} />
+          ))}
+        </>
+      );
+    case 'checky':
+      return (
+        <>
+          {Array.from({ length: 16 }, (_, k) => [k % 4, Math.floor(k / 4)] as const)
+            .filter(([i, j]) => (i + j) % 2 === 1)
+            .map(([i, j]) => (
+              <rect key={`${i}-${j}`} x={2.5 + i * 4.75} y={2.5 + j * 5} width="4.75" height="5" fill={color} />
+            ))}
+        </>
+      );
     default:
       return null;
   }
@@ -70,8 +119,8 @@ export function CrestEditor({ value, onChange }: { value: TeamCrest; onChange: (
   return (
     <div className="crest-editor">
       <div className="crest-preview">
-        <CrestShield crest={value} size={84} />
-        <button type="button" className="btn small" onClick={() => onChange(defaultCrest(randomSeed()))}>
+        <CrestShield crest={value} size={120} />
+        <button type="button" className="btn small" onClick={() => onChange(defaultCrest(randomSeed(), true))}>
           <UiIcon name="dice" /> {t('crest.random')}
         </button>
       </div>
@@ -81,7 +130,7 @@ export function CrestEditor({ value, onChange }: { value: TeamCrest; onChange: (
           <div className="crest-emblems">
             {CREST_EMBLEMS.map((e) => (
               <button key={e} type="button" className={`crest-emblem ${value.emblem === e ? 'on' : ''}`} onClick={() => set({ emblem: e })} aria-label={e}>
-                <svg viewBox={ICON_VIEWBOX} width="22" height="22" aria-hidden="true">
+                <svg viewBox={ICON_VIEWBOX} width="24" height="24" aria-hidden="true">
                   <g dangerouslySetInnerHTML={{ __html: CREST_ICONS[e] ?? '' }} />
                 </svg>
               </button>
@@ -106,7 +155,7 @@ export function CrestEditor({ value, onChange }: { value: TeamCrest; onChange: (
           <div className="crest-patterns">
             {CREST_PATTERNS.map((p) => (
               <button key={p} type="button" className={`crest-pattern ${value.pattern === p ? 'on' : ''}`} onClick={() => set({ pattern: p })} title={t(`crest.p.${p}` as StringKey)}>
-                <CrestShield crest={{ ...value, pattern: p, emblem: '' }} size={26} />
+                <CrestShield crest={{ ...value, pattern: p, emblem: '' }} size={30} />
               </button>
             ))}
           </div>
