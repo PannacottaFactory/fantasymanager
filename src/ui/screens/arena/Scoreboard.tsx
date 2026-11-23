@@ -231,7 +231,7 @@ function FighterCard({ c, r, side, fx, acting, lunge, cast, focus, onSelect, ent
           {c.state === 'bench' && <span className="tag">{t('tag.bench')}</span>}
           <span className="spacer" />
           <span className="faint" style={{ fontSize: '0.786rem' }}>
-            <SpeciesIcon id={r.speciesId} /> {speciesName(r.speciesId, lang)}
+            {speciesName(r.speciesId, lang)}
           </span>
         </div>
         {c.state !== 'bench' && (

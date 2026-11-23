@@ -138,7 +138,7 @@ add a new bullet for a new one.
   status auras on cards (`AURA` in Scoreboard), KO dust + grey fall, revive light, crit label, victory confetti,
   score count-up (`useCountUp`, `RollingMoney`). Top bar treasury rolls and shows the weekly delta with coins.
 - **Live match dressing** (stays textual, columns kept): each fighter column = « Première ligne » block (cards with a shield
-  edge facing the opponent) · rampart showing the back line's cover (`coverPoints` / `coverReduction`, bar = share of the
+  edge facing the opponent; the species crest is large, the card's height on the outer side, `--fighter-crest`) · rampart showing the back line's cover (`coverPoints` / `coverReduction`, bar = share of the
   max, « Plus de couverture » when the front falls) · « Ligne arrière » block (cards a step back) · bench strip (compact quiet
   rows, always visible; creatures taken off go there). KO creatures stay in their line until the next break, then are
   carried to the bench (still KO, struck through; `retired` set in `LiveMatch`, display only). Cover label / wall colour

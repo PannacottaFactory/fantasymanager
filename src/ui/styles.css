@@ -775,7 +775,7 @@ ul.news li { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px;
 
 /* ——— Opponent scoreboard mirrored ——— */
 .mirror .panel-head { flex-direction: row-reverse; }
-.mirror .fighter { direction: rtl; grid-template-columns: 24px 1fr; }
+.mirror .fighter { direction: rtl; }
 .mirror .fighter .name, .mirror .fighter .tag, .mirror .fighter .faint, .mirror .fighter .mono,
 .mirror .fighter .bars > span, .mirror .fighter .fx span, .mirror .fighter .skill { direction: ltr; unicode-bidi: isolate; }
 .mirror .fighter .top { text-align: right; }
@@ -3213,7 +3213,8 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
 .fighter {
   position: relative;
   display: grid;
-  grid-template-columns: 24px 1fr;
+  grid-template-columns: var(--fighter-crest) minmax(0, 1fr);
+  --fighter-crest: 3.25rem;
   border-radius: var(--r-sm);
   background: var(--panel-2);
   outline: 2px solid transparent;
@@ -3223,6 +3224,8 @@ table.comp-list tr.comp-row td:first-child { border-left: 0; box-shadow: inset 3
   padding: 4px 6px;
   gap: 6px;
 }
+/* The species crest fills the card's height on the side (centred when status effects make the card taller). */
+.fighter > .crest { width: var(--fighter-crest); height: var(--fighter-crest); align-self: center; }
 .fighter .top { display: flex; gap: 6px; align-items: baseline; font-size: var(--fs-md); }
 .fighter .bars {
   display: grid;
