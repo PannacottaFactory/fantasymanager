@@ -2399,7 +2399,18 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
   font-size: clamp(2.2rem, min(4.6vw, 6.5vh), 3.8rem);
 }
 .start-ornament { display: flex; align-items: center; gap: 10px; width: min(420px, 80%); color: var(--accent); margin: 6px 0 6px; }
-.start-hero p.start-tagline { margin: 0; color: var(--muted); font-size: var(--fs-md); max-width: 760px; line-height: 1.4; }
+.start-hero p.start-tagline { margin: 0; color: var(--muted); font-size: var(--fs-body-sm); font-style: italic; max-width: 680px; line-height: 1.45; text-wrap: balance; }
+/* Lore under the title: letters light up in gold and cool down like embers (one shot), static under reduced effects. */
+.start-tagline .lore-w { display: inline-block; white-space: nowrap; --lore-end: var(--muted); }
+.start-tagline .lore-w.gold { --lore-end: var(--gold); font-weight: 600; }
+.lore .lore-c { opacity: 0; color: var(--lore-end); animation: lore-ember 2.4s ease-out calc(0.6s + var(--i) * 32ms) forwards; }
+@keyframes lore-ember {
+  0% { opacity: 0; color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+  25% { opacity: 1; color: color-mix(in srgb, var(--gold) 60%, #fff); text-shadow: 0 0 8px var(--gold); }
+  100% { opacity: 1; color: var(--lore-end); text-shadow: none; }
+}
+:root[data-effects='reduced'] .lore .lore-c { animation: none; opacity: 1; }
+.start-pitch { margin: 0; color: var(--muted); font-size: var(--fs-xs); opacity: 0.75; text-align: center; max-width: 640px; }
 .start-card {
   position: relative;
   display: flex;
@@ -2435,11 +2446,12 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 .start-links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; font-size: var(--fs-md); margin: 0; }
 /* Short screens: the tagline and the ornament step aside, descriptions keep one line. */
 @media (max-height: 860px) {
-  .start-ornament, .start-hero p.start-tagline { display: none; }
+  .start-ornament { display: none; }
+  .start-hero p.start-tagline { font-size: var(--fs-sm); max-width: 760px; }
   .diff-card .muted { display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 }
 @media (max-height: 720px) {
-  .diff-card .muted { display: none; }
+  .diff-card .muted, .start-hero p.start-tagline { display: none; }
 }
 @media (max-height: 800px) {
   .start { gap: 8px; }
@@ -2458,6 +2470,7 @@ button.bst-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(
 .dash-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 /* Card links (« Effectif → »): quiet until hovered. */
 /* Dashboard: cards of a row share their height; a little more air. */
+  .new-card ~ .start-pitch { display: none; }
 .dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; align-items: stretch; }
 .dash-card { display: flex; flex-direction: column; animation: fadein 0.4s ease-out both; gap: 10px; }
 /* Tables: lighter separators, a little more height per row. */

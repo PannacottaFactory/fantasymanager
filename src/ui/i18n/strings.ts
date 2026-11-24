@@ -548,7 +548,8 @@ export const en = {
   // Start screen
   'start.title': 'Welcome, manager',
   'start.intro':
-    'Run a stable of fantasy creatures in an arena league. You never control the fights: you build the squad, set the tactics and make the calls at the breaks, the simulation does the rest.',
+    'Since the dawn of time, creatures have fought for mastery of the world: endless wars, tears and fear. Then a peace-loving king took the throne and proclaimed the peace of the peoples. Battles left the fields for the arena, and the Fantasy Cup was born.',
+  'start.pitch': 'Your job: build the stable, set the tactics and make the calls at the breaks. The fights play out without you.',
   'start.new': 'New game',
   'start.newTag': 'New adventure',
   'start.continueTag': 'Your saved game',
@@ -2780,7 +2781,8 @@ export const fr: Record<StringKey, string> = {
 
   'start.title': 'Bienvenue, manager',
   'start.intro':
-    'Dirigez une écurie de créatures fantastiques dans une ligue d’arène. Vous ne contrôlez jamais les combats : vous bâtissez l’effectif, réglez la tactique et prenez les décisions pendant les pauses, la simulation fait le reste.',
+    'Depuis la nuit des temps, les créatures se disputent le monde : guerres sans fin, larmes et peur. Puis un roi pacifiste est monté sur le trône et a proclamé la paix des peuples. Les batailles ont quitté les champs pour l’arène : la Fantasy Cup était née.',
+  'start.pitch': 'Votre rôle : bâtir l’écurie, régler la tactique et trancher aux pauses. Les combats se déroulent sans vous.',
   'start.new': 'Nouvelle partie',
   'start.newTag': 'Nouvelle aventure',
   'start.continueTag': 'Votre partie en cours',

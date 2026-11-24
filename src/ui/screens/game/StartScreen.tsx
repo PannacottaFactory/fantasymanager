@@ -155,7 +155,7 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
           <b>◆</b>
           <i />
         </div>
-        <p className="start-tagline">{t('start.intro')}</p>
+        <LoreText text={t('start.intro')} />
       </header>
 
       {showSlots && (
@@ -316,6 +316,33 @@ export function StartScreen({ onCancel, onCreated }: { onCancel?: () => void; on
           </button>
         </p>
       )}
+      <p className="start-pitch">{t('start.pitch')}</p>
     </div>
+  );
+}
+
+/** The lore under the title, lit letter by letter like embers that cool down; the cup's name stays golden. */
+function LoreText({ text }: { text: string }) {
+  const words = text.split(' ');
+  let n = 0;
+  return (
+    <p className="start-tagline lore" aria-label={text}>
+      <span aria-hidden="true">
+        {words.map((w, wi) => {
+          const gold = (w === 'Fantasy' && words[wi + 1]?.startsWith('Cup')) || (w.startsWith('Cup') && words[wi - 1] === 'Fantasy');
+          const word = (
+            <span key={wi} className={gold ? 'lore-w gold' : 'lore-w'}>
+              {[...w].map((c, ci) => (
+                <span key={ci} className="lore-c" style={{ '--i': n++ } as React.CSSProperties}>
+                  {c}
+                </span>
+              ))}
+            </span>
+          );
+          n++; // the space between words takes a beat too
+          return wi < words.length - 1 ? [word, ' '] : word;
+        })}
+      </span>
+    </p>
   );
 }
