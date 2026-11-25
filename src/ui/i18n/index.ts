@@ -54,8 +54,8 @@ const READ_FONT_KEY = 'fm.readFont';
 export type ColorBlind = 'off' | 'redgreen' | 'blueyellow';
 export const COLOR_BLIND: ColorBlind[] = ['off', 'redgreen', 'blueyellow'];
 /** OpenDyslexic (weighted letter bottoms) or Atkinson Hyperlegible (letters told apart, made for low vision). */
-export type ReadFont = 'off' | 'dyslexic' | 'legible';
-export const READ_FONTS: ReadFont[] = ['off', 'dyslexic', 'legible'];
+export type ReadFont = 'off' | 'fira' | 'dyslexic' | 'legible';
+export const READ_FONTS: ReadFont[] = ['off', 'fira', 'dyslexic', 'legible'];
 const systemReduced = () => {
   try {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;

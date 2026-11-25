@@ -18,6 +18,9 @@ import '@fontsource/opendyslexic/400.css';
 import '@fontsource/opendyslexic/700.css';
 import '@fontsource/atkinson-hyperlegible/400.css';
 import '@fontsource/atkinson-hyperlegible/700.css';
+import '@fontsource/fira-sans/400.css';
+import '@fontsource/fira-sans/600.css';
+import '@fontsource/fira-sans/700.css';
 import './styles.css';
 
 createRoot(document.getElementById('root')!).render(

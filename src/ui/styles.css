@@ -2108,6 +2108,7 @@ table.data tr.ko-row .tag { background: var(--bad); color: #fff; border-color: v
 .retro-opts .rf-pixel small { font-family: 'Pixelify Sans', monospace; }
 .retro-opts .rd-dyslexic small { font-family: 'OpenDyslexic', sans-serif; }
 .retro-opts .rd-legible small { font-family: 'Atkinson Hyperlegible', sans-serif; }
+.retro-opts .rd-fira small { font-family: 'Fira Sans', sans-serif; }
 .themes button { padding-block: 6px; }
 .theme-chip { display: block; width: 2.4rem; height: 1.5rem; border-radius: var(--r-sm); border: 1px solid rgb(127 127 127 / 0.45); position: relative; overflow: hidden; }
 .theme-chip > i { position: absolute; left: 4px; right: 4px; bottom: 4px; height: 6px; border-radius: var(--r-sm); }
@@ -4721,4 +4722,5 @@ table.hn-table tr.champ td { background: color-mix(in srgb, var(--gold) 8%, tran
 /* Reading font (setting): body text only, titles keep theirs (retro titles too). Wins over a retro body font. */
 :root[data-read-font='dyslexic'] { --font-body: 'OpenDyslexic', 'Inter', sans-serif; }
 :root[data-read-font='dyslexic'] * { font-size-adjust: 0.44; }
+:root[data-read-font='fira'] { --font-body: 'Fira Sans', 'Inter', sans-serif; }
 :root[data-read-font='legible'] { --font-body: 'Atkinson Hyperlegible', 'Inter', sans-serif; }

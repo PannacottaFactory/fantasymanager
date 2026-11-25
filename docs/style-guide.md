@@ -144,3 +144,5 @@ yellow). Primary buttons use the accent; gold never fills a button.
 - 2026-11-22: one screen title component `<ScreenTitle>` for Squad, Tactics, Training, Recruitment, Staff, Facilities,
   Finances, Journal, News, League, Career, Encyclopedia, Test arena and Help (was five different looks: with or without icon, « — stable »
   suffix, inline margins); `.fin-title` / `.page-title` removed.
+- 2026-11-25: body font compared on real screens (Inter, Barlow Semi Condensed, Alegreya Sans, Fira Sans, IBM Plex Sans,
+  Pixelify Sans, Jersey 10 figures): Inter stays the default, **Fira Sans** added as a font option (`data-read-font='fira'`).
